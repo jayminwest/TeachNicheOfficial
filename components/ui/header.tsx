@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
@@ -95,8 +95,7 @@ function Header() {
                         <Button variant="ghost">Learn More</Button>
                     </Link>
                     <Button 
-                        onClick={() => {
-                            const pathname = usePathname();
+                        onClick={useCallback(() => {
                             if (pathname === '/') {
                                 document.querySelector('#email-signup')?.scrollIntoView({ 
                                     behavior: 'smooth'
@@ -104,7 +103,7 @@ function Header() {
                             } else {
                                 window.location.href = '/#email-signup';
                             }
-                        }}
+                        }, [pathname])}
                     >
                         Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                     </Button>
@@ -124,8 +123,7 @@ function Header() {
                                 </Link>
                                 <Button 
                                     className="w-full"
-                                    onClick={() => {
-                                        const pathname = usePathname();
+                                    onClick={useCallback(() => {
                                         if (pathname === '/') {
                                             document.querySelector('#email-signup')?.scrollIntoView({ 
                                                 behavior: 'smooth'
@@ -133,7 +131,7 @@ function Header() {
                                         } else {
                                             window.location.href = '/#email-signup';
                                         }
-                                    }}
+                                    }, [pathname])}
                                 >
                                     Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                                 </Button>

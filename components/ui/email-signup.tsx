@@ -24,7 +24,7 @@ export function EmailSignup() {
       setStatus("success");
       setMessage("Thanks for joining our waitlist! We'll keep you updated.");
       setEmail("");
-    } catch (error) {
+    } catch (_error) {
       setStatus("error");
       setMessage("Something went wrong. Please try again.");
     }

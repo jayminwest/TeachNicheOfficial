@@ -23,7 +23,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { user, loading } = useAuth()
 
@@ -110,6 +110,9 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
             />
           </div>
           
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
           <Button className="w-full mt-4" type="submit" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>

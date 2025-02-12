@@ -45,15 +45,15 @@ function Hero() {
   }, [titleNumber, titles]);
 
   return (
-    <div className="w-full relative">
-      <div className="absolute inset-0 z-0 h-[600px] overflow-hidden">
+    <div className="w-full relative h-[600px]">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src="/303_group.png"
           alt="303 Group"
           className="w-full h-full object-cover filter grayscale opacity-20"
         />
       </div>
-      <div className="container mx-auto relative z-10">
+      <div className="container mx-auto relative z-10 h-full">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
           <div className="bg-orange-100 dark:bg-orange-950 text-orange-950 dark:text-orange-400 px-6 py-3 rounded-full font-medium text-sm shadow-lg flex items-center gap-2 border border-orange-200 dark:border-orange-900">
             <span className="text-orange-700 dark:text-orange-200">Launching in:</span>

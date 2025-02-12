@@ -112,7 +112,7 @@ function Hero() {
                 });
               }}
             >
-              Join Waitlist <MoveRight className="w-4 h-4" />
+              Join Teacher Waitlist <MoveRight className="w-4 h-4" />
             </Button>
           </div>
         </div>

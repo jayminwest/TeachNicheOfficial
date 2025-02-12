@@ -104,6 +104,7 @@ export function Footer({
           </div>
           <div className="mt-6 text-sm leading-6 text-muted-foreground whitespace-nowrap lg:mt-0 lg:row-[1/3] lg:col-[1/4]">
             <div>{copyright.text}</div>
+            <div>Made with ❤️ for the kendama community</div>
             {copyright.license && <div>{copyright.license}</div>}
           </div>
         </div>

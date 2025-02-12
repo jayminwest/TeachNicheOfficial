@@ -45,11 +45,11 @@ function Hero() {
 
   return (
     <div className="w-full relative">
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 h-[600px]">
         <img
           src="/303_group.png"
           alt="303 Group"
-          className="w-full h-full object-cover filter grayscale opacity-10"
+          className="w-full h-full object-cover filter grayscale opacity-20"
         />
       </div>
       <div className="container mx-auto relative z-10">

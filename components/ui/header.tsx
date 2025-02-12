@@ -35,27 +35,27 @@ function Header() {
             items: [
                 {
                     title: "Our Mission",
-                    href: "/about#mission",
+                    href: "/about",
                 },
                 {
-                    title: "Our Vision",
-                    href: "/about#vision",
+                    title: "Our Story",
+                    href: "/about",
                 },
                 {
-                    title: "Meet the Team",
-                    href: "/about#team",
+                    title: "Values",
+                    href: "/about",
                 },
                 {
-                    title: "Success Stories",
-                    href: "/about#success-stories",
+                    title: "Why Teach Niche?",
+                    href: "/about",
                 },
                 {
-                    title: "Careers",
-                    href: "/careers",
+                    title: "Commission Structure",
+                    href: "/about",
                 },
                 {
-                    title: "Contact Us",
-                    href: "/contact",
+                    title: "Open Source Philosophy",
+                    href: "/about",
                 }
             ],
         }

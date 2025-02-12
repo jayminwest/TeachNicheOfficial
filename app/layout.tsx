@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Image from "next/image";
 import { Footer } from "@/components/ui/footer";
+import { Header } from "@/components/ui/header";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,10 +31,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        <Providers
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Header />
         <main className="flex-1">
           {children}
         </main>
-        <Footer 
+          <Footer 
           logo={<Image src="/next.svg" alt="Next.js Logo" width={24} height={24} className="dark:invert" />}
           brandName="Next.js"
           socialLinks={[
@@ -70,7 +79,8 @@ export default function RootLayout({
             text: "© 2024 Vercel, Inc. All rights reserved.",
             license: "Released under the MIT License"
           }}
-        />
+          />
+        </Providers>
       </body>
     </html>
   );

@@ -7,6 +7,8 @@ export default function Home() {
     <div className="flex flex-col">
       <div className="flex flex-col items-center justify-center p-8">
         <Hero />
+      </div>
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-16">
         <EmailSignup />
       </div>
       <Features />

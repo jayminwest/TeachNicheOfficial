@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom'
 
+// Mock lucide-react icons
+jest.mock('lucide-react', () => ({
+  BookOpen: () => 'BookOpen',
+  DollarSign: () => 'DollarSign',
+  Users: () => 'Users',
+  Shield: () => 'Shield',
+  Leaf: () => 'Leaf',
+  GraduationCap: () => 'GraduationCap'
+}))
+
 // Mock next/font
 jest.mock('next/font/google', () => ({
   Geist: () => ({

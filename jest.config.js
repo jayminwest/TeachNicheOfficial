@@ -11,8 +11,9 @@ const config = {
     '^@/(.*)$': '<rootDir>/$1',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(lucide-react)/)',
+    'node_modules/(?!(lucide-react|@lucide)/)'
   ],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',

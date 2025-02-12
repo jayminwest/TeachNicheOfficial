@@ -16,11 +16,10 @@ export function EmailSignup() {
     setStatus("loading");
 
     try {
-      const { error } = await supabase
+      await supabase
         .from("waitlist")
-        .insert([{ email, signed_up_at: new Date().toISOString() }]);
-
-      if (error) throw error;
+        .insert([{ email, signed_up_at: new Date().toISOString() }])
+        .throwOnError();
 
       setStatus("success");
       setMessage("Thanks for joining our waitlist! We'll keep you updated.");

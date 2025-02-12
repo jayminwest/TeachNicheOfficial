@@ -63,7 +63,7 @@ function Hero() {
           </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-3xl sm:text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular px-4">
-              <span className="text-spektr-cyan-50">Empower</span>
+              <span className="text-spektr-cyan-50">Support</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
                 &nbsp;
                 {titles.map((title, index) => (
@@ -91,8 +91,8 @@ function Hero() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center px-4">
-              A revolutionary platform connecting passionate educators with eager learners. 
-              Join our waitlist to be the first to know when we launch.
+              A community-driven platform helping kendama players share knowledge and make a living from their passion. 
+              Join our waitlist to be part of this growing movement.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 px-4 w-full max-w-xs sm:max-w-none justify-center">

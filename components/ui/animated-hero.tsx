@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -97,10 +98,20 @@ function Hero() {
             </p>
           </div>
           <div className="flex flex-row gap-3">
-            <Button size="lg" className="gap-4" variant="outline">
-              Learn More <MoveRight className="w-4 h-4" />
-            </Button>
-            <Button size="lg" className="gap-4">
+            <Link href="/about">
+              <Button size="lg" className="gap-4" variant="outline">
+                Learn More <MoveRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Button 
+              size="lg" 
+              className="gap-4"
+              onClick={() => {
+                document.querySelector('#email-signup')?.scrollIntoView({ 
+                  behavior: 'smooth'
+                });
+              }}
+            >
               Join Waitlist <MoveRight className="w-4 h-4" />
             </Button>
           </div>

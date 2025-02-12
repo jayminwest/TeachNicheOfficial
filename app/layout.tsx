@@ -70,6 +70,10 @@ export default function RootLayout({
               {
                 href: "https://teach-niche.com/privacy",
                 label: "Privacy Policy"
+              },
+              {
+                href: "/legal",
+                label: "Legal Information"
               }
             ]}
             copyright={{

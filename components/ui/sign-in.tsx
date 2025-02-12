@@ -25,7 +25,12 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+
+  // Wait for auth to initialize before redirecting
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
   // Redirect if user is already logged in
   if (user) {

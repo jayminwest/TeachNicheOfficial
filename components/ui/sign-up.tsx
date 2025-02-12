@@ -24,6 +24,18 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { loading, user } = useAuth()
+
+  // Wait for auth to initialize
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  // Redirect if already logged in
+  if (user) {
+    router.push('/dashboard')
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

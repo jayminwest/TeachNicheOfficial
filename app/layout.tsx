@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Teach Niche",
   description: "A platform for niche educational content",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

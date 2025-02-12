@@ -30,7 +30,7 @@ function Header() {
         },
         {
             title: "About Us",
-            description: "Learn more about TandemFlow's mission and vision",
+            description: "Learn more about Teach Niche's mission and vision",
             items: [
                 {
                     title: "Our Mission",
@@ -184,7 +184,7 @@ function Header() {
                     </NavigationMenu>
                 </div>
                 <div className="flex justify-center flex-1 lg:flex-none">
-                    <p className="font-semibold text-xl">TandemFlow</p>
+                    <p className="font-semibold text-xl">Teach Niche</p>
                 </div>
                 <div className="hidden lg:flex justify-end w-full gap-4">
                     {user ? (
@@ -206,7 +206,7 @@ function Header() {
 
                             <Dialog open={showSignIn} onOpenChange={setShowSignIn}>
                                 <DialogContent className="sm:max-w-[400px] p-0">
-                                    <DialogTitle className="sr-only">Sign in to TandemFlow</DialogTitle>
+                                    <DialogTitle className="sr-only">Sign in to Teach Niche</DialogTitle>
                                     <SignInPage onSwitchToSignUp={() => {
                                       setShowSignIn(false);
                                       setShowSignUp(true);
@@ -216,7 +216,7 @@ function Header() {
 
                             <Dialog open={showSignUp} onOpenChange={setShowSignUp}>
                                 <DialogContent className="sm:max-w-[400px] p-0">
-                                    <DialogTitle className="sr-only">Create your TandemFlow account</DialogTitle>
+                                    <DialogTitle className="sr-only">Create your Teach Niche account</DialogTitle>
                                     <SignUpPage onSwitchToSignIn={() => {
                                       setShowSignUp(false);
                                       setShowSignIn(true);

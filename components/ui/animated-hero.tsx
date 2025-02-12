@@ -2,11 +2,31 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoveRight, PhoneCall } from "lucide-react";
+import { MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number}>({ days: 0, hours: 0, minutes: 0 });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const launchDate = new Date('2025-03-01T00:00:00');
+      const now = new Date();
+      const difference = launchDate.getTime() - now.getTime();
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      
+      setTimeLeft({ days, hours, minutes });
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
   const titles = useMemo(
     () => ["educators", "creators", "mentors", "experts", "teachers"],
     []
@@ -27,10 +47,8 @@ function Hero() {
     <div className="w-full">
       <div className="container mx-auto">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
-          <div>
-            <Button variant="secondary" size="sm" className="gap-4">
-              Read our launch article <MoveRight className="w-4 h-4" />
-            </Button>
+          <div className="bg-orange-100 text-orange-600 px-4 py-2 rounded-full font-medium text-sm">
+            Launching in: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
           </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">

@@ -1,3 +1,4 @@
+import Image from "next/image"
 import {
   Accordion,
   AccordionContent,
@@ -10,10 +11,11 @@ export default function AboutPage() {
     <div>
       <div className="relative h-[400px] w-full mb-16">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="/303_group.png"
             alt="303 Kendama Group"
-            className="w-full h-full object-cover filter grayscale"
+            fill
+            className="object-cover filter grayscale"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
@@ -183,7 +185,7 @@ export default function AboutPage() {
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Join Our Community</h2>
             <p className="text-lg max-w-2xl mx-auto">
-              Whether you're here to teach or learn, Teach Niche provides the tools and support
+              Whether you&apos;re here to teach or learn, Teach Niche provides the tools and support
               you need to succeed. Join our growing community of educators and learners today.
             </p>
           </section>

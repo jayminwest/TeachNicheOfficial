@@ -45,8 +45,8 @@ export function EmailSignup() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-left max-w-xl mx-auto">
           {[
             "Keep 85% of your course revenue",
-            "Free course creation tools",
-            "Dedicated teacher support",
+            "Flexible teaching schedule",
+            "Be an early platform adopter",
             "Access to growing student base",
           ].map((benefit) => (
             <motion.div

@@ -12,7 +12,7 @@ import {
 import { Input } from './input'
 import { Label } from './label'
 import { Icons } from './icons'
-import { signInWithEmail, signInWithGithub, signInWithGoogle } from '@/auth/supabaseAuth'
+import { signInWithEmail, signInWithGoogle } from '@/auth/supabaseAuth'
 import { useAuth } from '@/auth/AuthContext'
 
 interface SignInPageProps {
@@ -42,14 +42,6 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
     }
   }
 
-  const handleGithubSignIn = async () => {
-    try {
-      const { error } = await signInWithGithub()
-      if (error) throw error
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with GitHub')
-    }
-  }
 
   const handleGoogleSignIn = async () => {
     try {
@@ -80,16 +72,12 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         </CardHeader>
         <CardContent className="grid gap-4">
           <form onSubmit={handleSignIn} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-            <Button size="sm" variant="outline" type="button" className="h-7" onClick={handleGithubSignIn}>
-              <Icons.gitHub className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-            <Button size="sm" variant="outline" type="button" className="h-7" onClick={handleGoogleSignIn}>
-              <Icons.google className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-          </div>
+            <div className="grid grid-cols-1 gap-4">
+              <Button size="sm" variant="outline" type="button" className="h-7" onClick={handleGoogleSignIn}>
+                <Icons.google className="mr-2 h-4 w-4" />
+                Google
+              </Button>
+            </div>
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

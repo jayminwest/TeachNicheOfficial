@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icons } from '@/components/ui/icons'
-import { signUp, signInWithGithub, signInWithGoogle } from '@/auth/supabaseAuth'
+import { signUp, signInWithGoogle } from '@/auth/supabaseAuth'
 import { useAuth } from '@/auth/AuthContext'
 
 interface SignUpPageProps {
@@ -44,13 +44,6 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
     router.push('/') // or wherever you want to redirect
   }
 
-  const handleGithubSignIn = async () => {
-    setIsLoading(true)
-    setError(null)
-    const { error } = await signInWithGithub()
-    if (error) setError(error.message)
-    setIsLoading(false)
-  }
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -82,18 +75,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              type="button" 
-              className="h-7"
-              onClick={handleGithubSignIn}
-              disabled={isLoading}
-            >
-              <Icons.gitHub className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
+          <div className="grid grid-cols-1 gap-4">
             <Button 
               size="sm" 
               variant="outline" 

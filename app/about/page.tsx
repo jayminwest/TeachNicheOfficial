@@ -7,7 +7,18 @@ import {
 
 export default function AboutPage() {
   return (
-    <div className="container mx-auto px-4 py-8 mt-16">
+    <div>
+      <div className="relative h-[400px] w-full mb-16">
+        <div className="absolute inset-0">
+          <img
+            src="/303_group.png"
+            alt="303 Kendama Group"
+            className="w-full h-full object-cover filter grayscale"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center">About Teach Niche</h1>
         
@@ -178,6 +189,7 @@ export default function AboutPage() {
           </section>
         </div>
       </div>
+    </div>
     </div>
   );
 }

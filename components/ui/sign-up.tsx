@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icons } from '@/components/ui/icons'
 import { signUp, signInWithGithub, signInWithGoogle } from '@/auth/supabaseAuth'
+import { useAuth } from '@/auth/AuthContext'
 
 interface SignUpPageProps {
   onSwitchToSignIn: () => void;

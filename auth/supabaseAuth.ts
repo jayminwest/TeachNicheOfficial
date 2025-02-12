@@ -15,9 +15,9 @@ export const signOut = async () => {
 }
 
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { data: { session }, error } = await supabase.auth.getSession()
   if (error) throw error
-  return user
+  return session?.user || null
 }
 
 export const signInWithGoogle = async () => {

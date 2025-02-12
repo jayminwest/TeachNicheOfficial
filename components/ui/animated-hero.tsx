@@ -47,8 +47,8 @@ function Hero() {
     <div className="w-full">
       <div className="container mx-auto">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
-          <div className="bg-orange-950 text-orange-400 px-6 py-3 rounded-full font-medium text-sm shadow-lg flex items-center gap-2">
-            <span className="text-orange-200">Launching in:</span>
+          <div className="bg-orange-100 dark:bg-orange-950 text-orange-950 dark:text-orange-400 px-6 py-3 rounded-full font-medium text-sm shadow-lg flex items-center gap-2 border border-orange-200 dark:border-orange-900">
+            <span className="text-orange-700 dark:text-orange-200">Launching in:</span>
             <span className="font-bold">{timeLeft.days}d</span>
             <span className="font-bold">{timeLeft.hours}h</span>
             <span className="font-bold">{timeLeft.minutes}m</span>

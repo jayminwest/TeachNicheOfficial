@@ -130,7 +130,7 @@ export default function AboutPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">🤝 Community-Driven Development</h4>
-                      <p>Teach Niche is built to grow and evolve according to the community's needs and feedback.</p>
+                      <p>Teach Niche is built to grow and evolve according to the needs and feedback of the community.</p>
                     </div>
                   </div>
                 </AccordionContent>
@@ -160,7 +160,7 @@ export default function AboutPage() {
                       <li><span className="font-semibold">Collaboration:</span> Contributions from developers and enthusiasts who want to help improve Teach Niche are welcome.</li>
                       <li><span className="font-semibold">Innovation:</span> Open sourcing encourages creative solutions and rapid enhancements, benefiting the entire community.</li>
                     </ul>
-                    <p>You can check out the repository on GitHub and see what's under the hood!</p>
+                    <p>You can check out the repository on GitHub and take a look under the hood!</p>
                   </div>
                 </AccordionContent>
               </AccordionItem>

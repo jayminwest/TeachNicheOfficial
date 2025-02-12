@@ -160,7 +160,9 @@ function Header() {
                     </NavigationMenu>
                 </div>
                 <div className="flex justify-center flex-1 lg:flex-none">
-                    <p className="font-semibold text-xl">Teach Niche</p>
+                    <Link href="/">
+                        <p className="font-semibold text-xl cursor-pointer">Teach Niche</p>
+                    </Link>
                 </div>
                 <div className="hidden lg:flex justify-end w-full gap-2 items-center">
                     <ThemeToggle />

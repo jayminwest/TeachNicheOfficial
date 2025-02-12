@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TeachNiche",
+  title: "Teach Niche",
   description: "A platform for niche educational content",
 };
 
@@ -43,7 +43,7 @@ export default function RootLayout({
           </main>
           <Footer 
             logo={<Image src="/next.svg" alt="Next.js Logo" width={24} height={24} className="dark:invert" />}
-            brandName="TeachNiche"
+            brandName="Teach Niche"
             socialLinks={[
               {
                 icon: <Image src="/vercel.svg" alt="Vercel" width={20} height={20} className="dark:invert" />,
@@ -53,30 +53,30 @@ export default function RootLayout({
             ]}
             mainLinks={[
               {
-                href: "https://teachniche.com/docs",
+                href: "https://teach-niche.com/docs",
                 label: "Documentation"
               },
               {
-                href: "https://teachniche.com/learn",
+                href: "https://teach-niche.com/learn",
                 label: "Learn"
               },
               {
-                href: "https://teachniche.com/templates",
+                href: "https://teach-niche.com/templates",
                 label: "Templates"
               }
             ]}
             legalLinks={[
               {
-                href: "https://teachniche.com/terms",
+                href: "https://teach-niche.com/terms",
                 label: "Terms of Service"
               },
               {
-                href: "https://teachniche.com/privacy",
+                href: "https://teach-niche.com/privacy",
                 label: "Privacy Policy"
               }
             ]}
             copyright={{
-              text: "© 2024 TeachNiche. All rights reserved.",
+              text: "© 2024 Teach Niche. All rights reserved.",
               license: "Released under the MIT License"
             }}
           />

@@ -66,16 +66,26 @@ export function Footer({
         <div className="border-t mt-6 pt-6 md:mt-4 md:pt-8 lg:grid lg:grid-cols-10">
           <nav className="lg:mt-0 lg:col-[4/11]">
             <ul className="list-none flex flex-wrap -my-1 -mx-2 lg:justify-end">
-              {mainLinks.map((link, i) => (
-                <li key={i} className="my-1 mx-2 shrink-0">
-                  <a
-                    href={link.href}
-                    className="text-sm text-primary underline-offset-4 hover:underline"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
+              <li className="my-1 mx-2 shrink-0">
+                <a
+                  href="https://www.instagram.com/teachniche/?hl=en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary underline-offset-4 hover:underline"
+                >
+                  Instagram
+                </a>
+              </li>
+              <li className="my-1 mx-2 shrink-0">
+                <a
+                  href="https://github.com/jayminwest/Teach-Niche"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary underline-offset-4 hover:underline"
+                >
+                  Github
+                </a>
+              </li>
             </ul>
           </nav>
           <div className="mt-6 lg:mt-0 lg:col-[4/11]">

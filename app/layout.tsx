@@ -64,15 +64,15 @@ export default function RootLayout({
             ]}
             legalLinks={[
               {
-                href: "/terms",
+                href: "/legal#terms",
                 label: "Terms of Service"
               },
               {
-                href: "/privacy",
+                href: "/legal#privacy",
                 label: "Privacy Policy"
               },
               {
-                href: "/legal",
+                href: "/legal#legal",
                 label: "Legal Information"
               }
             ]}

@@ -15,11 +15,7 @@ interface FooterProps {
   legalLinks: Array<{
     href: string
     label: string
-  }> = [
-    { href: "/legal#terms", label: "Terms of Service" },
-    { href: "/legal#privacy", label: "Privacy Policy" },
-    { href: "/legal#legal", label: "Legal Information" }
-  ]
+  }>
   copyright: {
     text: string
     license?: string
@@ -31,7 +27,11 @@ export function Footer({
   brandName,
   socialLinks,
   mainLinks,
-  legalLinks,
+  legalLinks = [
+    { href: "/legal#terms", label: "Terms of Service" },
+    { href: "/legal#privacy", label: "Privacy Policy" },
+    { href: "/legal#legal", label: "Legal Information" }
+  ],
   copyright,
 }: FooterProps) {
   return (

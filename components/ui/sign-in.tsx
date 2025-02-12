@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { Button } from './button'
 import {
   Card,
@@ -39,8 +39,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
     setError(null)
 
     try {
-      const { error } = await signInWithEmail(email, password)
-      if (error) throw error
+      await signInWithEmail(email, password)
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in')

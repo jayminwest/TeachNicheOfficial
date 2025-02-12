@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -30,10 +30,10 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
     setIsLoading(true)
     setError(null)
 
-    const { error } = await signUp(email, password)
-    
-    if (error) {
-      setError(error.message)
+    try {
+      await signUp(email, password)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign up')
       setIsLoading(false)
       return
     }

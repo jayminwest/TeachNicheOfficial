@@ -29,7 +29,7 @@ function Hero() {
     return () => clearInterval(timer);
   }, []);
   const titles = useMemo(
-    () => ["educators", "creators", "mentors", "experts", "teachers"],
+    () => ["beginners", "experts", "teachers", "legends", "players"],
     []
   );
 

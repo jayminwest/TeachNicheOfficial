@@ -93,9 +93,15 @@ function Header() {
                     <Link href="/about">
                         <Button variant="ghost">Learn More</Button>
                     </Link>
-                    <Link href="#waitlist">
-                        <Button>Join Waitlist</Button>
-                    </Link>
+                    <Button 
+                        onClick={() => {
+                            document.querySelector('#email-signup')?.scrollIntoView({ 
+                                behavior: 'smooth'
+                            });
+                        }}
+                    >
+                        Join Teacher Waitlist <MoveRight className="w-4 h-4" />
+                    </Button>
                 </div>
                 <div className="flex ml-auto lg:hidden">
                     <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
@@ -110,9 +116,16 @@ function Header() {
                                 <Link href="/about">
                                     <Button variant="ghost" className="w-full">Learn More</Button>
                                 </Link>
-                                <Link href="#waitlist">
-                                    <Button className="w-full">Join Waitlist</Button>
-                                </Link>
+                                <Button 
+                                    className="w-full"
+                                    onClick={() => {
+                                        document.querySelector('#email-signup')?.scrollIntoView({ 
+                                            behavior: 'smooth'
+                                        });
+                                    }}
+                                >
+                                    Join Teacher Waitlist <MoveRight className="w-4 h-4" />
+                                </Button>
                             </div>
                             {navigationItems.map((item) => (
                                 <div key={item.title}>

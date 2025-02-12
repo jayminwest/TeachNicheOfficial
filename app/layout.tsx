@@ -77,7 +77,7 @@ export default function RootLayout({
               }
             ]}
             copyright={{
-              text: "© 2024 Teach Niche. All rights reserved.",
+              text: "© 2025 Teach Niche, LLC. All rights reserved.",
               license: "Released under the MIT License"
             }}
           />

@@ -45,12 +45,14 @@ function Hero() {
 
   return (
     <div className="w-full relative">
-      <div className="absolute inset-0 z-0 h-[600px]">
-        <img
-          src="/303_group.png"
-          alt="303 Group"
-          className="w-full h-full object-cover filter grayscale opacity-20"
-        />
+      <div className="absolute inset-0 z-0 h-[600px] overflow-hidden">
+        <div className="relative w-[1200px] h-full mx-auto">
+          <img
+            src="/303_group.png"
+            alt="303 Group"
+            className="w-full h-full object-cover filter grayscale opacity-20"
+          />
+        </div>
       </div>
       <div className="container mx-auto relative z-10">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">

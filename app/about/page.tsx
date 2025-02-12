@@ -5,26 +5,31 @@ export default function AboutPage() {
         <h1 className="text-4xl font-bold mb-8 text-center">About Teach Niche</h1>
         
         <div className="space-y-8">
-          <section className="prose prose-lg max-w-none">
-            <p className="text-lg leading-relaxed mb-6">
-              Teach Niche is a revolutionary platform designed to empower educators and subject matter experts
-              to share their knowledge and monetize their expertise. We believe that everyone has unique insights
-              worth sharing, and we're here to make that process seamless and rewarding.
-            </p>
-          </section>
-
           <section className="bg-muted rounded-lg p-8 my-8">
             <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
             <p className="text-lg leading-relaxed">
-              To create a thriving ecosystem where passionate educators can connect with eager learners,
-              fostering a community of continuous learning and growth while providing sustainable income
-              opportunities for teachers.
+              The mission of Teach Niche is to create a space within the kendama community for players of all 
+              skill levels to share knowledge, support one another, and hone their abilities. Teach Niche 
+              places the community first and is dedicated to fostering growth, creating connections, and 
+              promoting more financial sustainability for the kendama community.
+            </p>
+          </section>
+
+          <section className="prose prose-lg max-w-none bg-card rounded-lg p-8">
+            <h2 className="text-2xl font-semibold mb-4">Our Story</h2>
+            <p className="text-lg leading-relaxed mb-4">
+              Hello! I'm Jaymin West, the founder of Teach Niche. I've played kendama for over seven years, 
+              and in that time, I've been fortunate enough to sesh with players from all over the world and 
+              have tried to form Teach Niche to fit the values of the kendama community as a whole.
+            </p>
+            <p className="text-lg leading-relaxed">
+              Teach Niche was born from a simple idea: to help kendama players make a living from what they love.
             </p>
           </section>
 
           <div className="grid md:grid-cols-2 gap-8 my-8">
             <div className="bg-card rounded-lg p-6 shadow-sm">
-              <h3 className="text-xl font-semibold mb-3">For Educators</h3>
+              <h3 className="text-xl font-semibold mb-3">For Kendama Players</h3>
               <ul className="space-y-2">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
@@ -42,7 +47,7 @@ export default function AboutPage() {
             </div>
 
             <div className="bg-card rounded-lg p-6 shadow-sm">
-              <h3 className="text-xl font-semibold mb-3">For Learners</h3>
+              <h3 className="text-xl font-semibold mb-3">For Students</h3>
               <ul className="space-y-2">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>

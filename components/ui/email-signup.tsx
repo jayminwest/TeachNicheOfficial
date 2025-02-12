@@ -38,16 +38,16 @@ export function EmailSignup() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold mb-3">Join Our Exclusive Launch List</h2>
+        <h2 className="text-3xl font-bold mb-3">Start Teaching with Us</h2>
         <p className="text-muted-foreground text-lg">
-          Be among the first educators to access our platform and receive:
+          Join our community of expert educators and start monetizing your expertise:
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-left max-w-xl mx-auto">
           {[
-            "Early access to the platform",
-            "Special founding member benefits",
-            "Priority support and onboarding",
-            "Exclusive launch pricing",
+            "Keep 85% of your course revenue",
+            "Free course creation tools",
+            "Dedicated teacher support",
+            "Access to growing student base",
           ].map((benefit) => (
             <motion.div
               key={benefit}

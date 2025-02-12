@@ -38,8 +38,8 @@ export default function AboutPage() {
           <section className="prose prose-lg max-w-none bg-card rounded-lg p-8 border-r-4 border-orange-500">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Our Story</h2>
             <p className="text-lg leading-relaxed mb-4">
-              Hello! I'm Jaymin West, the founder of Teach Niche. I've played kendama for over seven years, 
-              and in that time, I've been fortunate enough to sesh with players from all over the world and 
+              Hello! I&apos;m Jaymin West, the founder of Teach Niche. I&apos;ve played kendama for over seven years, 
+              and in that time, I&apos;ve been fortunate enough to sesh with players from all over the world and 
               have tried to form Teach Niche to fit the values of the kendama community as a whole.
             </p>
             <p className="text-lg leading-relaxed">
@@ -126,7 +126,7 @@ export default function AboutPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">🌱 Community Growth</h4>
-                      <p>By supporting each other, Teach Niche aims to elevate the entire kendama community, breaking the notion that kendama is "just a hobby."</p>
+                      <p>By supporting each other, Teach Niche aims to elevate the entire kendama community, breaking the notion that kendama is &quot;just a hobby.&quot;</p>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">🤝 Community-Driven Development</h4>

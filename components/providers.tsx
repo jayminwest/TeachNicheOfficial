@@ -3,6 +3,7 @@
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { type ThemeProviderProps } from "next-themes/dist/types"
+import { AuthProvider } from "@/auth/AuthContext"
 
 export function Providers({ children, ...props }: ThemeProviderProps) {
   const [mounted, setMounted] = React.useState(false)
@@ -17,7 +18,9 @@ export function Providers({ children, ...props }: ThemeProviderProps) {
 
   return (
     <NextThemesProvider {...props}>
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
     </NextThemesProvider>
   )
 }

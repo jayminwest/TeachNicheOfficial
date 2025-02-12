@@ -27,17 +27,6 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
   const router = useRouter()
   const { loading, user } = useAuth()
 
-  // Wait for auth to initialize
-  if (loading) {
-    return <div>Loading...</div>
-  }
-
-  // Redirect if already logged in
-  if (user) {
-    router.push('/dashboard')
-    return null
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -72,7 +61,18 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
   }
 
   return (
-    <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
+    <>
+      {loading ? (
+        <div className="flex min-h-[inherit] w-full items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      ) : user ? (
+        <>{router.push('/dashboard')}</>
+      ) : (
+        <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
       <form onSubmit={handleSubmit}>
         <Card className="w-full max-w-[400px]">
         <CardHeader className="space-y-1">
@@ -161,7 +161,9 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
         </CardFooter>
       </Card>
       </form>
-    </div>
+        </div>
+      )}
+    </>
   )
 }
 

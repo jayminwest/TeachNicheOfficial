@@ -81,19 +81,20 @@ export function EmailSignup() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col gap-2 w-full max-w-xs sm:max-w-none mx-auto">
           <Input
             type="email"
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="flex-1"
+            className="w-full"
           />
           <Button 
             type="submit" 
             disabled={status === "loading"}
-            className="px-8 py-2"
+            className="w-full sm:w-auto"
+            size="default"
           >
             {status === "loading" ? "Joining..." : "Join Teacher Waitlist"}
           </Button>

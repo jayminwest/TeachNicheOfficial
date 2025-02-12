@@ -97,15 +97,15 @@ function Hero() {
               Join our waitlist to be the first to know when we launch.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 px-4">
-            <Link href="/about">
-              <Button size="lg" className="gap-4" variant="outline">
+          <div className="flex flex-col gap-3 px-4 w-full max-w-xs sm:max-w-none">
+            <Link href="/about" className="w-full sm:w-auto">
+              <Button size="default" className="gap-2 w-full sm:w-auto" variant="outline">
                 Learn More <MoveRight className="w-4 h-4" />
               </Button>
             </Link>
             <Button 
-              size="lg" 
-              className="gap-4"
+              size="default"
+              className="gap-2 w-full sm:w-auto"
               onClick={() => {
                 document.querySelector('#email-signup')?.scrollIntoView({ 
                   behavior: 'smooth'

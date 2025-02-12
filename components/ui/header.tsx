@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import {
@@ -95,9 +96,14 @@ function Header() {
                     </Link>
                     <Button 
                         onClick={() => {
-                            document.querySelector('#email-signup')?.scrollIntoView({ 
-                                behavior: 'smooth'
-                            });
+                            const pathname = usePathname();
+                            if (pathname === '/') {
+                                document.querySelector('#email-signup')?.scrollIntoView({ 
+                                    behavior: 'smooth'
+                                });
+                            } else {
+                                window.location.href = '/#email-signup';
+                            }
                         }}
                     >
                         Join Teacher Waitlist <MoveRight className="w-4 h-4" />
@@ -119,9 +125,14 @@ function Header() {
                                 <Button 
                                     className="w-full"
                                     onClick={() => {
-                                        document.querySelector('#email-signup')?.scrollIntoView({ 
-                                            behavior: 'smooth'
-                                        });
+                                        const pathname = usePathname();
+                                        if (pathname === '/') {
+                                            document.querySelector('#email-signup')?.scrollIntoView({ 
+                                                behavior: 'smooth'
+                                            });
+                                        } else {
+                                            window.location.href = '/#email-signup';
+                                        }
                                     }}
                                 >
                                     Join Teacher Waitlist <MoveRight className="w-4 h-4" />

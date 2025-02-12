@@ -44,13 +44,7 @@ export default function RootLayout({
           <Footer 
             logo={<Image src="/next.svg" alt="Next.js Logo" width={24} height={24} className="dark:invert" />}
             brandName="Teach Niche"
-            socialLinks={[
-              {
-                icon: <Image src="/vercel.svg" alt="Vercel" width={20} height={20} className="dark:invert" />,
-                href: "https://vercel.com",
-                label: "Vercel"
-              }
-            ]}
+            socialLinks={[]}
             mainLinks={[
               {
                 href: "https://teach-niche.com/docs",

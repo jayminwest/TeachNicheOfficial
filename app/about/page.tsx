@@ -1,3 +1,10 @@
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8 mt-16">
@@ -64,6 +71,103 @@ export default function AboutPage() {
               </ul>
             </div>
           </div>
+
+          <section className="my-12">
+            <h2 className="text-2xl font-semibold mb-6">Learn More About Teach Niche</h2>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="values">
+                <AccordionTrigger>Values</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <h4 className="font-semibold mb-1">Community Collaboration</h4>
+                      <p>Teach Niche fosters a space where kendama players of all levels can connect, share, and grow together.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Growth and Learning</h4>
+                      <p>The platform is committed to continuous improvement, both in skills and as a community resource.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Integrity and Fairness</h4>
+                      <p>Teach Niche operates with transparency and ensures equitable opportunities for all community members.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Sustainability</h4>
+                      <p>The platform supports long-term growth for kendama enthusiasts and professionals alike.</p>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="why">
+                <AccordionTrigger>Why Teach Niche?</AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid sm:grid-cols-2 gap-6 pt-2">
+                    <div>
+                      <h4 className="font-semibold mb-1">💪 Empowerment</h4>
+                      <p>Teach Niche believes that top players should have the opportunity to benefit financially from their skills and knowledge.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">🎓 Education</h4>
+                      <p>The platform offers a diverse range of tutorials, from mastering specific tricks to improving competition performance and developing consistency.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">🌱 Community Growth</h4>
+                      <p>By supporting each other, Teach Niche aims to elevate the entire kendama community, breaking the notion that kendama is "just a hobby."</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">🤝 Community-Driven Development</h4>
+                      <p>Teach Niche is built to grow and evolve according to the community's needs and feedback.</p>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="commission">
+                <AccordionTrigger>Commission Structure</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche is committed to transparency and fairness in its operations. To sustain the platform and continue providing value to the community, Teach Niche charges a 15% commission on each transaction.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Fairness to Creators:</span> Creators retain 85% of their earnings from each sale.</li>
+                      <li><span className="font-semibold">Platform Sustainability:</span> The commission helps cover operational costs like hosting, development, and customer support, ensuring the platform remains available and continuously improving.</li>
+                      <li><span className="font-semibold">Community Investment:</span> By supporting the platform, users contribute to a sustainable ecosystem that benefits all members of the kendama community.</li>
+                    </ul>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="opensource">
+                <AccordionTrigger>Open Source Philosophy</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Transparency:</span> Users can see exactly how the platform works, fostering trust and accountability.</li>
+                      <li><span className="font-semibold">Collaboration:</span> Contributions from developers and enthusiasts who want to help improve Teach Niche are welcome.</li>
+                      <li><span className="font-semibold">Innovation:</span> Open sourcing encourages creative solutions and rapid enhancements, benefiting the entire community.</li>
+                    </ul>
+                    <p>You can check out the repository on GitHub and see what's under the hood!</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="growth">
+                <AccordionTrigger>Built to Grow with the Community</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>The best way to serve the kendama community is by listening and adapting to its needs.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Community Feedback:</span> Teach Niche actively seeks input from users to guide platform enhancements. User suggestions shape the future of Teach Niche.</li>
+                      <li><span className="font-semibold">Feature Requests:</span> Ideas for new features or improvements are welcome. Teach Niche is eager to implement changes that benefit everyone.</li>
+                      <li><span className="font-semibold">Continuous Improvement:</span> The development roadmap is flexible, allowing prioritization of updates that matter most to the community.</li>
+                    </ul>
+                    <p>By keeping the platform intentionally adaptable, Teach Niche ensures that it evolves in step with the community it serves.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </section>
 
           <section className="text-center bg-muted/50 rounded-lg p-8">
             <h2 className="text-2xl font-semibold mb-4">Join Our Community</h2>

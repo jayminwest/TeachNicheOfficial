@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 interface FooterProps {
@@ -26,7 +27,6 @@ export function Footer({
   logo,
   brandName,
   socialLinks,
-  mainLinks,
   legalLinks = [
     { href: "/legal#terms", label: "Terms of Service" },
     { href: "/legal#privacy", label: "Privacy Policy" },
@@ -38,14 +38,14 @@ export function Footer({
     <footer className="pb-6 pt-16 lg:pb-8 lg:pt-24">
       <div className="px-4 lg:px-8">
         <div className="md:flex md:items-start md:justify-between">
-          <a
+          <Link
             href="/"
             className="flex items-center gap-x-2"
             aria-label={brandName}
           >
             {logo}
             <span className="font-bold text-xl">{brandName}</span>
-          </a>
+          </Link>
           <ul className="flex list-none mt-6 md:mt-0 space-x-3">
             {socialLinks.map((link, i) => (
               <li key={i}>

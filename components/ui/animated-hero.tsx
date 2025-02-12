@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { MoveRight } from "lucide-react";
@@ -47,9 +48,10 @@ function Hero() {
   return (
     <div className="w-full relative h-[600px]">
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <img
+        <Image
           src="/303_group.png"
           alt="303 Group"
+          fill
           className="w-full h-full object-cover filter grayscale opacity-20"
         />
       </div>

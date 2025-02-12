@@ -45,8 +45,8 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
 
   const handleGoogleSignIn = async () => {
     try {
-      const { error } = await signInWithGoogle()
-      if (error) throw error
+      await signInWithGoogle()
+      router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     }
@@ -110,6 +110,9 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
             />
           </div>
           
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
           <Button className="w-full mt-4" type="submit" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>

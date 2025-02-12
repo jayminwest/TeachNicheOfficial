@@ -49,7 +49,9 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
     setIsLoading(true)
     setError(null)
     const { error } = await signInWithGoogle()
-    if (error) setError(error.message)
+    if (error) {
+      setError(error instanceof Error ? error.message : 'Failed to sign in with Google')
+    }
     setIsLoading(false)
   }
 

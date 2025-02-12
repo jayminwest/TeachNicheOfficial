@@ -1,3 +1,4 @@
+import Image from "next/image"
 import {
   Accordion,
   AccordionContent,
@@ -10,10 +11,11 @@ export default function AboutPage() {
     <div>
       <div className="relative h-[400px] w-full mb-16">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="/303_group.png"
             alt="303 Kendama Group"
-            className="w-full h-full object-cover filter grayscale"
+            fill
+            className="object-cover filter grayscale"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
@@ -36,8 +38,8 @@ export default function AboutPage() {
           <section className="prose prose-lg max-w-none bg-card rounded-lg p-8 border-r-4 border-orange-500">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Our Story</h2>
             <p className="text-lg leading-relaxed mb-4">
-              Hello! I'm Jaymin West, the founder of Teach Niche. I've played kendama for over seven years, 
-              and in that time, I've been fortunate enough to sesh with players from all over the world and 
+              Hello! I&apos;m Jaymin West, the founder of Teach Niche. I&apos;ve played kendama for over seven years, 
+              and in that time, I&apos;ve been fortunate enough to sesh with players from all over the world and 
               have tried to form Teach Niche to fit the values of the kendama community as a whole.
             </p>
             <p className="text-lg leading-relaxed">
@@ -124,11 +126,11 @@ export default function AboutPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">🌱 Community Growth</h4>
-                      <p>By supporting each other, Teach Niche aims to elevate the entire kendama community, breaking the notion that kendama is "just a hobby."</p>
+                      <p>By supporting each other, Teach Niche aims to elevate the entire kendama community, breaking the notion that kendama is &apos;just a hobby.&apos;</p>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">🤝 Community-Driven Development</h4>
-                      <p>Teach Niche is built to grow and evolve according to the community's needs and feedback.</p>
+                      <p>Teach Niche is built to grow and evolve according to the needs and feedback of the community.</p>
                     </div>
                   </div>
                 </AccordionContent>
@@ -158,7 +160,7 @@ export default function AboutPage() {
                       <li><span className="font-semibold">Collaboration:</span> Contributions from developers and enthusiasts who want to help improve Teach Niche are welcome.</li>
                       <li><span className="font-semibold">Innovation:</span> Open sourcing encourages creative solutions and rapid enhancements, benefiting the entire community.</li>
                     </ul>
-                    <p>You can check out the repository on GitHub and see what's under the hood!</p>
+                    <p>You can check out the repository on GitHub and take a look under the hood!</p>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -183,7 +185,7 @@ export default function AboutPage() {
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Join Our Community</h2>
             <p className="text-lg max-w-2xl mx-auto">
-              Whether you're here to teach or learn, Teach Niche provides the tools and support
+              Whether you&rsquo;re here to teach or learn, Teach Niche provides the tools and support
               you need to succeed. Join our growing community of educators and learners today.
             </p>
           </section>

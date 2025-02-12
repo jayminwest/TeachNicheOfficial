@@ -21,11 +21,14 @@ export const getCurrentUser = async () => {
 }
 
 export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-  })
-  if (error) throw error
-  return data
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    })
+    return { data, error }
+  } catch (err) {
+    return { data: null, error: err as Error }
+  }
 }
 
 

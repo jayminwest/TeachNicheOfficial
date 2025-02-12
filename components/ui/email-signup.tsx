@@ -32,7 +32,7 @@ export function EmailSignup() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-12 px-4">
+    <div id="email-signup" className="w-full max-w-2xl mx-auto py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

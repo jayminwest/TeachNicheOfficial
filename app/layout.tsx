@@ -45,7 +45,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer 
-            logo={<Image src="/next.svg" alt="Next.js Logo" width={24} height={24} className="dark:invert" />}
+            logo={<Image src="/favicon.png" alt="Teach Niche Logo" width={24} height={24} />}
             brandName="Teach Niche"
             socialLinks={[]}
             mainLinks={[

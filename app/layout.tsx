@@ -50,25 +50,25 @@ export default function RootLayout({
             socialLinks={[]}
             mainLinks={[
               {
-                href: "https://teach-niche.com/docs",
+                href: "/docs",
                 label: "Documentation"
               },
               {
-                href: "https://teach-niche.com/learn",
+                href: "/learn",
                 label: "Learn"
               },
               {
-                href: "https://teach-niche.com/templates",
+                href: "/templates",
                 label: "Templates"
               }
             ]}
             legalLinks={[
               {
-                href: "https://teach-niche.com/terms",
+                href: "/terms",
                 label: "Terms of Service"
               },
               {
-                href: "https://teach-niche.com/privacy",
+                href: "/privacy",
                 label: "Privacy Policy"
               },
               {

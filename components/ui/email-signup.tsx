@@ -32,17 +32,17 @@ export function EmailSignup() {
   };
 
   return (
-    <div id="email-signup" className="w-full max-w-2xl mx-auto py-12 px-4">
+    <div id="email-signup" className="w-full max-w-2xl mx-auto py-8 sm:py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold mb-3">Join Our Teacher Waitlist</h2>
-        <p className="text-muted-foreground text-lg">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-3 px-2">Join Our Teacher Waitlist</h2>
+        <p className="text-muted-foreground text-base sm:text-lg px-2">
           Be one of our first teachers and start sharing your kendama expertise:
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-left max-w-xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 text-left max-w-xl mx-auto px-4">
           {[
             "Keep 85% of your course revenue",
             "Flexible teaching schedule",

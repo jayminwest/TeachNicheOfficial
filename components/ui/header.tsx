@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "./button";
+import { ThemeToggle } from "./theme-toggle";
 import { signOut, getCurrentUser } from "@/auth/supabaseAuth";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogTitle } from "./dialog";
@@ -186,7 +187,8 @@ function Header() {
                 <div className="flex justify-center flex-1 lg:flex-none">
                     <p className="font-semibold text-xl">Teach Niche</p>
                 </div>
-                <div className="hidden lg:flex justify-end w-full gap-2">
+                <div className="hidden lg:flex justify-end w-full gap-2 items-center">
+                    <ThemeToggle />
                     <Link href="/lessons">
                         <Button variant="ghost">View Lessons</Button>
                     </Link>
@@ -238,6 +240,9 @@ function Header() {
                     {isOpen && (
                         <div className="absolute top-20 border-t flex flex-col w-full left-0 right-0 bg-background shadow-lg py-4 px-4 gap-6">
                             <div className="flex flex-col gap-4">
+                                <div className="flex justify-end">
+                                    <ThemeToggle />
+                                </div>
                                 <Link href="/lessons">
                                     <Button variant="ghost" className="w-full">View Lessons</Button>
                                 </Link>

@@ -7,7 +7,7 @@ export default function LegalPage() {
         <h2 className="text-2xl font-semibold mb-4">Terms of Service</h2>
         <div className="prose max-w-none">
           <h3 className="text-xl font-semibold mt-6 mb-3">1. Acceptance of Terms</h3>
-          <p>By accessing or using the Teach Niche website (the "Service"), you acknowledge that you have read, understood, and agree to be bound by these Terms of Use, the Privacy Policy, and the Cookie Policy (collectively, the "Terms"). If you do not agree to these Terms, please do not use the Service.</p>
+          <p>By accessing or using the Teach Niche website (the &ldquo;Service&rdquo;), you acknowledge that you have read, understood, and agree to be bound by these Terms of Use, the Privacy Policy, and the Cookie Policy (collectively, the &ldquo;Terms&rdquo;). If you do not agree to these Terms, please do not use the Service.</p>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">2. Amendments to the Terms</h3>
           <p>Teach Niche reserves the right to modify or update these Terms at any time without prior notice. Your continued use of the Service following any changes constitutes acceptance of the revised Terms. We recommend that you review these Terms periodically.</p>
@@ -33,7 +33,7 @@ export default function LegalPage() {
           <p>All content on this website is either owned by or licensed to Teach Niche. By uploading content, you grant Teach Niche a non-exclusive, worldwide, royalty-free license to use, reproduce, display, and distribute such content.</p>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">6. Disclaimer of Warranties</h3>
-          <p>The Service and all content are provided on an "as is" and "as available" basis without any warranties of any kind, either express or implied.</p>
+          <p>The Service and all content are provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis without any warranties of any kind, either express or implied.</p>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">7. Payment Processing</h3>
           <p>All financial transactions are processed by third-party payment service providers. Your use of the Service is subject to their terms and conditions.</p>

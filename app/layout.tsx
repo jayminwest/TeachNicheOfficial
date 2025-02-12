@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
+import { Footer } from "@/components/ui/footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +27,50 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        {children}
+        <main className="flex-1">
+          {children}
+        </main>
+        <Footer 
+          logo={<Image src="/next.svg" alt="Next.js Logo" width={24} height={24} className="dark:invert" />}
+          brandName="Next.js"
+          socialLinks={[
+            {
+              icon: <Image src="/vercel.svg" alt="Vercel" width={20} height={20} className="dark:invert" />,
+              href: "https://vercel.com",
+              label: "Vercel"
+            }
+          ]}
+          mainLinks={[
+            {
+              href: "https://nextjs.org/docs",
+              label: "Documentation"
+            },
+            {
+              href: "https://nextjs.org/learn",
+              label: "Learn"
+            },
+            {
+              href: "https://vercel.com/templates",
+              label: "Templates"
+            }
+          ]}
+          legalLinks={[
+            {
+              href: "https://vercel.com/terms",
+              label: "Terms"
+            },
+            {
+              href: "https://vercel.com/privacy",
+              label: "Privacy Policy"
+            }
+          ]}
+          copyright={{
+            text: "© 2024 Vercel, Inc. All rights reserved.",
+            license: "Released under the MIT License"
+          }}
+        />
       </body>
     </html>
   );

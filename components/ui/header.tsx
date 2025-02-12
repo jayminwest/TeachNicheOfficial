@@ -30,34 +30,9 @@ function Header() {
             description: "",
         },
         {
-            title: "About Us",
-            description: "Learn more about Teach Niche's mission and vision",
-            items: [
-                {
-                    title: "Our Mission",
-                    href: "/about",
-                },
-                {
-                    title: "Our Story",
-                    href: "/about",
-                },
-                {
-                    title: "Values",
-                    href: "/about",
-                },
-                {
-                    title: "Why Teach Niche?",
-                    href: "/about",
-                },
-                {
-                    title: "Commission Structure",
-                    href: "/about",
-                },
-                {
-                    title: "Open Source Philosophy",
-                    href: "/about",
-                }
-            ],
+            title: "About",
+            href: "/about",
+            description: "",
         }
     ];
 

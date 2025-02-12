@@ -20,13 +20,13 @@ export default function LegalPage() {
           <ul className="list-disc pl-6 mb-4">
             <li>Representations and Warranties: As a seller, you warrant that you own or have all necessary rights, licenses, and permissions to sell the video tutorials and any associated materials.</li>
             <li>Content Standards: Sellers are responsible for ensuring that all submitted content complies with applicable laws and these Terms.</li>
-            <li>Fees and Transactions: All sales transactions are subject to Teach Niche's fee schedule and payment processing terms.</li>
+            <li>Fees and Transactions: All sales transactions are subject to Teach Niche&rsquo;s fee schedule and payment processing terms.</li>
           </ul>
 
           <h4 className="text-lg font-medium mt-4 mb-2">4.2 Buyers</h4>
           <ul className="list-disc pl-6 mb-4">
             <li>Risk Acknowledgment: Buyers acknowledge that transactions are conducted at their own risk.</li>
-            <li>Refunds and Dispute Resolution: All sales are subject to Teach Niche's Refund and Dispute Resolution Policy.</li>
+            <li>Refunds and Dispute Resolution: All sales are subject to Teach Niche&rsquo;s Refund and Dispute Resolution Policy.</li>
           </ul>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">5. Intellectual Property Rights</h3>

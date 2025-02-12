@@ -76,9 +76,9 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
       <form onSubmit={handleSubmit}>
         <Card className="w-full max-w-[400px]">
         <CardHeader className="space-y-1">
-          <CardTitle>Create your account</CardTitle>
+          <CardTitle>Join Teach Niche</CardTitle>
           <CardDescription>
-            Welcome! Please fill in the details to get started.
+            Create an account to get started with Teach Niche
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">

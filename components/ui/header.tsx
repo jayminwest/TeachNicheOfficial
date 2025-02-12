@@ -202,7 +202,6 @@ function Header() {
                         <>
                             <Button variant="outline" onClick={() => setShowSignIn(true)}>Sign In</Button>
                             <Button onClick={() => setShowSignUp(true)}>Sign Up</Button>
-                            <Button>Purchase Course</Button>
 
                             <Dialog open={showSignIn} onOpenChange={setShowSignIn}>
                                 <DialogContent className="sm:max-w-[400px] p-0">
@@ -235,12 +234,10 @@ function Header() {
                             <div className="flex flex-col gap-4">
                                 <Button variant="outline" className="w-full" onClick={() => setShowSignIn(true)}>Sign In</Button>
                                 <Button className="w-full" onClick={() => setShowSignUp(true)}>Sign Up</Button>
-                                {hasPurchased ? (
+                                {hasPurchased && (
                                     <Link href="/dashboard">
                                         <Button className="w-full">Access Course</Button>
                                     </Link>
-                                ) : (
-                                    <Button className="w-full" onClick={handlePurchase}>Purchase Course</Button>
                                 )}
                             </div>
                             {navigationItems.map((item) => (

@@ -81,7 +81,7 @@ export function EmailSignup() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <div className="flex flex-col gap-2 w-full max-w-xs sm:max-w-none mx-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xs sm:max-w-none mx-auto justify-center">
           <Input
             type="email"
             placeholder="Enter your email"

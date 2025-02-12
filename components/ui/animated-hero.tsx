@@ -64,7 +64,7 @@ function Hero() {
             <span className="font-bold">{timeLeft.minutes}m</span>
           </div>
           <div className="flex gap-4 flex-col">
-            <h1 className="text-4xl sm:text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular px-4">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular px-4">
               <span className="text-spektr-cyan-50">Empower</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
                 &nbsp;
@@ -97,7 +97,7 @@ function Hero() {
               Join our waitlist to be the first to know when we launch.
             </p>
           </div>
-          <div className="flex flex-col gap-3 px-4 w-full max-w-xs sm:max-w-none">
+          <div className="flex flex-col sm:flex-row gap-3 px-4 w-full max-w-xs sm:max-w-none justify-center">
             <Link href="/about" className="w-full sm:w-auto">
               <Button size="default" className="gap-2 w-full sm:w-auto" variant="outline">
                 Learn More <MoveRight className="w-4 h-4" />

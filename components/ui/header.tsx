@@ -215,8 +215,8 @@ function Header() {
                         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </Button>
                     {isOpen && (
-                        <div className="absolute top-20 border-t flex flex-col w-full left-0 right-0 bg-background shadow-lg py-4 px-4 gap-6">
-                            <div className="flex flex-col gap-4">
+                        <div className="absolute top-20 border-t flex flex-col w-full left-0 right-0 bg-background shadow-lg py-6 px-6 gap-6">
+                            <div className="flex flex-col gap-4 mb-4">
                                 <div className="flex justify-end">
                                     <ThemeToggle />
                                 </div>

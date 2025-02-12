@@ -4,6 +4,16 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
+
+interface NavigationItem {
+    title: string;
+    href?: string;
+    description: string;
+    items?: Array<{
+        title: string;
+        href: string;
+    }>;
+}
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -18,7 +28,7 @@ import Link from "next/link";
 
 function Header() {
     const pathname = usePathname();
-    const navigationItems = [
+    const navigationItems: NavigationItem[] = [
         {
             title: "Home",
             href: "/",

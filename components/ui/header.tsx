@@ -17,6 +17,7 @@ import Link from "next/link";
 
 
 function Header() {
+    const pathname = usePathname();
     const navigationItems = [
         {
             title: "Home",
@@ -95,7 +96,7 @@ function Header() {
                         <Button variant="ghost">Learn More</Button>
                     </Link>
                     <Button 
-                        onClick={useCallback(() => {
+                        onClick={() => {
                             if (pathname === '/') {
                                 document.querySelector('#email-signup')?.scrollIntoView({ 
                                     behavior: 'smooth'
@@ -103,7 +104,7 @@ function Header() {
                             } else {
                                 window.location.href = '/#email-signup';
                             }
-                        }, [pathname])}
+                        }}
                     >
                         Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                     </Button>
@@ -123,7 +124,7 @@ function Header() {
                                 </Link>
                                 <Button 
                                     className="w-full"
-                                    onClick={useCallback(() => {
+                                    onClick={() => {
                                         if (pathname === '/') {
                                             document.querySelector('#email-signup')?.scrollIntoView({ 
                                                 behavior: 'smooth'
@@ -131,7 +132,7 @@ function Header() {
                                         } else {
                                             window.location.href = '/#email-signup';
                                         }
-                                    }, [pathname])}
+                                    }}
                                 >
                                     Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                                 </Button>

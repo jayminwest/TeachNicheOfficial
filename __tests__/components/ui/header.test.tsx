@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { usePathname } from 'next/navigation'
-import Header from '@/components/ui/header'
+import { Header } from '@/components/ui/header'
 import userEvent from '@testing-library/user-event'
 
 // Mock next/navigation
@@ -8,7 +8,12 @@ jest.mock('next/navigation', () => ({
   usePathname: jest.fn()
 }))
 
-// Mock next/link to render as an anchor
+// Mock components
+jest.mock('@/components/ui/theme-toggle', () => ({
+  ThemeToggle: () => <button aria-label="toggle theme">Toggle Theme</button>
+}))
+
+// Mock next/link
 jest.mock('next/link', () => {
   return ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>

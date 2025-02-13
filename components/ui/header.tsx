@@ -185,5 +185,5 @@ export default function Header() {
     );
 }
 
-export default Header;
+export { Header };
 export type { NavigationItem };

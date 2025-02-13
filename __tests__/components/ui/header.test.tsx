@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import { Header } from '../../components/ui/header';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { usePathname } from 'next/navigation';

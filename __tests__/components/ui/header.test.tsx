@@ -4,111 +4,111 @@ import Header from '@/components/ui/header';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { usePathname } from 'next/navigation';
 
+// Mock window.matchMedia for responsive design testing
+window.matchMedia = window.matchMedia || function() {
+  return {
+    matches: false,
+    addListener: function() {},
+    removeListener: function() {}
+  };
+};
+
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
 }));
 
-jest.mock('@/components/ui/theme-toggle', () => {
-  return {
-    ThemeToggle: jest.fn(() => <div>Theme Toggle</div>),
-  };
-});
+jest.mock('@/components/ui/theme-toggle', () => ({
+  ThemeToggle: jest.fn(() => <div data-testid="theme-toggle">Theme Toggle</div>),
+}));
 
 describe('Header', () => {
   const mockUsePathname = usePathname as jest.MockedFunction<typeof usePathname>;
 
   beforeEach(() => {
     mockUsePathname.mockReturnValue('/');
-  });
-
-  afterEach(() => {
+    // Reset any mocks
     jest.clearAllMocks();
   });
 
-  describe('rendering', () => {
-    it('renders the logo and navigation items correctly', () => {
+  describe('desktop view', () => {
+    it('renders the logo and brand name', () => {
       render(<Header />);
-
-      expect(screen.getByText('Teach Niche')).toBeInTheDocument();
-
-      const navigationMenu = screen.getByRole('navigation');
-      expect(navigationMenu).toBeInTheDocument();
-      
-      const homeLink = screen.getByRole('link', { name: 'Home' });
-      expect(homeLink).toBeInTheDocument();
-      
-      const aboutLink = screen.getByRole('link', { name: 'About' });
-      expect(aboutLink).toBeInTheDocument();
+      const brandLink = screen.getByRole('link', { name: 'Teach Niche' });
+      expect(brandLink).toBeInTheDocument();
     });
 
-    it('renders the mobile menu button and theme toggle correctly', () => {
+    it('renders desktop navigation menu with correct items', () => {
       render(<Header />);
+      
+      // Navigation buttons should be present in desktop view
+      const homeButton = screen.getByRole('button', { name: 'Home' });
+      const aboutButton = screen.getByRole('button', { name: 'About' });
+      
+      expect(homeButton).toBeInTheDocument();
+      expect(aboutButton).toBeInTheDocument();
+    });
 
-      const mobileMenuButton = screen.getByRole('button', { name: /menu|close/i });
-      expect(mobileMenuButton).toBeInTheDocument();
-
-      const themeToggle = screen.getByText('Theme Toggle');
+    it('renders action buttons in desktop view', () => {
+      render(<Header />);
+      
+      const themeToggle = screen.getByTestId('theme-toggle');
+      const learnMoreButton = screen.getByRole('link', { name: 'Learn More' });
+      const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
+      
       expect(themeToggle).toBeInTheDocument();
-    });
-
-    it('renders the desktop navigation and buttons correctly', () => {
-      render(<Header />);
-
-      const learnMoreLink = screen.getByRole('link', { name: 'Learn More' });
-      expect(learnMoreLink).toBeInTheDocument();
-
-      const joinWaitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
-      expect(joinWaitlistButton).toBeInTheDocument();
+      expect(learnMoreButton).toBeInTheDocument();
+      expect(waitlistButton).toBeInTheDocument();
     });
   });
 
-  describe('interactions', () => {
-    it('toggles the mobile menu on button click', () => {
+  describe('mobile view', () => {
+    it('renders mobile menu button and toggles menu', () => {
       render(<Header />);
-
-      const mobileMenuButton = screen.getByRole('button', { name: /menu|close/i });
-      fireEvent.click(mobileMenuButton);
-
+      
+      const menuButton = screen.getByRole('button', { name: /menu/i });
+      expect(menuButton).toBeInTheDocument();
+      
+      // Click to open menu
+      fireEvent.click(menuButton);
+      
+      // Mobile menu items should now be visible
       expect(screen.getByText('Home')).toBeInTheDocument();
       expect(screen.getByText('About')).toBeInTheDocument();
-
-      fireEvent.click(mobileMenuButton);
-      expect(screen.queryByText('Home')).not.toBeInTheDocument();
+      
+      // Close button should replace menu button
+      const closeButton = screen.getByRole('button', { name: /close/i });
+      expect(closeButton).toBeInTheDocument();
+      
+      // Click to close menu
+      fireEvent.click(closeButton);
+      
+      // Menu items should be hidden
+      expect(screen.queryByText('Home')).not.toBeVisible();
     });
+  });
 
-    it('scrolls to the email signup section when on home page', () => {
+  describe('waitlist button behavior', () => {
+    it('scrolls to email signup section when on home page', () => {
       const scrollIntoViewMock = jest.fn();
       window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
       
       render(<Header />);
-
-      const joinWaitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
-      fireEvent.click(joinWaitlistButton);
-
+      const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
+      
+      fireEvent.click(waitlistButton);
+      
       expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
     });
 
-    it('navigates to the email signup section when on a different page', () => {
+    it('navigates to home page email signup when on different page', () => {
       mockUsePathname.mockReturnValue('/about');
-
+      
       render(<Header />);
-
-      const joinWaitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
-      fireEvent.click(joinWaitlistButton);
-
+      const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
+      
+      fireEvent.click(waitlistButton);
+      
       expect(window.location.href).toBe('/#email-signup');
-    });
-  });
-
-  describe('props', () => {
-    it('renders the theme toggle and navigation items', () => {
-      render(<Header />);
-
-      const themeToggle = screen.getByText('Theme Toggle');
-      expect(themeToggle).toBeInTheDocument();
-
-      const homeButton = screen.getByRole('button', { name: 'Home' });
-      expect(homeButton).toBeInTheDocument();
     });
   });
 });

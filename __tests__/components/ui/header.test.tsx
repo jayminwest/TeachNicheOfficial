@@ -1,14 +1,14 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { Header } from '../../components/ui/header';
-import { ThemeToggle } from '../../components/ui/theme-toggle';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { usePathname } from 'next/navigation';
 
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
 }));
 
-jest.mock('../../components/ui/theme-toggle', () => {
+jest.mock('@/components/ui/theme-toggle', () => {
   return {
     ThemeToggle: jest.fn(() => <div>Theme Toggle</div>),
   };

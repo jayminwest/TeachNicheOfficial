@@ -26,7 +26,7 @@ import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
 
 
-export default function Header() {
+export function Header() {
     const pathname = usePathname();
     const navigationItems: NavigationItem[] = [
         {
@@ -185,5 +185,5 @@ export default function Header() {
     );
 }
 
-export { Header };
 export type { NavigationItem };
+export default Header;

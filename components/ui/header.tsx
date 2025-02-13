@@ -185,4 +185,5 @@ function Header() {
     );
 }
 
-export { Header };
+export default Header;
+export type { NavigationItem };

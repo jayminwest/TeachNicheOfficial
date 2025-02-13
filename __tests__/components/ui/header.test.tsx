@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Header } from '@/components/ui/header';
+import Header from '@/components/ui/header';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { usePathname } from 'next/navigation';
 
@@ -101,8 +101,8 @@ describe('Header', () => {
   });
 
   describe('props', () => {
-    it('renders the theme toggle and navigation items with auth context', () => {
-      render(<Header />, { wrapper: ({ children }) => <>{children}</> });
+    it('renders the theme toggle and navigation items', () => {
+      render(<Header />);
 
       const themeToggle = screen.getByText('Theme Toggle');
       expect(themeToggle).toBeInTheDocument();

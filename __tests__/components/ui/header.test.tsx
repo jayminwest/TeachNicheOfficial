@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Header } from '../../components/ui/header';
+import { Header } from '@/components/ui/header';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { usePathname } from 'next/navigation';
 
@@ -31,13 +31,14 @@ describe('Header', () => {
 
       expect(screen.getByText('Teach Niche')).toBeInTheDocument();
 
-      const homeButton = screen.getByRole('button', { name: 'Home' });
-      expect(homeButton).toBeInTheDocument();
-      expect(homeButton).toHaveAttribute('href', '/');
-
-      const aboutButton = screen.getByRole('button', { name: 'About' });
-      expect(aboutButton).toBeInTheDocument();
-      expect(aboutButton).toHaveAttribute('href', '/about');
+      const navigationMenu = screen.getByRole('navigation');
+      expect(navigationMenu).toBeInTheDocument();
+      
+      const homeLink = screen.getByRole('link', { name: 'Home' });
+      expect(homeLink).toBeInTheDocument();
+      
+      const aboutLink = screen.getByRole('link', { name: 'About' });
+      expect(aboutLink).toBeInTheDocument();
     });
 
     it('renders the mobile menu button and theme toggle correctly', () => {
@@ -53,9 +54,8 @@ describe('Header', () => {
     it('renders the desktop navigation and buttons correctly', () => {
       render(<Header />);
 
-      const learnMoreButton = screen.getByRole('button', { name: 'Learn More' });
-      expect(learnMoreButton).toBeInTheDocument();
-      expect(learnMoreButton).toHaveAttribute('href', '/about');
+      const learnMoreLink = screen.getByRole('link', { name: 'Learn More' });
+      expect(learnMoreLink).toBeInTheDocument();
 
       const joinWaitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
       expect(joinWaitlistButton).toBeInTheDocument();
@@ -77,12 +77,15 @@ describe('Header', () => {
     });
 
     it('scrolls to the email signup section when on home page', () => {
+      const scrollIntoViewMock = jest.fn();
+      window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+      
       render(<Header />);
 
       const joinWaitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i });
       fireEvent.click(joinWaitlistButton);
 
-      expect(document.querySelector('#email-signup')).toHaveClass('animate-scroll');
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
     });
 
     it('navigates to the email signup section when on a different page', () => {

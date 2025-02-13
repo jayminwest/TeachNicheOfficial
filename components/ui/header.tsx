@@ -26,7 +26,7 @@ import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
 
 
-function Header() {
+export default function Header() {
     const pathname = usePathname();
     const navigationItems: NavigationItem[] = [
         {

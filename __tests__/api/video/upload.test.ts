@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createUpload } from '@/lib/mux';
 import { headers } from 'next/headers';
 import { POST, PUT, OPTIONS } from '@/app/api/video/upload/route';
+import fs from 'fs';
+import path from 'path';
 
 // Mock Next.js runtime
 const originalGlobal = global;
@@ -88,6 +90,39 @@ describe('Video Upload API', () => {
   });
 
   it('should handle PUT request same as POST', async () => {
+    const mockUploadResponse = {
+      url: 'https://mock-upload-url.mux.com',
+      id: 'mock-asset-id'
+    };
+    
+    (createUpload as jest.Mock).mockResolvedValueOnce(mockUploadResponse);
+
+    const response = await PUT();
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({
+      uploadUrl: mockUploadResponse.url,
+      assetId: mockUploadResponse.id
+    });
+  });
+
+  it('should handle actual video file upload', async () => {
+    const videoPath = path.join(process.cwd(), 'public', 'test_video.mov');
+    const videoBuffer = fs.readFileSync(videoPath);
+    const videoStats = fs.statSync(videoPath);
+
+    // Mock headers for video upload
+    (headers as jest.Mock).mockReturnValueOnce({
+      get: (key: string) => ({
+        'origin': 'http://localhost:3000',
+        'method': 'PUT',
+        'content-type': 'video/quicktime',
+        'content-length': videoStats.size.toString(),
+        'content-range': `bytes 0-${videoStats.size - 1}/${videoStats.size}`,
+      }[key.toLowerCase()] || null)
+    });
+
     const mockUploadResponse = {
       url: 'https://mock-upload-url.mux.com',
       id: 'mock-asset-id'

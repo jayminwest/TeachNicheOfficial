@@ -81,9 +81,21 @@ export async function PUT(request: Request) {
     // Forward the request to Mux
     const uploadUrl = headersList.get('x-mux-upload-url');
     if (!uploadUrl) {
-      throw new Error('Missing Mux upload URL');
+      console.error('Missing x-mux-upload-url header');
+      return NextResponse.json(
+        { error: 'Missing upload URL' },
+        {
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
+          }
+        }
+      );
     }
 
+    console.log('Forwarding to Mux URL:', uploadUrl);
     const response = await fetch(uploadUrl, {
       method: 'PUT',
       body: request.body,

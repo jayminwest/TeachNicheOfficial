@@ -120,7 +120,15 @@ describe('Video Upload API', () => {
         'content-type': 'video/quicktime',
         'content-length': videoStats.size.toString(),
         'content-range': `bytes 0-${videoStats.size - 1}/${videoStats.size}`,
+        'x-mux-upload-url': 'https://mock-upload-url.mux.com'
       }[key.toLowerCase()] || null)
+    });
+
+    // Mock global fetch
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: 'OK'
     });
 
     const mockUploadResponse = {

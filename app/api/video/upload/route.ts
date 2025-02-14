@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import Mux from "@mux/mux-node";
 
 // Initialize Mux client with environment variables
-const { Video } = new Mux(
+const muxClient = new Mux(
   process.env.MUX_TOKEN_ID!,
   process.env.MUX_TOKEN_SECRET!
 );
 
 async function createUpload() {
-  return await Video.Uploads.create({
+  return await muxClient.Video.Uploads.create({
     new_asset_settings: {
       playback_policy: ["public"],
       encoding_tier: "baseline",

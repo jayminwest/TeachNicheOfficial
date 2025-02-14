@@ -7,7 +7,12 @@ if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
 const mux = new Mux();
 const { Video } = mux;
 
-export async function createUpload() {
+export interface MuxUploadResponse {
+  url: string;
+  id: string;
+}
+
+export async function createUpload(): Promise<MuxUploadResponse> {
   try {
     console.log('Creating Mux upload with config:', {
       tokenIdExists: !!process.env.MUX_TOKEN_ID,
@@ -25,16 +30,17 @@ export async function createUpload() {
       cors_origin: corsOrigin,
     });
 
-    if (!upload) {
-      throw new Error('Mux returned null or undefined upload object');
+    if (!upload?.url || !upload?.id) {
+      console.error('Invalid Mux upload response:', upload);
+      throw new Error('Mux returned an invalid upload response');
     }
 
-    console.log('Successfully created Mux upload object:', {
-      id: upload.id,
-      hasUrl: !!upload.url
-    });
+    console.log('Successfully created Mux upload:', { id: upload.id });
 
-    return upload;
+    return {
+      url: upload.url,
+      id: upload.id
+    };
   } catch (error) {
     console.error('Mux upload creation error:', {
       error: error,

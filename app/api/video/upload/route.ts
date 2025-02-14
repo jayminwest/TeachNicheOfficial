@@ -10,13 +10,8 @@ async function handleUploadRequest() {
   try {
     console.log('Starting upload request initialization');
     const upload = await createUpload();
-    
-    if (!upload?.url || !upload?.id) {
-      console.error('Invalid Mux upload response:', upload);
-      throw new Error('Invalid upload response from Mux');
-    }
 
-    console.log('Successfully created Mux upload:', { id: upload.id });
+    console.log('Successfully created upload URL:', { id: upload.id });
 
     return new NextResponse(
       JSON.stringify({
@@ -28,16 +23,16 @@ async function handleUploadRequest() {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
+          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS, HEAD',
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range'
         }
       }
     );
   } catch (error) {
     console.error('Video upload initialization error:', {
       message: error instanceof Error ? error.message : 'Unknown error',
-      error,
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
+      error
     });
     
     return new NextResponse(
@@ -50,8 +45,8 @@ async function handleUploadRequest() {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
+          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS, HEAD',
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range'
         }
       }
     );

@@ -1,9 +1,11 @@
 import Mux from '@mux/mux-node';
 
+// Validate environment variables at startup
 if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
   throw new Error('Missing required Mux environment variables');
 }
 
+// Initialize Mux client
 const { Video } = new Mux({
   tokenId: process.env.MUX_TOKEN_ID,
   tokenSecret: process.env.MUX_TOKEN_SECRET
@@ -14,78 +16,66 @@ export interface MuxUploadResponse {
   id: string;
 }
 
+export interface MuxAssetResponse {
+  id: string;
+  status: 'preparing' | 'ready' | 'errored';
+  playbackId?: string;
+  error?: {
+    message: string;
+    type: string;
+  };
+}
+
+/**
+ * Creates a new direct upload URL for Mux
+ */
 export async function createUpload(): Promise<MuxUploadResponse> {
+  const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
+
   try {
-    // Log environment check
-    console.log('Checking Mux environment:', {
-      tokenIdExists: !!process.env.MUX_TOKEN_ID,
-      tokenSecretLength: process.env.MUX_TOKEN_SECRET?.length,
-      baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
-      nodeEnv: process.env.NODE_ENV
+    const upload = await Video.Uploads.create({
+      new_asset_settings: {
+        playback_policy: ['public'],
+        encoding_tier: 'baseline',
+      },
+      cors_origin: corsOrigin,
     });
-
-    const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
-    console.log('Using CORS origin:', corsOrigin);
-    
-    console.log('Attempting to create Mux upload...');
-    let upload;
-    try {
-      upload = await Video.Uploads.create({
-        new_asset_settings: {
-          playback_policy: ['public'],
-          encoding_tier: 'baseline',
-        },
-        cors_origin: corsOrigin,
-      });
-    } catch (uploadError) {
-      console.error('Mux Video.Uploads.create failed:', {
-        error: uploadError,
-        message: uploadError instanceof Error ? uploadError.message : 'Unknown error',
-        stack: uploadError instanceof Error ? uploadError.stack : undefined
-      });
-      throw uploadError;
-    }
-    
-    if (!upload) {
-      throw new Error('Mux Video.Uploads.create returned null/undefined');
-    }
-
-    console.log('Raw Mux upload response:', JSON.stringify(upload, null, 2));
 
     if (!upload?.url || !upload?.id) {
-      console.error('Invalid Mux upload response:', {
-        hasUrl: !!upload?.url,
-        hasId: !!upload?.id,
-        upload
-      });
-      throw new Error('Mux returned an invalid upload response');
+      throw new Error('Invalid upload response from Mux');
     }
-
-    console.log('Successfully created Mux upload:', {
-      id: upload.id,
-      urlLength: upload.url.length,
-      corsOrigin
-    });
 
     return {
       url: upload.url,
       id: upload.id
     };
   } catch (error) {
-    console.error('Mux upload creation error:', {
-      error: error,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      tokenIdExists: !!process.env.MUX_TOKEN_ID,
-      tokenSecretExists: !!process.env.MUX_TOKEN_SECRET,
-      corsOrigin: process.env.NEXT_PUBLIC_BASE_URL
-    });
-    
-    // Throw a cleaner error for the API route to handle
     throw new Error(
       error instanceof Error 
         ? `Failed to initialize Mux upload: ${error.message}`
         : 'Failed to initialize Mux upload'
+    );
+  }
+}
+
+/**
+ * Checks the status of a Mux asset
+ */
+export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
+  try {
+    const asset = await Video.Assets.get(assetId);
+    
+    return {
+      id: asset.id,
+      status: asset.status,
+      playbackId: asset.playback_ids?.[0]?.id,
+      error: asset.errors?.[0]
+    };
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? `Failed to get asset status: ${error.message}`
+        : 'Failed to get asset status'
     );
   }
 }

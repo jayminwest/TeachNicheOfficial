@@ -75,12 +75,33 @@ export async function PUT(request: Request) {
 
   const headersList = headers();
   const origin = headersList.get('origin') || '*';
-  const uploadUrl = headersList.get('X-Mux-Upload-Url');
-  const contentType = headersList.get('Content-Type');
-  const contentLength = headersList.get('Content-Length');
-  const contentRange = headersList.get('Content-Range');
+  // Log headers for debugging
+  console.log('Received headers:', Object.fromEntries(headersList.entries()));
+  
+  const uploadUrl = headersList.get('x-mux-upload-url') || headersList.get('X-Mux-Upload-Url');
+  const contentType = headersList.get('content-type');
+  const contentLength = headersList.get('content-length');
+  const contentRange = headersList.get('content-range');
 
-  if (!uploadUrl || !uploadUrl.startsWith('https://')) {
+  if (!uploadUrl) {
+    console.error('Missing upload URL in headers');
+    return NextResponse.json(
+      { 
+        error: 'Missing upload URL',
+        headers: Object.fromEntries(headersList.entries())
+      },
+      {
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
+        }
+      }
+    );
+  }
+
+  if (!uploadUrl.startsWith('https://')) {
     return NextResponse.json(
       { error: 'Missing upload URL' },
       {

@@ -4,11 +4,14 @@ import { LessonForm } from "@/components/ui/lesson-form";
 import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function NewLessonPage() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (data: any) => {
+    setIsSubmitting(true);
     try {
       const response = await fetch("/api/lessons", {
         method: "POST",
@@ -25,24 +28,38 @@ export default function NewLessonPage() {
       const lesson = await response.json();
       
       toast({
-        title: "Success",
-        description: "Lesson created successfully",
+        title: "Lesson Created!",
+        description: "Your new lesson has been created successfully.",
       });
 
       router.push(`/lessons/${lesson.id}`);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to create lesson",
+        title: "Creation Failed",
+        description: "There was an error creating your lesson. Please try again.",
         variant: "destructive",
       });
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="container max-w-3xl py-10">
-      <h1 className="text-3xl font-bold mb-8">Create New Lesson</h1>
-      <LessonForm onSubmit={handleSubmit} />
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          <div className="space-y-2 text-center">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+              Create New Lesson
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Share your knowledge with the world. Fill out the form below to create your new lesson.
+            </p>
+          </div>
+          <div className="bg-card rounded-lg border shadow-sm p-6 md:p-8">
+            <LessonForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          </div>
+        </div>
+      </div>
       <Toaster />
     </div>
   );

@@ -132,48 +132,7 @@ export const useVideo = () => useContext(VideoContext);
 - [ ] Implement RLS policies
 - [ ] Add error handling
 
-## 5. Testing Strategy
-
-### Component Testing
-```typescript
-import { render, screen } from '@/test-utils'
-import { setup } from '@/setup/test-helpers'
-import { createMockUser } from '@/setup/mocks'
-
-describe('VideoUploader', () => {
-  const user = createMockUser()
-  
-  it('handles authenticated upload', async () => {
-    const { container } = render(
-      <VideoUploader />, 
-      { 
-        withAuth: true,
-        providerProps: { user }
-      }
-    )
-    
-    await setup(async ({ user }) => {
-      // Test implementation using existing utilities
-    })
-  })
-
-  it('meets accessibility requirements', async () => {
-    const { container } = render(<VideoUploader />)
-    expect(await axe(container)).toHaveNoViolations()
-  })
-})
-```
-
-### Integration Testing
-```typescript
-describe('Lesson Creation Flow', () => {
-  it('creates lesson with video', async () => {
-    // Use test-utils for consistent testing approach
-  })
-})
-```
-
-## 6. Error Handling
+## 5. Error Handling
 
 ### Error Boundaries
 ```typescript

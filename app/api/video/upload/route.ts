@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createUpload } from '@/lib/mux';
 
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_BASE_URL || '*',
+      'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400'
+    }
+  });
+}
+
 export async function POST(request: Request) {
   return handleUpload(request);
 }
@@ -48,7 +60,8 @@ async function handleUpload(request: Request) {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_BASE_URL || '*',
         'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400'
       }
     });
   } catch (error) {

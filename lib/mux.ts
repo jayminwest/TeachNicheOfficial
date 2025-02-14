@@ -33,6 +33,11 @@ export async function createUpload() {
       hasTokenSecret: !!process.env.MUX_TOKEN_SECRET,
     });
 
+    if (!Video?.Uploads?.create) {
+      console.error('Mux Video.Uploads.create is not available:', { Video });
+      throw new Error('Mux Video API not properly initialized');
+    }
+
     const upload = await Video.Uploads.create(config);
 
     if (!upload) {

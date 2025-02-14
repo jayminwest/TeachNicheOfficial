@@ -1,13 +1,11 @@
 import Mux from '@mux/mux-node';
 
-if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-  throw new Error('MUX credentials must be configured in .env.local');
-}
+const muxClient = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID,
+  tokenSecret: process.env.MUX_TOKEN_SECRET
+});
 
-const { Video } = new Mux(
-  process.env.MUX_TOKEN_ID,
-  process.env.MUX_TOKEN_SECRET
-);
+const { Video } = muxClient;
 
 export async function createUpload() {
   // Validate environment variables

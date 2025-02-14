@@ -44,8 +44,8 @@ export default function NewLessonPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+      <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
         <div className="space-y-6">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">

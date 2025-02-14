@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { MuxUploader } from "@mux/mux-uploader-react";
+import MuxUploader from "@mux/mux-uploader-react";
 import { useState } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";

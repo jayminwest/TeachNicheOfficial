@@ -4,16 +4,22 @@ import { headers } from 'next/headers';
 
 // Helper function to handle both POST and PUT requests
 async function handleUploadRequest() {
-  const headersList = headers();
-  const origin = headersList.get('origin') || '*';
-
-  console.log('Upload request received:', {
-    origin,
-    method: headersList.get('method'),
-    contentType: headersList.get('content-type')
-  });
-
   try {
+    const headersList = headers();
+    if (!headersList) {
+      throw new Error('Failed to get request headers');
+    }
+
+    const origin = headersList.get('origin') || '*';
+    const method = headersList.get('method');
+    const contentType = headersList.get('content-type');
+
+    console.log('Upload request received:', {
+      origin,
+      method,
+      contentType,
+      headers: Object.fromEntries(headersList.entries())
+    });
     console.log('Starting upload request initialization');
     const upload = await createUpload();
 

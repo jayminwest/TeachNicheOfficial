@@ -26,13 +26,28 @@ export async function createUpload(): Promise<MuxUploadResponse> {
     console.log('Using CORS origin:', corsOrigin);
     
     console.log('Attempting to create Mux upload...');
-    const upload = await Video.Uploads.create({
-      new_asset_settings: {
-        playback_policy: ['public'],
-        encoding_tier: 'baseline',
-      },
-      cors_origin: corsOrigin,
-    });
+    let upload;
+    try {
+      upload = await Video.Uploads.create({
+        new_asset_settings: {
+          playback_policy: ['public'],
+          encoding_tier: 'baseline',
+        },
+        cors_origin: corsOrigin,
+      });
+    } catch (uploadError) {
+      console.error('Mux Video.Uploads.create failed:', {
+        error: uploadError,
+        message: uploadError instanceof Error ? uploadError.message : 'Unknown error',
+        stack: uploadError instanceof Error ? uploadError.stack : undefined
+      });
+      throw uploadError;
+    }
+    
+    if (!upload) {
+      throw new Error('Mux Video.Uploads.create returned null/undefined');
+    }
+
     console.log('Raw Mux upload response:', JSON.stringify(upload, null, 2));
 
     if (!upload?.url || !upload?.id) {

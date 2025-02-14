@@ -26,60 +26,112 @@ app/
         status/route.ts
 ```
 
-## 2. Type Definitions
+## 2. Component Types and Interfaces
 
 ```typescript
-// types/video.ts
-export interface MuxAsset {
-  id: string;
-  status: 'preparing' | 'ready' | 'errored';
-  playbackId?: string;
-  errors?: Array<{
-    type: string;
-    message: string;
-  }>;
+// components/ui/video-uploader.tsx
+interface VideoUploaderProps {
+  onUploadComplete: (assetId: string) => void;
+  onError: (error: Error) => void;
+  className?: string;
 }
 
-export interface UploadState {
-  progress: number;
-  status: 'idle' | 'uploading' | 'processing' | 'complete' | 'error';
-  error?: Error;
+// components/ui/video-player.tsx
+interface VideoPlayerProps {
+  playbackId: string;
+  title: string;
+  className?: string;
 }
 
-// types/lesson.ts
-export interface Lesson {
-  id: string;
+// components/ui/video-status.tsx
+interface VideoStatusProps {
+  status: 'pending' | 'processing' | 'ready' | 'error';
+  error?: string;
+  className?: string;
+}
+
+// components/ui/lesson-form.tsx
+interface LessonFormProps {
+  initialData?: Lesson;
+  onSubmit: (data: LessonFormData) => Promise<void>;
+  className?: string;
+}
+
+interface LessonFormData {
   title: string;
   description: string;
   muxAssetId?: string;
-  muxPlaybackId?: string;
-  videoStatus: 'pending' | 'processing' | 'ready' | 'error';
-  creatorId: string;
+  price?: number;
 }
 ```
 
-## 3. State Management
+## 3. Component Implementation Examples
 
 ```typescript
-// contexts/VideoContext.tsx
-interface VideoContextState {
-  asset: MuxAsset | null;
-  uploadState: UploadState;
-  error: Error | null;
+// components/ui/video-uploader.tsx
+export function VideoUploader({ onUploadComplete, onError, className }: VideoUploaderProps) {
+  const [status, setStatus] = useState<UploadStatus>('idle');
+  const [progress, setProgress] = useState(0);
+  
+  return (
+    <div className={cn("relative", className)}>
+      <UploadDropzone
+        endpoint="/api/video/upload"
+        onUploadProgress={setProgress}
+        onUploadComplete={onUploadComplete}
+        onUploadError={onError}
+      />
+      <Progress value={progress} className="mt-2" />
+      <p className="text-sm text-muted-foreground mt-1">
+        {getStatusMessage(status)}
+      </p>
+    </div>
+  );
 }
 
-interface VideoContextActions {
-  startUpload: (file: File) => Promise<void>;
-  retryUpload: () => Promise<void>;
-  resetState: () => void;
+// components/ui/video-player.tsx
+export function VideoPlayer({ playbackId, title, className }: VideoPlayerProps) {
+  return (
+    <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
+      <MuxPlayer
+        playbackId={playbackId}
+        metadata={{ video_title: title }}
+        streamType="on-demand"
+      />
+    </div>
+  );
 }
 
-const VideoContext = createContext<{
-  state: VideoContextState;
-  actions: VideoContextActions;
-}>(null!);
+// components/ui/lesson-form.tsx
+export function LessonForm({ initialData, onSubmit, className }: LessonFormProps) {
+  const form = useForm<LessonFormData>({
+    defaultValues: initialData,
+  });
 
-export const useVideo = () => useContext(VideoContext);
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <VideoUploader
+          onUploadComplete={(assetId) => form.setValue('muxAssetId', assetId)}
+          onError={(error) => toast.error(error.message)}
+        />
+        <Button type="submit">Save Lesson</Button>
+      </form>
+    </Form>
+  );
+}
 ```
 
 ## 4. Implementation Phases

@@ -4,8 +4,8 @@ import { headers } from 'next/headers';
 
 // Helper function to handle POST request (upload initialization)
 async function handlePostRequest() {
-  const headersList = headers();
-  const origin = headersList.get('origin') || '*';
+  const headersList = await headers();
+  const origin = await headersList.get('origin') || '*';
 
   try {
     console.log('Starting upload request initialization');
@@ -66,20 +66,20 @@ export async function POST() {
 }
 
 export async function PUT(request: Request) {
-  const headersList = headers();
-  const origin = headersList.get('origin') || '*';
+  const headersList = await headers();
+  const origin = await headersList.get('origin') || '*';
 
   try {
     // Log the PUT request details
     console.log('PUT request received:', {
       origin,
-      contentType: headersList.get('content-type'),
-      contentLength: headersList.get('content-length'),
-      contentRange: headersList.get('content-range')
+      contentType: await headersList.get('content-type'),
+      contentLength: await headersList.get('content-length'),
+      contentRange: await headersList.get('content-range')
     });
 
     // Forward the request to Mux
-    const uploadUrl = headersList.get('x-mux-upload-url');
+    const uploadUrl = await headersList.get('x-mux-upload-url');
     if (!uploadUrl) {
       console.error('Missing x-mux-upload-url header');
       return NextResponse.json(
@@ -100,9 +100,9 @@ export async function PUT(request: Request) {
       method: 'PUT',
       body: request.body,
       headers: {
-        'Content-Type': headersList.get('content-type') || 'video/mp4',
-        'Content-Length': headersList.get('content-length') || '',
-        'Content-Range': headersList.get('content-range') || ''
+        'Content-Type': await headersList.get('content-type') || 'video/mp4',
+        'Content-Length': await headersList.get('content-length') || '',
+        'Content-Range': await headersList.get('content-range') || ''
       }
     });
 
@@ -146,8 +146,8 @@ export async function PUT(request: Request) {
 }
 
 export async function OPTIONS() {
-  const headersList = headers();
-  const origin = headersList.get('origin') || '*';
+  const headersList = await headers();
+  const origin = await headersList.get('origin') || '*';
 
   return NextResponse.json(null, {
     status: 204,

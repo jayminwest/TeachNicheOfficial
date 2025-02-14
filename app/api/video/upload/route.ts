@@ -98,10 +98,15 @@ export async function PUT(request: Request) {
       throw new Error(`Mux upload failed: ${response.status} ${response.statusText}`);
     }
 
+    // For PUT requests, we should return the same response format as POST
+    const upload = await createUpload();
     return NextResponse.json(
-      { success: true },
       {
-        status: response.status,
+        uploadUrl: upload.url,
+        assetId: upload.id
+      },
+      {
+        status: 200,
         headers: {
           'Access-Control-Allow-Origin': origin,
           'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',

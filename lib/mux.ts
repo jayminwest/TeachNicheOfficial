@@ -15,6 +15,10 @@ export async function createUpload() {
   }
 
   try {
+    console.log('Creating Mux upload with config:', {
+      cors_origin: process.env.NEXT_PUBLIC_APP_URL
+    });
+
     const upload = await Video.Uploads.create({
       new_asset_settings: {
         playback_policy: ['public'],
@@ -22,9 +26,20 @@ export async function createUpload() {
       cors_origin: process.env.NEXT_PUBLIC_APP_URL,
     });
 
+    console.log('Mux upload created successfully:', {
+      id: upload.id,
+      hasUrl: !!upload.url
+    });
+
     return upload;
   } catch (error) {
-    console.error('Mux upload creation error:', error);
+    console.error('Mux upload creation error:', {
+      error: error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      tokenIdExists: !!process.env.MUX_TOKEN_ID,
+      tokenSecretExists: !!process.env.MUX_TOKEN_SECRET,
+      corsOrigin: process.env.NEXT_PUBLIC_APP_URL
+    });
     throw error;
   }
 }

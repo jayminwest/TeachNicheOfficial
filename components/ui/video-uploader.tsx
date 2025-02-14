@@ -33,8 +33,12 @@ export function VideoUploader({
           setProgress(percent);
         }}
         onSuccess={(res) => {
-          setStatus('processing');
-          onUploadComplete(res.assetId);
+          if (res.status === 'complete') {
+            setStatus('ready');
+            onUploadComplete(res.assetId);
+          } else {
+            setStatus('processing');
+          }
         }}
         onError={(error) => {
           setStatus('error');

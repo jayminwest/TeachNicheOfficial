@@ -44,37 +44,37 @@ app/
 
 ## 4. Implementation Phases
 
-### Phase 1: Core Components (Week 1)
+### Phase 1: Core Components
 - [ ] Set up file structure
 - [ ] Create basic component shells
 - [ ] Add Mux dependencies
 - [ ] Configure environment variables
 
-### Phase 2: Video Upload Flow (Week 1)
+### Phase 2: Video Upload Flow
 - [ ] Implement MuxUploader component
 - [ ] Create upload API endpoint
 - [ ] Add upload status polling
 - [ ] Basic error handling
 
-### Phase 3: Lesson Form (Week 2)
+### Phase 3: Lesson Form 
 - [ ] Create form schema
 - [ ] Implement form components
 - [ ] Add video upload container
 - [ ] Connect form to API
 
-### Phase 4: Edit Flow (Week 2)
+### Phase 4: Edit Flow 
 - [ ] Add edit page
 - [ ] Implement video replacement
 - [ ] Handle existing video playback
 - [ ] Update API endpoints
 
-### Phase 5: Auth & Permissions (Week 2)
+### Phase 5: Auth & Permissions
 - [ ] Add PermissionGuard
 - [ ] Implement ownership checks
 - [ ] Update database schema
 - [ ] Add RLS policies
 
-### Phase 6: Testing & Polish (Week 3)
+### Phase 6: Testing & Polish
 - [ ] Add component tests
 - [ ] Add API tests
 - [ ] Error handling

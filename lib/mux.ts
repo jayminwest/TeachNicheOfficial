@@ -1,20 +1,24 @@
 import Mux from '@mux/mux-node';
 
-// reads MUX_TOKEN_ID and MUX_TOKEN_SECRET from your environment
+if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+  throw new Error('Missing required Mux environment variables');
+}
+
 const mux = new Mux();
 const { Video } = mux;
 
 export async function createUpload() {
-  const upload = await Video.Uploads.create({
-    new_asset_settings: {
-      playback_policy: ['public'],
-      encoding_tier: 'baseline',
-    },
-    // in production, you'll want to change this origin to your-domain.com
-    cors_origin: '*',
-  });
-
   try {
+    const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
+    
+    const upload = await Video.Uploads.create({
+      new_asset_settings: {
+        playback_policy: ['public'],
+        encoding_tier: 'baseline',
+      },
+      cors_origin: corsOrigin,
+    });
+
     return upload;
   } catch (error) {
     console.error('Mux upload creation error:', {
@@ -24,6 +28,8 @@ export async function createUpload() {
       tokenSecretExists: !!process.env.MUX_TOKEN_SECRET,
       corsOrigin: process.env.NEXT_PUBLIC_BASE_URL
     });
-    throw error;
+    
+    // Throw a cleaner error for the API route to handle
+    throw new Error('Failed to initialize Mux upload');
   }
 }

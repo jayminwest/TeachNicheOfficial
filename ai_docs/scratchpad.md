@@ -84,19 +84,52 @@ app/
 ## 5. Database Schema Updates
 
 ```sql
--- Add to existing schema
-alter table lessons add column video_asset_id text;
-alter table lessons add column video_playback_id text;
-alter table lessons add column video_status text;
+-- Modify existing lessons table to support Mux
+alter table lessons 
+  add column mux_asset_id text,
+  add column mux_playback_id text,
+  add column mux_upload_id text,
+  add column video_status text default 'pending';
 
--- Add RLS policies
-create policy "Users can view their own lessons"
-  on lessons for select
+-- Drop existing Vimeo columns (after migration)
+-- alter table lessons 
+--   drop column vimeo_video_id,
+--   drop column vimeo_url;
+
+-- Update RLS policies
+alter policy "Users can view their own lessons" 
+  on lessons 
+  using (
+    auth.uid() = creator_id 
+    or status = 'published'
+    or exists (
+      select 1 from purchases 
+      where purchases.lesson_id = lessons.id 
+      and purchases.user_id = auth.uid()
+    )
+  );
+
+alter policy "Users can update their own lessons" 
+  on lessons 
   using (auth.uid() = creator_id);
 
-create policy "Users can update their own lessons"
-  on lessons for update
-  using (auth.uid() = creator_id);
+-- Add function to handle video status updates
+create or replace function handle_video_status_change()
+returns trigger as $$
+begin
+  if NEW.video_status = 'ready' and OLD.video_status != 'ready' then
+    -- Could trigger notifications or other actions
+    NEW.updated_at = now();
+  end if;
+  return NEW;
+end;
+$$ language plpgsql;
+
+create trigger video_status_change
+  before update on lessons
+  for each row
+  when (NEW.video_status is distinct from OLD.video_status)
+  execute function handle_video_status_change();
 ```
 
 ## 6. Testing Strategy

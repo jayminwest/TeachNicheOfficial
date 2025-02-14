@@ -2,29 +2,12 @@ import { NextResponse } from 'next/server';
 import { createUpload } from '@/lib/mux';
 import { headers } from 'next/headers';
 
-// Helper function to handle both POST and PUT requests
-async function handleUploadRequest() {
+// Helper function to handle POST request (upload initialization)
+async function handlePostRequest() {
   const headersList = headers();
   const origin = headersList.get('origin') || '*';
-  
-  if (!headersList) {
-    throw new Error('Failed to get request headers');
-  }
-
-  const method = headersList.get('method');
-  const contentType = headersList.get('content-type');
-  const contentLength = headersList.get('content-length');
-  const contentRange = headersList.get('content-range');
 
   try {
-    console.log('Upload request received:', {
-      origin,
-      method,
-      contentType,
-      contentLength,
-      contentRange,
-      headers: Object.fromEntries(headersList.entries?.() || [])
-    });
     console.log('Starting upload request initialization');
     const upload = await createUpload();
 
@@ -79,11 +62,70 @@ async function handleUploadRequest() {
 }
 
 export async function POST() {
-  return handleUploadRequest();
+  return handlePostRequest();
 }
 
-export async function PUT() {
-  return handleUploadRequest();
+export async function PUT(request: Request) {
+  const headersList = headers();
+  const origin = headersList.get('origin') || '*';
+
+  try {
+    // Log the PUT request details
+    console.log('PUT request received:', {
+      origin,
+      contentType: headersList.get('content-type'),
+      contentLength: headersList.get('content-length'),
+      contentRange: headersList.get('content-range')
+    });
+
+    // Forward the request to Mux
+    const uploadUrl = headersList.get('x-mux-upload-url');
+    if (!uploadUrl) {
+      throw new Error('Missing Mux upload URL');
+    }
+
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: request.body,
+      headers: {
+        'Content-Type': headersList.get('content-type') || 'video/mp4',
+        'Content-Length': headersList.get('content-length') || '',
+        'Content-Range': headersList.get('content-range') || ''
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Mux upload failed: ${response.status} ${response.statusText}`);
+    }
+
+    return NextResponse.json(
+      { success: true },
+      {
+        status: response.status,
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
+        }
+      }
+    );
+  } catch (error) {
+    console.error('Video upload error:', error);
+    return NextResponse.json(
+      { 
+        error: 'Upload failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      {
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
+        }
+      }
+    );
+  }
 }
 
 export async function OPTIONS() {
@@ -95,7 +137,7 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
     }
   });
 }

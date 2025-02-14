@@ -78,17 +78,26 @@ export async function PUT(request: Request) {
   // Log headers for debugging
   console.log('Received headers:', Object.fromEntries(headersList.entries()));
   
-  const uploadUrl = headersList.get('x-mux-upload-url') || headersList.get('X-Mux-Upload-Url');
+  // Extract URL from request URL query params if not in headers
+  const requestUrl = new URL(request.url);
+  const uploadUrl = headersList.get('x-mux-upload-url') || 
+                   headersList.get('X-Mux-Upload-Url') || 
+                   requestUrl.searchParams.get('url');
+                   
   const contentType = headersList.get('content-type');
   const contentLength = headersList.get('content-length');
   const contentRange = headersList.get('content-range');
 
+  console.log('Upload URL:', uploadUrl);
+  console.log('Request URL:', request.url);
+
   if (!uploadUrl) {
-    console.error('Missing upload URL in headers');
+    console.error('Missing upload URL in headers and query params');
     return NextResponse.json(
       { 
         error: 'Missing upload URL',
-        headers: Object.fromEntries(headersList.entries())
+        headers: Object.fromEntries(headersList.entries()),
+        url: request.url
       },
       {
         status: 400,

@@ -1,55 +1,20 @@
 import Mux from '@mux/mux-node';
 
-const muxClient = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID,
-  tokenSecret: process.env.MUX_TOKEN_SECRET
-});
-
-const { Video } = muxClient;
+// reads MUX_TOKEN_ID and MUX_TOKEN_SECRET from your environment
+const mux = new Mux();
+const { Video } = mux;
 
 export async function createUpload() {
-  // Validate environment variables
-  if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-    console.error('Missing MUX credentials');
-    throw new Error('MUX credentials are not configured');
-  }
+  const upload = await Video.Uploads.create({
+    new_asset_settings: {
+      playback_policy: ['public'],
+      encoding_tier: 'baseline',
+    },
+    // in production, you'll want to change this origin to your-domain.com
+    cors_origin: '*',
+  });
 
-  if (!process.env.NEXT_PUBLIC_BASE_URL) {
-    console.error('Missing NEXT_PUBLIC_BASE_URL');
-    throw new Error('NEXT_PUBLIC_BASE_URL is not configured');
-  }
-
-  try {
-    const config = {
-      new_asset_settings: {
-        playback_policy: ['public'],
-      },
-      cors_origin: process.env.NEXT_PUBLIC_BASE_URL,
-    };
-
-    console.log('Creating Mux upload with config:', {
-      ...config,
-      hasTokenId: !!process.env.MUX_TOKEN_ID,
-      hasTokenSecret: !!process.env.MUX_TOKEN_SECRET,
-    });
-
-    if (!Video?.Uploads?.create) {
-      console.error('Mux Video.Uploads.create is not available:', { Video });
-      throw new Error('Mux Video API not properly initialized');
-    }
-
-    const upload = await Video.Uploads.create(config);
-
-    if (!upload) {
-      throw new Error('Mux API returned null response');
-    }
-
-    console.log('Mux upload created successfully:', {
-      id: upload.id,
-      hasUrl: !!upload.url
-    });
-
-    return upload;
+  return upload;
   } catch (error) {
     console.error('Mux upload creation error:', {
       error: error,

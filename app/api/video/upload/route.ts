@@ -17,6 +17,17 @@ async function handleUpload(request: Request) {
     const headers = Object.fromEntries(request.headers.entries());
     console.log('Request headers:', headers);
 
+    // Validate request method
+    if (request.method !== 'POST' && request.method !== 'PUT') {
+      throw new Error(`Unsupported method: ${request.method}`);
+    }
+
+    // Check content type
+    const contentType = request.headers.get('content-type');
+    if (!contentType) {
+      throw new Error('Missing content-type header');
+    }
+
     const upload = await createUpload();
     
     if (!upload?.url || !upload?.id) {
@@ -30,7 +41,16 @@ async function handleUpload(request: Request) {
     
     console.log('Successfully created upload:', response);
     
-    return NextResponse.json(response);
+    // Set CORS headers
+    return new NextResponse(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_BASE_URL || '*',
+        'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    });
   } catch (error) {
     console.error('Video upload initialization error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to initialize video upload';

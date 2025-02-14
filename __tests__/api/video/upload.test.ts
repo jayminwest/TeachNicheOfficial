@@ -89,62 +89,53 @@ describe('Video Upload API', () => {
     expect(headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url');
   });
 
-  it('should handle PUT request same as POST', async () => {
-    const mockUploadResponse = {
-      url: 'https://mock-upload-url.mux.com',
-      id: 'mock-asset-id'
-    };
-    
-    (createUpload as jest.Mock).mockResolvedValueOnce(mockUploadResponse);
+  it('should handle PUT request for chunk upload', async () => {
+    const mockRequest = new Request('http://localhost:3000/api/video/upload', {
+      method: 'PUT',
+      headers: {
+        'content-type': 'video/mp4',
+        'content-length': '1000000',
+        'content-range': 'bytes 0-999999/2000000',
+        'x-mux-upload-url': 'https://mock-upload-url.mux.com'
+      },
+      body: new Uint8Array(1000000)
+    });
 
-    const response = await PUT();
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      status: 308,
+      statusText: 'Resume Incomplete'
+    });
+
+    const response = await PUT(mockRequest);
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data).toEqual({
-      uploadUrl: mockUploadResponse.url,
-      assetId: mockUploadResponse.id
-    });
+    expect(response.status).toBe(308);
+    expect(data).toEqual({ status: 'processing' });
   });
 
-  it('should handle actual video file upload', async () => {
-    const videoPath = path.join(process.cwd(), 'public', 'test_video.mov');
-    const videoBuffer = fs.readFileSync(videoPath);
-    const videoStats = fs.statSync(videoPath);
-
-    // Mock headers for video upload
-    (headers as jest.Mock).mockReturnValueOnce({
-      get: (key: string) => ({
-        'origin': 'http://localhost:3000',
-        'method': 'PUT',
-        'content-type': 'video/quicktime',
-        'content-length': videoStats.size.toString(),
-        'content-range': `bytes 0-${videoStats.size - 1}/${videoStats.size}`,
+  it('should handle complete video file upload', async () => {
+    const mockRequest = new Request('http://localhost:3000/api/video/upload', {
+      method: 'PUT',
+      headers: {
+        'content-type': 'video/mp4',
+        'content-length': '1000000',
+        'content-range': 'bytes 0-999999/1000000',
         'x-mux-upload-url': 'https://mock-upload-url.mux.com'
-      }[key.toLowerCase()] || null)
+      },
+      body: new Uint8Array(1000000)
     });
 
-    // Mock global fetch
     global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
       status: 200,
       statusText: 'OK'
     });
 
-    const mockUploadResponse = {
-      url: 'https://mock-upload-url.mux.com',
-      id: 'mock-asset-id'
-    };
-    
-    (createUpload as jest.Mock).mockResolvedValueOnce(mockUploadResponse);
-
-    const response = await PUT();
+    const response = await PUT(mockRequest);
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({
-      uploadUrl: mockUploadResponse.url,
-      assetId: mockUploadResponse.id
-    });
+    expect(data).toEqual({ status: 'complete' });
   });
 });

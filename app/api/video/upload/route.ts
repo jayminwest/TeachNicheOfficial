@@ -66,43 +66,42 @@ export async function POST() {
 }
 
 export async function PUT(request: Request) {
-  const headersList = await headers();
-  const origin = await headersList.get('origin') || '*';
+  if (!request?.body) {
+    return NextResponse.json(
+      { error: 'No request body' },
+      { status: 400 }
+    );
+  }
+
+  const headersList = headers();
+  const origin = headersList.get('origin') || '*';
+  const uploadUrl = headersList.get('x-mux-upload-url');
+  const contentType = headersList.get('content-type');
+  const contentLength = headersList.get('content-length');
+  const contentRange = headersList.get('content-range');
+
+  if (!uploadUrl) {
+    return NextResponse.json(
+      { error: 'Missing upload URL' },
+      {
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
+        }
+      }
+    );
+  }
 
   try {
-    // Log the PUT request details
-    console.log('PUT request received:', {
-      origin,
-      contentType: await headersList.get('content-type'),
-      contentLength: await headersList.get('content-length'),
-      contentRange: await headersList.get('content-range')
-    });
-
-    // Forward the request to Mux
-    const uploadUrl = await headersList.get('x-mux-upload-url');
-    if (!uploadUrl) {
-      console.error('Missing x-mux-upload-url header');
-      return NextResponse.json(
-        { error: 'Missing upload URL' },
-        {
-          status: 400,
-          headers: {
-            'Access-Control-Allow-Origin': origin,
-            'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
-          }
-        }
-      );
-    }
-
-    console.log('Forwarding to Mux URL:', uploadUrl);
     const response = await fetch(uploadUrl, {
       method: 'PUT',
       body: request.body,
       headers: {
-        'Content-Type': await headersList.get('content-type') || 'video/mp4',
-        'Content-Length': await headersList.get('content-length') || '',
-        'Content-Range': await headersList.get('content-range') || ''
+        'Content-Type': contentType || 'video/mp4',
+        'Content-Length': contentLength || '',
+        'Content-Range': contentRange || ''
       }
     });
 
@@ -110,20 +109,19 @@ export async function PUT(request: Request) {
       throw new Error(`Mux upload failed: ${response.status} ${response.statusText}`);
     }
 
-    // Forward the Mux response
-    // Status 308 means the chunk was received and more chunks are expected
-    // Status 200/201 means the upload is complete
+    const headers = {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
+    };
+
     return NextResponse.json(
       response.status === 308 
         ? { status: 'processing' }
         : { status: 'complete' },
       {
         status: response.status,
-        headers: {
-          'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url'
-        }
+        headers
       }
     );
   } catch (error) {

@@ -16,7 +16,10 @@ jest.mock('next/headers', () => ({
       const headers = {
         'origin': 'http://localhost:3000',
         'method': 'POST',
-        'content-type': 'video/mp4'
+        'content-type': 'video/mp4',
+        'content-length': '1000000',
+        'content-range': 'bytes 0-999999/2000000',
+        'authorization': 'Bearer test-token'
       };
       return headers[key.toLowerCase()] || null;
     }
@@ -82,5 +85,23 @@ describe('Video Upload API', () => {
     expect(headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000');
     expect(headers.get('Access-Control-Allow-Methods')).toBe('POST, PUT, OPTIONS');
     expect(headers.get('Access-Control-Allow-Headers')).toBe('Content-Type');
+  });
+
+  it('should handle PUT request same as POST', async () => {
+    const mockUploadResponse = {
+      url: 'https://mock-upload-url.mux.com',
+      id: 'mock-asset-id'
+    };
+    
+    (createUpload as jest.Mock).mockResolvedValueOnce(mockUploadResponse);
+
+    const response = await PUT();
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({
+      uploadUrl: mockUploadResponse.url,
+      assetId: mockUploadResponse.id
+    });
   });
 });

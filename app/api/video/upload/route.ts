@@ -13,12 +13,17 @@ async function handleUploadRequest() {
 
   const method = headersList.get('method');
   const contentType = headersList.get('content-type');
+  const contentLength = headersList.get('content-length');
+  const contentRange = headersList.get('content-range');
 
   try {
     console.log('Upload request received:', {
       origin,
       method,
-      contentType
+      contentType,
+      contentLength,
+      contentRange,
+      headers: Object.fromEntries(headersList.entries?.() || [])
     });
     console.log('Starting upload request initialization');
     const upload = await createUpload();
@@ -44,7 +49,7 @@ async function handleUploadRequest() {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': origin,
           'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS, HEAD',
-          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range'
+          'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization'
         }
       }
     );

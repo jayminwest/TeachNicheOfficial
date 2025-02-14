@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { UploadButton } from "@mux/mux-uploader-react";
+import { MuxUploader } from "@mux/mux-uploader-react";
 import { useState } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
@@ -22,7 +22,7 @@ export function VideoUploader({
 
   return (
     <div className={cn("relative space-y-4", className)}>
-      <UploadButton
+      <MuxUploader
         endpoint="/api/video/upload"
         onUploadStart={() => {
           setStatus('uploading');
@@ -44,7 +44,7 @@ export function VideoUploader({
         {status === 'idle' && (
           <Button type="button">Upload Video</Button>
         )}
-      </UploadButton>
+      </MuxUploader>
 
       {status !== 'idle' && (
         <Progress value={progress} className="w-full" />

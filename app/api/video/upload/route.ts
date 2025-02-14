@@ -13,14 +13,19 @@ async function handleUpload() {
   try {
     const upload = await createUpload();
     
+    if (!upload?.url || !upload?.id) {
+      throw new Error('Invalid upload response from Mux');
+    }
+    
     return NextResponse.json({
       uploadUrl: upload.url,
       assetId: upload.id
     });
   } catch (error) {
     console.error('Video upload initialization error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to initialize video upload';
     return NextResponse.json(
-      { error: 'Failed to initialize video upload' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

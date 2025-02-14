@@ -14,6 +14,7 @@ async function handleUploadRequest() {
   const method = headersList.get('method');
   const contentType = headersList.get('content-type');
 
+  try {
     console.log('Upload request received:', {
       origin,
       method,

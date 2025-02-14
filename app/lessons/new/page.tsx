@@ -10,7 +10,12 @@ export default function NewLessonPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: {
+    title: string;
+    description: string;
+    content: string;
+    price?: number;
+  }) => {
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/lessons", {

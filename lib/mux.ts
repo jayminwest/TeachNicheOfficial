@@ -14,7 +14,8 @@ export async function createUpload() {
     cors_origin: '*',
   });
 
-  return upload;
+  try {
+    return upload;
   } catch (error) {
     console.error('Mux upload creation error:', {
       error: error,

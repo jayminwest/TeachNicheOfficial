@@ -6,9 +6,10 @@ const muxClient = new Mux(
   process.env.MUX_TOKEN_ID!,
   process.env.MUX_TOKEN_SECRET!
 );
+const { video } = muxClient;
 
 async function createUpload() {
-  return await muxClient.Video.Uploads.create({
+  return await video.uploads.create({
     new_asset_settings: {
       playback_policy: ["public"],
       encoding_tier: "baseline",

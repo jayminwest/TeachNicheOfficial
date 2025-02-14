@@ -23,7 +23,7 @@ async function handlePostRequest() {
 
     return NextResponse.json(
       {
-        uploadUrl: upload.url,
+        url: upload.url,
         assetId: upload.id
       },
       {

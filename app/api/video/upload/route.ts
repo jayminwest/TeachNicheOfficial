@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createUpload } from '@/lib/mux';
 
-export async function POST() {
+// Helper function to handle both POST and PUT requests
+async function handleUploadRequest() {
   try {
     const upload = await createUpload();
     
@@ -27,4 +28,12 @@ export async function POST() {
       { status: 500 }
     );
   }
+}
+
+export async function POST() {
+  return handleUploadRequest();
+}
+
+export async function PUT() {
+  return handleUploadRequest();
 }

@@ -1,211 +1,274 @@
 # Mux Video Integration Plan
 
 ## Overview
-Integration of Mux video uploading/playback for lesson creation and editing, following modular architecture and existing project patterns.
+Integration of Mux video uploading/playback following modular architecture, existing project patterns, and TypeScript-first development approach.
 
-## 1. Dependencies
-```bash
-npm install @mux/mux-node @mux/mux-player-react @mux/mux-uploader-react
-```
+## 1. Component Architecture
 
-## 2. Environment Setup
-Add to .env.local:
-```
-MUX_TOKEN_ID=your_token_id
-MUX_TOKEN_SECRET=your_token_secret
-```
-
-## 3. File Structure
+### File Structure
 ```
 app/
   lessons/
+    _components/
+      video/
+        atoms/
+          UploadButton.tsx
+          ProgressBar.tsx
+          VideoThumbnail.tsx
+          ErrorDisplay.tsx
+        molecules/
+          UploadStatus.tsx
+          VideoPlayer.tsx
+          UploadForm.tsx
+        organisms/
+          VideoUploader.tsx
+          VideoManager.tsx
+      form/
+        atoms/
+          FormField.tsx
+          ValidationMessage.tsx
+        molecules/
+          VideoSection.tsx
+          MetadataSection.tsx
+        organisms/
+          LessonForm.tsx
     new/
-      page.tsx         # Create new lesson page
+      page.tsx
     edit/
       [lessonId]/
-        page.tsx       # Edit existing lesson page
-    _components/       # Shared components
-      LessonForm/
-        index.tsx      # Main form wrapper
-        schema.ts      # Zod validation schema
-      VideoUploader/
-        index.tsx      # Container component
-        MuxUploader.tsx     # Upload wrapper
-        AssetStatus.tsx     # Processing status
-        MuxPlayer.tsx       # Video player
-        types.ts           # Shared types
-      PermissionGuard.tsx  # Auth HOC
+        page.tsx
     api/
-      video-upload/
-        route.ts      # Upload endpoint
-      video-status/
-        route.ts      # Status check endpoint
+      video/
+        upload/route.ts
+        status/route.ts
+```
+
+## 2. Type Definitions
+
+```typescript
+// types/video.ts
+export interface MuxAsset {
+  id: string;
+  status: 'preparing' | 'ready' | 'errored';
+  playbackId?: string;
+  errors?: Array<{
+    type: string;
+    message: string;
+  }>;
+}
+
+export interface UploadState {
+  progress: number;
+  status: 'idle' | 'uploading' | 'processing' | 'complete' | 'error';
+  error?: Error;
+}
+
+// types/lesson.ts
+export interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  muxAssetId?: string;
+  muxPlaybackId?: string;
+  videoStatus: 'pending' | 'processing' | 'ready' | 'error';
+  creatorId: string;
+}
+```
+
+## 3. State Management
+
+```typescript
+// contexts/VideoContext.tsx
+interface VideoContextState {
+  asset: MuxAsset | null;
+  uploadState: UploadState;
+  error: Error | null;
+}
+
+interface VideoContextActions {
+  startUpload: (file: File) => Promise<void>;
+  retryUpload: () => Promise<void>;
+  resetState: () => void;
+}
+
+const VideoContext = createContext<{
+  state: VideoContextState;
+  actions: VideoContextActions;
+}>(null!);
+
+export const useVideo = () => useContext(VideoContext);
 ```
 
 ## 4. Implementation Phases
 
-### Phase 1: Core Components
-- [ ] Set up file structure
-- [ ] Create basic component shells
+### Phase 1: Core Setup
 - [ ] Add Mux dependencies
 - [ ] Configure environment variables
+- [ ] Set up type definitions
+- [ ] Create base components structure
 
-### Phase 2: Video Upload Flow
-- [ ] Implement MuxUploader component
-- [ ] Create upload API endpoint
-- [ ] Add upload status polling
-- [ ] Basic error handling
+### Phase 2: Atomic Components
+- [ ] Implement atom-level components with tests
+- [ ] Add accessibility features
+- [ ] Create Storybook stories
+- [ ] Add error boundaries
 
-### Phase 3: Lesson Form 
-- [ ] Create form schema
-- [ ] Implement form components
-- [ ] Add video upload container
-- [ ] Connect form to API
+### Phase 3: Video Management
+- [ ] Implement VideoContext
+- [ ] Create upload flow
+- [ ] Add status polling
+- [ ] Implement error handling
+- [ ] Add video player integration
 
-### Phase 4: Edit Flow 
-- [ ] Add edit page
-- [ ] Implement video replacement
-- [ ] Handle existing video playback
-- [ ] Update API endpoints
+### Phase 4: Form Integration
+- [ ] Create form components
+- [ ] Add validation
+- [ ] Implement save/update flow
+- [ ] Add loading states
 
 ### Phase 5: Auth & Permissions
-- [ ] Add PermissionGuard
-- [ ] Implement ownership checks
-- [ ] Update database schema
-- [ ] Add RLS policies
+- [ ] Integrate with AuthContext
+- [ ] Add permission checks
+- [ ] Implement RLS policies
+- [ ] Add error handling
 
-### Phase 6: Testing & Polish
-- [ ] Add component tests
-- [ ] Add API tests
-- [ ] Error handling
-- [ ] Loading states
-- [ ] UI polish
+## 5. Testing Strategy
 
-## 5. Database Schema Updates
+### Component Testing
+```typescript
+import { render, screen } from '@/test-utils'
+import { setup } from '@/setup/test-helpers'
+import { createMockUser } from '@/setup/mocks'
+
+describe('VideoUploader', () => {
+  const user = createMockUser()
+  
+  it('handles authenticated upload', async () => {
+    const { container } = render(
+      <VideoUploader />, 
+      { 
+        withAuth: true,
+        providerProps: { user }
+      }
+    )
+    
+    await setup(async ({ user }) => {
+      // Test implementation using existing utilities
+    })
+  })
+
+  it('meets accessibility requirements', async () => {
+    const { container } = render(<VideoUploader />)
+    expect(await axe(container)).toHaveNoViolations()
+  })
+})
+```
+
+### Integration Testing
+```typescript
+describe('Lesson Creation Flow', () => {
+  it('creates lesson with video', async () => {
+    // Use test-utils for consistent testing approach
+  })
+})
+```
+
+## 6. Error Handling
+
+### Error Boundaries
+```typescript
+class VideoErrorBoundary extends React.Component {
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorDisplay error={this.state.error} />
+    }
+    return this.props.children
+  }
+}
+```
+
+### Error States
+- Upload failures (network/validation)
+- Processing errors (Mux-specific)
+- Permission errors
+- Validation errors
+- Timeout handling
+
+## 7. Database Schema
 
 ```sql
--- Modify existing lessons table to support Mux
+-- Add Mux support to lessons
 alter table lessons 
   add column mux_asset_id text,
   add column mux_playback_id text,
-  add column mux_upload_id text,
   add column video_status text default 'pending';
 
--- Drop existing Vimeo columns (after migration)
-alter table lessons 
-    drop column vimeo_video_id,
-    drop column vimeo_url;
-
--- Update RLS policies
-alter policy "Users can view their own lessons" 
+-- RLS Policies
+alter policy "lesson_access_policy" 
   on lessons 
   using (
     auth.uid() = creator_id 
     or status = 'published'
     or exists (
       select 1 from purchases 
-      where purchases.lesson_id = lessons.id 
-      and purchases.user_id = auth.uid()
+      where lesson_id = lessons.id 
+      and user_id = auth.uid()
     )
   );
 
-alter policy "Users can update their own lessons" 
-  on lessons 
-  using (auth.uid() = creator_id);
-
--- Add function to handle video status updates
-create or replace function handle_video_status_change()
-returns trigger as $$
+-- Status trigger
+create function on_video_status_change() returns trigger as $$
 begin
   if NEW.video_status = 'ready' and OLD.video_status != 'ready' then
-    -- Could trigger notifications or other actions
-    NEW.updated_at = now();
+    perform notify_lesson_ready(NEW.id);
   end if;
   return NEW;
 end;
 $$ language plpgsql;
-
-create trigger video_status_change
-  before update on lessons
-  for each row
-  when (NEW.video_status is distinct from OLD.video_status)
-  execute function handle_video_status_change();
 ```
 
-## 6. Testing Strategy
+## 8. Performance Optimization
 
-### Component Tests
+### Lazy Loading
 ```typescript
-// VideoUploader
-describe('VideoUploader', () => {
-  it('handles new upload')
-  it('shows existing video')
-  it('handles replace flow')
-  it('shows upload errors')
-});
-
-// LessonForm
-describe('LessonForm', () => {
-  it('validates required fields')
-  it('handles video upload')
-  it('submits successfully')
-});
+const VideoPlayer = dynamic(() => import('./VideoPlayer'), {
+  loading: () => <VideoPlayerSkeleton />,
+  ssr: false
+})
 ```
 
-### API Tests
-```typescript
-describe('video-upload', () => {
-  it('requires authentication')
-  it('creates upload URL')
-  it('handles Mux errors')
-});
-```
+### Caching Strategy
+- Cache video metadata
+- Implement stale-while-revalidate
+- Use Next.js ISR for lesson pages
 
-## 7. Error Handling
-- Upload failures
-- Processing errors
-- Network issues
-- Permission denied
-- Invalid file types
-- File size limits
+## 9. Security Measures
+- Implement upload URL signing
+- Add file type validation
+- Set size limits
+- Configure CORS
+- Add rate limiting
+- Implement proper auth checks
 
-## 8. Performance Considerations
-- Optimize video player loading
-- Implement lazy loading
-- Handle large file uploads
-- Consider CDN configuration
-- Monitor Mux usage/quotas
-
-## 9. Security Checklist
-- [ ] Validate file types
-- [ ] Set upload size limits
-- [ ] Configure CORS properly
-- [ ] Implement proper auth checks
-- [ ] Secure API endpoints
-- [ ] Add rate limiting
-- [ ] Monitor usage patterns
-
-## 10. Deployment Steps
-1. Set up Mux account
-2. Configure environment variables
-3. Update database schema
-4. Deploy API changes
-5. Test upload flow
-6. Monitor error rates
-7. Check video processing
-8. Verify permissions
-
-## 11. Monitoring Plan
+## 10. Monitoring
 - Track upload success rates
-- Monitor video processing times
-- Watch for error patterns
-- Check auth failures
-- Monitor API performance
-- Track Mux quota usage
+- Monitor processing times
+- Watch error patterns
+- Track performance metrics
+- Monitor quota usage
 
-## Next Steps
-1. Begin with Phase 1 implementation
-2. Set up project board
-3. Create initial PRs
-4. Schedule review meetings
-5. Plan testing strategy
+## Dependencies
+```bash
+npm install @mux/mux-node @mux/mux-player-react @mux/mux-uploader-react
+```
+
+## Environment Variables
+```
+MUX_TOKEN_ID=your_token_id
+MUX_TOKEN_SECRET=your_token_secret
+NEXT_PUBLIC_MUX_ENV_KEY=your_env_key
+```

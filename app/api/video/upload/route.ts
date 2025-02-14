@@ -105,8 +105,14 @@ export async function PUT(request: Request) {
   const contentLength = headersList.get('content-length');
   const contentRange = headersList.get('content-range');
 
-  console.log('Upload URL:', uploadUrl);
-  console.log('Request URL:', request.url);
+  console.log('Debug PUT request:', {
+    uploadUrl,
+    requestUrl: request.url,
+    headers: Object.fromEntries(headersList.entries()),
+    contentType,
+    contentLength,
+    contentRange
+  });
 
   if (!uploadUrl) {
     console.error('Missing upload URL in headers and query params');

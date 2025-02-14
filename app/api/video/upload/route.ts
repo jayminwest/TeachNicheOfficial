@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server';
-import { createUpload } from '@/lib/mux';
+import Mux from "@mux/mux-node";
+const { Video } = new Mux();
+
+async function createUpload() {
+  return await Video.Uploads.create({
+    new_asset_settings: {
+      playback_policy: ["public"],
+      encoding_tier: "baseline",
+    },
+    cors_origin: "*",
+  });
+}
 import { headers } from 'next/headers';
 
 // Helper function to handle POST request (upload initialization)

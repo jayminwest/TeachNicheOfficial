@@ -7,31 +7,14 @@ Integration of Mux video uploading/playback following modular architecture, exis
 
 ### File Structure
 ```
+components/
+  ui/
+    video-uploader.tsx    # Main upload component with progress
+    video-player.tsx      # Mux video player wrapper
+    video-status.tsx      # Processing status display
+    lesson-form.tsx       # Form with video section
 app/
   lessons/
-    _components/
-      video/
-        atoms/
-          UploadButton.tsx
-          ProgressBar.tsx
-          VideoThumbnail.tsx
-          ErrorDisplay.tsx
-        molecules/
-          UploadStatus.tsx
-          VideoPlayer.tsx
-          UploadForm.tsx
-        organisms/
-          VideoUploader.tsx
-          VideoManager.tsx
-      form/
-        atoms/
-          FormField.tsx
-          ValidationMessage.tsx
-        molecules/
-          VideoSection.tsx
-          MetadataSection.tsx
-        organisms/
-          LessonForm.tsx
     new/
       page.tsx
     edit/

@@ -45,13 +45,6 @@ export function VideoUploader({
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
         endpoint="/api/video/upload"
-        onChunkAttempt={(chunk) => {
-          console.log('Attempting chunk upload:', {
-            chunkSize: chunk.size,
-            chunkStart: chunk.start,
-            chunkEnd: chunk.end
-          });
-        }}
         onUploadStart={(file) => {
           try {
             validateFile(file);

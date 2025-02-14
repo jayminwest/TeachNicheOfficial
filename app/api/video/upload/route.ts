@@ -93,21 +93,13 @@ export async function PUT(request: Request) {
   const headersList = headers();
   const origin = await headersList.get('origin') || '*';
   
-  // Extract URL from request URL query params if not in headers
+  // Get the upload URL from the query parameters
   const requestUrl = new URL(request.url);
-  const uploadUrl = await headersList.get('x-mux-upload-url') || 
-                   await headersList.get('X-Mux-Upload-Url') || 
-                   requestUrl.searchParams.get('url');
-                   
+  const uploadUrl = requestUrl.searchParams.get('url');
+  
   const contentType = await headersList.get('content-type');
   const contentLength = await headersList.get('content-length');
   const contentRange = await headersList.get('content-range');
-
-  // Log headers for debugging after awaiting them
-  const headersEntries = await Promise.all(
-    Array.from(headersList.entries()).map(async ([key, value]) => [key, value])
-  );
-  console.log('Received headers:', Object.fromEntries(headersEntries));
 
   console.log('Debug PUT request:', {
     uploadUrl,

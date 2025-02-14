@@ -33,11 +33,11 @@ async function handleUploadRequest() {
       }
     });
 
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         uploadUrl: upload.url,
         assetId: upload.id
-      }),
+      },
       {
         status: 200,
         headers: {
@@ -55,11 +55,11 @@ async function handleUploadRequest() {
       error
     });
     
-    return new NextResponse(
-      JSON.stringify({ 
+    return NextResponse.json(
+      { 
         error: 'Failed to initialize video upload. Please try again.',
         details: error instanceof Error ? error.message : 'Unknown error'
-      }),
+      },
       {
         status: 500,
         headers: {
@@ -85,7 +85,7 @@ export async function OPTIONS() {
   const headersList = headers();
   const origin = headersList.get('origin') || '*';
 
-  return new NextResponse(null, {
+  return NextResponse.json(null, {
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': origin,

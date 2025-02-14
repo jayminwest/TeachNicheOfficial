@@ -26,9 +26,9 @@ jest.mock('next/headers', () => ({
 // Mock NextResponse
 jest.mock('next/server', () => ({
   NextResponse: {
-    json: jest.fn((body) => ({
-      status: 200,
-      headers: new Map(),
+    json: jest.fn((body, init) => ({
+      status: init?.status || 200,
+      headers: new Headers(init?.headers || {}),
       json: async () => body
     }))
   }

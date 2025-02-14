@@ -92,9 +92,9 @@ alter table lessons
   add column video_status text default 'pending';
 
 -- Drop existing Vimeo columns (after migration)
--- alter table lessons 
---   drop column vimeo_video_id,
---   drop column vimeo_url;
+alter table lessons 
+    drop column vimeo_video_id,
+    drop column vimeo_url;
 
 -- Update RLS policies
 alter policy "Users can view their own lessons" 

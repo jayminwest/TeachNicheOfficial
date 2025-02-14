@@ -22,7 +22,8 @@ export default function NewLessonPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create lesson");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to create lesson: ${response.statusText}`);
       }
 
       const lesson = await response.json();
@@ -34,9 +35,10 @@ export default function NewLessonPage() {
 
       router.push(`/lessons/${lesson.id}`);
     } catch (error) {
+      console.error('Lesson creation error:', error);
       toast({
         title: "Creation Failed",
-        description: "There was an error creating your lesson. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error creating your lesson. Please try again.",
         variant: "destructive",
       });
       setIsSubmitting(false);

@@ -76,11 +76,7 @@ export async function PUT(request: Request) {
   const headersList = headers();
   const origin = headersList.get('origin') || '*';
   const uploadUrl = headersList.get('x-mux-upload-url');
-  const contentType = headersList.get('content-type');
-  const contentLength = headersList.get('content-length');
-  const contentRange = headersList.get('content-range');
-
-  if (!uploadUrl) {
+  if (!uploadUrl || !uploadUrl.startsWith('https://')) {
     return NextResponse.json(
       { error: 'Missing upload URL' },
       {

@@ -4,8 +4,10 @@ if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
   throw new Error('Missing required Mux environment variables');
 }
 
-const mux = new Mux();
-const { Video } = mux;
+const { Video } = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID,
+  tokenSecret: process.env.MUX_TOKEN_SECRET
+});
 
 export interface MuxUploadResponse {
   url: string;

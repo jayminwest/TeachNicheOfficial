@@ -8,7 +8,7 @@ import { Button } from "./button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Input } from "./input";
 import { VideoUploader } from "./video-uploader";
-import { toast } from "./use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 const lessonFormSchema = z.object({
   title: z.string().min(1, "Title is required"),

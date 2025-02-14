@@ -2,6 +2,7 @@
 
 import { LessonForm } from "@/components/ui/lesson-form";
 import { toast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 
 export default function NewLessonPage() {
@@ -42,6 +43,7 @@ export default function NewLessonPage() {
     <div className="container max-w-3xl py-10">
       <h1 className="text-3xl font-bold mb-8">Create New Lesson</h1>
       <LessonForm onSubmit={handleSubmit} />
+      <Toaster />
     </div>
   );
 }

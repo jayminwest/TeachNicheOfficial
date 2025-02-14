@@ -18,8 +18,7 @@ async function handleUploadRequest() {
     console.log('Upload request received:', {
       origin,
       method,
-      contentType,
-      headers: Object.fromEntries(headersList.entries())
+      contentType
     });
     console.log('Starting upload request initialization');
     const upload = await createUpload();

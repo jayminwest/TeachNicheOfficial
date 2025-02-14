@@ -3,13 +3,20 @@ import { createUpload } from '@/lib/mux';
 import { headers } from 'next/headers';
 import { POST, PUT, OPTIONS } from '@/app/api/video/upload/route';
 
+// Mock Request globally
+global.Request = class MockRequest extends Request {
+  constructor() {
+    super('http://localhost:3000');
+  }
+};
+
 // Mock the next/headers module
 jest.mock('next/headers', () => ({
-  headers: jest.fn(() => new Map([
-    ['origin', 'http://localhost:3000'],
-    ['method', 'POST'],
-    ['content-type', 'video/mp4']
-  ]))
+  headers: jest.fn(() => new Headers({
+    origin: 'http://localhost:3000',
+    method: 'POST',
+    'content-type': 'video/mp4'
+  }))
 }));
 
 // Mock the Mux client

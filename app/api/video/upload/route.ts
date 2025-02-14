@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { createUpload } from '@/lib/mux';
 
 export async function POST() {
+  return handleUpload();
+}
+
+export async function PUT() {
+  return handleUpload();
+}
+
+async function handleUpload() {
   try {
     const upload = await createUpload();
     

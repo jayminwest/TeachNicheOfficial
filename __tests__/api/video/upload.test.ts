@@ -86,7 +86,7 @@ describe('Video Upload API', () => {
     const headers = new Headers(response.headers);
     expect(headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000');
     expect(headers.get('Access-Control-Allow-Methods')).toBe('POST, PUT, OPTIONS');
-    expect(headers.get('Access-Control-Allow-Headers')).toBe('Content-Type');
+    expect(headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, Content-Length, Content-Range, Authorization, X-Mux-Upload-Url');
   });
 
   it('should handle PUT request same as POST', async () => {

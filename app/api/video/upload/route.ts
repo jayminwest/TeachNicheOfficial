@@ -7,11 +7,25 @@ async function handleUploadRequest() {
   const headersList = headers();
   const origin = headersList.get('origin') || '*';
 
+  console.log('Upload request received:', {
+    origin,
+    method: headersList.get('method'),
+    contentType: headersList.get('content-type')
+  });
+
   try {
     console.log('Starting upload request initialization');
     const upload = await createUpload();
 
-    console.log('Successfully created upload URL:', { id: upload.id });
+    console.log('Successfully created upload URL:', {
+      id: upload.id,
+      hasUrl: !!upload.url,
+      headers: {
+        origin,
+        allowMethods: 'POST, PUT, OPTIONS, HEAD',
+        allowHeaders: 'Content-Type, Content-Length, Content-Range'
+      }
+    });
 
     return new NextResponse(
       JSON.stringify({

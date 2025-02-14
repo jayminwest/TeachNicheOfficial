@@ -14,14 +14,18 @@ export interface MuxUploadResponse {
 
 export async function createUpload(): Promise<MuxUploadResponse> {
   try {
-    console.log('Creating Mux upload with config:', {
+    // Log environment check
+    console.log('Checking Mux environment:', {
       tokenIdExists: !!process.env.MUX_TOKEN_ID,
-      tokenSecretExists: !!process.env.MUX_TOKEN_SECRET,
-      baseUrl: process.env.NEXT_PUBLIC_BASE_URL
+      tokenSecretLength: process.env.MUX_TOKEN_SECRET?.length,
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+      nodeEnv: process.env.NODE_ENV
     });
 
     const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
+    console.log('Using CORS origin:', corsOrigin);
     
+    console.log('Attempting to create Mux upload...');
     const upload = await Video.Uploads.create({
       new_asset_settings: {
         playback_policy: ['public'],
@@ -29,13 +33,22 @@ export async function createUpload(): Promise<MuxUploadResponse> {
       },
       cors_origin: corsOrigin,
     });
+    console.log('Raw Mux upload response:', JSON.stringify(upload, null, 2));
 
     if (!upload?.url || !upload?.id) {
-      console.error('Invalid Mux upload response:', upload);
+      console.error('Invalid Mux upload response:', {
+        hasUrl: !!upload?.url,
+        hasId: !!upload?.id,
+        upload
+      });
       throw new Error('Mux returned an invalid upload response');
     }
 
-    console.log('Successfully created Mux upload:', { id: upload.id });
+    console.log('Successfully created Mux upload:', {
+      id: upload.id,
+      urlLength: upload.url.length,
+      corsOrigin
+    });
 
     return {
       url: upload.url,

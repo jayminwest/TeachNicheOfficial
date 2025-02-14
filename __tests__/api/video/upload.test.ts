@@ -3,8 +3,11 @@ import { createUpload } from '@/lib/mux';
 import { headers } from 'next/headers';
 import { POST, PUT, OPTIONS } from '@/app/api/video/upload/route';
 
-// Set up global Request object
-global.Request = require('node-fetch').Request;
+// Mock Next.js runtime
+const originalGlobal = global;
+(global as any).Request = class MockRequest {
+  constructor() {}
+};
 
 // Mock the next/headers module
 jest.mock('next/headers', () => ({
@@ -18,6 +21,17 @@ jest.mock('next/headers', () => ({
       return headers[key.toLowerCase()] || null;
     }
   }))
+}));
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((body) => ({
+      status: 200,
+      headers: new Map(),
+      json: async () => body
+    }))
+  }
 }));
 
 // Mock the Mux client

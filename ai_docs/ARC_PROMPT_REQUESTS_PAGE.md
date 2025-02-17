@@ -1,48 +1,6 @@
-Implement this plan:
-
 # Lesson Requests Feature Implementation Plan
 
-## HIGH LEVEL OBJECTIVES
-1. Create public lesson request browsing system
-2. Implement dual-mode request creation (anonymous/authenticated)
-3. Establish request management interface
-4. Set up notification/communication system
-5. Implement voting/ranking system for requests
-6. Create directory view with sorting options
-
-## MID LEVEL OBJECTIVES
-1. Public Browsing System
-   - Public requests listing page
-   - Search/filter functionality
-   - Request detail views
-   
-2. Request Creation
-   - Anonymous request form
-   - Enhanced authenticated user form
-   - Form validation system
-   
-3. Database Structure
-   - Lesson requests table
-   - User relationships
-   - Anonymous request handling
-
-4. Voting System
-   - Vote up/down functionality
-   - Vote tracking per user
-   - Vote-based sorting
-   
-5. Directory View
-   - Grid/List view toggle
-   - Sort by (newest, most voted, trending)
-   - Category/tag filtering
-
-## FILE STRUCTURE
-
-### Files Needed Before Implementation
-
-### Files To Be Created/Modified
-
-## DATABASE SCHEMA
+## Database Schema
 
 ### Lesson Requests Table
 ```sql
@@ -50,16 +8,32 @@ create table lesson_requests (
   id uuid default uuid_generate_v4() primary key,
   title text not null,
   description text not null,
-  preferred_teacher_id uuid references auth.users,
-  status text default 'open',
   created_at timestamp with time zone default now(),
   user_id uuid references auth.users,
-  anonymous_email text,
-  is_anonymous boolean default false,
+  status text default 'open' check (status in ('open', 'in_progress', 'completed')),
   vote_count integer default 0,
   category text,
   tags text[]
 );
+
+-- Enable RLS
+alter table lesson_requests enable row level security;
+
+-- Policies
+create policy "Requests are viewable by everyone"
+  on lesson_requests for select
+  to anon, authenticated
+  using (true);
+
+create policy "Authenticated users can create requests"
+  on lesson_requests for insert
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "Users can update their own requests"
+  on lesson_requests for update
+  to authenticated
+  using (auth.uid() = user_id);
 ```
 
 ### Request Votes Table

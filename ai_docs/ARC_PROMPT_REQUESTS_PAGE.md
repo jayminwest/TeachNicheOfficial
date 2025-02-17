@@ -39,10 +39,55 @@ Implement this plan:
 ## FILE STRUCTURE
 
 ### Files Needed Before Implementation
-
+- app/layout.tsx (existing)
+- components/ui/button.tsx (existing)
+- components/ui/card.tsx (existing)
+- components/ui/form.tsx (existing)
+- components/ui/input.tsx (existing)
+- components/ui/textarea.tsx (existing)
+- components/providers.tsx (existing)
+- lib/supabase.ts (existing)
+- lib/utils.ts (existing)
+- auth/AuthContext.tsx (existing)
 
 ### Files To Be Created/Modified
 
+/app
+  /requests
+    /page.tsx             # Main requests directory page
+    /[id]/page.tsx        # Individual request view
+    /new/page.tsx         # Create new request page
+    /loading.tsx          # Loading state
+    /error.tsx            # Error state
+
+/components/requests
+  /RequestCard.tsx        # Card component for request in grid view
+  /RequestList.tsx        # List view component
+  /RequestForm.tsx        # Form for creating/editing requests
+  /RequestVoteButton.tsx  # Vote interaction component
+  /RequestFilters.tsx     # Filter and sort controls
+  /RequestGrid.tsx        # Grid view component
+  /RequestStats.tsx       # Shows votes and other metrics
+
+/lib
+  /requests
+    /types.ts            # Request-related type definitions
+    /api.ts              # Request API utilities
+    /validation.ts       # Request form validation schemas
+
+/hooks
+  /useRequests.ts        # Hook for fetching requests
+  /useVoting.ts          # Hook for vote interactions
+  /useRequestFilters.ts  # Hook for managing filters/sorting
+
+/api/requests
+  /route.ts              # Main requests API endpoint
+  /[id]/route.ts         # Individual request endpoint
+  /vote/route.ts         # Voting endpoint
+
+/__tests__
+  /components/requests   # Test files for request components
+  /api/requests         # Test files for request API endpoints
 
 
 ## Database Schema

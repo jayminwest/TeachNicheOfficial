@@ -13,11 +13,16 @@ export default function NewLessonPage() {
   const handleSubmit = async (data: {
     title: string;
     description: string;
-    content: string;
+    muxAssetId?: string;
     price?: number;
   }) => {
     setIsSubmitting(true);
     try {
+      // Ensure we have a video before submitting
+      if (!data.muxAssetId) {
+        throw new Error("Please upload a video before creating the lesson");
+      }
+
       const response = await fetch("/api/lessons", {
         method: "POST",
         headers: {

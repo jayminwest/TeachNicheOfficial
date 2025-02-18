@@ -52,6 +52,7 @@ export function LessonForm({
       content: initialData?.content || '',
       muxAssetId: initialData?.muxAssetId || '',
     },
+    mode: 'onChange'
   });
 
   const handleSubmit = async (data: LessonFormData) => {
@@ -110,7 +111,10 @@ export function LessonForm({
                     min="0" 
                     step="0.01"
                     {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                    onChange={e => {
+                      const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                      field.onChange(value);
+                    }}
                   />
                 </FormControl>
                 <FormDescription>
@@ -180,10 +184,20 @@ export function LessonForm({
           <div>
             <Button 
               type="submit" 
-              disabled={!form.formState.isValid || isSubmitting || isUploading}
+              disabled={!form.formState.isValid || isSubmitting || isUploading || Object.keys(form.formState.errors).length > 0}
             >
               {isSubmitting ? 'Saving...' : 'Save Lesson'}
             </Button>
+            <div className="text-sm text-muted-foreground mt-2">
+              {Object.keys(form.formState.errors).length > 0 && (
+                <p className="text-destructive">Please fix the following errors:</p>
+              )}
+              {Object.entries(form.formState.errors).map(([field, error]) => (
+                <p key={field} className="text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
             {!form.formState.isValid && (
               <p className="text-sm text-destructive mt-2">
                 Please fill in all required fields and upload a video

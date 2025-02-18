@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -50,11 +51,14 @@ export function LessonForm({
     },
   });
 
-  const hasVideo = !!form.watch("muxAssetId");
-  console.log("Current muxAssetId:", form.watch("muxAssetId")); // Debug current value
-
-  // Register muxAssetId field explicitly
-  form.register("muxAssetId");
+  const [videoUploaded, setVideoUploaded] = useState(false);
+  const hasVideo = videoUploaded || !!form.watch("muxAssetId");
+  
+  console.log("Form State:", {
+    muxAssetId: form.watch("muxAssetId"),
+    hasVideo,
+    videoUploaded
+  });
 
   return (
     <Form {...form}>
@@ -149,9 +153,14 @@ export function LessonForm({
             <VideoUploader
               endpoint="/api/video/upload"
               onUploadComplete={(assetId) => {
-                form.setValue("muxAssetId", assetId, { shouldValidate: true });
+                setVideoUploaded(true);
+                form.setValue("muxAssetId", assetId, { 
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
                 console.log("Asset ID set:", assetId);
-                console.log("Form values:", form.getValues()); // Debug log
+                console.log("Form values after upload:", form.getValues());
                 toast({
                   title: "Video uploaded",
                   description: "Your video has been uploaded successfully.",

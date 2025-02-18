@@ -69,7 +69,9 @@ export function VideoUploader({
             setStatus('processing');
           }
         }}
-        onError={handleError}
+        onError={(event: CustomEvent<{ message: string }>) => {
+          handleError(new Error(event.detail.message));
+        }}
       >
         {status === 'idle' && (
           <Button type="button" className="gap-2">

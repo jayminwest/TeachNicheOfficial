@@ -65,7 +65,7 @@ export async function createUpload(): Promise<MuxUploadResponse> {
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
   try {
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.assets.get(assetId);
     
     return {
       id: asset.id,

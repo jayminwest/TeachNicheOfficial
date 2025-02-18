@@ -8,21 +8,40 @@ import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
 
 interface VideoUploaderProps {
+  endpoint?: string | (() => Promise<string>);
   onUploadComplete: (assetId: string) => void;
   onError: (error: Error) => void;
   maxSizeMB?: number;
   acceptedTypes?: string[];
   className?: string;
+  pausable?: boolean;
+  noDrop?: boolean;
+}
+
+type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
+
+interface MuxUploadEvent extends CustomEvent {
+  detail: {
+    file?: File;
+    loaded?: number;
+    total?: number;
+    status?: string;
+    assetId?: string;
+    message?: string;
+  };
 }
 
 export function VideoUploader({ 
+  endpoint = "/api/video/upload",
   onUploadComplete, 
   onError,
   maxSizeMB = 500,
   acceptedTypes = ['video/mp4', 'video/quicktime'],
-  className 
+  className,
+  pausable = false,
+  noDrop = false
 }: VideoUploaderProps) {
-  const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready' | 'error'>('idle');
+  const [status, setStatus] = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -41,43 +60,51 @@ export function VideoUploader({
     }
   };
 
+  const handleUploadStart = (event: MuxUploadEvent) => {
+    try {
+      if (event.detail.file) {
+        validateFile(event.detail.file);
+        setStatus('uploading');
+        setProgress(0);
+        setErrorMessage('');
+      }
+    } catch (error) {
+      handleError(error instanceof Error ? error : new Error('Invalid file'));
+    }
+  };
+
+  const handleProgress = (event: MuxUploadEvent) => {
+    if (event.detail.loaded && event.detail.total) {
+      const percent = Math.round((event.detail.loaded / event.detail.total) * 100);
+      setProgress(percent);
+    }
+  };
+
+  const handleSuccess = (event: MuxUploadEvent) => {
+    const { status, assetId } = event.detail;
+    if (status === 'complete' && assetId) {
+      setStatus('ready');
+      onUploadComplete(assetId);
+    } else {
+      setStatus('processing');
+    }
+  };
+
+  const handleError = (event: MuxUploadEvent) => {
+    const message = event.detail?.message || 'Upload failed';
+    handleError(new Error(message));
+  };
+
   return (
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
-        endpoint="/api/video/upload"
-        onUploadStart={(event: CustomEvent<{ file: File }>) => {
-          try {
-            validateFile(event.detail.file);
-            setStatus('uploading');
-            setProgress(0);
-            setErrorMessage('');
-          } catch (error) {
-            handleError(error instanceof Error ? error : new Error('Invalid file'));
-          }
-        }}
-        onProgress={(event) => {
-          if (event instanceof CustomEvent && typeof event.detail === 'object' && event.detail) {
-            const detail = event.detail as { loaded: number; total: number };
-            const percent = Math.round((detail.loaded / detail.total) * 100);
-            setProgress(percent);
-          }
-        }}
-        onSuccess={(event) => {
-          const detail = event.detail || { status: '', assetId: '' };
-          const { status, assetId } = detail;
-          if (status === 'complete') {
-            setStatus('ready');
-            onUploadComplete(assetId);
-          } else {
-            setStatus('processing');
-          }
-        }}
-        onError={(event) => {
-          const message = event instanceof CustomEvent 
-            ? event.detail?.message 
-            : 'Upload failed';
-          handleError(new Error(message));
-        }}
+        endpoint={endpoint}
+        onUploadStart={handleUploadStart}
+        onProgress={handleProgress}
+        onSuccess={handleSuccess}
+        onError={handleError}
+        pausable={pausable}
+        noDrop={noDrop}
       >
         {status === 'idle' && (
           <Button type="button" className="gap-2">

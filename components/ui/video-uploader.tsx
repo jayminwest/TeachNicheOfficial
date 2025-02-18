@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import MuxUploader from "@mux/mux-uploader-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";

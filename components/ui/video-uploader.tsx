@@ -32,7 +32,7 @@ interface MuxUploadEvent extends CustomEvent {
 }
 
 export function VideoUploader({ 
-  endpoint = "/api/video/upload",
+  endpoint,
   onUploadComplete, 
   onError,
   maxSizeMB = 500,
@@ -119,8 +119,7 @@ export function VideoUploader({
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
         className="mux-uploader"
-        endpoint={endpoint}
-        url="/api/video/upload"
+        endpoint="/api/video/upload"
         onUploadStart={handleUploadStart}
         onProgress={handleProgress}
         onSuccess={handleSuccess}

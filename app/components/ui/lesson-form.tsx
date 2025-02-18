@@ -44,7 +44,8 @@ export function LessonForm({
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
-  const form = useForm({
+  const form = useForm<LessonFormData>({
+    resolver: zodResolver(lessonFormSchema),
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
@@ -90,12 +91,8 @@ export function LessonForm({
   };
 
   return (
-    <div className={className}>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        const formData = form.getValues();
-        handleSubmit(formData);
-      }}>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={className}>
         <div className="space-y-6">
           <FormField
             control={form.control}
@@ -242,6 +239,6 @@ export function LessonForm({
           </div>
         </div>
       </form>
-    </div>
+    </Form>
   );
 }

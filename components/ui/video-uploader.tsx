@@ -60,6 +60,10 @@ export function VideoUploader({
     }
   };
 
+  const [uploadEndpoint, setUploadEndpoint] = useState<string | undefined>(
+    typeof endpoint === 'string' ? endpoint : undefined
+  );
+
   const handleUploadStart = async (event: MuxUploadEvent) => {
     try {
       if (!event.detail.file) {
@@ -68,15 +72,17 @@ export function VideoUploader({
       
       validateFile(event.detail.file);
       
-      // For dynamic endpoints, get the URL before upload starts
-      if (typeof endpoint === 'function') {
-        try {
-          const url = await endpoint();
-          // Set the URL directly on the uploader element
-          const uploader = event.target as HTMLElement;
-          uploader.setAttribute('endpoint', url);
-        } catch (error) {
-          throw new Error('Failed to get upload URL');
+      // Ensure we have an endpoint before starting upload
+      if (!uploadEndpoint) {
+        if (typeof endpoint === 'function') {
+          try {
+            const url = await endpoint();
+            setUploadEndpoint(url);
+          } catch (error) {
+            throw new Error('Failed to get upload URL');
+          }
+        } else {
+          throw new Error('No upload URL available');
         }
       }
       
@@ -120,7 +126,7 @@ export function VideoUploader({
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
         className="mux-uploader"
-        endpoint={typeof endpoint === 'string' ? endpoint : undefined}
+        endpoint={uploadEndpoint}
         onUploadStart={handleUploadStart}
         onProgress={handleProgress}
         onSuccess={handleSuccess}

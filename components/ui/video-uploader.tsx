@@ -93,6 +93,8 @@ export function VideoUploader({
         throw new Error('Upload URL not available. Please try again.');
       }
       
+      console.log('handleUploadStart called with endpoint:', uploadEndpoint);
+      
       validateFile(event.detail.file);
       
       setStatus('uploading');
@@ -134,6 +136,9 @@ export function VideoUploader({
       handleError(new Error(message || 'Upload failed'));
     }
   };
+
+  console.log('Current uploadEndpoint:', uploadEndpoint);
+  console.log('Current status:', status);
 
   return (
     <div className={cn("relative space-y-4", className)}>

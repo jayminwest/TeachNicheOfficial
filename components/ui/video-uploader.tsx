@@ -45,9 +45,9 @@ export function VideoUploader({
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
         endpoint="/api/video/upload"
-        onUploadStart={(file) => {
+        onUploadStart={(event) => {
           try {
-            validateFile(file);
+            validateFile(event.detail.file);
             setStatus('uploading');
             setProgress(0);
             setErrorMessage('');

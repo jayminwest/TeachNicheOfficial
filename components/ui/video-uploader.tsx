@@ -42,7 +42,10 @@ export function VideoUploader({
   acceptedTypes = ['video/mp4', 'video/quicktime'],
   className,
   pausable = false,
-  noDrop = false
+  noDrop = false,
+  chunkSize,
+  dynamicChunkSize = false,
+  useLargeFileWorkaround = false
 }: VideoUploaderProps) {
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);

@@ -89,8 +89,12 @@ export function LessonForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className={className}>
+    <div className={className}>
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        const formData = form.getValues();
+        handleSubmit(formData);
+      }}>
         <div className="space-y-6">
           <FormField
             control={form.control}
@@ -233,6 +237,6 @@ export function LessonForm({
           </div>
         </div>
       </form>
-    </Form>
+    </div>
   );
 }

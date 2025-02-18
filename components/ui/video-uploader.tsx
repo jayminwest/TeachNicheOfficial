@@ -119,7 +119,8 @@ export function VideoUploader({
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
         className="mux-uploader"
-        url={typeof endpoint === 'string' ? endpoint : undefined}
+        endpoint={endpoint}
+        url="/api/video/upload"
         onUploadStart={handleUploadStart}
         onProgress={handleProgress}
         onSuccess={handleSuccess}

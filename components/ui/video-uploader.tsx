@@ -129,19 +129,8 @@ export function VideoUploader({
     
     // When we get a success event without detail, the upload is complete
     if (!event.detail) {
-      // We need to get the assetId from the URL query parameters
-      const url = new URL(uploadEndpoint || '');
-      const assetId = url.searchParams.get('asset_id');
-      console.log('No detail case - URL:', url.toString());
-      console.log('No detail case - Asset ID:', assetId);
-      
-      if (assetId) {
-        setStatus('ready');
-        onUploadComplete(assetId);
-      } else {
-        console.error('No asset ID found in URL');
-        handleError(new Error('Failed to get asset ID'));
-      }
+      console.log('Success event without detail - checking upload status');
+      setStatus('processing');
       return;
     }
     

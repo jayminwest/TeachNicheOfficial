@@ -55,9 +55,12 @@ export function VideoUploader({
             handleError(error instanceof Error ? error : new Error('Invalid file'));
           }
         }}
-        onUploadProgress={(event: CustomEvent<{ loaded: number; total: number }>) => {
-          const percent = Math.round((event.detail.loaded / event.detail.total) * 100);
-          setProgress(percent);
+        onProgress={(event) => {
+          if (event instanceof CustomEvent) {
+            const { loaded, total } = event.detail || { loaded: 0, total: 1 };
+            const percent = Math.round((loaded / total) * 100);
+            setProgress(percent);
+          }
         }}
         onSuccess={(event) => {
           const detail = event.detail || { status: '', assetId: '' };

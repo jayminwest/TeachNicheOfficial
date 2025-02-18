@@ -90,7 +90,7 @@ export function VideoUploader({
     }
   };
 
-  const handleError = (event: MuxUploadEvent) => {
+  const handleUploadError = (event: MuxUploadEvent) => {
     const message = event.detail?.message || 'Upload failed';
     handleError(new Error(message));
   };
@@ -102,7 +102,7 @@ export function VideoUploader({
         onUploadStart={handleUploadStart}
         onProgress={handleProgress}
         onSuccess={handleSuccess}
-        onError={handleError}
+        onError={handleUploadError}
         pausable={pausable}
         noDrop={noDrop}
       >

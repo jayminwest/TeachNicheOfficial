@@ -125,29 +125,38 @@ export function VideoUploader({
   };
 
   const handleSuccess = (event: MuxUploadEvent) => {
-    console.log('Upload success event:', event.detail);
+    console.log('Upload success event:', event);  // Log entire event
     
     // When we get a success event without detail, the upload is complete
     if (!event.detail) {
-      setStatus('ready');
       // We need to get the assetId from the URL query parameters
       const url = new URL(uploadEndpoint || '');
       const assetId = url.searchParams.get('asset_id');
-      console.log('Extracted assetId from URL:', assetId);
+      console.log('No detail case - URL:', url.toString());
+      console.log('No detail case - Asset ID:', assetId);
+      
       if (assetId) {
+        setStatus('ready');
         onUploadComplete(assetId);
+      } else {
+        console.error('No asset ID found in URL');
+        handleError(new Error('Failed to get asset ID'));
       }
       return;
     }
     
     // Handle the case where we do get detail
     const { status, assetId } = event.detail;
-    console.log('Upload success details:', { status, assetId });
+    console.log('Detail case - Status:', status);
+    console.log('Detail case - Asset ID:', assetId);
+    
     if (status === 'complete' && assetId) {
       setStatus('ready');
       onUploadComplete(assetId);
-    } else {
+    } else if (status === 'processing') {
       setStatus('processing');
+    } else {
+      console.log('Unexpected status:', status);
     }
   };
 

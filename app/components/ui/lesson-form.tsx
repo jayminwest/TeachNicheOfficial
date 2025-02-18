@@ -52,7 +52,7 @@ export function LessonForm({
       content: initialData?.content || '',
       muxAssetId: initialData?.muxAssetId || '',
     },
-    mode: 'onChange'
+    mode: 'onSubmit'
   });
 
   const handleSubmit = async (data: LessonFormData) => {
@@ -184,7 +184,7 @@ export function LessonForm({
           <div>
             <Button 
               type="submit" 
-              disabled={!form.formState.isValid || isSubmitting || isUploading || Object.keys(form.formState.errors).length > 0}
+              disabled={isSubmitting || isUploading}
             >
               {isSubmitting ? 'Saving...' : 'Save Lesson'}
             </Button>

@@ -43,16 +43,6 @@ export function LessonForm({
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
-  // Debug form state
-  console.log('Form state:', {
-    isValid: form.formState.isValid,
-    isDirty: form.formState.isDirty,
-    errors: form.formState.errors,
-    isUploading,
-    isSubmitting,
-    values: form.getValues()
-  });
-
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonFormSchema),
     defaultValues: {
@@ -187,12 +177,30 @@ export function LessonForm({
             )}
           />
 
-          <Button 
-            type="submit" 
-            disabled={isSubmitting || isUploading}
-          >
-            {isSubmitting ? 'Saving...' : 'Save Lesson'}
-          </Button>
+          <div>
+            <Button 
+              type="submit" 
+              disabled={!form.formState.isValid || isSubmitting || isUploading}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Lesson'}
+            </Button>
+            {!form.formState.isValid && (
+              <p className="text-sm text-destructive mt-2">
+                Please fill in all required fields and upload a video
+              </p>
+            )}
+            {/* Debug info */}
+            <pre className="text-xs text-muted-foreground mt-4">
+              Form State: {JSON.stringify({
+                isValid: form.formState.isValid,
+                isDirty: form.formState.isDirty,
+                errors: form.formState.errors,
+                isUploading,
+                isSubmitting,
+                values: form.getValues()
+              }, null, 2)}
+            </pre>
+          </div>
         </div>
       </form>
     </Form>

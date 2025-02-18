@@ -45,7 +45,7 @@ export function VideoUploader({
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
         endpoint="/api/video/upload"
-        onUploadStart={(event) => {
+        onUploadStart={(event: CustomEvent<{ file: File }>) => {
           try {
             validateFile(event.detail.file);
             setStatus('uploading');
@@ -55,14 +55,15 @@ export function VideoUploader({
             handleError(error instanceof Error ? error : new Error('Invalid file'));
           }
         }}
-        onUploadProgress={(progressEvent: { loaded: number; total: number }) => {
-          const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+        onUploadProgress={(event: CustomEvent<{ detail: { loaded: number; total: number } }>) => {
+          const percent = Math.round((event.detail.loaded / event.detail.total) * 100);
           setProgress(percent);
         }}
-        onSuccess={(res: CustomEvent<{ status: 'complete' | 'processing'; assetId: string }>) => {
-          if (res.detail.status === 'complete') {
+        onSuccess={(event: CustomEvent<{ detail: { status: string; assetId: string } }>) => {
+          const { status, assetId } = event.detail;
+          if (status === 'complete') {
             setStatus('ready');
-            onUploadComplete(res.detail.assetId);
+            onUploadComplete(assetId);
           } else {
             setStatus('processing');
           }

@@ -68,22 +68,16 @@ export function VideoUploader({
       
       validateFile(event.detail.file);
       
-      let uploadUrl = endpoint;
-      // Handle dynamic endpoint
+      // Only handle dynamic endpoint here
       if (typeof endpoint === 'function') {
         try {
-          uploadUrl = await endpoint();
+          const url = await endpoint();
+          // @ts-ignore - MUX uploader internal API
+          event.target.url = url;
         } catch (error) {
           throw new Error('Failed to get upload URL');
         }
       }
-      
-      if (!uploadUrl) {
-        throw new Error('Upload URL not available');
-      }
-
-      // Set the upload URL on the event detail
-      event.detail.url = uploadUrl;
       
       setStatus('uploading');
       setProgress(0);
@@ -124,7 +118,8 @@ export function VideoUploader({
   return (
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
-        endpoint={endpoint}
+        className="mux-uploader"
+        url={typeof endpoint === 'string' ? endpoint : undefined}
         onUploadStart={handleUploadStart}
         onProgress={handleProgress}
         onSuccess={handleSuccess}

@@ -21,8 +21,8 @@ import { headers } from 'next/headers';
 
 // Helper function to handle POST request (upload initialization)
 async function handlePostRequest() {
-  const headersList = await headers();
-  const origin = await headersList.get('origin') || '*';
+  const headersList = headers();
+  const origin = headersList.get('origin') || '*';
 
   try {
     console.log('Starting upload request initialization');
@@ -91,15 +91,15 @@ export async function PUT(request: Request) {
   }
 
   const headersList = headers();
-  const origin = await headersList.get('origin') || '*';
+  const origin = headersList.get('origin') || '*';
   
   // Get the upload URL from the query parameters
   const requestUrl = new URL(request.url);
   const uploadUrl = requestUrl.searchParams.get('url');
   
-  const contentType = await headersList.get('content-type');
-  const contentLength = await headersList.get('content-length');
-  const contentRange = await headersList.get('content-range');
+  const contentType = headersList.get('content-type');
+  const contentLength = headersList.get('content-length');
+  const contentRange = headersList.get('content-range');
 
   console.log('Debug PUT request:', {
     uploadUrl,
@@ -193,8 +193,8 @@ export async function PUT(request: Request) {
 }
 
 export async function OPTIONS() {
-  const headersList = await headers();
-  const origin = await headersList.get('origin') || '*';
+  const headersList = headers();
+  const origin = headersList.get('origin') || '*';
 
   return NextResponse.json(null, {
     status: 204,

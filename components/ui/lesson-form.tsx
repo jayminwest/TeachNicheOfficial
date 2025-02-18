@@ -142,6 +142,7 @@ export function LessonForm({
             </div>
             
             <VideoUploader
+              endpoint="/api/video/upload"
               onUploadComplete={(assetId) => {
                 form.setValue("muxAssetId", assetId);
                 toast({

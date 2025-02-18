@@ -35,7 +35,7 @@ export async function createUpload(): Promise<MuxUploadResponse> {
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
-    const upload = await Video.Uploads.create({
+    const upload = await Video.uploads.create({
       new_asset_settings: {
         playback_policy: ['public'],
         encoding_tier: 'baseline',

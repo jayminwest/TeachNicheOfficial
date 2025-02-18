@@ -59,10 +59,10 @@ export function VideoUploader({
           const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
           setProgress(percent);
         }}
-        onSuccess={(res) => {
-          if (res.status === 'complete') {
+        onSuccess={(res: CustomEvent<{ status: 'complete' | 'processing'; assetId: string }>) => {
+          if (res.detail.status === 'complete') {
             setStatus('ready');
-            onUploadComplete(res.assetId);
+            onUploadComplete(res.detail.assetId);
           } else {
             setStatus('processing');
           }

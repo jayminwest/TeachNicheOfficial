@@ -69,8 +69,11 @@ export function VideoUploader({
             setStatus('processing');
           }
         }}
-        onError={(event: CustomEvent<{ message: string }>) => {
-          handleError(new Error(event.detail.message));
+        onError={(event) => {
+          const message = event instanceof CustomEvent 
+            ? event.detail?.message 
+            : 'Upload failed';
+          handleError(new Error(message));
         }}
       >
         {status === 'idle' && (

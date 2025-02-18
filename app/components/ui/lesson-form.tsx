@@ -43,6 +43,16 @@ export function LessonForm({
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
+  // Debug form state
+  console.log('Form state:', {
+    isValid: form.formState.isValid,
+    isDirty: form.formState.isDirty,
+    errors: form.formState.errors,
+    isUploading,
+    isSubmitting,
+    values: form.getValues()
+  });
+
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonFormSchema),
     defaultValues: {
@@ -145,26 +155,32 @@ export function LessonForm({
               <FormItem>
                 <FormLabel>Video</FormLabel>
                 <FormControl>
-                  <VideoUploader
-                    endpoint="/api/video/upload"
-                    onUploadStart={() => setIsUploading(true)}
-                    onUploadComplete={(assetId) => {
-                      setIsUploading(false);
-                      field.onChange(assetId);
-                      toast({
-                        title: "Video uploaded",
-                        description: "Your video has been uploaded successfully.",
-                      });
-                    }}
-                    onError={(error) => {
-                      setIsUploading(false);
-                      toast({
-                        title: "Upload failed",
-                        description: error.message,
-                        variant: "destructive",
-                      });
-                    }}
-                  />
+                  <div>
+                    <VideoUploader
+                      endpoint="/api/video/upload"
+                      onUploadStart={() => setIsUploading(true)}
+                      onUploadComplete={(assetId) => {
+                        setIsUploading(false);
+                        field.onChange(assetId);
+                        toast({
+                          title: "Video uploaded",
+                          description: "Your video has been uploaded successfully.",
+                        });
+                      }}
+                      onError={(error) => {
+                        setIsUploading(false);
+                        toast({
+                          title: "Upload failed",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }}
+                    />
+                    <div className="text-sm text-muted-foreground mt-2">
+                      Upload state: {isUploading ? 'Uploading...' : field.value ? 'Uploaded' : 'Not uploaded'}
+                      {field.value && <span className="ml-2">(Asset ID: {field.value})</span>}
+                    </div>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

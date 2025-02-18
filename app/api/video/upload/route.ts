@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import Mux from "@mux/mux-node";
 
 // Initialize Mux client with environment variables
-const muxClient = new Mux(
-  process.env.MUX_TOKEN_ID!,
-  process.env.MUX_TOKEN_SECRET!
-);
+const muxClient = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID!,
+  tokenSecret: process.env.MUX_TOKEN_SECRET!
+});
 const { video } = muxClient;
 
 async function createUpload() {

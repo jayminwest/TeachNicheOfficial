@@ -43,7 +43,7 @@ export function LessonForm({
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
-  const form = useForm<LessonFormData>({
+  const form = useForm({
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
@@ -63,10 +63,22 @@ export function LessonForm({
       return;
     }
 
-    // Validate the data manually
     try {
-      const validatedData = lessonFormSchema.parse(data);
-      await onSubmit(validatedData);
+      // Manual validation
+      if (!data.title) {
+        throw new Error('Title is required');
+      }
+      if (!data.description) {
+        throw new Error('Description is required');
+      }
+      if (data.price < 0) {
+        throw new Error('Price must be 0 or greater');
+      }
+      if (!data.muxAssetId) {
+        throw new Error('Video is required');
+      }
+
+      await onSubmit(data);
     } catch (error) {
       toast({
         title: 'Error',

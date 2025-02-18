@@ -62,12 +62,20 @@ export function VideoUploader({
 
   const handleUploadStart = (event: MuxUploadEvent) => {
     try {
-      if (event.detail.file) {
-        validateFile(event.detail.file);
-        setStatus('uploading');
-        setProgress(0);
-        setErrorMessage('');
+      if (!event.detail.file) {
+        throw new Error('No file selected');
       }
+      
+      validateFile(event.detail.file);
+      
+      // Ensure we have an upload URL
+      if (typeof endpoint !== 'string' && !event.detail.url) {
+        throw new Error('Upload URL not available');
+      }
+      
+      setStatus('uploading');
+      setProgress(0);
+      setErrorMessage('');
     } catch (error) {
       handleError(error instanceof Error ? error : new Error('Invalid file'));
     }

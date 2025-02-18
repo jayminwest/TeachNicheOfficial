@@ -125,11 +125,19 @@ export function VideoUploader({
   };
 
   const handleSuccess = (event: MuxUploadEvent) => {
+    // When we get a success event without detail, the upload is complete
     if (!event.detail) {
-      console.error('Success event missing detail:', event);
+      setStatus('ready');
+      // We need to get the assetId from the URL query parameters
+      const url = new URL(uploadEndpoint || '');
+      const assetId = url.searchParams.get('asset_id');
+      if (assetId) {
+        onUploadComplete(assetId);
+      }
       return;
     }
     
+    // Handle the case where we do get detail
     const { status, assetId } = event.detail;
     if (status === 'complete' && assetId) {
       setStatus('ready');

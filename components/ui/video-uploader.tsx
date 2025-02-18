@@ -68,16 +68,22 @@ export function VideoUploader({
       
       validateFile(event.detail.file);
       
+      let uploadUrl = endpoint;
       // Handle dynamic endpoint
       if (typeof endpoint === 'function') {
         try {
-          await endpoint();
+          uploadUrl = await endpoint();
         } catch (error) {
           throw new Error('Failed to get upload URL');
         }
-      } else if (!endpoint) {
+      }
+      
+      if (!uploadUrl) {
         throw new Error('Upload URL not available');
       }
+
+      // Set the upload URL on the event detail
+      event.detail.url = uploadUrl;
       
       setStatus('uploading');
       setProgress(0);

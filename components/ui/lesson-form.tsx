@@ -46,6 +46,7 @@ export function LessonForm({
       title: "",
       description: "",
       price: 0,
+      muxAssetId: "", // Initialize muxAssetId field
     },
   });
 
@@ -144,7 +145,9 @@ export function LessonForm({
             <VideoUploader
               endpoint="/api/video/upload"
               onUploadComplete={(assetId) => {
-                form.setValue("muxAssetId", assetId);
+                form.setValue("muxAssetId", assetId, { shouldValidate: true });
+                console.log("Asset ID set:", assetId);
+                console.log("Form values:", form.getValues()); // Debug log
                 toast({
                   title: "Video uploaded",
                   description: "Your video has been uploaded successfully.",

@@ -8,7 +8,7 @@ import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
 
 interface VideoUploaderProps {
-  endpoint?: string | (() => Promise<string>);
+  endpoint: string | (() => Promise<string>);
   onUploadComplete: (assetId: string) => void;
   onError: (error: Error) => void;
   maxSizeMB?: number;

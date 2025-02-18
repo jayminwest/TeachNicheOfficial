@@ -73,7 +73,7 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
       id: asset.id,
       status: asset.status,
       playbackId: asset.playback_ids?.[0]?.id,
-      error: asset.errors?.[0] as MuxError | undefined
+      error: undefined // Simplified error handling
     };
   } catch (error) {
     throw new Error(

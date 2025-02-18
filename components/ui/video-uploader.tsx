@@ -125,6 +125,11 @@ export function VideoUploader({
   };
 
   const handleSuccess = (event: MuxUploadEvent) => {
+    if (!event.detail) {
+      console.error('Success event missing detail:', event);
+      return;
+    }
+    
     const { status, assetId } = event.detail;
     if (status === 'complete' && assetId) {
       setStatus('ready');

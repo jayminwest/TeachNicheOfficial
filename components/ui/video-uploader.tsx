@@ -28,9 +28,13 @@ interface MuxUploadEvent extends CustomEvent {
     file?: File;
     loaded?: number;
     total?: number;
-    status?: string;
+    status?: 'starting' | 'uploading' | 'processing' | 'complete' | 'errored';
     assetId?: string;
     message?: string;
+    error?: {
+      type: string;
+      message: string;
+    };
   };
 }
 
@@ -118,13 +122,17 @@ export function VideoUploader({
   };
 
   const handleUploadError = (event: MuxUploadEvent) => {
-    const message = event.detail?.message || 'Upload failed';
+    const { message, error } = event.detail;
     console.error('Upload error:', event.detail);
     
-    if (message.includes('400')) {
-      handleError(new Error('Server rejected the upload. Please check file format and size.'));
+    if (error?.type === 'size_exceeded') {
+      handleError(new Error(`File size exceeds the ${maxSizeMB}MB limit`));
+    } else if (error?.type === 'format_unsupported') {
+      handleError(new Error(`File format not supported. Accepted formats: ${acceptedTypes.join(', ')}`));
+    } else if (error?.type === 'server_error') {
+      handleError(new Error('Server error occurred. Please try again later.'));
     } else {
-      handleError(new Error(message));
+      handleError(new Error(message || 'Upload failed'));
     }
   };
 
@@ -139,10 +147,12 @@ export function VideoUploader({
         onError={handleUploadError}
         pausable={pausable}
         noDrop={noDrop}
-        maxFileSize={maxSizeMB ? maxSizeMB * 1024 : undefined}
+        maxFileSize={maxSizeMB ? maxSizeMB * 1024 * 1024 : undefined}
         chunkSize={chunkSize}
         dynamicChunkSize={dynamicChunkSize}
         useLargeFileWorkaround={useLargeFileWorkaround}
+        accept={acceptedTypes.join(',')}
+        multiple={false}
       >
         {status === 'idle' && (
           <Button type="button" className="gap-2">

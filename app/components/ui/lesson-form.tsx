@@ -44,7 +44,6 @@ export function LessonForm({
   const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<LessonFormData>({
-    resolver: zodResolver(lessonFormSchema),
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
@@ -54,7 +53,7 @@ export function LessonForm({
     }
   });
 
-  const handleSubmit = async (data: LessonFormData) => {
+  const handleSubmit = async (data: any) => {
     if (isUploading) {
       toast({
         title: "Please wait",
@@ -64,8 +63,10 @@ export function LessonForm({
       return;
     }
 
+    // Validate the data manually
     try {
-      await onSubmit(data);
+      const validatedData = lessonFormSchema.parse(data);
+      await onSubmit(validatedData);
     } catch (error) {
       toast({
         title: 'Error',

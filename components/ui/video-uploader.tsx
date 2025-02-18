@@ -16,6 +16,9 @@ interface VideoUploaderProps {
   className?: string;
   pausable?: boolean;
   noDrop?: boolean;
+  chunkSize?: number;
+  dynamicChunkSize?: boolean;
+  useLargeFileWorkaround?: boolean;
 }
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
@@ -133,6 +136,10 @@ export function VideoUploader({
         onError={handleUploadError}
         pausable={pausable}
         noDrop={noDrop}
+        maxFileSize={maxSizeMB ? maxSizeMB * 1024 : undefined}
+        chunkSize={chunkSize}
+        dynamicChunkSize={dynamicChunkSize}
+        useLargeFileWorkaround={useLargeFileWorkaround}
       >
         {status === 'idle' && (
           <Button type="button" className="gap-2">

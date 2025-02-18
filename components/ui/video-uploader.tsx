@@ -56,9 +56,9 @@ export function VideoUploader({
           }
         }}
         onProgress={(event) => {
-          if (event instanceof CustomEvent) {
-            const { loaded, total } = event.detail || { loaded: 0, total: 1 };
-            const percent = Math.round((loaded / total) * 100);
+          if (event instanceof CustomEvent && typeof event.detail === 'object' && event.detail) {
+            const detail = event.detail as { loaded: number; total: number };
+            const percent = Math.round((detail.loaded / detail.total) * 100);
             setProgress(percent);
           }
         }}

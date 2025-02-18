@@ -71,7 +71,7 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
       id: asset.id,
       status: asset.status,
       playbackId: asset.playback_ids?.[0]?.id,
-      error: asset.errors?.[0]
+      error: asset.errors && asset.errors.length > 0 ? asset.errors[0] : undefined
     };
   } catch (error) {
     throw new Error(

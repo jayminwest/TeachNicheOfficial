@@ -11,7 +11,7 @@ const muxClient = new Mux({
   tokenSecret: process.env.MUX_TOKEN_SECRET
 });
 
-const Video = muxClient.Video;
+const { video: Video } = muxClient;
 
 export interface MuxUploadResponse {
   url: string;

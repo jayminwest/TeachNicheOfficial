@@ -18,14 +18,16 @@ export interface MuxUploadResponse {
   id: string;
 }
 
+interface MuxError {
+  message: string;
+  type: string;
+}
+
 export interface MuxAssetResponse {
   id: string;
   status: 'preparing' | 'ready' | 'errored';
   playbackId?: string;
-  error?: {
-    message: string;
-    type: string;
-  };
+  error?: MuxError;
 }
 
 /**
@@ -71,7 +73,7 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
       id: asset.id,
       status: asset.status,
       playbackId: asset.playback_ids?.[0]?.id,
-      error: asset.errors ? asset.errors[0] : undefined
+      error: asset.errors?.[0] as MuxError | undefined
     };
   } catch (error) {
     throw new Error(

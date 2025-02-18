@@ -51,6 +51,10 @@ export function LessonForm({
   });
 
   const hasVideo = !!form.watch("muxAssetId");
+  console.log("Current muxAssetId:", form.watch("muxAssetId")); // Debug current value
+
+  // Register muxAssetId field explicitly
+  form.register("muxAssetId");
 
   return (
     <Form {...form}>

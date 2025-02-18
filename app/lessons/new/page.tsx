@@ -18,9 +18,17 @@ export default function NewLessonPage() {
   }) => {
     setIsSubmitting(true);
     try {
-      // Ensure we have a video before submitting
-      if (!data.muxAssetId) {
-        throw new Error("Please upload a video before creating the lesson");
+      console.log("Form submission data:", data); // Debug submission data
+      
+      // Check if muxAssetId exists and is not empty
+      if (!data.muxAssetId || data.muxAssetId.trim() === "") {
+        toast({
+          title: "Video Required",
+          description: "Please upload a video before creating the lesson",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
       }
 
       const response = await fetch("/api/lessons", {

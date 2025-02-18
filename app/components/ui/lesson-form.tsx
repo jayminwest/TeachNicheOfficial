@@ -51,11 +51,19 @@ export function LessonForm({
       price: initialData?.price || 0,
       content: initialData?.content || '',
       muxAssetId: initialData?.muxAssetId || '',
-    },
-    mode: 'onSubmit'
+    }
   });
 
   const handleSubmit = async (data: LessonFormData) => {
+    if (isUploading) {
+      toast({
+        title: "Please wait",
+        description: "Please wait for the video to finish uploading",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await onSubmit(data);
     } catch (error) {
@@ -184,7 +192,7 @@ export function LessonForm({
           <div>
             <Button 
               type="submit" 
-              disabled={isSubmitting || isUploading}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : 'Save Lesson'}
             </Button>
@@ -198,11 +206,6 @@ export function LessonForm({
                 </p>
               ))}
             </div>
-            {!form.formState.isValid && (
-              <p className="text-sm text-destructive mt-2">
-                Please fill in all required fields and upload a video
-              </p>
-            )}
             {/* Debug info */}
             <pre className="text-xs text-muted-foreground mt-4">
               Form State: {JSON.stringify({

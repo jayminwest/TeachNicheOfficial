@@ -74,27 +74,26 @@ export function VideoUploader({
     typeof endpoint === 'string' ? endpoint : undefined
   );
 
+  // Fetch endpoint URL when component mounts if it's a function
+  useEffect(() => {
+    if (typeof endpoint === 'function') {
+      endpoint().then(setUploadEndpoint).catch(error => {
+        handleError(new Error('Failed to get upload URL'));
+      });
+    }
+  }, [endpoint]);
+
   const handleUploadStart = async (event: MuxUploadEvent) => {
     try {
       if (!event.detail.file) {
         throw new Error('No file selected');
       }
+
+      if (!uploadEndpoint) {
+        throw new Error('Upload URL not available. Please try again.');
+      }
       
       validateFile(event.detail.file);
-      
-      // Ensure we have an endpoint before starting upload
-      if (!uploadEndpoint) {
-        if (typeof endpoint === 'function') {
-          try {
-            const url = await endpoint();
-            setUploadEndpoint(url);
-          } catch (error) {
-            throw new Error('Failed to get upload URL');
-          }
-        } else {
-          throw new Error('No upload URL available');
-        }
-      }
       
       setStatus('uploading');
       setProgress(0);

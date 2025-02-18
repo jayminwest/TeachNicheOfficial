@@ -70,17 +70,29 @@ export function VideoUploader({
     }
   };
 
-  const [uploadEndpoint, setUploadEndpoint] = useState<string | undefined>(
-    typeof endpoint === 'string' ? endpoint : undefined
-  );
+  const [uploadEndpoint, setUploadEndpoint] = useState<string | undefined>();
+
+  // First step: Get the Mux upload URL from our API
+  const getUploadUrl = async () => {
+    const response = await fetch(typeof endpoint === 'string' ? endpoint : await endpoint(), {
+      method: 'POST'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to get upload URL');
+    }
+
+    const data = await response.json();
+    return data.url;
+  };
 
   // Fetch endpoint URL when component mounts if it's a function
   useEffect(() => {
-    if (typeof endpoint === 'function') {
-      endpoint().then(setUploadEndpoint).catch(error => {
+    getUploadUrl()
+      .then(setUploadEndpoint)
+      .catch(error => {
         handleError(new Error('Failed to get upload URL'));
       });
-    }
   }, [endpoint]);
 
   const handleUploadStart = async (event: MuxUploadEvent) => {

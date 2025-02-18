@@ -156,7 +156,6 @@ export function LessonForm({
                   variant: "destructive",
                 });
               }}
-              disabled={isSubmitting}
             />
           </div>
         </Card>

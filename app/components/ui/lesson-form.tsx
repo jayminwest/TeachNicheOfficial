@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -206,12 +207,16 @@ export function LessonForm({
             )}
           />
 
-          <div>
+          <div className="flex justify-end">
             <Button 
               type="submit" 
-              disabled={isSubmitting}
+              size="lg"
+              disabled={isSubmitting || !form.getValues().muxAssetId}
             >
-              {isSubmitting ? 'Saving...' : 'Save Lesson'}
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSubmitting ? "Creating Lesson..." : "Create Lesson"}
             </Button>
             <div className="text-sm text-muted-foreground mt-2">
               {Object.keys(form.formState.errors).length > 0 && (

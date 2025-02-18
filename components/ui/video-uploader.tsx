@@ -60,7 +60,7 @@ export function VideoUploader({
     }
   };
 
-  const handleUploadStart = (event: MuxUploadEvent) => {
+  const handleUploadStart = async (event: MuxUploadEvent) => {
     try {
       if (!event.detail.file) {
         throw new Error('No file selected');
@@ -68,8 +68,14 @@ export function VideoUploader({
       
       validateFile(event.detail.file);
       
-      // Ensure we have an upload URL
-      if (typeof endpoint !== 'string' && !event.detail.url) {
+      // Handle dynamic endpoint
+      if (typeof endpoint === 'function') {
+        try {
+          await endpoint();
+        } catch (error) {
+          throw new Error('Failed to get upload URL');
+        }
+      } else if (!endpoint) {
         throw new Error('Upload URL not available');
       }
       
@@ -100,7 +106,13 @@ export function VideoUploader({
 
   const handleUploadError = (event: MuxUploadEvent) => {
     const message = event.detail?.message || 'Upload failed';
-    handleError(new Error(message));
+    console.error('Upload error:', event.detail);
+    
+    if (message.includes('400')) {
+      handleError(new Error('Server rejected the upload. Please check file format and size.'));
+    } else {
+      handleError(new Error(message));
+    }
   };
 
   return (

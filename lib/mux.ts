@@ -48,9 +48,12 @@ export async function waitForAssetReady(assetId: string, options = {
       
       const response = await fetch(`/api/video/asset-status?assetId=${assetId}&isFree=${options.isFree}`);
       const data = await response.json();
+      console.log('Asset status API response:', { status: response.status, data });
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+        const errorMessage = data.error || data.details || `HTTP error! status: ${response.status}`;
+        console.error('Asset status error:', errorMessage);
+        throw new Error(errorMessage);
       }
 
       if (data.status === 'ready' && data.playbackId) {
@@ -64,9 +67,14 @@ export async function waitForAssetReady(assetId: string, options = {
         throw new Error('Video processing failed');
       }
 
-      console.log(`Asset status: ${data.status}, waiting ${options.interval}ms before next check`);
-      attempts++;
-      await new Promise(resolve => setTimeout(resolve, options.interval));
+      if (data.status) {
+        console.log(`Asset status: ${data.status}, waiting ${options.interval}ms before next check`);
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, options.interval));
+      } else {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from asset status API');
+      }
     } catch (error) {
       console.error('Error checking asset status:', error);
       throw new Error(

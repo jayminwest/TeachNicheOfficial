@@ -11,7 +11,16 @@ export async function GET(request: Request) {
   }
 
   try {
+    console.log('Fetching asset status for:', assetId);
     const asset = await Video.assets.get(assetId);
+    console.log('Asset status response:', asset);
+    
+    if (!asset) {
+      return NextResponse.json({ 
+        error: 'Asset not found',
+        details: `No asset found with ID: ${assetId}`
+      }, { status: 404 });
+    }
     
     if (asset.status === 'ready') {
       // Create playback ID if none exists

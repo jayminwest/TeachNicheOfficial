@@ -24,6 +24,7 @@ const lessonFormSchema = z.object({
   price: z.number().min(0, 'Price must be 0 or greater'),
   content: z.string().optional(),
   muxAssetId: z.string().min(1, 'Video is required'),
+  muxPlaybackId: z.string().optional(),
 });
 
 type LessonFormData = z.infer<typeof lessonFormSchema>;

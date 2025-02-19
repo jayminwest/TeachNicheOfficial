@@ -15,11 +15,26 @@ export default function NewLessonPage() {
     title: string;
     description: string;
     muxAssetId?: string;
+    muxPlaybackId?: string;
     price?: number;
   }) => {
     setIsSubmitting(true);
     try {
       console.log("Form submission data:", data); // Debug submission data
+
+      // Get playback ID for the asset
+      const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
+        headers: {
+          "Authorization": `Bearer ${session.data.session.access_token}`
+        }
+      });
+      
+      if (!playbackResponse.ok) {
+        throw new Error('Failed to get playback ID');
+      }
+
+      const { playbackId } = await playbackResponse.json();
+      data.muxPlaybackId = playbackId;
       
       // Check if muxAssetId exists and is not empty
       if (!data.muxAssetId || data.muxAssetId.trim() === "") {

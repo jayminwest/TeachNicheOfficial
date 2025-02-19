@@ -29,12 +29,13 @@ export async function POST(request: Request) {
       description, 
       price, 
       muxAssetId,
+      muxPlaybackId,
       content = '',
       status = 'draft'
     } = data;
 
     // Validate required fields
-    if (!title || !description || !muxAssetId) {
+    if (!title || !description || !muxAssetId || !muxPlaybackId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -51,7 +52,8 @@ export async function POST(request: Request) {
       content,
       status,
       creator_id: user.id,
-      mux_asset_id: muxAssetId, // Store the upload ID initially
+      mux_asset_id: muxAssetId,
+      mux_playback_id: muxPlaybackId,
       version: 1
     };
 

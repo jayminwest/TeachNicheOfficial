@@ -16,18 +16,29 @@ export async function GET(request: Request) {
   }
 
   try {
+    console.log('MUX_TOKEN_ID:', process.env.MUX_TOKEN_ID?.slice(0,5) + '...');
+    console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
+    console.log('Fetching asset:', assetId);
+    
     const asset = await Video.Assets.get(assetId);
+    console.log('Asset response:', asset);
+    
     const playbackId = asset.playback_ids?.[0]?.id;
+    console.log('Playback ID:', playbackId);
 
     if (!playbackId) {
       return NextResponse.json({ error: 'No playback ID found' }, { status: 404 });
     }
 
     return NextResponse.json({ playbackId });
-  } catch (error) {
-    console.error('Error fetching Mux asset:', error);
+  } catch (error: any) {
+    console.error('Error fetching Mux asset:', {
+      message: error.message,
+      stack: error.stack,
+      details: error
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch playback ID' },
+      { error: 'Failed to fetch playback ID', details: error.message },
       { status: 500 }
     );
   }

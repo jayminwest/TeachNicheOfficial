@@ -76,8 +76,14 @@ export default function LessonDetail({ id }: LessonDetailProps) {
         // If we have an asset ID but no playback ID, get it from Mux
         if (data.mux_asset_id && !data.mux_playback_id) {
           const response = await fetch(`/api/mux/playback-id?assetId=${data.mux_asset_id}`);
-          const { playbackId } = await response.json();
-          if (playbackId) {
+          const result = await response.json();
+          
+          if (!response.ok) {
+            console.error('Error fetching playback ID:', result);
+            throw new Error(result.error || 'Failed to fetch playback ID');
+          }
+          
+          if (result.playbackId) {
             data.mux_playback_id = playbackId;
             // Update the database with the playback ID
             await supabase

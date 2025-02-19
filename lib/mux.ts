@@ -1,14 +1,19 @@
 import Mux from '@mux/mux-node';
 
-if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-  throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
-}
+// Only initialize Mux client on the server side
+let Video: any;
 
-// Initialize Mux client with environment variables
-const { Video } = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID,
-  tokenSecret: process.env.MUX_TOKEN_SECRET
-});
+if (typeof window === 'undefined') {
+  if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+    console.error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+  } else {
+    const muxClient = new Mux({
+      tokenId: process.env.MUX_TOKEN_ID,
+      tokenSecret: process.env.MUX_TOKEN_SECRET
+    });
+    Video = muxClient.Video;
+  }
+}
 
 export { Video };
 

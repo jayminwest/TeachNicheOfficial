@@ -25,9 +25,19 @@ export async function GET(request: Request) {
     console.log('Fetching asset:', assetId);
     
     const asset = await Video.Assets.get(assetId);
-    console.log('Asset response:', asset);
+    console.log('Asset response:', JSON.stringify(asset, null, 2));
     
-    const playbackId = asset.playback_ids?.[0]?.id;
+    if (!asset) {
+      console.error('No asset found for ID:', assetId);
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    }
+
+    if (!asset.playback_ids || asset.playback_ids.length === 0) {
+      console.error('No playback IDs found for asset:', assetId);
+      return NextResponse.json({ error: 'No playback IDs found for asset' }, { status: 404 });
+    }
+    
+    const playbackId = asset.playback_ids[0]?.id;
     console.log('Playback ID:', playbackId);
 
     if (!playbackId) {

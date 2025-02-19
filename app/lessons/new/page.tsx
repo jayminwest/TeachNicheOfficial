@@ -45,17 +45,25 @@ export default function NewLessonPage() {
       }
 
       // Get playback ID for the asset
+      console.log('Fetching playback ID for asset:', data.muxAssetId);
       const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
         headers: {
           "Authorization": `Bearer ${session.data.session.access_token}`
         }
       });
       
+      const playbackData = await playbackResponse.json();
+      
       if (!playbackResponse.ok) {
-        throw new Error('Failed to get playback ID');
+        throw new Error(`Failed to get playback ID: ${playbackData.error || playbackResponse.statusText}`);
       }
 
-      const { playbackId } = await playbackResponse.json();
+      if (!playbackData.playbackId) {
+        throw new Error('No playback ID returned from server');
+      }
+
+      console.log('Received playback ID:', playbackData.playbackId);
+      const { playbackId } = playbackData;
       data.muxPlaybackId = playbackId;
 
       if (!session.data.session) {

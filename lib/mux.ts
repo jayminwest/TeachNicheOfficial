@@ -4,14 +4,24 @@ import Mux from '@mux/mux-node';
 let Video: any;
 
 if (typeof window === 'undefined') {
-  if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-    console.error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
-  } else {
-    const muxClient = new Mux({
-      tokenId: process.env.MUX_TOKEN_ID,
-      tokenSecret: process.env.MUX_TOKEN_SECRET
-    });
+  const tokenId = process.env.MUX_TOKEN_ID;
+  const tokenSecret = process.env.MUX_TOKEN_SECRET;
+  
+  if (!tokenId || !tokenSecret) {
+    throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+  }
+  
+  try {
+    // Initialize with direct token values
+    const muxClient = new Mux(tokenId, tokenSecret);
     Video = muxClient.Video;
+    
+    if (!Video) {
+      throw new Error('Mux Video client failed to initialize properly');
+    }
+  } catch (error) {
+    console.error('Failed to initialize Mux client:', error);
+    throw error;
   }
 }
 

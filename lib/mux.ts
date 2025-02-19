@@ -12,11 +12,11 @@ if (typeof window === 'undefined') {
   }
   
   try {
-    // Initialize with direct token values
+    // Initialize with direct token values as separate arguments
     const muxClient = new Mux(tokenId, tokenSecret);
     Video = muxClient.Video;
     
-    if (!Video) {
+    if (!Video || !Video.Assets) {
       throw new Error('Mux Video client failed to initialize properly');
     }
   } catch (error) {

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       throw new Error('Mux Video client not initialized');
     }
     
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.assets.get(assetId);
     console.log('Raw asset response:', JSON.stringify(asset, null, 2));
     
     if (!asset || typeof asset !== 'object') {

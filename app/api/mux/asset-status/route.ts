@@ -10,21 +10,41 @@ export async function GET(request: Request) {
   }
 
   try {
+    console.log('Fetching asset status for:', assetId);
+    
     const asset = await Video.Assets.get(assetId);
+    console.log('Mux asset response:', JSON.stringify(asset, null, 2));
     
     if (!asset || !asset.status) {
+      console.error('Invalid asset response:', asset);
       return NextResponse.json(
         { error: 'Asset not found or invalid' },
         { status: 404 }
       );
     }
     
-    return NextResponse.json({
+    const response = {
+      status: asset.status,
+      playbackId: asset.playback_ids?.[0]?.id,
+      assetId: asset.id
+    };
+    
+    console.log('Returning asset status:', response);
+    return NextResponse.json(response);
       status: asset.status,
       playbackId: asset.playback_ids?.[0]?.id,
       assetId: asset.id
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to check asset status' }, { status: 500 });
+    console.error('Error checking asset status:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+    return NextResponse.json({ 
+      error: 'Failed to check asset status',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

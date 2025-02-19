@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { getAssetStatus } from '@/lib/mux';
-import { auth } from '@/auth/supabaseAuth';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    // Verify authentication
-    const authRequest = auth.fromRequestHeaders(request.headers);
-    const session = await authRequest.getSession();
-    
-    if (!session?.user) {
+    // Get authenticated user session
+    const supabaseServer = createServerComponentClient({ cookies });
+    const { data: { session } } = await supabaseServer.auth.getSession();
+
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

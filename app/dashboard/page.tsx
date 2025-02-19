@@ -39,8 +39,8 @@ export default function DashboardPage() {
           <div className="mt-6">
             <GoalsProgress />
           </div>
-        </div>
-      </Suspense>
+        </Suspense>
+      </div>
     </div>
   )
 }

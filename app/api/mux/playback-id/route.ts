@@ -28,33 +28,21 @@ export async function GET(request: Request) {
   try {
     console.log('MUX_TOKEN_ID:', process.env.MUX_TOKEN_ID?.slice(0,5) + '...');
     console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
-    console.log('Fetching asset:', assetId);
+    console.log('Creating playback ID for asset:', assetId);
     
-    const asset = await Video.Assets.get(assetId);
-    console.log('Asset response:', JSON.stringify({
-      id: asset.id,
-      status: asset.status,
-      playback_ids: asset.playback_ids,
-      created_at: asset.created_at,
-      duration: asset.duration
+    // Create a new playback ID directly
+    const updatedAsset = await Video.Assets.createPlaybackId(assetId, { 
+      policy: 'public' 
+    });
+    
+    console.log('Updated asset:', JSON.stringify({
+      id: updatedAsset.id,
+      playback_ids: updatedAsset.playback_ids
     }, null, 2));
 
-    // Create a new playback ID if one doesn't exist
-    if (!asset.playback_ids || asset.playback_ids.length === 0) {
-      console.log('No playback IDs found, creating one...');
-      const updatedAsset = await Video.Assets.createPlaybackId(assetId, { policy: 'public' });
-      const playbackId = updatedAsset.playback_ids[0]?.id;
-      if (!playbackId) {
-        throw new Error('Failed to create playback ID');
-      }
-      return NextResponse.json({ playbackId });
-    }
-    
-    const playbackId = asset.playback_ids[0]?.id;
-    console.log('Playback ID:', playbackId);
-
+    const playbackId = updatedAsset.playback_ids[0]?.id;
     if (!playbackId) {
-      return NextResponse.json({ error: 'No playback ID found' }, { status: 404 });
+      throw new Error('Failed to create playback ID');
     }
 
     return NextResponse.json({ playbackId });

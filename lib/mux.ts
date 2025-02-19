@@ -62,19 +62,32 @@ export async function waitForAssetReady(assetId: string, options = {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
       
       const response = await fetch(`/api/video/asset-status?assetId=${assetId}&isFree=${options.isFree}`);
-      let data;
-      const responseText = await response.text();
       
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse response:', responseText);
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`);
-      }
-      
+      // First check if response is ok before trying to parse
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        
+        // Try to parse error as JSON, fallback to text if not possible
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { error: errorText };
+        }
+        
+        throw new Error(
+          errorData.error || errorData.details || 
+          `HTTP error! status: ${response.status}`
+        );
       }
+      
+      // Now parse the successful response
+      const data = await response.json();
       
       console.log('Asset status response:', {
         status: response.status,

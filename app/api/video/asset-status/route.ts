@@ -15,10 +15,15 @@ export async function GET(request: Request) {
     
     if (!Video?.assets?.get) {
       console.error('Mux Video client not properly initialized');
-      return NextResponse.json({ 
+      return new Response(JSON.stringify({ 
         error: 'Service temporarily unavailable',
         details: 'Video service not available'
-      }, { status: 503 });
+      }), {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
     }
     
     const asset = await Video.assets.get(assetId);

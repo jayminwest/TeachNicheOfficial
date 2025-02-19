@@ -44,11 +44,11 @@ export default function NewLessonPage() {
         return;
       }
 
-      // Get playback ID for the asset
-      console.log('Fetching playback ID for asset:', data.muxAssetId);
+      // Create playback ID for the asset
+      console.log('Creating playback ID for asset:', data.muxAssetId);
       
       // Add longer delay to allow Mux to process the asset
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
       
       const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
         headers: {

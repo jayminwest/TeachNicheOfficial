@@ -41,22 +41,32 @@ export async function GET(request: Request) {
     console.log('Creating playback ID for asset:', assetId);
     
     try {
-      // Create a new playback ID directly
-      const updatedAsset = await Video.Assets.createPlaybackId(assetId, { 
+      // First check if the asset exists and is ready
+      const asset = await Video.Assets.get(assetId);
+      console.log('Asset status:', asset.status);
+      
+      if (asset.status !== 'ready') {
+        return NextResponse.json(
+          { error: 'Asset not ready', details: `Current status: ${asset.status}` },
+          { status: 400 }
+        );
+      }
+
+      // Create a new playback ID
+      const playbackId = await Video.Assets.createPlaybackId(assetId, { 
         policy: 'public' 
       });
       
-      console.log('Updated asset:', JSON.stringify({
-        id: updatedAsset.id,
-        playback_ids: updatedAsset.playback_ids
+      console.log('Created playback ID:', JSON.stringify({
+        assetId: assetId,
+        playbackId: playbackId
       }, null, 2));
 
-      const playbackId = updatedAsset.playback_ids[0]?.id;
-      if (!playbackId) {
+      if (!playbackId || !playbackId.id) {
         throw new Error('Failed to create playback ID');
       }
 
-      return NextResponse.json({ playbackId });
+      return NextResponse.json({ playbackId: playbackId.id });
     } catch (muxError: any) {
       console.error('Mux API error:', {
         error: muxError,

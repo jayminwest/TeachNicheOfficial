@@ -1,15 +1,6 @@
 import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
-import { VideoPlayer } from "@/components/ui/video-player";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/components/ui/use-toast";
-import { Toaster } from "@/components/ui/toaster";
-import { useRouter } from "next/navigation";
 
 export default function LessonPage({ params }: { params: { id: string } }) {
   return (

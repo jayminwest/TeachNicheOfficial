@@ -32,15 +32,16 @@ export async function GET(request: Request) {
       created_at: asset.created_at,
       duration: asset.duration
     }, null, 2));
-    
-    if (!asset) {
-      console.error('No asset found for ID:', assetId);
-      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
-    }
 
+    // Create a new playback ID if one doesn't exist
     if (!asset.playback_ids || asset.playback_ids.length === 0) {
-      console.error('No playback IDs found for asset:', assetId);
-      return NextResponse.json({ error: 'No playback IDs found for asset' }, { status: 404 });
+      console.log('No playback IDs found, creating one...');
+      const updatedAsset = await Video.Assets.createPlaybackId(assetId, { policy: 'public' });
+      const playbackId = updatedAsset.playback_ids[0]?.id;
+      if (!playbackId) {
+        throw new Error('Failed to create playback ID');
+      }
+      return NextResponse.json({ playbackId });
     }
     
     const playbackId = asset.playback_ids[0]?.id;

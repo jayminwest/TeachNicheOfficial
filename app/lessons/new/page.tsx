@@ -47,8 +47,8 @@ export default function NewLessonPage() {
       // Get playback ID for the asset
       console.log('Fetching playback ID for asset:', data.muxAssetId);
       
-      // Add delay to allow Mux to process the asset
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Add longer delay to allow Mux to process the asset
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
         headers: {

@@ -84,7 +84,7 @@ export default function LessonDetail({ id }: LessonDetailProps) {
           }
           
           if (result.playbackId) {
-            data.mux_playback_id = playbackId;
+            data.mux_playback_id = result.playbackId;
             // Update the database with the playback ID
             await supabase
               .from('lessons')

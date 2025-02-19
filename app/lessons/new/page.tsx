@@ -54,12 +54,17 @@ export default function NewLessonPage() {
         description: "Please wait while we process your video...",
       });
 
-      // Wait for asset to be ready and get playback ID
-      const { playbackId } = await waitForAssetReady(data.muxAssetId, {
-        isFree: data.price === 0
-      });
-      
-      if (!playbackId) {
+      try {
+        // Wait for asset to be ready and get playback ID
+        const { playbackId } = await waitForAssetReady(data.muxAssetId, {
+          isFree: data.price === 0
+        });
+        
+        if (!playbackId) {
+          throw new Error('No playback ID received from processed video');
+        }
+      } catch (error) {
+        console.error('Video processing error:', error);
         throw new Error('Failed to get playback ID');
       }
 

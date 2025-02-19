@@ -3,7 +3,7 @@ import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
 export default async function LessonPage({ params }: { params: { id: string } }) {
-  const id = params.id;
+  const { id } = await params;
   return (
     <Suspense
       fallback={

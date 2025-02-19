@@ -5,10 +5,11 @@ if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
   throw new Error('Missing required Mux environment variables');
 }
 
-const { Video } = new Mux({
+const muxClient = new Mux({
   tokenId: process.env.MUX_TOKEN_ID,
   tokenSecret: process.env.MUX_TOKEN_SECRET
 });
+const { Video } = muxClient;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

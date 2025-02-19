@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       content,
       status,
       creator_id: user.id,
-      mux_upload_id: muxAssetId, // Store the upload ID initially
+      mux_asset_id: muxAssetId, // Store the upload ID initially
       version: 1
     };
 

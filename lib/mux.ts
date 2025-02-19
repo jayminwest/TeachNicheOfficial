@@ -90,18 +90,20 @@ export async function waitForAssetReady(assetId: string, options = {
           data
         });
         
-        // If service unavailable, wait and retry
-        if (response.status === 503) {
-          console.log('Video service temporarily unavailable, retrying...');
+        // For 503 or other retriable errors, continue retrying
+        if (response.status === 503 || response.status >= 500) {
+          console.log(`Service error (${response.status}), retrying...`);
           attempts++;
           await new Promise(resolve => setTimeout(resolve, options.interval));
           continue;
         }
         
-        // For other errors, fail immediately
-        throw new Error(`Asset status check failed: ${errorMessage}`);
+        // For client errors (4xx), fail immediately
+        if (response.status >= 400 && response.status < 500) {
+          throw new Error(`Asset status check failed: ${errorMessage}`);
+        }
         
-        // For other errors, continue retrying
+        // For any other errors, retry
         attempts++;
         await new Promise(resolve => setTimeout(resolve, options.interval));
         continue;

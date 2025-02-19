@@ -5,10 +5,12 @@ import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/auth/AuthContext";
 
 export default function NewLessonPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const handleSubmit = async (data: {
     title: string;
@@ -31,10 +33,21 @@ export default function NewLessonPage() {
         return;
       }
 
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to create a lesson",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch("/api/lessons", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${await user.getIdToken()}`
         },
         body: JSON.stringify(data),
       });

@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { waitForAssetReady } from "@/lib/mux";
 
 export default function NewLessonPage() {
   const router = useRouter();

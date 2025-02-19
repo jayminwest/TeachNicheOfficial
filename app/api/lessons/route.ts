@@ -1,18 +1,24 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { getAssetStatus } from '@/lib/mux';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    // Get authenticated user session
-    const supabaseServer = createServerComponentClient({ cookies });
-    const { data: { session } } = await supabaseServer.auth.getSession();
-
-    if (!session) {
+    // Get auth token from request header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Missing or invalid authorization header' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(' ')[1];
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Invalid authentication token' },
         { status: 401 }
       );
     }
@@ -53,7 +59,7 @@ export async function POST(request: Request) {
         price,
         content,
         status,
-        creator_id: session.user.id,
+        creator_id: user.id,
         content_url: `https://stream.mux.com/${muxAsset.playbackId}/high.mp4`,
         version: 1
       })

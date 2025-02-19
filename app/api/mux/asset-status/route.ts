@@ -31,10 +31,6 @@ export async function GET(request: Request) {
     
     console.log('Returning asset status:', response);
     return NextResponse.json(response);
-      status: asset.status,
-      playbackId: asset.playback_ids?.[0]?.id,
-      assetId: asset.id
-    });
   } catch (error) {
     console.error('Error checking asset status:', {
       error,

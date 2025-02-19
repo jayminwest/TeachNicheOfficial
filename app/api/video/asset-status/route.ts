@@ -12,6 +12,14 @@ export async function GET(request: Request) {
 
   try {
     console.log('Fetching asset status for:', assetId);
+    if (!Video?.assets?.get) {
+      console.error('Mux Video client not properly initialized');
+      return NextResponse.json({ 
+        error: 'Mux client configuration error',
+        details: 'Video client not properly initialized'
+      }, { status: 500 });
+    }
+    
     const asset = await Video.assets.get(assetId);
     console.log('Raw asset response:', JSON.stringify(asset, null, 2));
     

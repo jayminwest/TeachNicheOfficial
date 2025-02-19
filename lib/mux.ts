@@ -12,16 +12,23 @@ if (typeof window === 'undefined') {
   }
   
   try {
-    // Initialize with direct token values as separate arguments
-    const muxClient = new Mux(tokenId, tokenSecret);
+    // Initialize with token object
+    const muxClient = new Mux({ tokenId, tokenSecret });
     Video = muxClient.Video;
     
-    if (!Video || !Video.Assets) {
+    // Verify the Video client is properly initialized
+    if (!Video || typeof Video.Assets !== 'object' || typeof Video.assets !== 'object') {
+      console.error('Mux Video client properties:', {
+        hasVideo: !!Video,
+        hasAssets: !!Video?.assets,
+        hasAssetsProperty: !!Video?.Assets
+      });
       throw new Error('Mux Video client failed to initialize properly');
     }
   } catch (error) {
     console.error('Failed to initialize Mux client:', error);
-    throw error;
+    // Don't throw here, just log the error
+    Video = null;
   }
 }
 
@@ -83,10 +90,16 @@ export async function waitForAssetReady(assetId: string, options = {
           data
         });
         
-        // If asset not found or server error, fail immediately
-        if (response.status === 404 || response.status >= 500) {
-          throw new Error(`Asset status check failed: ${errorMessage}`);
+        // If service unavailable, wait and retry
+        if (response.status === 503) {
+          console.log('Video service temporarily unavailable, retrying...');
+          attempts++;
+          await new Promise(resolve => setTimeout(resolve, options.interval));
+          continue;
         }
+        
+        // For other errors, fail immediately
+        throw new Error(`Asset status check failed: ${errorMessage}`);
         
         // For other errors, continue retrying
         attempts++;

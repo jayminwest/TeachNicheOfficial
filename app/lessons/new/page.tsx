@@ -46,6 +46,10 @@ export default function NewLessonPage() {
 
       // Get playback ID for the asset
       console.log('Fetching playback ID for asset:', data.muxAssetId);
+      
+      // Add delay to allow Mux to process the asset
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
         headers: {
           "Authorization": `Bearer ${session.data.session.access_token}`
@@ -53,6 +57,7 @@ export default function NewLessonPage() {
       });
       
       const playbackData = await playbackResponse.json();
+      console.log('Playback response:', playbackData);
       
       if (!playbackResponse.ok) {
         throw new Error(`Failed to get playback ID: ${playbackData.error || playbackResponse.statusText}`);

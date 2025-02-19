@@ -25,7 +25,13 @@ export async function GET(request: Request) {
     console.log('Fetching asset:', assetId);
     
     const asset = await Video.Assets.get(assetId);
-    console.log('Asset response:', JSON.stringify(asset, null, 2));
+    console.log('Asset response:', JSON.stringify({
+      id: asset.id,
+      status: asset.status,
+      playback_ids: asset.playback_ids,
+      created_at: asset.created_at,
+      duration: asset.duration
+    }, null, 2));
     
     if (!asset) {
       console.error('No asset found for ID:', assetId);
@@ -49,8 +55,18 @@ export async function GET(request: Request) {
     console.error('Error fetching Mux asset:', {
       message: error.message,
       stack: error.stack,
-      details: error
+      code: error.code,
+      type: error.type,
+      details: error.details || error
     });
+
+    // Check if it's a Mux API error
+    if (error.type && error.type.startsWith('mux')) {
+      return NextResponse.json(
+        { error: `Mux API error: ${error.type}`, details: error.message },
+        { status: error.status || 500 }
+      );
+    }
     return NextResponse.json(
       { error: 'Failed to fetch playback ID', details: error.message },
       { status: 500 }

@@ -55,7 +55,9 @@ export default function NewLessonPage() {
       });
 
       // Wait for asset to be ready and get playback ID
-      const { playbackId } = await waitForAssetReady(data.muxAssetId);
+      const { playbackId } = await waitForAssetReady(data.muxAssetId, {
+        isFree: data.price === 0
+      });
       
       if (!playbackId) {
         throw new Error('Failed to get playback ID');

@@ -37,36 +37,41 @@ export interface MuxAssetResponse {
 
 export async function waitForAssetReady(assetId: string, options = {
   maxAttempts: 30,  // 5 minutes total
-  interval: 10000   // 10 seconds between checks
+  interval: 10000,  // 10 seconds between checks
+  isFree: false
 }): Promise<{status: string, playbackId?: string}> {
   let attempts = 0;
 
   while (attempts < options.maxAttempts) {
     try {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
-      const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
-      const data = await response.json();
-
-      console.log('Asset status response:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      if (data.status === 'ready' && data.playbackId) {
-        console.log('Asset is ready with playback ID:', data.playbackId);
+      
+      const asset = await Video.assets.get(assetId);
+      
+      if (asset.status === 'ready') {
+        // Create playback ID if none exists
+        if (!asset.playback_ids?.length) {
+          const playbackId = await Video.assets.createPlaybackId(assetId, {
+            policy: options.isFree ? 'public' : 'signed'
+          });
+          return {
+            status: 'ready',
+            playbackId: playbackId.id
+          };
+        }
+        
         return {
           status: 'ready',
-          playbackId: data.playbackId
+          playbackId: asset.playback_ids[0].id
         };
       }
 
-      if (data.status === 'errored') {
-        console.error('Asset processing failed:', data);
+      if (asset.status === 'errored') {
+        console.error('Asset processing failed:', asset);
         throw new Error('Video processing failed');
       }
 
-      console.log(`Asset status: ${data.status}, waiting ${options.interval}ms before next check`);
+      console.log(`Asset status: ${asset.status}, waiting ${options.interval}ms before next check`);
       await new Promise(resolve => setTimeout(resolve, options.interval));
       attempts++;
     } catch (error) {
@@ -86,13 +91,13 @@ export async function waitForAssetReady(assetId: string, options = {
 /**
  * Creates a new direct upload URL for Mux
  */
-export async function createUpload(): Promise<MuxUploadResponse> {
+export async function createUpload(isFree: boolean = false): Promise<MuxUploadResponse> {
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
     const upload = await Video.uploads.create({
       new_asset_settings: {
-        playback_policy: ['public'],
+        playback_policy: isFree ? ['public'] : ['signed'],
         encoding_tier: 'baseline',
       },
       cors_origin: corsOrigin,

@@ -12,10 +12,20 @@ export async function GET(request: Request) {
   try {
     console.log('Fetching asset status for:', assetId);
     
+    console.log('Calling Mux API to get asset:', assetId);
     const asset = await Video.assets.get(assetId);
+    
+    if (!asset) {
+      console.error('Mux returned null or undefined asset');
+      return NextResponse.json(
+        { error: 'Asset not found' },
+        { status: 404 }
+      );
+    }
+
     console.log('Mux asset response:', JSON.stringify(asset, null, 2));
     
-    if (!asset || !asset.status) {
+    if (!asset.status) {
       console.error('Invalid asset response:', asset);
       return NextResponse.json(
         { error: 'Asset not found or invalid' },

@@ -40,24 +40,44 @@ export async function waitForAssetReady(assetId: string, options = {
   let attempts = 0;
 
   while (attempts < options.maxAttempts) {
-    const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
-    const data = await response.json();
+    try {
+      console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
+      const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+      const data = await response.json();
 
-    if (data.status === 'ready' && data.playbackId) {
-      return {
-        status: 'ready',
-        playbackId: data.playbackId
-      };
+      console.log('Asset status response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (data.status === 'ready' && data.playbackId) {
+        console.log('Asset is ready with playback ID:', data.playbackId);
+        return {
+          status: 'ready',
+          playbackId: data.playbackId
+        };
+      }
+
+      if (data.status === 'errored') {
+        console.error('Asset processing failed:', data);
+        throw new Error('Video processing failed');
+      }
+
+      console.log(`Asset status: ${data.status}, waiting ${options.interval}ms before next check`);
+      await new Promise(resolve => setTimeout(resolve, options.interval));
+      attempts++;
+    } catch (error) {
+      console.error('Error checking asset status:', error);
+      throw new Error(
+        error instanceof Error 
+          ? `Failed to check asset status: ${error.message}`
+          : 'Failed to check asset status'
+      );
     }
-
-    if (data.status === 'errored') {
-      throw new Error('Video processing failed');
-    }
-
-    await new Promise(resolve => setTimeout(resolve, options.interval));
-    attempts++;
   }
 
+  console.error('Asset processing timed out after', attempts, 'attempts');
   throw new Error('Video processing timeout');
 }
 

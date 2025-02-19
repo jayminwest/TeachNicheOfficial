@@ -42,7 +42,9 @@ export async function POST(request: Request) {
     }
 
     // Create lesson in Supabase with the upload ID for now
+    // Generate a UUID for the new lesson
     const lessonData = {
+      id: crypto.randomUUID(),
       title,
       description,
       price: price || 0,

@@ -15,26 +15,37 @@ if (typeof window === 'undefined') {
   const maxInitAttempts = 3;
   const initRetryDelay = 1000; // 1 second
 
-  while (initAttempts < maxInitAttempts) {
+  const initMuxClient = async () => {
     try {
       // Initialize Mux client with separate parameters
       const muxClient = new Mux(tokenId, tokenSecret);
-      Video = muxClient.Video;
+      const videoClient = muxClient.Video;
       
       // Verify the Video client is properly initialized
-      if (!Video) {
+      if (!videoClient) {
         throw new Error('Mux Video client not initialized');
       }
 
       // Test the client with a basic API call
-      await Video.assets.list({ limit: 1 });
+      await videoClient.assets.list({ limit: 1 });
       
       // If we get here, initialization was successful
       console.log('Mux Video client initialized successfully');
+      return videoClient;
+    } catch (error) {
+      console.error('Failed to initialize Mux client:', error);
+      throw error;
+    }
+  };
+
+  // Try to initialize with retries
+  while (initAttempts < maxInitAttempts) {
+    try {
+      Video = await initMuxClient();
       break;
     } catch (error) {
       initAttempts++;
-      console.error(`Failed to initialize Mux client (attempt ${initAttempts}/${maxInitAttempts}):`, error);
+      console.error(`Initialization attempt ${initAttempts}/${maxInitAttempts} failed:`, error);
       
       if (initAttempts === maxInitAttempts) {
         console.error('Max initialization attempts reached');

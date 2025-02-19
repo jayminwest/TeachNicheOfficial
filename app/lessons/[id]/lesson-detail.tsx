@@ -26,8 +26,11 @@ interface Lesson {
   version: number;
 }
 
-export default function LessonDetail({ params }: { params: { id: string } }) {
-  const id = use(Promise.resolve(params.id));
+interface LessonDetailProps {
+  id: string;
+}
+
+export default function LessonDetail({ id }: LessonDetailProps) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();

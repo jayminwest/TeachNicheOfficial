@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-export default function LessonPage({ params }: { params: { id: string } }) {
+export default async function LessonPage({ params }: { params: { id: string } }) {
+  const id = params.id;
   return (
     <Suspense
       fallback={
@@ -15,7 +16,7 @@ export default function LessonPage({ params }: { params: { id: string } }) {
         </div>
       }
     >
-      <LessonDetail params={params} />
+      <LessonDetail id={id} />
     </Suspense>
   );
 }

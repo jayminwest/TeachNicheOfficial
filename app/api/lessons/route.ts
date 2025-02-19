@@ -35,9 +35,16 @@ export async function POST(request: Request) {
     } = data;
 
     // Validate required fields
-    if (!title || !description || !muxAssetId || !muxPlaybackId) {
+    if (!title || !description) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Title and description are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!muxAssetId || !muxPlaybackId) {
+      return NextResponse.json(
+        { error: 'Video upload incomplete. Both asset ID and playback ID are required' },
         { status: 400 }
       );
     }

@@ -31,6 +31,34 @@ export interface MuxAssetResponse {
   error?: MuxError;
 }
 
+export async function waitForAssetReady(assetId: string, options = {
+  maxAttempts: 30,  // 5 minutes total
+  interval: 10000   // 10 seconds between checks
+}): Promise<{status: string, playbackId?: string}> {
+  let attempts = 0;
+
+  while (attempts < options.maxAttempts) {
+    const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+    const data = await response.json();
+
+    if (data.status === 'ready' && data.playbackId) {
+      return {
+        status: 'ready',
+        playbackId: data.playbackId
+      };
+    }
+
+    if (data.status === 'errored') {
+      throw new Error('Video processing failed');
+    }
+
+    await new Promise(resolve => setTimeout(resolve, options.interval));
+    attempts++;
+  }
+
+  throw new Error('Video processing timeout');
+}
+
 /**
  * Creates a new direct upload URL for Mux
  */

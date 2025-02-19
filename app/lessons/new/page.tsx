@@ -47,10 +47,21 @@ export default function NewLessonPage() {
       // Create playback ID for the asset
       console.log('Creating playback ID for asset:', data.muxAssetId);
       
-      // Add longer delay to allow Mux to process the asset
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      // Show processing status
+      toast({
+        title: "Processing Video",
+        description: "Please wait while we process your video...",
+      });
+
+      // Wait for asset to be ready and get playback ID
+      const { playbackId } = await waitForAssetReady(data.muxAssetId);
       
-      const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
+      if (!playbackId) {
+        throw new Error('Failed to get playback ID');
+      }
+
+      // Create lesson with both IDs
+      const response = await fetch("/api/lessons", {
         headers: {
           "Authorization": `Bearer ${session.data.session.access_token}`
         }

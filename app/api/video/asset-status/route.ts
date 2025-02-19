@@ -13,9 +13,18 @@ export async function GET(request: Request) {
   try {
     console.log('Fetching asset status for:', assetId);
     const asset = await Video.assets.get(assetId);
+    console.log('Raw asset response:', asset);
     
-    if (!asset || !asset.status) {
-      console.error('Invalid asset response:', asset);
+    if (!asset) {
+      console.error('No asset returned from Mux');
+      return NextResponse.json({ 
+        error: 'Asset not found',
+        details: `No asset found with ID: ${assetId}`
+      }, { status: 404 });
+    }
+
+    if (!asset.status) {
+      console.error('Invalid asset response - no status:', asset);
       return NextResponse.json({ 
         error: 'Asset not found',
         details: `No asset found with ID: ${assetId}`

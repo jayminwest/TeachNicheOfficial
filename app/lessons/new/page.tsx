@@ -54,13 +54,40 @@ export default function NewLessonPage() {
         description: "Please wait while we process your video...",
       });
 
-      // Wait for asset to be ready and get playback ID
-      const { status, playbackId } = await waitForAssetReady(data.muxAssetId, {
-        isFree: data.price === 0
+      // Show processing status
+      const processingToast = toast({
+        title: "Processing Video",
+        description: "Please wait while we process your video...",
+        duration: 60000, // 1 minute
       });
-      
-      if (status !== 'ready' || !playbackId) {
-        throw new Error('Failed to get playback ID - video processing incomplete');
+
+      try {
+        // Wait for asset to be ready and get playback ID
+        const { status, playbackId } = await waitForAssetReady(data.muxAssetId, {
+          isFree: data.price === 0,
+          maxAttempts: 60,  // 10 minutes total
+          interval: 10000   // 10 seconds between checks
+        });
+        
+        if (status !== 'ready' || !playbackId) {
+          throw new Error('Failed to get playback ID - video processing incomplete');
+        }
+
+        // Dismiss the processing toast
+        processingToast.dismiss();
+      } catch (error) {
+        // Dismiss the processing toast
+        processingToast.dismiss();
+        
+        console.error('Video processing error:', error);
+        toast({
+          title: "Video Processing Failed",
+          description: error instanceof Error ? error.message : "Failed to process video. Please try again.",
+          variant: "destructive",
+          duration: 5000
+        });
+        setIsSubmitting(false);
+        return;
       }
 
       // Create new object with all form data plus playback ID

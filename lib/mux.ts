@@ -47,14 +47,24 @@ export async function waitForAssetReady(assetId: string, options = {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
       
       const response = await fetch(`/api/video/asset-status?assetId=${assetId}&isFree=${options.isFree}`);
+      const data = await response.json();
+      
+      console.log('Raw response:', response.status, data);
+
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
         const errorMessage = data.error || data.details || `HTTP error! status: ${response.status}`;
         console.error('Asset status error:', errorMessage);
-        throw new Error(errorMessage);
+        
+        // If asset not found, fail immediately
+        if (response.status === 404) {
+          throw new Error(`Asset not found: ${assetId}`);
+        }
+        
+        // For other errors, continue retrying
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, options.interval));
+        continue;
       }
-      
-      const data = await response.json();
       console.log('Asset status API response:', { status: response.status, data });
 
       if (data.status === 'ready' && data.playbackId) {

@@ -42,7 +42,7 @@ export async function waitForAssetReady(assetId: string, options = {
 }): Promise<{status: string, playbackId?: string}> {
   let attempts = 0;
 
-  while (attempts < options.maxAttempts) {
+  while (attempts <= options.maxAttempts) {
     try {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
       
@@ -72,8 +72,8 @@ export async function waitForAssetReady(assetId: string, options = {
       }
 
       console.log(`Asset status: ${asset.status}, waiting ${options.interval}ms before next check`);
-      await new Promise(resolve => setTimeout(resolve, options.interval));
       attempts++;
+      await new Promise(resolve => setTimeout(resolve, options.interval));
     } catch (error) {
       console.error('Error checking asset status:', error);
       throw new Error(

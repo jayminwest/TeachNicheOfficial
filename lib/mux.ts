@@ -58,6 +58,7 @@ export async function waitForAssetReady(assetId: string, options = {
       console.log('Asset status API response:', { status: response.status, data });
 
       if (data.status === 'ready' && data.playbackId) {
+        console.log('Asset ready with playback ID:', data.playbackId);
         return {
           status: 'ready',
           playbackId: data.playbackId

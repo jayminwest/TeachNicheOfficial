@@ -54,22 +54,20 @@ export default function NewLessonPage() {
         description: "Please wait while we process your video...",
       });
 
-      try {
-        // Wait for asset to be ready and get playback ID
-        const { playbackId } = await waitForAssetReady(data.muxAssetId, {
-          isFree: data.price === 0
-        });
-        
-        if (!playbackId) {
-          throw new Error('No playback ID received from processed video');
-        }
-      } catch (error) {
-        console.error('Video processing error:', error);
-        throw new Error('Failed to get playback ID');
+      // Wait for asset to be ready and get playback ID
+      const { status, playbackId } = await waitForAssetReady(data.muxAssetId, {
+        isFree: data.price === 0
+      });
+      
+      if (status !== 'ready' || !playbackId) {
+        throw new Error('Failed to get playback ID - video processing incomplete');
       }
 
-      // Set the playback ID in the form data
-      data.muxPlaybackId = playbackId;
+      // Create new object with all form data plus playback ID
+      const lessonData = {
+        ...data,
+        muxPlaybackId: playbackId
+      };
 
       // Verify session is still valid
       if (!session.data.session) {
@@ -88,7 +86,7 @@ export default function NewLessonPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${session.data.session.access_token}`
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(lessonData),
       });
 
       if (!response.ok) {

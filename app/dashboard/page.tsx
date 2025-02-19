@@ -22,18 +22,13 @@ export default function DashboardPage() {
           <DashboardHeader />
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            <QuickActions />
+            <AnalyticsSection />
             <ActivityFeed />
             <PerformanceMetrics />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="lg:col-span-2">
-              <LessonsGrid />
-            </div>
-            <div>
-              <AnalyticsSection />
-            </div>
+          <div className="mt-6">
+            <LessonsGrid />
           </div>
 
           <div className="mt-6">

@@ -41,21 +41,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get upload details first
-    const { data: upload } = await supabase
-      .from('mux_uploads')
-      .select('asset_id')
-      .eq('upload_id', muxAssetId)
-      .single();
-
-    if (!upload?.asset_id) {
-      return NextResponse.json(
-        { error: 'Video upload not found or still processing' },
-        { status: 400 }
-      );
-    }
-
-    // Create lesson in Supabase with the asset ID
+    // Create lesson in Supabase with the upload ID for now
     const lessonData = {
       title,
       description,
@@ -63,9 +49,7 @@ export async function POST(request: Request) {
       content,
       status,
       creator_id: user.id,
-      mux_asset_id: muxAssetId,
-      mux_playback_id: muxAsset.playbackId,
-      content_url: `https://stream.mux.com/${muxAsset.playbackId}/high.mp4`,
+      mux_upload_id: muxAssetId, // Store the upload ID initially
       version: 1
     };
 

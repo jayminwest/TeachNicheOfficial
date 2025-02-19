@@ -1,18 +1,14 @@
 import Mux from '@mux/mux-node';
 
+if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+  throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+}
+
 // Initialize Mux client with environment variables
 const { Video } = new Mux({
-  tokenId: process.env.NEXT_PUBLIC_MUX_TOKEN_ID || process.env.MUX_TOKEN_ID || '',
-  tokenSecret: process.env.NEXT_PUBLIC_MUX_TOKEN_SECRET || process.env.MUX_TOKEN_SECRET || ''
+  tokenId: process.env.MUX_TOKEN_ID,
+  tokenSecret: process.env.MUX_TOKEN_SECRET
 });
-
-// Log warning if environment variables are missing
-if (!process.env.NEXT_PUBLIC_MUX_TOKEN_ID && !process.env.MUX_TOKEN_ID) {
-  console.warn('Warning: MUX_TOKEN_ID environment variable is not set');
-}
-if (!process.env.NEXT_PUBLIC_MUX_TOKEN_SECRET && !process.env.MUX_TOKEN_SECRET) {
-  console.warn('Warning: MUX_TOKEN_SECRET environment variable is not set');
-}
 
 export { Video };
 

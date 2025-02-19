@@ -61,7 +61,10 @@ export async function GET(request: Request) {
       }, { status: 500 });
     }
 
-    return NextResponse.json({ status: asset.status });
+    return NextResponse.json({ 
+      status: asset.status,
+      message: `Asset status: ${asset.status}`
+    });
   } catch (error) {
     console.error('Error checking asset status:', error);
     return NextResponse.json({ 

@@ -7,8 +7,8 @@ if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
   throw new Error('Missing required Mux environment variables');
 }
 
-// Initialize Mux Video client directly
-const Video = new Mux.Video({
+// Initialize Mux client
+const { Video } = new Mux({
   tokenId: process.env.MUX_TOKEN_ID,
   tokenSecret: process.env.MUX_TOKEN_SECRET
 });

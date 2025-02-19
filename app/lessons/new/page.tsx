@@ -60,36 +60,10 @@ export default function NewLessonPage() {
         throw new Error('Failed to get playback ID');
       }
 
-      // Create lesson with both IDs
-      const response = await fetch("/api/lessons", {
-        headers: {
-          "Authorization": `Bearer ${session.data.session.access_token}`
-        }
-      });
-      
-      const playbackData = await playbackResponse.json();
-      console.log('Playback response:', playbackData);
-      
-      if (!playbackResponse.ok) {
-        const errorMessage = playbackData.error 
-          ? `${playbackData.error}${playbackData.details ? `: ${playbackData.details}` : ''}`
-          : playbackResponse.statusText;
-        console.error('Playback ID error:', {
-          status: playbackResponse.status,
-          statusText: playbackResponse.statusText,
-          data: playbackData
-        });
-        throw new Error(`Failed to get playback ID: ${errorMessage}`);
-      }
-
-      if (!playbackData.playbackId) {
-        throw new Error('No playback ID returned from server');
-      }
-
-      console.log('Received playback ID:', playbackData.playbackId);
-      const { playbackId } = playbackData;
+      // Set the playback ID in the form data
       data.muxPlaybackId = playbackId;
 
+      // Verify session is still valid
       if (!session.data.session) {
         toast({
           title: "Authentication Required",

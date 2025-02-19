@@ -41,16 +41,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get Mux asset details
-    const muxAsset = await getAssetStatus(muxAssetId);
-    if (!muxAsset.playbackId) {
+    // Get upload details first
+    const { data: upload } = await supabase
+      .from('mux_uploads')
+      .select('asset_id')
+      .eq('upload_id', muxAssetId)
+      .single();
+
+    if (!upload?.asset_id) {
       return NextResponse.json(
-        { error: 'Video processing not complete' },
+        { error: 'Video upload not found or still processing' },
         { status: 400 }
       );
     }
 
-    // Create lesson in Supabase
+    // Create lesson in Supabase with the asset ID
     const lessonData = {
       title,
       description,

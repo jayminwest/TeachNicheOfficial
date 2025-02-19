@@ -176,9 +176,11 @@ export function LessonForm({
                     <VideoUploader
                       endpoint="/api/video/upload"
                       onUploadStart={() => setIsUploading(true)}
-                      onUploadComplete={(assetId) => {
+                      onUploadComplete={(uploadId) => {
+                        // Store the upload ID for now, asset ID will be retrieved later
                         setIsUploading(false);
-                        field.onChange(assetId);
+                        field.onChange(uploadId);
+                        console.log("Upload completed with ID:", uploadId);
                         toast({
                           title: "Video uploaded",
                           description: "Your video has been uploaded successfully.",

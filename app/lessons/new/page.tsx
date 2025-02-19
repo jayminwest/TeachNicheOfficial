@@ -22,6 +22,28 @@ export default function NewLessonPage() {
     try {
       console.log("Form submission data:", data); // Debug submission data
 
+      // Check if muxAssetId exists and is not empty
+      if (!data.muxAssetId || data.muxAssetId.trim() === "") {
+        toast({
+          title: "Video Required",
+          description: "Please upload a video before creating the lesson",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to create a lesson",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Get playback ID for the asset
       const playbackResponse = await fetch(`/api/mux/playback-id?assetId=${data.muxAssetId}`, {
         headers: {
@@ -35,19 +57,7 @@ export default function NewLessonPage() {
 
       const { playbackId } = await playbackResponse.json();
       data.muxPlaybackId = playbackId;
-      
-      // Check if muxAssetId exists and is not empty
-      if (!data.muxAssetId || data.muxAssetId.trim() === "") {
-        toast({
-          title: "Video Required",
-          description: "Please upload a video before creating the lesson",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
 
-      const session = await supabase.auth.getSession();
       if (!session.data.session) {
         toast({
           title: "Authentication Required",

@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import mux from 'mux-embed';
+import Mux from '@mux/mux-node';
 
 interface Lesson {
   id: string;
@@ -71,6 +72,20 @@ export default function LessonDetail({ id }: LessonDetailProps) {
 
         if (error) throw error;
         if (!data) throw new Error('Lesson not found');
+
+        // If we have an asset ID but no playback ID, get it from Mux
+        if (data.mux_asset_id && !data.mux_playback_id) {
+          const response = await fetch(`/api/mux/playback-id?assetId=${data.mux_asset_id}`);
+          const { playbackId } = await response.json();
+          if (playbackId) {
+            data.mux_playback_id = playbackId;
+            // Update the database with the playback ID
+            await supabase
+              .from('lessons')
+              .update({ mux_playback_id: playbackId })
+              .eq('id', data.id);
+          }
+        }
         
         setLesson(data);
       } catch (error) {

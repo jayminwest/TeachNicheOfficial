@@ -51,25 +51,35 @@ export async function POST(request: Request) {
     }
 
     // Create lesson in Supabase
+    const lessonData = {
+      title,
+      description,
+      price: price || 0,
+      content,
+      status,
+      creator_id: user.id,
+      mux_asset_id: muxAssetId,
+      mux_playback_id: muxAsset.playbackId,
+      content_url: `https://stream.mux.com/${muxAsset.playbackId}/high.mp4`,
+      version: 1
+    };
+
+    console.log('Creating lesson with data:', lessonData);
+
     const { data: lesson, error } = await supabase
       .from('lessons')
-      .insert({
-        title,
-        description,
-        price,
-        content,
-        status,
-        creator_id: user.id,
-        content_url: `https://stream.mux.com/${muxAsset.playbackId}/high.mp4`,
-        version: 1
-      })
+      .insert(lessonData)
       .select()
       .single();
 
     if (error) {
       console.error('Lesson creation error:', error);
       return NextResponse.json(
-        { error: 'Failed to create lesson' },
+        { 
+          error: 'Failed to create lesson',
+          details: error.message,
+          code: error.code
+        },
         { status: 500 }
       );
     }

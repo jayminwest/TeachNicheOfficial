@@ -54,7 +54,12 @@ export default function NewLessonPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to create lesson: ${response.statusText}`);
+        console.error('API Error Response:', errorData);
+        throw new Error(
+          errorData.details || 
+          errorData.message || 
+          `Failed to create lesson: ${response.statusText}`
+        );
       }
 
       const lesson = await response.json();

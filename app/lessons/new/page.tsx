@@ -5,12 +5,11 @@ import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useAuth } from "@/auth/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 export default function NewLessonPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
 
   const handleSubmit = async (data: {
     title: string;
@@ -33,7 +32,8 @@ export default function NewLessonPage() {
         return;
       }
 
-      if (!user || !user.session?.access_token) {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to create a lesson",
@@ -47,7 +47,7 @@ export default function NewLessonPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.session?.access_token}`
+          "Authorization": `Bearer ${session.data.session.access_token}`
         },
         body: JSON.stringify(data),
       });

@@ -7,16 +7,19 @@ interface VideoPlayerProps {
   playbackId: string;
   title: string;
   className?: string;
+  id?: string;
 }
 
 export function VideoPlayer({ 
   playbackId, 
   title, 
-  className 
+  className,
+  id
 }: VideoPlayerProps) {
   return (
     <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
       <MuxPlayer
+        id={id}
         playbackId={playbackId}
         metadata={{ 
           video_title: title,

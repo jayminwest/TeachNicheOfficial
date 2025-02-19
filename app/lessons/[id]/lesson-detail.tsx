@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
-import { use } from "react";
+import mux from 'mux-embed';
 
 interface Lesson {
   id: string;
@@ -34,6 +34,31 @@ export default function LessonDetail({ id }: LessonDetailProps) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    if (lesson?.mux_playback_id) {
+      const playerInitTime = mux.utils.now();
+      
+      mux.monitor('#lesson-video', {
+        debug: false,
+        data: {
+          env_key: process.env.NEXT_PUBLIC_MUX_ENV_KEY!, 
+          player_name: 'Lesson Player',
+          player_init_time: playerInitTime,
+          video_id: lesson.id,
+          video_title: lesson.title,
+          video_stream_type: 'on-demand',
+        }
+      });
+    }
+
+    return () => {
+      const player = document.querySelector('#lesson-video');
+      if (player && (player as any).mux) {
+        (player as any).mux.destroy();
+      }
+    };
+  }, [lesson?.id, lesson?.title, lesson?.mux_playback_id]);
 
   useEffect(() => {
     async function fetchLesson() {
@@ -94,6 +119,7 @@ export default function LessonDetail({ id }: LessonDetailProps) {
           {lesson.mux_playback_id && (
             <div className="mb-6">
               <VideoPlayer
+                id="lesson-video"
                 playbackId={lesson.mux_playback_id}
                 title={lesson.title}
                 className="w-full aspect-video rounded-lg overflow-hidden"

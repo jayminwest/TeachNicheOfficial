@@ -6,12 +6,11 @@ if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
 }
 
 // Initialize Mux client
-const muxClient = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID,
-  tokenSecret: process.env.MUX_TOKEN_SECRET
-});
+const { Video } = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID || '',
+  tokenSecret: process.env.MUX_TOKEN_SECRET || ''
+}).video;
 
-const { video: Video } = muxClient;
 export { Video };
 
 export interface MuxUploadResponse {

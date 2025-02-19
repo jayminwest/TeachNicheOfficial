@@ -14,6 +14,14 @@ export async function GET(request: Request) {
       console.log('Creating playback ID for asset:', assetId);
       // First check if the asset exists and is ready
       const asset = await Video.Assets.get(assetId);
+      
+      if (!asset || !asset.status) {
+        return NextResponse.json(
+          { error: 'Asset not found or invalid' },
+          { status: 404 }
+        );
+      }
+      
       console.log('Asset status:', asset.status);
       
       if (asset.status !== 'ready') {

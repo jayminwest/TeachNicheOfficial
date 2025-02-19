@@ -11,6 +11,14 @@ export async function GET(request: Request) {
 
   try {
     const asset = await Video.Assets.get(assetId);
+    
+    if (!asset || !asset.status) {
+      return NextResponse.json(
+        { error: 'Asset not found or invalid' },
+        { status: 404 }
+      );
+    }
+    
     return NextResponse.json({
       status: asset.status,
       playbackId: asset.playback_ids?.[0]?.id,

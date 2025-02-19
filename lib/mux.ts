@@ -11,23 +11,40 @@ if (typeof window === 'undefined') {
     throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
   }
   
-  try {
-    // Initialize Mux client
-    const muxClient = new Mux({ tokenId, tokenSecret });
-    Video = muxClient.Video;
-    
-    // Verify the Video client is properly initialized
-    if (!Video) {
-      console.error('Mux Video client not initialized');
-      throw new Error('Mux Video client failed to initialize');
-    }
+  let initAttempts = 0;
+  const maxInitAttempts = 3;
+  const initRetryDelay = 1000; // 1 second
 
-    // Test the client with a basic API call
-    await Video.assets.list({ limit: 1 });
-  } catch (error) {
-    console.error('Failed to initialize Mux client:', error);
-    // Don't throw here, just log the error
-    Video = null;
+  while (initAttempts < maxInitAttempts) {
+    try {
+      // Initialize Mux client
+      const muxClient = new Mux({ tokenId, tokenSecret });
+      Video = muxClient.Video;
+      
+      // Verify the Video client is properly initialized
+      if (!Video) {
+        throw new Error('Mux Video client not initialized');
+      }
+
+      // Test the client with a basic API call
+      await Video.assets.list({ limit: 1 });
+      
+      // If we get here, initialization was successful
+      console.log('Mux Video client initialized successfully');
+      break;
+    } catch (error) {
+      initAttempts++;
+      console.error(`Failed to initialize Mux client (attempt ${initAttempts}/${maxInitAttempts}):`, error);
+      
+      if (initAttempts === maxInitAttempts) {
+        console.error('Max initialization attempts reached');
+        Video = null;
+        break;
+      }
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, initRetryDelay));
+    }
   }
 }
 

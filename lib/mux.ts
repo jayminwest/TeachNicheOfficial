@@ -42,7 +42,7 @@ export async function waitForAssetReady(assetId: string, options = {
 }): Promise<{status: string, playbackId?: string}> {
   let attempts = 0;
 
-  while (attempts <= options.maxAttempts) {
+  do {
     try {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
       
@@ -75,10 +75,10 @@ export async function waitForAssetReady(assetId: string, options = {
           : 'Failed to check asset status'
       );
     }
-  }
+  } while (attempts < options.maxAttempts);
 
   console.error('Asset processing timed out after', attempts, 'attempts');
-  throw new Error('Video processing timeout');
+  throw new Error(`Video processing timed out after ${attempts} attempts`);
 }
 
 /**

@@ -1,23 +1,24 @@
 import { NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
 
-console.log('Starting Mux client initialization...');
-
-if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-  throw new Error('Missing required Mux environment variables');
-}
-
-// Initialize Mux client
-const muxClient = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID,
-  tokenSecret: process.env.MUX_TOKEN_SECRET
-});
-
-const Video = muxClient.Video;
-console.log('Video client initialized:', !!Video);
-console.log('Video.Assets exists:', !!Video?.Assets);
-
 export async function GET(request: Request) {
+  // Initialize Mux client inside the request handler
+  if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+    console.error('Missing Mux credentials');
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 }
+    );
+  }
+
+  const muxClient = new Mux({
+    tokenId: process.env.MUX_TOKEN_ID,
+    tokenSecret: process.env.MUX_TOKEN_SECRET
+  });
+
+  const Video = muxClient.Video;
+  console.log('Video client initialized:', !!Video);
+  console.log('Video.Assets exists:', !!Video?.Assets);
   const { searchParams } = new URL(request.url);
   const assetId = searchParams.get('assetId');
 

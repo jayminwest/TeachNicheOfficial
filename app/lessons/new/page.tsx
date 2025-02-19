@@ -62,6 +62,8 @@ export default function NewLessonPage() {
       });
 
       try {
+        console.log('Starting video processing for asset:', data.muxAssetId);
+        
         // Wait for asset to be ready and get playback ID
         const { status, playbackId } = await waitForAssetReady(data.muxAssetId, {
           isFree: data.price === 0,
@@ -69,12 +71,20 @@ export default function NewLessonPage() {
           interval: 10000   // 10 seconds between checks
         });
         
+        console.log('Video processing completed:', { status, playbackId });
+        
         if (status !== 'ready' || !playbackId) {
-          throw new Error('Failed to get playback ID - video processing incomplete');
+          throw new Error('Video processing completed but no playback ID was generated');
         }
 
         // Dismiss the processing toast
         processingToast.dismiss();
+        
+        // Show success toast
+        toast({
+          title: "Video Processing Complete",
+          description: "Your video has been processed successfully.",
+        });
       } catch (error) {
         // Dismiss the processing toast
         processingToast.dismiss();

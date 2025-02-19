@@ -47,17 +47,31 @@ export async function waitForAssetReady(assetId: string, options = {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
       
       const response = await fetch(`/api/video/asset-status?assetId=${assetId}&isFree=${options.isFree}`);
-      const data = await response.json();
+      let data;
       
-      console.log('Raw response:', response.status, data);
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        throw new Error('Invalid response from asset status API');
+      }
+      
+      console.log('Asset status response:', {
+        status: response.status,
+        data: JSON.stringify(data, null, 2)
+      });
 
       if (!response.ok) {
         const errorMessage = data.error || data.details || `HTTP error! status: ${response.status}`;
-        console.error('Asset status error:', errorMessage);
+        console.error('Asset status error:', {
+          message: errorMessage,
+          response: response.status,
+          data
+        });
         
-        // If asset not found, fail immediately
-        if (response.status === 404) {
-          throw new Error(`Asset not found: ${assetId}`);
+        // If asset not found or server error, fail immediately
+        if (response.status === 404 || response.status >= 500) {
+          throw new Error(`Asset status check failed: ${errorMessage}`);
         }
         
         // For other errors, continue retrying

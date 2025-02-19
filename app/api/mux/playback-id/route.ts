@@ -1,24 +1,19 @@
 import { NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
 
-// Log initialization start
 console.log('Starting Mux client initialization...');
 
 if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
   throw new Error('Missing required Mux environment variables');
 }
 
-// Add more detailed initialization logging
-console.log('Initializing Mux client...');
-const muxClient = new Mux({
+// Initialize Mux Video client directly
+const Video = new Mux.Video({
   tokenId: process.env.MUX_TOKEN_ID,
   tokenSecret: process.env.MUX_TOKEN_SECRET
 });
-console.log('Mux client initialized:', !!muxClient);
 
-console.log('Getting Video client...');
-const { Video } = muxClient;
-console.log('Video client obtained:', !!Video);
+console.log('Video client initialized:', !!Video);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

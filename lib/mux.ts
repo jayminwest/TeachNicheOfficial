@@ -1,10 +1,12 @@
 import Mux from '@mux/mux-node';
 
 // Initialize Mux client with environment variables
-const { Video } = new Mux({
+const muxClient = new Mux({
   tokenId: process.env.NEXT_PUBLIC_MUX_TOKEN_ID || process.env.MUX_TOKEN_ID || '',
   tokenSecret: process.env.NEXT_PUBLIC_MUX_TOKEN_SECRET || process.env.MUX_TOKEN_SECRET || ''
-}).video;
+});
+
+const Video = muxClient.video;
 
 // Log warning if environment variables are missing
 if (!process.env.NEXT_PUBLIC_MUX_TOKEN_ID && !process.env.MUX_TOKEN_ID) {

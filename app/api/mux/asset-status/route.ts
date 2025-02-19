@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     console.log('Fetching asset status for:', assetId);
     
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.assets.get(assetId);
     console.log('Mux asset response:', JSON.stringify(asset, null, 2));
     
     if (!asset || !asset.status) {

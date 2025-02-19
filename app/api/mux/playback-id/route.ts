@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     try {
       console.log('Creating playback ID for asset:', assetId);
       // First check if the asset exists and is ready
-      const asset = await Video.Assets.get(assetId);
+      const asset = await Video.assets.get(assetId);
       
       if (!asset || !asset.status) {
         return NextResponse.json(
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       }
 
       // Create a new playback ID
-      const playbackId = await Video.Assets.createPlaybackId(assetId, { 
+      const playbackId = await Video.assets.createPlaybackId(assetId, { 
         policy: 'public' 
       });
       

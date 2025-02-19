@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
 
-const { Video } = new Mux(
+const muxClient = new Mux(
   process.env.MUX_TOKEN_ID!,
   process.env.MUX_TOKEN_SECRET!
 );
+const { Video } = muxClient;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

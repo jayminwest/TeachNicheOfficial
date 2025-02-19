@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
 
-// Add version check
-console.log('Mux package version:', require('@mux/mux-node/package.json').version);
+// Log initialization start
+console.log('Starting Mux client initialization...');
 
 if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
   throw new Error('Missing required Mux environment variables');

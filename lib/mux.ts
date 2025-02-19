@@ -46,32 +46,25 @@ export async function waitForAssetReady(assetId: string, options = {
     try {
       console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
       
-      const asset = await Video.assets.get(assetId);
-      
-      if (asset.status === 'ready') {
-        // Create playback ID if none exists
-        if (!asset.playback_ids?.length) {
-          const playbackId = await Video.assets.createPlaybackId(assetId, {
-            policy: options.isFree ? 'public' : 'signed'
-          });
-          return {
-            status: 'ready',
-            playbackId: playbackId.id
-          };
-        }
-        
+      const response = await fetch(`/api/video/asset-status?assetId=${assetId}&isFree=${options.isFree}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (data.status === 'ready' && data.playbackId) {
         return {
           status: 'ready',
-          playbackId: asset.playback_ids[0].id
+          playbackId: data.playbackId
         };
       }
 
-      if (asset.status === 'errored') {
-        console.error('Asset processing failed:', asset);
+      if (data.status === 'error') {
         throw new Error('Video processing failed');
       }
 
-      console.log(`Asset status: ${asset.status}, waiting ${options.interval}ms before next check`);
+      console.log(`Asset status: ${data.status}, waiting ${options.interval}ms before next check`);
       attempts++;
       await new Promise(resolve => setTimeout(resolve, options.interval));
     } catch (error) {

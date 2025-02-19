@@ -57,8 +57,8 @@ export async function POST(request: Request) {
 
     const { data: lesson, error } = await supabase
       .from('lessons')
-      .insert([lessonData])
-      .select('*')
+      .insert(lessonData)
+      .select('id, title, description, price, creator_id, content, status, mux_asset_id, version')
       .single();
 
     if (error) {

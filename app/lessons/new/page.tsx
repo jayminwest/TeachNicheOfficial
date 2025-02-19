@@ -33,7 +33,7 @@ export default function NewLessonPage() {
         return;
       }
 
-      if (!user) {
+      if (!user || !user.session?.access_token) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to create a lesson",
@@ -47,7 +47,7 @@ export default function NewLessonPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${await user.getIdToken()}`
+          "Authorization": `Bearer ${user.session?.access_token}`
         },
         body: JSON.stringify(data),
       });

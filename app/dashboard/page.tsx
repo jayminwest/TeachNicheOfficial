@@ -6,7 +6,6 @@ import ActivityFeed from "./components/activity-feed"
 import PerformanceMetrics from "./components/performance-metrics"
 import LessonsGrid from "./components/lessons-grid"
 import AnalyticsSection from "./components/analytics-section"
-import GoalsProgress from "./components/goals-progress"
 
 export default function DashboardPage() {
   return (
@@ -31,9 +30,6 @@ export default function DashboardPage() {
             <LessonsGrid />
           </div>
 
-          <div className="mt-6">
-            <GoalsProgress />
-          </div>
         </Suspense>
       </div>
     </div>

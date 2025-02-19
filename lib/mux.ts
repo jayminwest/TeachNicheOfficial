@@ -12,19 +12,18 @@ if (typeof window === 'undefined') {
   }
   
   try {
-    // Initialize with token object
+    // Initialize Mux client
     const muxClient = new Mux({ tokenId, tokenSecret });
     Video = muxClient.Video;
     
     // Verify the Video client is properly initialized
-    if (!Video || typeof Video.Assets !== 'object' || typeof Video.assets !== 'object') {
-      console.error('Mux Video client properties:', {
-        hasVideo: !!Video,
-        hasAssets: !!Video?.assets,
-        hasAssetsProperty: !!Video?.Assets
-      });
-      throw new Error('Mux Video client failed to initialize properly');
+    if (!Video) {
+      console.error('Mux Video client not initialized');
+      throw new Error('Mux Video client failed to initialize');
     }
+
+    // Test the client with a basic API call
+    await Video.assets.list({ limit: 1 });
   } catch (error) {
     console.error('Failed to initialize Mux client:', error);
     // Don't throw here, just log the error

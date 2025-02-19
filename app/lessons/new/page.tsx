@@ -60,7 +60,15 @@ export default function NewLessonPage() {
       console.log('Playback response:', playbackData);
       
       if (!playbackResponse.ok) {
-        throw new Error(`Failed to get playback ID: ${playbackData.error || playbackResponse.statusText}`);
+        const errorMessage = playbackData.error 
+          ? `${playbackData.error}${playbackData.details ? `: ${playbackData.details}` : ''}`
+          : playbackResponse.statusText;
+        console.error('Playback ID error:', {
+          status: playbackResponse.status,
+          statusText: playbackResponse.statusText,
+          data: playbackData
+        });
+        throw new Error(`Failed to get playback ID: ${errorMessage}`);
       }
 
       if (!playbackData.playbackId) {

@@ -28,24 +28,43 @@ export async function GET(request: Request) {
   try {
     console.log('MUX_TOKEN_ID:', process.env.MUX_TOKEN_ID?.slice(0,5) + '...');
     console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
-    console.log('Creating playback ID for asset:', assetId);
-    
-    // Create a new playback ID directly
-    const updatedAsset = await Video.Assets.createPlaybackId(assetId, { 
-      policy: 'public' 
-    });
-    
-    console.log('Updated asset:', JSON.stringify({
-      id: updatedAsset.id,
-      playback_ids: updatedAsset.playback_ids
-    }, null, 2));
-
-    const playbackId = updatedAsset.playback_ids[0]?.id;
-    if (!playbackId) {
-      throw new Error('Failed to create playback ID');
+    if (!Video?.Assets?.createPlaybackId) {
+      console.error('Mux Video client not properly initialized:', {
+        videoExists: !!Video,
+        assetsExists: !!Video?.Assets,
+        createPlaybackIdExists: !!Video?.Assets?.createPlaybackId
+      });
+      throw new Error('Mux client not properly initialized');
     }
 
-    return NextResponse.json({ playbackId });
+    console.log('Creating playback ID for asset:', assetId);
+    
+    try {
+      // Create a new playback ID directly
+      const updatedAsset = await Video.Assets.createPlaybackId(assetId, { 
+        policy: 'public' 
+      });
+      
+      console.log('Updated asset:', JSON.stringify({
+        id: updatedAsset.id,
+        playback_ids: updatedAsset.playback_ids
+      }, null, 2));
+
+      const playbackId = updatedAsset.playback_ids[0]?.id;
+      if (!playbackId) {
+        throw new Error('Failed to create playback ID');
+      }
+
+      return NextResponse.json({ playbackId });
+    } catch (muxError: any) {
+      console.error('Mux API error:', {
+        error: muxError,
+        message: muxError.message,
+        type: muxError.type,
+        details: muxError.details
+      });
+      throw muxError;
+    }
   } catch (error: any) {
     console.error('Error fetching Mux asset:', {
       message: error.message,

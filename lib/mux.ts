@@ -17,8 +17,8 @@ if (typeof window === 'undefined') {
 
   while (initAttempts < maxInitAttempts) {
     try {
-      // Initialize Mux client
-      const muxClient = new Mux({ tokenId, tokenSecret });
+      // Initialize Mux client with separate parameters
+      const muxClient = new Mux(tokenId, tokenSecret);
       Video = muxClient.Video;
       
       // Verify the Video client is properly initialized

@@ -95,10 +95,14 @@ export default function LessonDetail({ id }: LessonDetailProps) {
         
         setLesson(data);
       } catch (error) {
-        console.error('Error fetching lesson:', error);
+        console.error('Error fetching lesson:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          error: JSON.stringify(error, Object.getOwnPropertyNames(error))
+        });
         toast({
           title: "Error",
-          description: "Failed to load lesson. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to load lesson. Please try again.",
           variant: "destructive",
         });
         router.push('/lessons');

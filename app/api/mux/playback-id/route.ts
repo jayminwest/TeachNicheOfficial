@@ -1,24 +1,7 @@
 import { NextResponse } from 'next/server';
-import Mux from '@mux/mux-node';
+import { Video } from '@/lib/mux';
 
 export async function GET(request: Request) {
-  // Initialize Mux client inside the request handler
-  if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-    console.error('Missing Mux credentials');
-    return NextResponse.json(
-      { error: 'Server configuration error' },
-      { status: 500 }
-    );
-  }
-
-  const muxClient = new Mux({
-    tokenId: process.env.MUX_TOKEN_ID,
-    tokenSecret: process.env.MUX_TOKEN_SECRET
-  });
-
-  const Video = muxClient.Video;
-  console.log('Video client initialized:', !!Video);
-  console.log('Video.Assets exists:', !!Video?.Assets);
   const { searchParams } = new URL(request.url);
   const assetId = searchParams.get('assetId');
 
@@ -27,20 +10,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log('MUX_TOKEN_ID:', process.env.MUX_TOKEN_ID?.slice(0,5) + '...');
-    console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
-    if (!Video?.Assets?.createPlaybackId) {
-      console.error('Mux Video client not properly initialized:', {
-        videoExists: !!Video,
-        assetsExists: !!Video?.Assets,
-        createPlaybackIdExists: !!Video?.Assets?.createPlaybackId
-      });
-      throw new Error('Mux client not properly initialized');
-    }
-
-    console.log('Creating playback ID for asset:', assetId);
-    
     try {
+      console.log('Creating playback ID for asset:', assetId);
       // First check if the asset exists and is ready
       const asset = await Video.Assets.get(assetId);
       console.log('Asset status:', asset.status);

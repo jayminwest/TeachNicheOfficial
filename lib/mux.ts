@@ -12,6 +12,7 @@ const muxClient = new Mux({
 });
 
 const { video: Video } = muxClient;
+export { Video };
 
 export interface MuxUploadResponse {
   url: string;

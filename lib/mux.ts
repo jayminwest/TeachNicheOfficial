@@ -1,15 +1,20 @@
 import Mux from '@mux/mux-node';
 
 // Only initialize Mux client on the server side
-let Video: typeof Mux.Video;
+const tokenId = process.env.MUX_TOKEN_ID;
+const tokenSecret = process.env.MUX_TOKEN_SECRET;
 
-if (typeof window === 'undefined') {
-  const tokenId = process.env.MUX_TOKEN_ID;
-  const tokenSecret = process.env.MUX_TOKEN_SECRET;
-  
-  if (!tokenId || !tokenSecret) {
-    throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
-  }
+if (!tokenId || !tokenSecret) {
+  throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+}
+
+// Initialize Mux client
+const muxClient = new Mux({
+  tokenId: tokenId,
+  tokenSecret: tokenSecret
+});
+
+export const Video = muxClient.video;
   
   let initAttempts = 0;
   const maxInitAttempts = 3;
@@ -188,7 +193,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
-    const upload = await Video.Uploads.create({
+    const upload = await Video.uploads.create({
       new_asset_settings: {
         playback_policy: isFree ? ['public'] : ['signed'],
         encoding_tier: 'baseline',
@@ -218,7 +223,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
   try {
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.assets.get(assetId);
     
     return {
       id: asset.id,

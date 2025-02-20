@@ -116,6 +116,10 @@ export function VideoUploader({
   };
 
   const handleSuccess: MuxUploaderProps["onSuccess"] = (event) => {
+    if (!event.detail) {
+      console.warn("Success event missing detail");
+      return;
+    }
     const { status: uploadStatus, assetId } = event.detail;
     console.log("Upload success event:", event.detail);
     if (uploadStatus === "complete" && assetId) {
@@ -154,7 +158,6 @@ export function VideoUploader({
         chunkSize={chunkSize}
         dynamicChunkSize={dynamicChunkSize}
         useLargeFileWorkaround={useLargeFileWorkaround}
-        accept={acceptedTypes.join(",")}
         multiple={false}
       >
         {status === 'idle' && (

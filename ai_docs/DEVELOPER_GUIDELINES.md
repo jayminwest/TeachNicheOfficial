@@ -8,6 +8,7 @@
  - **Type Safety**: Leverage TypeScript for robust, maintainable code
  - **Testing First**: Write tests before implementing features
  
+https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## 1. Coding Standards
  

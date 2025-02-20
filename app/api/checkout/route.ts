@@ -8,6 +8,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: Request) {
   try {
     const { lessonId, price } = await request.json();
+    
+    // Get the base URL from the request
+    const baseUrl = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL;
 
     if (!price || price <= 0) {
       return NextResponse.json(
@@ -31,8 +34,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/lessons/${lessonId}?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/lessons/${lessonId}?canceled=true`,
+      success_url: `${baseUrl}/lessons/${lessonId}?success=true`,
+      cancel_url: `${baseUrl}/lessons/${lessonId}?canceled=true`,
       metadata: {
         lessonId,
       },

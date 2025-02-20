@@ -46,4 +46,17 @@ describe('StripeConnectButton', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveTextContent(/please sign in/i);
   });
+
+  it('shows loading state while connecting', () => {
+    const { rerender } = renderWithStripe(
+      <StripeConnectButton stripeAccountId={null} />
+    );
+
+    const button = screen.getByRole('button');
+    button.click();
+    
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveTextContent(/connecting/i);
+  });
 });

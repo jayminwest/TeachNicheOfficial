@@ -1,6 +1,6 @@
 'use client';
 
-import { useStripe } from '@stripe/stripe-react-stripe-js';
+import { useStripe } from '@stripe/stripe-js';
 import { Button } from './button';
 
 interface LessonCheckoutProps {

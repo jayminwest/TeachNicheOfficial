@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Video } from '@/lib/mux';
 
-if (!Video) {
-  throw new Error('Mux Video client not initialized');
-}
-
 export async function GET(request: Request) {
+  if (!Video || typeof Video.assets?.retrieve !== 'function') {
+    return NextResponse.json(
+      { error: 'Mux Video client not properly initialized' },
+      { status: 500 }
+    );
+  }
   const { searchParams } = new URL(request.url);
   const assetId = searchParams.get('assetId');
 

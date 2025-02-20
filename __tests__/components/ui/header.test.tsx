@@ -228,5 +228,34 @@ describe('Header', () => {
       // Restore original location
       window.location = originalLocation
     })
+
+    it('expands navigation menu content when trigger is clicked', () => {
+      render(<Header />)
+      
+      // Find and click a navigation menu trigger
+      const trigger = screen.getByText('Home')
+      fireEvent.click(trigger)
+
+      // Verify the content is shown
+      expect(screen.getByText('Book a call today')).toBeInTheDocument()
+    })
+
+    it('closes navigation menu when clicking outside', () => {
+      render(<Header />)
+      
+      // Open the menu
+      const trigger = screen.getByText('Home')
+      fireEvent.click(trigger)
+      
+      // Verify menu is open
+      const content = screen.getByText('Book a call today')
+      expect(content).toBeInTheDocument()
+      
+      // Click outside
+      fireEvent.click(document.body)
+      
+      // Verify menu is closed
+      expect(screen.queryByText('Book a call today')).not.toBeInTheDocument()
+    })
   })
 })

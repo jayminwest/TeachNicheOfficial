@@ -1,10 +1,11 @@
 import LessonDetail from "./lesson-detail";
 
+import { Params } from 'next/dist/shared/lib/router/utils/route-matcher'
+
 export default async function Page({ 
-  params,
+  params 
 }: { 
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Params & { id: string }
 }) {
   const { id } = params;
   return <LessonDetail id={id} />;

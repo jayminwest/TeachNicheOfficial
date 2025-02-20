@@ -194,6 +194,98 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  ├── api/         # API route handlers
  └── services/    # External service integrations
  ```
+
+ ## Git Branching Strategy
+
+ ### Branch Structure
+ ```
+ main (production)
+   ↳ staging (optional)
+     ↳ develop
+       ↳ feature/xyz
+       ↳ bugfix/xyz
+       ↳ hotfix/xyz
+       ↳ release/v1.x.x
+ ```
+
+ ### Branch Types and Naming
+ - `feature/` - For new features (e.g., feature/video-upload)
+ - `bugfix/` - For non-critical bug fixes (e.g., bugfix/login-validation)
+ - `hotfix/` - For critical production fixes (e.g., hotfix/security-patch)
+ - `release/` - For release preparations (e.g., release/v1.2.0)
+
+ ### Common Workflows
+
+ #### Starting a New Feature
+ ```bash
+ git checkout develop
+ git pull origin develop
+ git checkout -b feature/your-feature-name
+ ```
+
+ #### Working on a Bug Fix
+ ```bash
+ git checkout develop
+ git pull origin develop
+ git checkout -b bugfix/bug-description
+ ```
+
+ #### Creating a Release
+ ```bash
+ git checkout develop
+ git pull origin develop
+ git checkout -b release/v1.0.0
+ # Make version bumps and final adjustments
+ ```
+
+ #### Emergency Hotfix for Production
+ ```bash
+ git checkout main
+ git pull origin main
+ git checkout -b hotfix/critical-fix
+ # After fix is complete and tested
+ git checkout main
+ git merge hotfix/critical-fix
+ git checkout develop
+ git merge hotfix/critical-fix
+ ```
+
+ ### Branch Protection Rules
+ #### Main Branch
+ - Require pull request reviews before merging
+ - Require status checks to pass
+ - Require linear history
+ - Do not allow direct pushes
+
+ #### Develop Branch
+ - Require pull request reviews before merging
+ - Require status checks to pass
+ - Allow pull request merges
+
+ ### Merging Strategy
+ ```bash
+ # When feature is complete
+ git checkout develop
+ git pull origin develop
+ git merge feature/your-feature
+ git push origin develop
+
+ # When ready for release
+ git checkout main
+ git pull origin main
+ git merge release/v1.0.0
+ git tag -a v1.0.0 -m "Release version 1.0.0"
+ git push origin main --tags
+ ```
+
+ ### Clean-up After Merging
+ ```bash
+ # Delete local branch
+ git branch -d feature/your-feature
+
+ # Delete remote branch
+ git push origin --delete feature/your-feature
+ ```
  
  ## Deployment
  

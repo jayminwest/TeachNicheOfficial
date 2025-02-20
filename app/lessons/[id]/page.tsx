@@ -9,7 +9,6 @@ export default function LessonPage({
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const { params } = props;
   const { id } = params;
   return (
     <Suspense

@@ -6,21 +6,16 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  console.log('Stripe Connect endpoint hit');
   try {
-    console.log('Creating Supabase client');
+    // Get the session from the cookie
     const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    console.log('Getting user');
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('User:', user);
-    if (authError) {
-      console.error('Auth error:', authError);
-      return NextResponse.json({ error: 'Authentication error' }, { status: 401 });
+    if (sessionError || !session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
+
+    const { user } = session;
     if (!user.email) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }

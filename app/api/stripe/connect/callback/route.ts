@@ -7,13 +7,16 @@ export async function GET(request: Request) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    // Get the session from the cookie
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=unauthorized`
       );
     }
+
+    const { user } = session;
 
     const searchParams = new URL(request.url).searchParams;
     const accountId = searchParams.get('account_id');

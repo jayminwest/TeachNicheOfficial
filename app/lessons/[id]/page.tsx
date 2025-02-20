@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-export default async function LessonPage({
+export default function LessonPage({
   params,
 }: {
   params: { id: string }

@@ -411,22 +411,7 @@ Return JSON with the structure: {{
         with open(self.config.prompt) as f:
             structured_prompt = f.read()
         
-        # Save the prompt to JSON file
-        prompt_data = json.loads(self.coder.run(f"""I have the following high-level idea: "{high_level_idea}".
-Please analyze this idea and return a JSON response with the following structure:
-{{
-    "high_level": "Overall vision and objectives",
-    "mid_level": "Components and intermediate steps",
-    "low_level": "Detailed actionable tasks with examples"
-}}
-
-Do not make any code changes. Only return the JSON response.
-"""))
-        
-        with open('aider_auto_prompt.json', 'w') as f:
-            json.dump(prompt_data, f, indent=2)
-            
-        console.print("\n[bold green]Generated Structured Prompt:[/]\n")
+        console.print("\n[bold green]Using Test Writing Prompt:[/]\n")
         console.print(Markdown(structured_prompt))
         console.print("\n[bold]Prompt saved to:[/] aider_auto_prompt.json", style="blue")
         confirm = input("Do you want to run this prompt? (y/n): ").strip().lower()

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     console.log('Fetching asset status for:', assetId);
     
     console.log('Calling Mux API to get asset:', assetId);
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.assets.retrieve(assetId);
     
     if (!asset) {
       console.error('Mux returned null or undefined asset');

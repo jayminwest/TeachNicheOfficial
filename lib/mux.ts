@@ -27,7 +27,7 @@ if (typeof window === 'undefined') {
       }
 
       // Test the client with a basic API call
-      await videoClient.Assets.list({ limit: 1 });
+      await videoClient.assets.list({ limit: 1 });
       
       // If we get here, initialization was successful
       console.log('Mux Video client initialized successfully');

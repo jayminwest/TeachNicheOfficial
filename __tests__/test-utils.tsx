@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Providers } from '@/components/providers';
-import { AuthContext } from '@/auth/AuthContext';
+import { AuthProvider } from '@/auth/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 
 const mockAuthContext = {
@@ -37,9 +37,9 @@ function render(
 
     if (withAuth) {
       wrapped = (
-        <AuthContext.Provider value={mockAuthContext}>
+        <AuthProvider>
           {wrapped}
-        </AuthContext.Provider>
+        </AuthProvider>
       );
     }
 

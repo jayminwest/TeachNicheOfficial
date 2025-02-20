@@ -3,6 +3,13 @@ import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
 
+// Mock Lucide icons
+jest.mock('lucide-react', () => ({
+  Menu: () => <div>Menu Icon</div>,
+  MoveRight: () => <div>Move Right Icon</div>,
+  X: () => <div>X Icon</div>
+}))
+
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
   useAuth: jest.fn(() => ({

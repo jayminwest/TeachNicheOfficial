@@ -31,7 +31,7 @@ import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
 
 
-function Header() {
+export function Header() {
     const { user } = useAuth();
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);

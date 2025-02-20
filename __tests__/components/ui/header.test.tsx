@@ -136,6 +136,19 @@ describe('Header', () => {
       expect(homeLink.closest('a')).toHaveAttribute('href', '/')
       expect(aboutLink.closest('a')).toHaveAttribute('href', '/about')
     })
+
+    it('handles authentication loading state appropriately', () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: null,
+        loading: true
+      }))
+      render(<Header />)
+      
+      // When loading, neither auth nor unauth buttons should be present
+      expect(screen.queryByText('Sign In')).not.toBeInTheDocument()
+      expect(screen.queryByText('Profile')).not.toBeInTheDocument()
+      expect(screen.queryByText('Sign Out')).not.toBeInTheDocument()
+    })
   })
 
   describe('interactions', () => {

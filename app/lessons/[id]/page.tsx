@@ -3,11 +3,9 @@ import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
 export default function LessonPage({
-  params,
-  searchParams,
+  params
 }: {
   params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const { id } = params;
   return (

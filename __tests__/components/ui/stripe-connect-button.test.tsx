@@ -128,4 +128,28 @@ describe('StripeConnectButton', () => {
       title: 'Error'
     }));
   });
+
+  it('handles missing session appropriately', async () => {
+    // Spy on console.error to suppress the expected error log
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Mock missing session
+    jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
+      data: { session: null },
+      error: null
+    });
+
+    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    
+    const button = screen.getByRole('button');
+    await act(async () => {
+      await button.click();
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      variant: 'destructive',
+      title: 'Error',
+      description: 'No active session'
+    }));
+  });
 });

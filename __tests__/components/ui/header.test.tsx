@@ -6,7 +6,8 @@ import { useAuth } from '@/auth/AuthContext'
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
   useAuth: jest.fn(() => ({
-    user: null
+    user: null,
+    loading: false
   }))
 }))
 
@@ -52,6 +53,22 @@ jest.mock('@/components/ui/button', () => ({
   Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button onClick={onClick}>{children}</button>
   )
+}))
+
+jest.mock('@/components/ui/sign-in', () => ({
+  SignInPage: () => <div>Sign In</div>
+}))
+
+jest.mock('@/components/ui/sign-up', () => ({
+  SignUpPage: () => <div>Sign Up</div>
+}))
+
+jest.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      signOut: jest.fn()
+    }
+  }
 }))
 
 describe('Header', () => {

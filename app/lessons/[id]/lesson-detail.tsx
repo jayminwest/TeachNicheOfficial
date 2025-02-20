@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
-import { monitor, utils as muxUtils } from 'mux-embed';
+import mux from 'mux-embed';
 
 interface Lesson {
   id: string;
@@ -37,9 +37,9 @@ export default function LessonDetail({ id }: LessonDetailProps) {
 
   useEffect(() => {
     if (lesson?.mux_playback_id) {
-      const playerInitTime = muxUtils.now();
+      const playerInitTime = mux.utils.now();
       
-      monitor('#lesson-video', {
+      mux.monitor('#lesson-video', {
         debug: false,
         data: {
           env_key: process.env.NEXT_PUBLIC_MUX_ENV_KEY!, 

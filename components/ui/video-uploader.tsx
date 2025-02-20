@@ -114,9 +114,6 @@ export function VideoUploader({
       setStatus('uploading');
       setProgress(0);
       setErrorMessage('');
-      
-      // Call the onUploadStart callback if provided
-      onUploadStart?.();
     } catch (error) {
       handleError(error instanceof Error ? error : new Error('Invalid file'));
     }

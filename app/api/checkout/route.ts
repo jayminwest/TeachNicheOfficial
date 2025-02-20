@@ -31,8 +31,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/lessons/${lessonId}?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/lessons/${lessonId}?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/lessons/${lessonId}?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/lessons/${lessonId}?canceled=true`,
       metadata: {
         lessonId,
       },

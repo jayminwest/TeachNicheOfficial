@@ -3,10 +3,10 @@ import Mux from '@mux/mux-node';
 // Define types for Mux Video API
 interface MuxVideo {
   uploads: {
-    create: (options: {
+    create: (body: {
       new_asset_settings: {
-        playback_policy: string[];
-        encoding_tier: string;
+        playback_policy: Array<'public' | 'signed'>;
+        encoding_tier?: 'smart' | 'baseline' | 'premium';
       };
       cors_origin: string;
     }) => Promise<{
@@ -20,12 +20,14 @@ interface MuxVideo {
       status: string;
       playback_ids?: Array<{
         id: string;
+        policy: 'public' | 'signed';
       }>;
     }>;
     createPlaybackId: (assetId: string, options: {
-      policy: string;
+      policy: 'public' | 'signed';
     }) => Promise<{
       id: string;
+      policy: 'public' | 'signed';
     }>;
   };
 }

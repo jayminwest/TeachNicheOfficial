@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-type Props = {
+export default async function LessonPage({
+  params,
+}: {
   params: { id: string }
-}
-
-export default async function LessonPage({ params }: Props) {
+}) {
   const { id } = params;
   return (
     <Suspense

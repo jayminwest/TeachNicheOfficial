@@ -23,6 +23,7 @@ describe('LessonCheckout', () => {
       // Setup
       const user = userEvent.setup();
       mockFetch.mockResolvedValueOnce({
+        ok: true,
         json: () => Promise.resolve({ sessionId: 'test_session_123' }),
       });
 

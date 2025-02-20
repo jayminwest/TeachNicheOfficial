@@ -27,27 +27,27 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
-interface MuxUploadStartEvent extends MuxCustomEvent<{
+type MuxUploadStartEvent = MuxCustomEvent<{
   file?: File;
-}> {}
+}>;
 
-interface MuxUploadProgressEvent extends MuxCustomEvent<{
+type MuxUploadProgressEvent = MuxCustomEvent<{
   loaded?: number;
   total?: number;
-}> {}
+}>;
 
-interface MuxUploadSuccessEvent extends MuxCustomEvent<{
+type MuxUploadSuccessEvent = MuxCustomEvent<{
   status?: 'processing' | 'complete';
   assetId?: string;
-}> {}
+}>;
 
-interface MuxUploadErrorEvent extends MuxCustomEvent<{
+type MuxUploadErrorEvent = MuxCustomEvent<{
   message?: string;
   error?: {
     type: string;
     message: string;
   }
-}> {}
+}>;
 
 export function VideoUploader({ 
   endpoint,

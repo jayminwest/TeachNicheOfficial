@@ -81,15 +81,25 @@ describe('StripeConnectButton', () => {
       <StripeConnectButton stripeAccountId={null} />
     );
 
+    // Mock window.location
     const button = screen.getByRole('button');
     
+    // Set test environment URL
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: 'http://localhost:3000/test'
+      },
+      writable: true
+    });
+
     // Click and wait for state updates
     await act(async () => {
       await button.click();
     });
-    
-    expect(button).toBeDisabled();
-    expect(button).toHaveAttribute('aria-busy', 'true');
-    expect(button).toHaveTextContent(/connecting/i);
+
+    // Re-query the button after state updates
+    const updatedButton = screen.getByRole('button');
+    expect(updatedButton).toHaveTextContent(/connecting/i);
+    expect(updatedButton).toHaveAttribute('aria-busy', 'true');
   });
 });

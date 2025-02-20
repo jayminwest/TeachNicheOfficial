@@ -34,6 +34,10 @@ describe('Stripe Webhook Handler', () => {
     expect(data.error).toBe('Missing stripe-signature header');
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('verifies webhook signatures', async () => {
     const mockEvent = {
       type: 'payment_intent.succeeded',
@@ -45,18 +49,30 @@ describe('Stripe Webhook Handler', () => {
       }
     };
 
-    mockStripeWebhooks.constructEvent.mockReturnValueOnce(mockEvent);
+    const rawBody = JSON.stringify({ data: 'test' });
+    const mockSignature = 'test_signature';
+
+    mockStripeWebhooks.constructEvent.mockImplementationOnce((body, signature, secret) => {
+      if (body === rawBody && signature === mockSignature) {
+        return mockEvent;
+      }
+      throw new Error('Invalid signature');
+    });
 
     const request = {
-      text: () => Promise.resolve(JSON.stringify({ data: 'test' })),
+      text: () => Promise.resolve(rawBody),
       headers: {
-        get: () => 'test_signature'
+        get: (key: string) => key === 'stripe-signature' ? mockSignature : null
       }
     } as unknown as Request;
 
     const response = await POST(request);
     expect(response).toBeInstanceOf(NextResponse);
     expect(response.status).toBe(200);
-    expect(mockStripeWebhooks.constructEvent).toHaveBeenCalled();
+    expect(mockStripeWebhooks.constructEvent).toHaveBeenCalledWith(
+      rawBody,
+      mockSignature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   });
 });

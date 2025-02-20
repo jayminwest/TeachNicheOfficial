@@ -155,7 +155,7 @@ export function Header() {
                                 Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                             </Button>
                         </>
-                    )}
+                    ) : null}
                 </div>
                 <div className="flex ml-auto lg:hidden">
                     <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
@@ -215,7 +215,7 @@ export function Header() {
                                             Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                                         </Button>
                                     </>
-                                )}
+                                ) : null}
                             </div>
                             {navigationItems.map((item) => (
                                 <div key={item.title}>

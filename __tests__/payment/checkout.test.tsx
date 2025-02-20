@@ -156,5 +156,29 @@ describe('LessonCheckout', () => {
         expect(screen.getByText(/network error/i)).toBeInTheDocument();
       });
     });
+
+    it('handles session creation failures', async () => {
+      // Setup
+      const user = userEvent.setup();
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ sessionId: 'test_session_123' }),
+      });
+      mockStripeClient.redirectToCheckout.mockRejectedValueOnce(
+        new Error('Failed to create checkout session')
+      );
+
+      // Render
+      renderWithStripe(<LessonCheckout lessonId="test_lesson" price={1000} />);
+
+      // Act
+      const button = screen.getByRole('button', { name: /purchase lesson/i });
+      await user.click(button);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText(/failed to create checkout session/i)).toBeInTheDocument();
+      });
+    });
   });
 });

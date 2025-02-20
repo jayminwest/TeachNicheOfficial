@@ -1,8 +1,7 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import { Providers } from '@/components/providers';
-import { AuthContext } from '@/auth/AuthContext';
-import { loadStripe } from '@stripe/stripe-js';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/toaster';
 
 
 interface CustomRenderOptions {
@@ -12,19 +11,19 @@ interface CustomRenderOptions {
 
 function render(
   ui: React.ReactElement,
-  { providerProps, ...options }: CustomRenderOptions = {}
+  { ...options }: CustomRenderOptions = {}
 ) {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     return (
-      <Providers
+      <ThemeProvider
         attribute="class"
         defaultTheme="dark"
         enableSystem
         disableTransitionOnChange
-        {...providerProps}
       >
         {children}
-      </Providers>
+        <Toaster />
+      </ThemeProvider>
     );
   };
 

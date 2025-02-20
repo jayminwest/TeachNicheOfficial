@@ -83,6 +83,7 @@ export function LessonForm({
 
       await onSubmit(data);
     } catch (error) {
+      console.error('Profile update failed:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save lesson',

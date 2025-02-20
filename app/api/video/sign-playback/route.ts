@@ -5,7 +5,7 @@ const MUX_SIGNING_KEY = process.env.MUX_SIGNING_KEY;
 const MUX_SIGNING_KEY_ID = process.env.MUX_SIGNING_KEY_ID;
 
 if (!MUX_SIGNING_KEY || !MUX_SIGNING_KEY_ID) {
-  console.error('Missing required environment variables for JWT signing');
+  throw new Error('Missing required environment variables for JWT signing');
 }
 
 export async function POST(request: Request) {
@@ -16,7 +16,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Playback ID is required' }, { status: 400 });
     }
 
-    // The signing key is already properly formatted in the environment variable
+    if (!MUX_SIGNING_KEY || !MUX_SIGNING_KEY_ID) {
+      throw new Error('Missing required environment variables for JWT signing');
+    }
+
     const token = jwt.sign(
       {
         sub: playbackId,
@@ -25,7 +28,7 @@ export async function POST(request: Request) {
         kid: MUX_SIGNING_KEY_ID,
       },
       MUX_SIGNING_KEY,
-      { algorithm: 'RS256' }
+      { algorithm: 'RS256' } as jwt.SignOptions
     );
 
     return NextResponse.json({ token });

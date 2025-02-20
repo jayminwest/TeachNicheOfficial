@@ -44,25 +44,12 @@ const initMuxClient = async () => {
 };
 
 // Initialize the client
-let muxClientInstance: Mux | null = null;
+const muxClient = new Mux({
+  tokenId: tokenId,
+  tokenSecret: tokenSecret
+});
 
-export const Video = {
-  get instance() {
-    if (!muxClientInstance) {
-      throw new Error('Mux client not initialized');
-    }
-    return muxClientInstance.video;
-  }
-};
-
-// Initialize on import
-initMuxClient()
-  .then(client => {
-    muxClientInstance = client;
-  })
-  .catch(error => {
-    console.error('Failed to initialize Mux client:', error);
-  });
+export const Video = muxClient.video;
 
 export interface MuxUploadResponse {
   url: string;

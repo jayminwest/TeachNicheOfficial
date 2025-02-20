@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     console.error('Error fetching Mux asset:', errorDetails);
 
     // Check if it's a Mux API error
-    if ((error as any)?.type?.startsWith('mux')) {
+    if ((error as ExtendedError)?.type?.startsWith('mux')) {
       return NextResponse.json(
         { error: `Mux API error: ${error.type}`, details: error.message },
         { status: error.status || 500 }

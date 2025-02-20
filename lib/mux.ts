@@ -1,20 +1,40 @@
 import Mux from '@mux/mux-node';
 
 // Only initialize Mux client on the server side
-const tokenId = process.env.MUX_TOKEN_ID;
-const tokenSecret = process.env.MUX_TOKEN_SECRET;
+let Video: any;
 
-if (!tokenId || !tokenSecret) {
-  throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+if (typeof window === 'undefined') {
+  const tokenId = process.env.MUX_TOKEN_ID;
+  const tokenSecret = process.env.MUX_TOKEN_SECRET;
+
+  if (!tokenId || !tokenSecret) {
+    throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+  }
+
+  // Initialize the client
+  const muxClient = new Mux({
+    tokenId: tokenId,
+    tokenSecret: tokenSecret
+  });
+
+  Video = muxClient.video;
+} else {
+  // Stub for client-side
+  Video = {
+    uploads: {
+      create: () => {
+        throw new Error('Mux operations can only be performed on the server side');
+      }
+    },
+    assets: {
+      retrieve: () => {
+        throw new Error('Mux operations can only be performed on the server side');
+      }
+    }
+  };
 }
 
-// Initialize the client
-const muxClient = new Mux({
-  tokenId: tokenId,
-  tokenSecret: tokenSecret
-});
-
-export const Video = muxClient.video;
+export { Video };
 
 export interface MuxUploadResponse {
   url: string;

@@ -20,6 +20,7 @@ const lessonFormSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
   muxAssetId: z.string().optional(),
+  muxPlaybackId: z.string().optional(),
   price: z.number()
     .min(0, "Price must be positive")
     .max(999.99, "Price must be less than $1000")
@@ -48,6 +49,7 @@ export function LessonForm({
       description: "",
       price: 0,
       muxAssetId: "", // Initialize muxAssetId field
+      muxPlaybackId: "", // Initialize muxPlaybackId field
     },
   });
 
@@ -56,6 +58,7 @@ export function LessonForm({
   
   console.log("Form State:", {
     muxAssetId: form.watch("muxAssetId"),
+    muxPlaybackId: form.watch("muxPlaybackId"),
     hasVideo,
     videoUploaded
   });
@@ -152,19 +155,49 @@ export function LessonForm({
             
             <VideoUploader
               endpoint="/api/video/upload"
-              onUploadComplete={(assetId) => {
-                setVideoUploaded(true);
-                form.setValue("muxAssetId", assetId, { 
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true
-                });
-                console.log("Asset ID set:", assetId);
-                console.log("Form values after upload:", form.getValues());
-                toast({
-                  title: "Video uploaded",
-                  description: "Your video has been uploaded successfully.",
-                });
+              onUploadComplete={async (assetId) => {
+                try {
+                  setVideoUploaded(true);
+                  form.setValue("muxAssetId", assetId, { 
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true
+                  });
+                  
+                  // Wait for the asset to be ready and get the playback ID
+                  const response = await fetch(`/api/video/asset-status?assetId=${assetId}`);
+                  if (!response.ok) {
+                    throw new Error('Failed to get asset status');
+                  }
+                  
+                  const data = await response.json();
+                  if (data.playbackId) {
+                    form.setValue("muxPlaybackId", data.playbackId, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                      shouldTouch: true
+                    });
+                    console.log("Asset and Playback IDs set:", {
+                      assetId,
+                      playbackId: data.playbackId
+                    });
+                  } else {
+                    throw new Error('No playback ID received');
+                  }
+                  
+                  console.log("Form values after upload:", form.getValues());
+                  toast({
+                    title: "Video uploaded",
+                    description: "Your video has been uploaded and processed successfully.",
+                  });
+                } catch (error) {
+                  console.error("Error processing video:", error);
+                  toast({
+                    title: "Upload processing error",
+                    description: error instanceof Error ? error.message : "Failed to process video",
+                    variant: "destructive",
+                  });
+                }
               }}
               onError={(error) => {
                 toast({

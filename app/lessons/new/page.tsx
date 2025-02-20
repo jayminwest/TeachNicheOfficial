@@ -77,9 +77,6 @@ export default function NewLessonPage() {
           throw new Error('Video processing completed but no playback ID was generated');
         }
 
-        // Store the playback ID for later use
-        const playbackId = result.playbackId;
-
         // Dismiss the processing toast
         processingToast.dismiss();
         

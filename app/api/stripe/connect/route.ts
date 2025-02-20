@@ -5,49 +5,47 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Helper function to get authenticated user
+async function getAuthenticatedUser() {
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  
+  const {
+    data: { session },
+    error: sessionError
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session?.user) {
+    return { error: sessionError || new Error('No session found') };
+  }
+
+  return { user: session.user };
+}
+
 export async function POST(request: Request) {
   try {
     console.log('Starting Stripe Connect process...');
     
-    // Parse the request body
-    const body = await request.json();
-    console.log('Request body:', body);
-
-    // Get the session from the cookie
-    const cookieStore = cookies();
-    console.log('Cookies present:', cookieStore.getAll().map(c => c.name));
+    // Get authenticated user
+    const { user, error: authError } = await getAuthenticatedUser();
     
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (authError) {
+      console.error('Authentication error:', authError);
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+    }
     
-    console.log('Session check:', { 
-      hasSession: !!session, 
-      sessionError: sessionError?.message,
-      sessionUser: session?.user?.id,
-      requestUserId: body.userId
-    });
-    
-    if (sessionError) {
-      console.log('Session error:', sessionError);
-      return NextResponse.json({ error: 'Session error' }, { status: 401 });
+    // Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    if (!session || !session.user) {
-      console.log('No session or user found');
-      return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 });
-    }
-
-    const { user } = session;
-    console.log('User found:', { 
-      userId: user.id,
-      hasEmail: !!user.email,
-      matchesRequest: user.id === body.userId 
-    });
-
-    // Verify the user ID matches the request
+    // Verify the user ID matches
     if (user.id !== body.userId) {
-      console.log('User ID mismatch');
-      return NextResponse.json({ error: 'Unauthorized - ID mismatch' }, { status: 401 });
+      console.error('User ID mismatch:', { sessionId: user.id, requestId: body.userId });
+      return NextResponse.json({ error: 'User ID mismatch' }, { status: 401 });
     }
     if (!user.email) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });

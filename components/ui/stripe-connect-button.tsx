@@ -8,9 +8,13 @@ import { supabase } from '@/lib/supabase';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;
+  onboardingComplete?: boolean;
 }
 
-export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProps) {
+export function StripeConnectButton({ 
+  stripeAccountId, 
+  onboardingComplete 
+}: StripeConnectButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -76,10 +80,18 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
     );
   }
 
-  if (stripeAccountId) {
+  if (stripeAccountId && onboardingComplete) {
     return (
       <Button variant="outline" disabled>
         Connected with Stripe
+      </Button>
+    );
+  }
+
+  if (stripeAccountId && !onboardingComplete) {
+    return (
+      <Button onClick={handleConnect}>
+        Complete Stripe Setup
       </Button>
     );
   }

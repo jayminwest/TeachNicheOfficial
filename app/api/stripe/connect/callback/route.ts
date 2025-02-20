@@ -31,14 +31,29 @@ export async function GET(request: Request) {
     // Verify the account exists and is properly set up
     const account = await stripe.accounts.retrieve(accountId);
     
-    if (!account.details_submitted) {
+    if (account.details_submitted) {
+      // Update both fields in the database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          stripe_onboarding_complete: true 
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Failed to update onboarding status:', updateError);
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
+        );
+      }
+
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
       );
     }
 
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
     );
   } catch (error) {
     console.error('Stripe Connect callback error:', error);

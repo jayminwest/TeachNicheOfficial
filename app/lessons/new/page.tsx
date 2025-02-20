@@ -65,17 +65,20 @@ export default function NewLessonPage() {
         console.log('Starting video processing for asset:', data.muxAssetId);
         
         // Wait for asset to be ready and get playback ID
-        const { status, playbackId } = await waitForAssetReady(data.muxAssetId, {
+        const result = await waitForAssetReady(data.muxAssetId, {
           isFree: data.price === 0,
           maxAttempts: 60,  // 10 minutes total
           interval: 10000   // 10 seconds between checks
         });
         
-        console.log('Video processing completed:', { status, playbackId });
+        console.log('Video processing completed:', result);
         
-        if (status !== 'ready' || !playbackId) {
+        if (result.status !== 'ready' || !result.playbackId) {
           throw new Error('Video processing completed but no playback ID was generated');
         }
+
+        // Store the playback ID for later use
+        const playbackId = result.playbackId;
 
         // Dismiss the processing toast
         processingToast.dismiss();

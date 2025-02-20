@@ -51,5 +51,28 @@ describe('LessonCheckout', () => {
         sessionId: 'test_session_123',
       });
     });
+
+    it('redirects to Stripe Checkout', async () => {
+      // Setup
+      const user = userEvent.setup();
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve({ sessionId: 'test_session_123' }),
+      });
+
+      // Render
+      renderWithStripe(<LessonCheckout lessonId="test_lesson" price={1000} />);
+
+      // Act
+      const button = screen.getByRole('button', { name: /purchase lesson/i });
+      await user.click(button);
+
+      // Assert
+      await waitFor(() => {
+        expect(mockStripeClient.redirectToCheckout).toHaveBeenCalledTimes(1);
+        expect(mockStripeClient.redirectToCheckout).toHaveBeenCalledWith({
+          sessionId: 'test_session_123',
+        });
+      });
+    });
   });
 });

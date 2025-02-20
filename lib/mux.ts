@@ -104,7 +104,7 @@ export async function waitForAssetReady(assetId: string, options = {
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-        } catch (e) {
+        } catch {
           errorData = { error: errorText };
         }
         

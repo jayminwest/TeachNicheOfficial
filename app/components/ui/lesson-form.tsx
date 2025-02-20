@@ -56,7 +56,7 @@ export function LessonForm({
     }
   });
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: LessonFormData) => {
     if (isUploading) {
       toast({
         title: "Please wait",

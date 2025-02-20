@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import MuxUploader from "@mux/mux-uploader-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
@@ -55,7 +55,7 @@ export function VideoUploader({
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const handleError = (error: Error) => {
+  const handleError = useCallback((error: Error) => {
     setStatus('error');
     setErrorMessage(error.message);
     onError(error);
@@ -73,7 +73,7 @@ export function VideoUploader({
   const [uploadEndpoint, setUploadEndpoint] = useState<string | undefined>();
 
   // First step: Get the Mux upload URL from our API
-  const getUploadUrl = async () => {
+  const getUploadUrl = useCallback(async () => {
     const response = await fetch(typeof endpoint === 'string' ? endpoint : await endpoint(), {
       method: 'POST'
     });

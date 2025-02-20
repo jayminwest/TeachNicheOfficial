@@ -1,0 +1,248 @@
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { VideoUploader } from '@/components/ui/video-uploader';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const lessonFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  price: z.number().min(0, 'Price must be 0 or greater'),
+  content: z.string().optional(),
+  muxAssetId: z.string().min(1, 'Video is required'),
+  muxPlaybackId: z.string().optional(),
+});
+
+type LessonFormData = z.infer<typeof lessonFormSchema>;
+
+interface LessonFormProps {
+  initialData?: Partial<LessonFormData>;
+  onSubmit: (data: LessonFormData) => Promise<void>;
+  isSubmitting?: boolean;
+  className?: string;
+}
+
+export function LessonForm({ 
+  initialData, 
+  onSubmit, 
+  isSubmitting = false,
+  className 
+}: LessonFormProps) {
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const form = useForm<LessonFormData>({
+    resolver: zodResolver(lessonFormSchema),
+    defaultValues: {
+      title: initialData?.title || '',
+      description: initialData?.description || '',
+      price: initialData?.price || 0,
+      content: initialData?.content || '',
+      muxAssetId: initialData?.muxAssetId || '',
+    }
+  });
+
+  const handleSubmit = async (data: LessonFormData) => {
+    if (isUploading) {
+      toast({
+        title: "Please wait",
+        description: "Please wait for the video to finish uploading",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Manual validation
+      if (!data.title) {
+        throw new Error('Title is required');
+      }
+      if (!data.description) {
+        throw new Error('Description is required');
+      }
+      if (data.price < 0) {
+        throw new Error('Price must be 0 or greater');
+      }
+      if (!data.muxAssetId) {
+        throw new Error('Video is required');
+      }
+
+      await onSubmit(data);
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save lesson',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={className}>
+        <div className="space-y-6">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01"
+                    {...field}
+                    onChange={e => {
+                      const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Set to 0 for free lessons
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Content</FormLabel>
+                <FormControl>
+                  <Textarea {...field} />
+                </FormControl>
+                <FormDescription>
+                  Additional content or notes for the lesson
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="muxAssetId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Video</FormLabel>
+                <FormControl>
+                  <div>
+                    <VideoUploader
+                      endpoint="/api/video/upload"
+                      onUploadStart={() => setIsUploading(true)}
+                      onUploadComplete={(uploadId) => {
+                        // Store the upload ID for now, asset ID will be retrieved later
+                        setIsUploading(false);
+                        field.onChange(uploadId);
+                        console.log("Upload completed with ID:", uploadId);
+                        toast({
+                          title: "Video uploaded",
+                          description: "Your video has been uploaded successfully.",
+                        });
+                      }}
+                      onError={(error) => {
+                        setIsUploading(false);
+                        toast({
+                          title: "Upload failed",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }}
+                    />
+                    <div className="text-sm text-muted-foreground mt-2">
+                      Upload state: {isUploading ? 'Uploading...' : field.value ? 'Uploaded' : 'Not uploaded'}
+                      {field.value && <span className="ml-2">(Asset ID: {field.value})</span>}
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end">
+            <Button 
+              type="submit" 
+              size="lg"
+              disabled={isSubmitting || !form.getValues().muxAssetId}
+            >
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSubmitting ? "Creating Lesson..." : "Create Lesson"}
+            </Button>
+            <div className="text-sm text-muted-foreground mt-2">
+              {Object.keys(form.formState.errors).length > 0 && (
+                <p className="text-destructive">Please fix the following errors:</p>
+              )}
+              {Object.entries(form.formState.errors).map(([field, error]) => (
+                <p key={field} className="text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+            {/* Debug info */}
+            <pre className="text-xs text-muted-foreground mt-4">
+              Form State: {JSON.stringify({
+                isValid: form.formState.isValid,
+                isDirty: form.formState.isDirty,
+                errors: form.formState.errors,
+                isUploading,
+                isSubmitting,
+                values: form.getValues()
+              }, null, 2)}
+            </pre>
+          </div>
+        </div>
+      </form>
+    </Form>
+  );
+}

@@ -34,7 +34,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
 
     try {
       await signInWithEmail(email, password)
-      router.push('/dashboard')
+      router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in')
     } finally {
@@ -46,7 +46,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle()
-      router.push('/dashboard')
+      router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     }

@@ -1,0 +1,51 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import MuxPlayer from "@mux/mux-player-react";
+import { useState, useEffect } from "react";
+
+interface VideoPlayerProps {
+  playbackId: string;
+  title: string;
+  className?: string;
+  id?: string;
+  isFree?: boolean;
+}
+
+export function VideoPlayer({ 
+  playbackId, 
+  title, 
+  className,
+  id,
+  isFree = false
+}: VideoPlayerProps) {
+  const [jwt, setJwt] = useState<string>();
+
+  useEffect(() => {
+    if (!isFree) {
+      // Get signed JWT from your backend
+      fetch('/api/video/sign-playback', {
+        method: 'POST',
+        body: JSON.stringify({ playbackId })
+      })
+      .then(res => res.json())
+      .then(data => setJwt(data.token));
+    }
+  }, [playbackId, isFree]);
+
+  return (
+    <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
+      <MuxPlayer
+        playbackId={playbackId}
+        metadata={{ 
+          video_id: id,
+          video_title: title,
+        }}
+        streamType="on-demand"
+        tokens={{
+          playback: jwt
+        }}
+      />
+    </div>
+  );
+}

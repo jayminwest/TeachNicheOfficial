@@ -1,0 +1,39 @@
+import React from 'react'
+import { render as rtlRender } from '@testing-library/react'
+import { Providers } from '@/components/providers'
+import { AuthProvider } from '@/auth/AuthContext'
+
+interface CustomRenderOptions {
+  withAuth?: boolean
+  providerProps?: Parameters<typeof Providers>[0]
+}
+
+function render(
+  ui: React.ReactElement,
+  { withAuth = false, providerProps, ...options }: CustomRenderOptions = {}
+) {
+  const Wrapper = ({ children }: { children: React.ReactNode }) => {
+    let wrapped = (
+      <Providers
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem
+        disableTransitionOnChange
+        {...providerProps}
+      >
+        {children}
+      </Providers>
+    )
+
+    if (withAuth) {
+      wrapped = <AuthProvider>{wrapped}</AuthProvider>
+    }
+
+    return wrapped
+  }
+
+  return rtlRender(ui, { wrapper: Wrapper, ...options })
+}
+
+export * from '@testing-library/react'
+export { render }

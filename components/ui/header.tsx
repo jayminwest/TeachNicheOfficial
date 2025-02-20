@@ -4,6 +4,11 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
+import { useAuth } from "@/auth/AuthContext";
+import { SignInPage } from "./sign-in";
+import { SignUpPage } from "./sign-up";
+import { Dialog, DialogContent, DialogTrigger } from "./dialog";
+import { supabase } from "@/lib/supabase";
 
 interface NavigationItem {
     title: string;
@@ -27,7 +32,9 @@ import Link from "next/link";
 
 
 function Header() {
+    const { user } = useAuth();
     const pathname = usePathname();
+    const [showSignIn, setShowSignIn] = useState(true);
     const navigationItems: NavigationItem[] = [
         {
             title: "Home",
@@ -105,19 +112,45 @@ function Header() {
                     <Link href="/about">
                         <Button variant="ghost">Learn More</Button>
                     </Link>
-                    <Button 
-                        onClick={() => {
-                            if (pathname === '/') {
-                                document.querySelector('#email-signup')?.scrollIntoView({ 
-                                    behavior: 'smooth'
-                                });
-                            } else {
-                                window.location.href = '/#email-signup';
-                            }
-                        }}
-                    >
-                        Join Teacher Waitlist <MoveRight className="w-4 h-4" />
-                    </Button>
+                    {user ? (
+                        <Button 
+                            variant="ghost"
+                            onClick={async () => {
+                                await supabase.auth.signOut();
+                                window.location.href = '/';
+                            }}
+                        >
+                            Sign Out
+                        </Button>
+                    ) : (
+                        <>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost">Sign In</Button>
+                                </DialogTrigger>
+                                <DialogContent className="p-0 bg-background">
+                                    {showSignIn ? (
+                                        <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
+                                    ) : (
+                                        <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
+                                    )}
+                                </DialogContent>
+                            </Dialog>
+                            <Button 
+                                onClick={() => {
+                                    if (pathname === '/') {
+                                        document.querySelector('#email-signup')?.scrollIntoView({ 
+                                            behavior: 'smooth'
+                                        });
+                                    } else {
+                                        window.location.href = '/#email-signup';
+                                    }
+                                }}
+                            >
+                                Join Teacher Waitlist <MoveRight className="w-4 h-4" />
+                            </Button>
+                        </>
+                    )}
                 </div>
                 <div className="flex ml-auto lg:hidden">
                     <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
@@ -132,20 +165,47 @@ function Header() {
                                 <Link href="/about">
                                     <Button variant="ghost" className="w-full">Learn More</Button>
                                 </Link>
-                                <Button 
-                                    className="w-full"
-                                    onClick={() => {
-                                        if (pathname === '/') {
-                                            document.querySelector('#email-signup')?.scrollIntoView({ 
-                                                behavior: 'smooth'
-                                            });
-                                        } else {
-                                            window.location.href = '/#email-signup';
-                                        }
-                                    }}
-                                >
-                                    Join Teacher Waitlist <MoveRight className="w-4 h-4" />
-                                </Button>
+                                {user ? (
+                                    <Button 
+                                        variant="ghost"
+                                        className="w-full"
+                                        onClick={async () => {
+                                            await supabase.auth.signOut();
+                                            window.location.href = '/';
+                                        }}
+                                    >
+                                        Sign Out
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" className="w-full">Sign In</Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="p-0 bg-background">
+                                                {showSignIn ? (
+                                                    <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
+                                                ) : (
+                                                    <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
+                                                )}
+                                            </DialogContent>
+                                        </Dialog>
+                                        <Button 
+                                            className="w-full"
+                                            onClick={() => {
+                                                if (pathname === '/') {
+                                                    document.querySelector('#email-signup')?.scrollIntoView({ 
+                                                        behavior: 'smooth'
+                                                    });
+                                                } else {
+                                                    window.location.href = '/#email-signup';
+                                                }
+                                            }}
+                                        >
+                                            Join Teacher Waitlist <MoveRight className="w-4 h-4" />
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                             {navigationItems.map((item) => (
                                 <div key={item.title}>
@@ -185,4 +245,5 @@ function Header() {
     );
 }
 
+export type { NavigationItem };
 export { Header };

@@ -26,6 +26,7 @@
  - **Variable and Function Naming:**  Use descriptive and meaningful names for variables and functions. Follow camelCase convention. Keep names concise and to the point.
  - **Avoid Magic Numbers:**  Use constants for numerical values with specific meanings.
  - **Minimalism in Code:** Aim for the simplest solution that solves the problem. Avoid unnecessary abstractions or overly complex patterns when a simpler approach suffices.  **Keep it simple, and avoid "gold plating".**
+ - DO NOT USE "any" types
  
  ### 1.3. React Specific Guidelines
  
@@ -78,13 +79,101 @@
  - **Environment Variables in Vercel:**  Configure environment variables in Vercel for production and staging environments.
  - **`.env.template`:**  Provide a `.env.template` file with placeholder variables for developers to easily set up their local environment. Keep the `.env.template` minimal and only include essential variables.
  
- ## 9. Testing
- 
- - **Unit Tests:**  Write unit tests for individual components and utility functions to ensure they function correctly in isolation. Focus unit tests on critical logic and keep tests concise and focused.
- - **Integration Tests:**  Write integration tests to verify the interaction between different parts of the application (e.g., component interactions, data fetching). Write integration tests only for essential interactions and keep them as simple as possible.
- - **End-to-End (E2E) Tests:**  Consider E2E tests for critical  flows (e.g., authentication, purchase flow) to ensure the application works correctly from end to end. Implement E2E tests sparingly and focus on core  journeys.
- - **Testing Library:**  Use a testing library like Jest and React Testing Library for writing tests. Choose testing tools that promote simplicity and ease of use.
- - **Continuous Integration (CI):**  Set up CI to automatically run tests on every code push to catch regressions early. Keep CI configuration minimal and efficient.
+ ## 9. Testing Standards
+
+ ### 9.1 Test Organization
+ - Place test files in `__tests__` directories adjacent to the code being tested
+ - Name test files with `.test.tsx` or `.test.ts` suffix
+ - Mirror the source file structure in test directories
+ - One test file per source file
+
+ ### 9.2 Testing Utilities
+ We provide standard testing utilities to ensure consistency:
+
+ - **test-utils.tsx**: Custom render function with provider wrappers
+   - Use `render()` for basic component testing
+   - Use `{ withAuth: true }` option when testing authenticated components
+   - Customize provider props as needed
+
+ - **setup/test-helpers.tsx**: Common testing patterns
+   - Use `setup()` to get configured userEvent instance
+   - Use `findByTextWithMarkup()` for complex text matching
+   - Use `waitForLoadingToFinish()` for async operations
+
+ - **setup/mocks.ts**: Standard mock objects
+   - Use `createMockUser()` for consistent user data
+   - Use `mockSupabaseClient` for Supabase operations
+
+ ### 9.3 Test Structure
+ Follow this pattern for component tests:
+ ```typescript
+ describe('ComponentName', () => {
+   describe('rendering', () => {
+     it('renders without crashing')
+     it('renders expected elements')
+   })
+
+   describe('interactions', () => {
+     it('handles user interactions')
+   })
+
+   describe('props', () => {
+     it('handles all required props')
+   })
+ })
+ ```
+
+ ### 9.4 Testing Priorities
+ 1. **Critical Path Tests**
+    - Authentication flows
+    - Payment processes
+    - Form submissions
+    - Core user journeys
+
+ 2. **Component Tests**
+    - Props validation
+    - Rendering states
+    - User interactions
+    - Accessibility requirements
+
+ 3. **Hook Tests**
+    - Initial state
+    - State updates
+    - Side effects
+    - Error handling
+
+ ### 9.5 Best Practices
+ - Use Testing Library queries in this order:
+   1. getByRole
+   2. getByLabelText
+   3. getByPlaceholderText
+   4. getByText
+   5. getByTestId (last resort)
+
+ - Write user-centric tests that mirror actual usage
+ - Test component behavior, not implementation
+ - Use `userEvent` over `fireEvent`
+ - Mock external dependencies consistently
+ - Reset mocks between tests
+
+ ### 9.6 Coverage Requirements
+ - Minimum 80% coverage for:
+   - Statements
+   - Branches
+   - Functions
+   - Lines
+ - 100% coverage for critical paths
+ - Generate coverage reports in CI
+
+ ### 9.7 Performance & Accessibility
+ - Test component render performance
+ - Include accessibility checks in component tests
+ - Use axe-core for automated accessibility testing
+
+ ### 9.8 Continuous Integration
+ - All tests must pass before merge
+ - Coverage reports generated on every PR
+ - Performance benchmarks tracked over time
  
  ## 12. Documentation
  

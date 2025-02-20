@@ -256,4 +256,3 @@ export function Header() {
 }
 
 export type { NavigationItem };
-export { Header };

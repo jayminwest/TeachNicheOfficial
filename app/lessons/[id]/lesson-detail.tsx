@@ -10,7 +10,7 @@ interface LessonDetailProps {
   id: string;
 }
 
-export default function LessonDetail({ id }: LessonDetailProps) {
+export default async function LessonDetail({ id }: LessonDetailProps) {
   const { data: lesson, error } = await supabase
     .from('lessons')
     .select('*')

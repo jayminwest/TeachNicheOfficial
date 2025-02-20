@@ -3,6 +3,21 @@ import { render as rtlRender } from '@testing-library/react';
 import { ThemeProvider } from 'next-themes';
 import { ToastProvider } from '@/components/ui/toast';
 
+// Mock matchMedia for next-themes
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // Deprecated
+    removeListener: jest.fn(), // Deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
 interface CustomRenderOptions {
   withAuth?: boolean;
   providerProps?: Parameters<typeof Providers>[0];

@@ -13,28 +13,18 @@ export async function GET(request: Request) {
   try {
     console.log('Fetching asset status for:', assetId);
     
-    // Attempt to initialize Video client if it's not available
+    // Ensure Video client is available
     if (!Video?.assets?.retrieve) {
-      console.error('Mux Video client not properly initialized, attempting reinitialization...');
-      
-      // Re-import to trigger initialization
-      const { Video: ReinitiatedVideo } = await import('@/lib/mux');
-      
-      if (!ReinitiatedVideo?.assets?.retrieve) {
-        console.error('Failed to reinitialize Mux Video client');
-        return new Response(JSON.stringify({ 
-          error: 'Service temporarily unavailable',
-          details: 'Video service not available. Please try again in a few moments.'
-        }), {
-          status: 503,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-      
-      // Use the reinitialized client
-      Video = ReinitiatedVideo;
+      console.error('Mux Video client not properly initialized');
+      return new Response(JSON.stringify({ 
+        error: 'Service temporarily unavailable',
+        details: 'Video service not available. Please try again in a few moments.'
+      }), {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
     }
     
     const asset = await Video.assets.retrieve(assetId);

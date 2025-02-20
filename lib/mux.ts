@@ -17,21 +17,18 @@ if (typeof window === 'undefined') {
 
   const initMuxClient = async () => {
     try {
-      // Initialize Mux client with separate parameters
-      const muxClient = new Mux(tokenId, tokenSecret);
-      const videoClient = muxClient.Video;
+      // Initialize Mux client
+      const muxClient = new Mux({
+        tokenId: tokenId,
+        tokenSecret: tokenSecret
+      });
       
-      // Verify the Video client is properly initialized
-      if (!videoClient) {
-        throw new Error('Mux Video client not initialized');
-      }
-
       // Test the client with a basic API call
-      await videoClient.Assets.list({ limit: 1 });
+      await muxClient.video.assets.list({ limit: 1 });
       
       // If we get here, initialization was successful
       console.log('Mux Video client initialized successfully');
-      return videoClient;
+      return muxClient.video;
     } catch (error) {
       console.error('Failed to initialize Mux client:', error);
       throw error;
@@ -191,7 +188,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
-    const upload = await Video.Uploads.create({
+    const upload = await Video.uploads.create({
       new_asset_settings: {
         playback_policy: isFree ? ['public'] : ['signed'],
         encoding_tier: 'baseline',
@@ -221,7 +218,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
   try {
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.assets.get(assetId);
     
     return {
       id: asset.id,

@@ -131,16 +131,21 @@ describe('Header', () => {
 
   describe('interactions', () => {
     it('toggles mobile menu when menu button is clicked', () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: null,
+        loading: false
+      }))
+
       render(<Header />)
       const menuButton = screen.getByText('Menu Icon').parentElement
-      expect(screen.queryByText('Join Teacher Waitlist')).not.toBeVisible()
+      expect(screen.queryByRole('button', { name: /join teacher waitlist/i })).not.toBeInTheDocument()
       
       fireEvent.click(menuButton!)
-      expect(screen.getByText('Join Teacher Waitlist')).toBeVisible()
+      expect(screen.getByRole('button', { name: /join teacher waitlist/i })).toBeInTheDocument()
       
       const closeButton = screen.getByText('X Icon').parentElement
       fireEvent.click(closeButton!)
-      expect(screen.queryByText('Join Teacher Waitlist')).not.toBeVisible()
+      expect(screen.queryByRole('button', { name: /join teacher waitlist/i })).not.toBeInTheDocument()
     })
 
     it('handles sign out click', async () => {
@@ -159,19 +164,29 @@ describe('Header', () => {
     })
 
     it('scrolls to email signup when waitlist button is clicked on home page', () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: null,
+        loading: false
+      }))
+
       render(<Header />)
-      const waitlistButton = screen.getByText(/Join Teacher Waitlist/)
+      const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i })
       
       fireEvent.click(waitlistButton)
       expect(mockScrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
     })
 
     it('redirects to home page email signup when waitlist button is clicked on other pages', () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: null,
+        loading: false
+      }))
+
       const { usePathname } = require('next/navigation')
       ;(usePathname as jest.Mock).mockImplementation(() => '/about')
       
       render(<Header />)
-      const waitlistButton = screen.getByText(/Join Teacher Waitlist/)
+      const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i })
       
       // Mock window.location
       const originalLocation = window.location

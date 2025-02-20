@@ -109,7 +109,8 @@ export default function LessonsPage() {
                     {lesson.price > 0 && (
                       <LessonCheckout 
                         lessonId={lesson.id} 
-                        price={lesson.price} 
+                        price={lesson.price}
+                        searchParams={new URLSearchParams(window.location.search)}
                       />
                     )}
                   </div>

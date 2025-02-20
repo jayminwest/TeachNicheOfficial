@@ -74,5 +74,29 @@ describe('LessonCheckout', () => {
         });
       });
     });
+
+    it('handles successful payment completion', async () => {
+      // Setup
+      const user = userEvent.setup();
+      const searchParams = new URLSearchParams('?success=true');
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve({ success: true }),
+      });
+
+      // Render
+      renderWithStripe(
+        <LessonCheckout 
+          lessonId="test_lesson" 
+          price={1000}
+          searchParams={searchParams}
+        />
+      );
+
+      // Assert
+      await waitFor(() => {
+        const successMessage = screen.getByText(/payment successful/i);
+        expect(successMessage).toBeInTheDocument();
+      });
+    });
   });
 });

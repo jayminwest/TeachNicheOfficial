@@ -8,8 +8,8 @@ import Stripe from 'stripe';
 import { POST } from '@/app/api/webhooks/stripe/route';
 
 // Mock Stripe
+const mockConstructEvent = jest.fn();
 jest.mock('stripe', () => {
-  const mockConstructEvent = jest.fn();
   return jest.fn().mockImplementation(() => ({
     webhooks: {
       constructEvent: mockConstructEvent

@@ -35,7 +35,7 @@ describe('StripeConnectButton', () => {
 ```typescript
 describe('LessonCheckout', () => {
   describe('critical path', () => {
-    it('creates checkout session successfully')
+    it('creates checkout session successfully') ✓
     it('redirects to Stripe Checkout')
     it('handles successful payment completion')
     it('handles cancelled payment appropriately')

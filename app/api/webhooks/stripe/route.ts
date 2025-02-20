@@ -1,4 +1,3 @@
-import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
@@ -11,16 +10,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-  const supabase = createRouteHandlerClient({ cookies });
-  
   // Update payment status in database
   // Add any custom business logic here
   console.log('Payment succeeded:', paymentIntent.id);
 }
 
 async function handleAccountUpdated(account: Stripe.Account) {
-  const supabase = createRouteHandlerClient({ cookies });
-  
   // Update creator's connected account status
   if (account.details_submitted) {
     // Creator has completed onboarding

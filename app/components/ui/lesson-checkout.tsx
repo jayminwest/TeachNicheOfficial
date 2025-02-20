@@ -14,7 +14,6 @@ interface LessonCheckoutProps {
 
 export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {
   const isSuccess = searchParams?.get('success') === 'true';
-  const isCanceled = searchParams?.get('canceled') === 'true';
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);

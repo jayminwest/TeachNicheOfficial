@@ -5,9 +5,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
-import MuxUploader, { 
-  CustomEvent
-} from "@mux/mux-uploader-react";
+import MuxUploader from "@mux/mux-uploader-react";
+
+// Use the built-in CustomEvent type
+type MuxCustomEvent<T> = CustomEvent<T>;
 
 interface VideoUploaderProps {
   endpoint: string | (() => Promise<string>);
@@ -26,35 +27,27 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
-interface MuxUploadStartEvent extends CustomEvent {
-  detail: {
-    file?: File;
-  }
-}
+interface MuxUploadStartEvent extends MuxCustomEvent<{
+  file?: File;
+}> {}
 
-interface MuxUploadProgressEvent extends CustomEvent {
-  detail: {
-    loaded?: number;
-    total?: number;
-  }
-}
+interface MuxUploadProgressEvent extends MuxCustomEvent<{
+  loaded?: number;
+  total?: number;
+}> {}
 
-interface MuxUploadSuccessEvent extends CustomEvent {
-  detail: {
-    status?: 'processing' | 'complete';
-    assetId?: string;
-  }
-}
+interface MuxUploadSuccessEvent extends MuxCustomEvent<{
+  status?: 'processing' | 'complete';
+  assetId?: string;
+}> {}
 
-interface MuxUploadErrorEvent extends CustomEvent {
-  detail: {
-    message?: string;
-    error?: {
-      type: string;
-      message: string;
-    }
+interface MuxUploadErrorEvent extends MuxCustomEvent<{
+  message?: string;
+  error?: {
+    type: string;
+    message: string;
   }
-}
+}> {}
 
 export function VideoUploader({ 
   endpoint,

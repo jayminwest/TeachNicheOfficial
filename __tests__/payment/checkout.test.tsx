@@ -138,5 +138,23 @@ describe('LessonCheckout', () => {
         expect(screen.getByText(/invalid price/i)).toBeInTheDocument();
       });
     });
+
+    it('handles network failures', async () => {
+      // Setup
+      const user = userEvent.setup();
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      // Render
+      renderWithStripe(<LessonCheckout lessonId="test_lesson" price={1000} />);
+
+      // Act
+      const button = screen.getByRole('button', { name: /purchase lesson/i });
+      await user.click(button);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText(/network error/i)).toBeInTheDocument();
+      });
+    });
   });
 });

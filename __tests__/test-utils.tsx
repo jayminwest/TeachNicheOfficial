@@ -1,8 +1,7 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/toaster';
-
+import { ToastProvider } from '@/components/ui/toast';
 
 interface CustomRenderOptions {
   withAuth?: boolean;
@@ -21,8 +20,9 @@ function render(
         enableSystem
         disableTransitionOnChange
       >
-        {children}
-        <Toaster />
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </ThemeProvider>
     );
   };

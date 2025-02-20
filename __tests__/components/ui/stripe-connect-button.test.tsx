@@ -8,9 +8,10 @@ import { supabase } from '@/lib/supabase';
 global.fetch = jest.fn();
 
 // Mock toast
+const mockToast = jest.fn();
 jest.mock('@/components/ui/use-toast', () => ({
   useToast: () => ({
-    toast: jest.fn()
+    toast: mockToast
   })
 }));
 

@@ -2,11 +2,12 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-export default function LessonPage({
-  params,
-}: {
+type PageProps = {
   params: { id: string }
-}) {
+}
+
+export default function LessonPage(props: PageProps) {
+  const { params } = props;
   const { id } = params;
   return (
     <Suspense

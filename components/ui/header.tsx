@@ -32,7 +32,7 @@ import Link from "next/link";
 
 
 export function Header() {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
     const navigationItems: NavigationItem[] = [

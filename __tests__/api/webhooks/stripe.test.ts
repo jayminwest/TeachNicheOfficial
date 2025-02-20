@@ -3,6 +3,26 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { POST } from '@/app/api/webhooks/stripe/route';
+import { headers } from 'next/headers';
+
+// Setup global Request object for tests
+global.Request = class Request {
+  private url: string;
+  private options: RequestInit;
+
+  constructor(url: string, options?: RequestInit) {
+    this.url = url;
+    this.options = options || {};
+  }
+
+  text() {
+    return Promise.resolve(
+      typeof this.options.body === 'string' 
+        ? this.options.body 
+        : JSON.stringify(this.options.body)
+    );
+  }
+} as unknown as typeof Request;
 
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs');

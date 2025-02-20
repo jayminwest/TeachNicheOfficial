@@ -127,6 +127,15 @@ describe('Header', () => {
       render(<Header />)
       expect(screen.getByTestId('theme-toggle')).toBeInTheDocument()
     })
+
+    it('navigates to correct routes when navigation links are clicked', () => {
+      render(<Header />)
+      const homeLink = screen.getByText('Home')
+      const aboutLink = screen.getByText('About')
+      
+      expect(homeLink.closest('a')).toHaveAttribute('href', '/')
+      expect(aboutLink.closest('a')).toHaveAttribute('href', '/about')
+    })
   })
 
   describe('interactions', () => {

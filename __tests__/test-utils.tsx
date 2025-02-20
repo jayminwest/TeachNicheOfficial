@@ -4,13 +4,6 @@ import { Providers } from '@/components/providers';
 import { AuthContext } from '@/auth/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 
-const mockAuthContext = {
-  user: {
-    id: 'test-user-id',
-    email: 'test@example.com'
-  },
-  loading: false
-};
 
 interface CustomRenderOptions {
   withAuth?: boolean;
@@ -19,10 +12,10 @@ interface CustomRenderOptions {
 
 function render(
   ui: React.ReactElement,
-  { withAuth = false, providerProps, ...options }: CustomRenderOptions = {}
+  { providerProps, ...options }: CustomRenderOptions = {}
 ) {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
-    let wrapped = (
+    return (
       <Providers
         attribute="class"
         defaultTheme="dark"
@@ -33,16 +26,6 @@ function render(
         {children}
       </Providers>
     );
-
-    if (withAuth) {
-      wrapped = (
-        <AuthContext.Provider value={mockAuthContext}>
-          {wrapped}
-        </AuthContext.Provider>
-      );
-    }
-
-    return wrapped;
   };
 
   return rtlRender(ui, { wrapper: Wrapper, ...options });

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
@@ -79,6 +79,15 @@ jest.mock('@/lib/supabase', () => ({
 }))
 
 describe('Header', () => {
+  const mockScrollIntoView = jest.fn();
+  
+  beforeEach(() => {
+    // Mock scrollIntoView
+    Element.prototype.scrollIntoView = mockScrollIntoView;
+    // Reset all mocks
+    jest.clearAllMocks();
+  });
+
   describe('rendering', () => {
     it('renders without crashing', () => {
       render(<Header />)
@@ -112,6 +121,68 @@ describe('Header', () => {
       render(<Header />)
       expect(screen.getByText('Profile')).toBeInTheDocument()
       expect(screen.getByText('Sign Out')).toBeInTheDocument()
+    })
+
+    it('renders theme toggle', () => {
+      render(<Header />)
+      expect(screen.getByTestId('theme-toggle')).toBeInTheDocument()
+    })
+  })
+
+  describe('interactions', () => {
+    it('toggles mobile menu when menu button is clicked', () => {
+      render(<Header />)
+      const menuButton = screen.getByText('Menu Icon').parentElement
+      expect(screen.queryByText('Join Teacher Waitlist')).not.toBeVisible()
+      
+      fireEvent.click(menuButton!)
+      expect(screen.getByText('Join Teacher Waitlist')).toBeVisible()
+      
+      const closeButton = screen.getByText('X Icon').parentElement
+      fireEvent.click(closeButton!)
+      expect(screen.queryByText('Join Teacher Waitlist')).not.toBeVisible()
+    })
+
+    it('handles sign out click', async () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: { id: '123', email: 'test@example.com' },
+        loading: false
+      }))
+      
+      const { supabase } = require('@/lib/supabase')
+      render(<Header />)
+      
+      const signOutButton = screen.getByText('Sign Out')
+      fireEvent.click(signOutButton)
+      
+      expect(supabase.auth.signOut).toHaveBeenCalled()
+    })
+
+    it('scrolls to email signup when waitlist button is clicked on home page', () => {
+      render(<Header />)
+      const waitlistButton = screen.getByText(/Join Teacher Waitlist/)
+      
+      fireEvent.click(waitlistButton)
+      expect(mockScrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+    })
+
+    it('redirects to home page email signup when waitlist button is clicked on other pages', () => {
+      const { usePathname } = require('next/navigation')
+      ;(usePathname as jest.Mock).mockImplementation(() => '/about')
+      
+      render(<Header />)
+      const waitlistButton = screen.getByText(/Join Teacher Waitlist/)
+      
+      // Mock window.location
+      const originalLocation = window.location
+      delete window.location
+      window.location = { ...originalLocation, href: '' as any }
+      
+      fireEvent.click(waitlistButton)
+      expect(window.location.href).toBe('/#email-signup')
+      
+      // Restore original location
+      window.location = originalLocation
     })
   })
 })

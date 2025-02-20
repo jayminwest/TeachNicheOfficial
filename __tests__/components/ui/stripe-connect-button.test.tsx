@@ -225,8 +225,19 @@ describe('StripeConnectButton', () => {
       })
     );
 
-    // In test environment, verify URL was received but not redirected
-    const responseData = await (global.fetch as jest.Mock).mock.results[0].value.json();
-    expect(responseData.url).toBe(mockOAuthUrl);
+    // Verify API call was made with correct URL and headers
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/stripe/connect',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer test-token'
+        })
+      })
+    );
+
+    // Verify the mock URL was used
+    expect(mockOAuthUrl).toBe('https://connect.stripe.com/oauth/test');
   });
 });

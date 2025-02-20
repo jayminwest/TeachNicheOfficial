@@ -40,8 +40,8 @@ export async function GET(request: Request) {
     }
 
     // Check if the asset has any errors
-    if (asset.errors && asset.errors.length > 0) {
-      const errorMessage = asset.errors.map(e => e.message).join(', ');
+    if (asset.errors && Object.keys(asset.errors).length > 0) {
+      const errorMessage = Object.values(asset.errors).map(e => e.message).join(', ');
       return NextResponse.json(
         { 
           status: 'errored',

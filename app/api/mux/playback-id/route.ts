@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { Video } from '@/lib/mux';
 
 export async function GET(request: Request) {
+  if (!Video || typeof Video.assets?.retrieve !== 'function') {
+    return NextResponse.json(
+      { error: 'Mux Video client not properly initialized' },
+      { status: 500 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const assetId = searchParams.get('assetId');
 
@@ -31,8 +38,12 @@ export async function GET(request: Request) {
         );
       }
 
+      if (!Video || typeof Video.assets?.createPlaybackId !== 'function') {
+        throw new Error('Mux Video client not properly initialized');
+      }
+
       // Create a new playback ID
-      const playbackId = await Video.assets.createPlaybackId(assetId, { 
+      const playbackId = await Video.assets.createPlaybackId(assetId, {
         policy: 'public' 
       });
       

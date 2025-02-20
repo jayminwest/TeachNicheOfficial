@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       muxAssetId,
       muxPlaybackId,
       content = '',
-      status = 'draft'
+      status = 'published'
     } = data;
 
     // Validate required fields

@@ -1,7 +1,7 @@
 import Mux from '@mux/mux-node';
 
 // Only initialize Mux client on the server side
-let Video: any;
+let Video: typeof Mux.Video | null;
 
 if (typeof window === 'undefined') {
   const tokenId = process.env.MUX_TOKEN_ID;

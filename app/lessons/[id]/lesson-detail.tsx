@@ -11,7 +11,6 @@ import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import mux from 'mux-embed';
-import Mux from '@mux/mux-node';
 
 interface Lesson {
   id: string;

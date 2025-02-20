@@ -39,14 +39,14 @@ export function ProfileForm() {
     },
   })
 
-  async function onSubmit(data: ProfileFormValues) {
+  async function onSubmit(_data: ProfileFormValues) {
     try {
       // TODO: Implement profile update logic with Supabase
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       })
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

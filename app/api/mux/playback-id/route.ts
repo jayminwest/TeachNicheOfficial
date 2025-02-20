@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       }
 
       return NextResponse.json({ playbackId: playbackId.id });
-    } catch (muxError: any) {
+    } catch (muxError: unknown) {
       console.error('Mux API error:', {
         error: muxError,
         message: muxError.message,
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       });
       throw muxError;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching Mux asset:', {
       message: error.message,
       stack: error.stack,

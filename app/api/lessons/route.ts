@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { getAssetStatus } from '@/lib/mux';
 
 export async function POST(request: Request) {
   try {

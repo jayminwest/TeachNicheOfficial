@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
 import DashboardHeader from "./components/dashboard-header"
-import QuickActions from "./components/quick-actions"
 import ActivityFeed from "./components/activity-feed"
 import PerformanceMetrics from "./components/performance-metrics"
 import LessonsGrid from "./components/lessons-grid"

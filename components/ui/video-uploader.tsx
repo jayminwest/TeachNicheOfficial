@@ -90,10 +90,10 @@ export function VideoUploader({
   useEffect(() => {
     getUploadUrl()
       .then(setUploadEndpoint)
-      .catch(error => {
+      .catch(_error => {
         handleError(new Error('Failed to get upload URL'));
       });
-  }, [endpoint]);
+  }, [endpoint, getUploadUrl, handleError]);
 
   const handleUploadStart = async (event: MuxUploadEvent) => {
     try {

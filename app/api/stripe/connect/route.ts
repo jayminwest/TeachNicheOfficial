@@ -6,20 +6,34 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
-async function getAuthenticatedUser() {
+async function getAuthenticatedUser(request: Request) {
   const cookieStore = await cookies();
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
   
+  // First try cookie-based session
   const {
     data: { session },
     error: sessionError
   } = await supabase.auth.getSession();
 
-  if (sessionError || !session?.user) {
-    return { error: sessionError || new Error('No session found') };
+  if (session?.user) {
+    return { user: session.user };
   }
 
-  return { user: session.user };
+  // If no cookie session, check Authorization header
+  const authHeader = request.headers.get('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return { error: error || new Error('No user found') };
+    }
+    
+    return { user };
+  }
+
+  return { error: new Error('No session found') };
 }
 
 export async function POST(request: Request) {
@@ -27,7 +41,7 @@ export async function POST(request: Request) {
     console.log('Starting Stripe Connect process...');
     
     // Get authenticated user
-    const { user, error: authError } = await getAuthenticatedUser();
+    const { user, error: authError } = await getAuthenticatedUser(request);
     
     if (authError) {
       console.error('Authentication error:', authError);

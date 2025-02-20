@@ -21,17 +21,22 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
     try {
       setIsLoading(true);
       
-      // First refresh the session
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) {
-        throw new Error('Failed to refresh authentication');
+      // Get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        throw new Error('Failed to get session');
       }
       
+      if (!session) {
+        throw new Error('No active session');
+      }
+
       console.log('Initiating Stripe Connect...', { userId: user.id });
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         credentials: 'include',
         body: JSON.stringify({ userId: user.id }),

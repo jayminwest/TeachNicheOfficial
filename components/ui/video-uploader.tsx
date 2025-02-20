@@ -133,9 +133,14 @@ export function VideoUploader({
   };
 
   const handleUploadError: MuxUploaderProps["onError"] = (event) => {
-    const error = event.detail;
-    console.error("Upload error:", error);
-    handleError(error);
+    if (event instanceof CustomEvent) {
+      const error = event.detail;
+      console.error("Upload error:", error);
+      handleError(error);
+    } else {
+      console.error("Upload error:", event);
+      handleError(new Error("Upload failed"));
+    }
   };
 
   // Wait for the uploadEndpoint to be resolved before rendering the uploader
@@ -158,7 +163,6 @@ export function VideoUploader({
         chunkSize={chunkSize}
         dynamicChunkSize={dynamicChunkSize}
         useLargeFileWorkaround={useLargeFileWorkaround}
-        multiple={false}
       >
         {status === 'idle' && (
           <Button type="button" className="gap-2">

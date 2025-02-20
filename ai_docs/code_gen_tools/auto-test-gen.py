@@ -108,7 +108,7 @@ class AiderAgentConfig(BaseModel):
 class AiderAgent:
     """Autonomous Code Generation and Iterative Improvement System"""
 
-    def __init__(self, config_path: str = "auto_aider_config.yaml", prompt_path: Optional[str] = None, component_dir: Optional[str] = None):
+    def __init__(self, config_path: str = "ai_docs/code_gen_tools/auto_aider_config.yaml", prompt_path: Optional[str] = None, component_dir: Optional[str] = None):
         self.config = self._validate_config(Path(config_path), prompt_path)
         self.test_template = TEST_TEMPLATE
         self.query_priority = QUERY_PRIORITY

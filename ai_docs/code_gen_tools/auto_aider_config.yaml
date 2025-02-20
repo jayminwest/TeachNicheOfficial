@@ -1,7 +1,7 @@
 # Configuration file for AiderAgent
 
 # Path to the prompt markdown file
-prompt: "default_prompt.md"
+prompt: "ai_docs/code_gen_tools/test_writing_prompt.md"
 
 # Model configurations
 coder_model: "ollama/deepseek-r1:70b"

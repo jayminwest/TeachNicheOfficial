@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
@@ -31,8 +31,8 @@ import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
 
 
-function Header() {
-    const { user } = useAuth();
+export function Header() {
+    const { user, loading } = useAuth();
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
     const navigationItems: NavigationItem[] = [
@@ -112,17 +112,22 @@ function Header() {
                     <Link href="/about">
                         <Button variant="ghost">Learn More</Button>
                     </Link>
-                    {user ? (
-                        <Button 
-                            variant="ghost"
-                            onClick={async () => {
-                                await supabase.auth.signOut();
-                                window.location.href = '/';
-                            }}
-                        >
-                            Sign Out
-                        </Button>
-                    ) : (
+                    {!loading && user ? (
+                        <>
+                            <Link href="/profile">
+                                <Button variant="ghost">Profile</Button>
+                            </Link>
+                            <Button 
+                                variant="ghost"
+                                onClick={async () => {
+                                    await supabase.auth.signOut();
+                                    window.location.href = '/';
+                                }}
+                            >
+                                Sign Out
+                            </Button>
+                        </>
+                    ) : !loading ? (
                         <>
                             <Dialog>
                                 <DialogTrigger asChild>
@@ -150,14 +155,14 @@ function Header() {
                                 Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                             </Button>
                         </>
-                    )}
+                    ) : null}
                 </div>
                 <div className="flex ml-auto lg:hidden">
                     <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
                         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </Button>
                     {isOpen && (
-                        <div className="absolute top-20 border-t flex flex-col w-full left-0 right-0 bg-background shadow-lg py-6 px-6 gap-6">
+                        <div data-testid="mobile-menu" className="absolute top-20 border-t flex flex-col w-full left-0 right-0 bg-background shadow-lg py-6 px-6 gap-6">
                             <div className="flex flex-col gap-4 mb-4">
                                 <div className="flex justify-end">
                                     <ThemeToggle />
@@ -165,18 +170,23 @@ function Header() {
                                 <Link href="/about">
                                     <Button variant="ghost" className="w-full">Learn More</Button>
                                 </Link>
-                                {user ? (
-                                    <Button 
-                                        variant="ghost"
-                                        className="w-full"
-                                        onClick={async () => {
-                                            await supabase.auth.signOut();
-                                            window.location.href = '/';
-                                        }}
-                                    >
-                                        Sign Out
-                                    </Button>
-                                ) : (
+                                {!loading && user ? (
+                                    <>
+                                        <Link href="/profile">
+                                            <Button variant="ghost" className="w-full">Profile</Button>
+                                        </Link>
+                                        <Button 
+                                            variant="ghost"
+                                            className="w-full"
+                                            onClick={async () => {
+                                                await supabase.auth.signOut();
+                                                window.location.href = '/';
+                                            }}
+                                        >
+                                            Sign Out
+                                        </Button>
+                                    </>
+                                ) : !loading ? (
                                     <>
                                         <Dialog>
                                             <DialogTrigger asChild>
@@ -205,7 +215,7 @@ function Header() {
                                             Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                                         </Button>
                                     </>
-                                )}
+                                ) : null}
                             </div>
                             {navigationItems.map((item) => (
                                 <div key={item.title}>
@@ -246,4 +256,3 @@ function Header() {
 }
 
 export type { NavigationItem };
-export { Header };

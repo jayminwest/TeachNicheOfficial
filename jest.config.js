@@ -1,19 +1,15 @@
-const nextJest = require('next/jest')
-
-const createJestConfig = nextJest({
-  dir: './',
-})
-
-const config = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  testEnvironment: 'jest-environment-jsdom',
+module.exports = {
+  testEnvironment: 'jsdom',
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    '^@/(.*)$': '<rootDir>/$1'
   },
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': ['@swc/jest']
+  },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!(lucide-react|@lucide)/)'
   ],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
@@ -21,7 +17,5 @@ const config = {
     'lib/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
-  ],
+  ]
 }
-
-module.exports = createJestConfig(config)

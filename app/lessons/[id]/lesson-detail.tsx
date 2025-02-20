@@ -51,9 +51,9 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
       .eq('id', id)
       .eq('status', 'published')
       .is('deleted_at', null)
-      .single();
+      .maybeSingle();
 
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching lesson:', {
         message: error.message,
         details: error.details,
@@ -84,7 +84,7 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
                 Back to Lessons
               </Button>
             </Link>
-            <p className="text-muted-foreground">Lesson not found or not available.</p>
+            <p className="text-muted-foreground">Lesson not found or not available. It may have been removed or is not yet published.</p>
           </div>
         </div>
       );

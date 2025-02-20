@@ -5,6 +5,9 @@ import { renderWithStripe } from '../../test-utils';
 import { AuthContext } from '@/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 
+// Store original window.location
+const originalLocation = window.location;
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -26,6 +29,26 @@ jest.mock('@/auth/AuthContext', () => ({
 }));
 
 describe('StripeConnectButton', () => {
+  beforeAll(() => {
+    // Mock window.location
+    delete window.location;
+    window.location = { ...originalLocation, href: 'http://localhost:3000/test' };
+  });
+
+  afterAll(() => {
+    // Restore original window.location
+    window.location = originalLocation;
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders connect button when not connected', () => {
     renderWithStripe(
       <StripeConnectButton stripeAccountId={null} />

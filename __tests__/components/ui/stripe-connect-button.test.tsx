@@ -2,7 +2,6 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { mockStripeClient } from '../../setup/stripe-mocks';
 import { renderWithStripe } from '../../test-utils';
-import { AuthContext } from '@/auth/AuthContext';
 
 const mockUser = {
   id: 'test-user-id',

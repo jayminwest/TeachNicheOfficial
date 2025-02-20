@@ -1,16 +1,18 @@
-import React from 'react'
-import { render as rtlRender } from '@testing-library/react'
-import { Providers } from '@/components/providers'
-import { AuthProvider } from '@/auth/AuthContext'
+import React from 'react';
+import { render as rtlRender } from '@testing-library/react';
+import { Providers } from '@/components/providers';
+import { AuthProvider } from '@/auth/AuthContext';
+import { loadStripe } from '@stripe/stripe-js';
 
 interface CustomRenderOptions {
-  withAuth?: boolean
-  providerProps?: Parameters<typeof Providers>[0]
+  withAuth?: boolean;
+  withStripe?: boolean;
+  providerProps?: Parameters<typeof Providers>[0];
 }
 
 function render(
   ui: React.ReactElement,
-  { withAuth = false, providerProps, ...options }: CustomRenderOptions = {}
+  { withAuth = false, withStripe = false, providerProps, ...options }: CustomRenderOptions = {}
 ) {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     let wrapped = (
@@ -23,43 +25,28 @@ function render(
       >
         {children}
       </Providers>
-    )
+    );
 
     if (withAuth) {
-      wrapped = <AuthProvider>{wrapped}</AuthProvider>
+      wrapped = <AuthProvider>{wrapped}</AuthProvider>;
     }
 
-    return wrapped
-  }
+    return wrapped;
+  };
 
-  return rtlRender(ui, { wrapper: Wrapper, ...options })
+  return rtlRender(ui, { wrapper: Wrapper, ...options });
 }
-
-export * from '@testing-library/react'
-export { render }
-import React from 'react';
-import { render } from '@testing-library/react';
-import { loadStripe } from '@stripe/stripe-js';
-
-interface ProvidersProps {
-  children: React.ReactNode;
-  stripePromise?: Promise<any>;
-}
-
-const Providers = ({ children, stripePromise }: ProvidersProps) => {
-  return <>{children}</>;
-};
 
 export const renderWithStripe = (
   ui: React.ReactElement,
   options = {}
 ) => {
   return render(ui, {
-    wrapper: ({ children }) => (
-      <Providers stripePromise={loadStripe('test_key')}>
-        {children}
-      </Providers>
-    ),
+    withAuth: true,
+    withStripe: true,
     ...options,
   });
 };
+
+export * from '@testing-library/react';
+export { render };

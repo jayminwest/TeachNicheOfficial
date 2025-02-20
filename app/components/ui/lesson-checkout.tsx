@@ -13,6 +13,7 @@ interface LessonCheckoutProps {
 
 export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {
   const isSuccess = searchParams?.get('success') === 'true';
+  const isCanceled = searchParams?.get('canceled') === 'true';
 
   const handleCheckout = async () => {
     // Create checkout session and redirect

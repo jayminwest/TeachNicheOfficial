@@ -92,5 +92,23 @@ describe('LessonCheckout', () => {
       const successMessage = screen.getByText(/payment successful/i);
       expect(successMessage).toBeInTheDocument();
     });
+
+    it('handles cancelled payment appropriately', async () => {
+      // Setup
+      const searchParams = new URLSearchParams('?canceled=true');
+
+      // Render
+      renderWithStripe(
+        <LessonCheckout 
+          lessonId="test_lesson" 
+          price={1000}
+          searchParams={searchParams}
+        />
+      );
+
+      // Assert
+      const purchaseButton = screen.getByRole('button', { name: /purchase lesson/i });
+      expect(purchaseButton).toBeInTheDocument();
+    });
   });
 });

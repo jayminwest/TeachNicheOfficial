@@ -69,21 +69,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }
 
-    // Create Stripe Connect account
+    // Create Stripe Connect account with international support
     const account = await stripe.accounts.create({
       type: 'standard',
       email: user.email,
       metadata: {
         user_id: user.id
+      },
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+        sepa_debit_payments: { requested: true },
+        bacs_debit_payments: { requested: true },
+        au_becs_debit_payments: { requested: true }
+      },
+      settings: {
+        payouts: {
+          schedule: {
+            interval: 'manual'
+          }
+        }
       }
     });
 
-    // Create account link for onboarding
+    // Create account link for onboarding with locale support
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       type: 'account_onboarding',
       refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
+      collect: 'eventually_due',
+      locale: body.locale || 'auto'
     });
 
     // Store the Stripe account ID in Supabase

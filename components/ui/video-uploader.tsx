@@ -29,10 +29,23 @@ type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
 
 // Event handler types for MuxUploader
-type MuxUploadStartHandler = MuxUploaderProps['onUploadStart'];
-type MuxUploadProgressHandler = MuxUploaderProps['onProgress'];
-type MuxUploadSuccessHandler = MuxUploaderProps['onSuccess'];
-type MuxUploadErrorHandler = MuxUploaderProps['onError'];
+interface MuxUploaderEventDetail {
+  file?: File;
+}
+
+interface MuxUploaderProgressEventDetail {
+  progress: number;
+}
+
+interface MuxUploaderSuccessEventDetail {
+  status?: string;
+  assetId?: string;
+}
+
+type MuxUploadStartHandler = (event: CustomEvent<MuxUploaderEventDetail>) => void;
+type MuxUploadProgressHandler = (event: CustomEvent<number>) => void;
+type MuxUploadSuccessHandler = (event: CustomEvent<MuxUploaderSuccessEventDetail>) => void;
+type MuxUploadErrorHandler = (event: CustomEvent<Error>) => void;
 
 export function VideoUploader({ 
   endpoint,
@@ -115,9 +128,7 @@ export function VideoUploader({
   };
 
   const handleProgress: MuxUploadProgressHandler = (event) => {
-    if (event.detail) {
-      setProgress(event.detail);
-    }
+    setProgress(event.detail);
   };
 
   const handleSuccess: MuxUploadSuccessHandler = (event) => {

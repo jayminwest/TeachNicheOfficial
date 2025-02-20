@@ -296,39 +296,61 @@ Do not make any code changes. Only return the JSON response.
         except Exception as e:
             return f"Health check error: {str(e)}"
 
-    def execute_code(self) -> str:
+    def execute_code(self) -> dict:
         """
-        Execute the generated code based on program type.
-        (Steps D & E: Command execution and applying changes.)
+        Execute test and build commands, returning results for each step.
         """
-        console.print("[bold blue][D-E][/] Executing the generated code...", style="italic")
+        results = {}
         
-        if self.config.program_type == "long_running":
-            # Start program and verify it runs
-            startup_result = self._check_program_startup()
+        for cmd_config in self.config.execution_commands:
+            cmd = cmd_config["command"]
+            desc = cmd_config["description"]
             
-            # If health check command is configured, use it
-            if self.config.health_check_command:
-                health_result = self._perform_health_check()
-                return f"{startup_result}\nHealth Check: {health_result}"
+            console.print(f"[bold blue]Executing {desc}...[/]", style="italic")
+            
+            try:
+                result = subprocess.run(
+                    cmd.split(),
+                    capture_output=True,
+                    text=True,
+                    check=True  # This will raise CalledProcessError if exit code != 0
+                )
+                results[cmd] = {
+                    "success": True,
+                    "output": result.stdout + result.stderr
+                }
+                console.print(f"[bold green]✓ {desc} succeeded[/]")
+            except subprocess.CalledProcessError as e:
+                results[cmd] = {
+                    "success": False,
+                    "output": e.stdout + e.stderr if e.stdout or e.stderr else str(e)
+                }
+                console.print(f"[bold red]✗ {desc} failed[/]")
+                # Break early if any command fails
+                break
                 
-            return startup_result
-        else:
-            # Original behavior for regular scripts
-            result = subprocess.run(
-                self.config.execution_command.split(),
-                capture_output=True,
-                text=True,
-            )
-            return result.stdout + result.stderr
+        return results
 
-    def evaluate_output(self, execution_output: str) -> EvaluationResult:
+    def evaluate_output(self, execution_results: dict) -> EvaluationResult:
         """
-        Evaluate the execution output.
-        (Steps G & H: Automated verification and overall evaluation.)
+        Evaluate the execution results from both test and build steps.
         """
-        evaluation_prompt = f"""Evaluate the following execution output:
-{execution_output}
+        # Check if all commands succeeded
+        all_succeeded = all(result["success"] for result in execution_results.values())
+        
+        if not all_succeeded:
+            # Find first failure
+            failed_cmd = next(cmd for cmd, result in execution_results.items() 
+                            if not result["success"])
+            return EvaluationResult(
+                success=False,
+                feedback=f"Command failed: {failed_cmd}\nOutput: {execution_results[failed_cmd]['output']}"
+            )
+
+        # If everything passed, evaluate the test output
+        test_output = execution_results["npm test"]["output"]
+        evaluation_prompt = f"""Evaluate the following test execution output:
+{test_output}
 
 Return JSON with the structure: {{
     "success": bool,

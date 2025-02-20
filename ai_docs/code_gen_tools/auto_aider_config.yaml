@@ -9,7 +9,11 @@ evaluator_model: "ollama/deepseek-r1:70b"
 
 # Execution settings
 max_iterations: 3
-execution_command: "npm test"
+execution_commands:
+  - command: "npm test"
+    description: "Run tests"
+  - command: "vercel build"
+    description: "Verify build"
 
 # Test generation settings
 test_config:

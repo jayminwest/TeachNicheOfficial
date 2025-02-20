@@ -135,7 +135,7 @@ export function VideoUploader({
     }
   };
 
-  const handleSuccess: MuxUploaderProps["onSuccess"] = (event) => {
+  const handleSuccess: MuxUploaderProps["onSuccess"] = async (event) => {
     console.log("Raw success event:", event);
     
     if (!currentAssetId) {
@@ -144,9 +144,25 @@ export function VideoUploader({
       return;
     }
 
-    console.log("Upload completed successfully with assetId:", currentAssetId);
-    setStatus("ready");
-    onUploadComplete(currentAssetId);
+    try {
+      // First get the upload status to get the asset ID
+      const uploadResponse = await fetch(`/api/video/upload-status?uploadId=${currentAssetId}`);
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to get upload status');
+      }
+      
+      const uploadData = await uploadResponse.json();
+      if (!uploadData.asset_id) {
+        throw new Error('No asset ID in upload response');
+      }
+
+      console.log("Upload completed successfully. Upload ID:", currentAssetId, "Asset ID:", uploadData.asset_id);
+      setStatus("ready");
+      onUploadComplete(uploadData.asset_id);
+    } catch (error) {
+      console.error("Error getting asset ID from upload:", error);
+      handleError(error instanceof Error ? error : new Error('Failed to get asset ID'));
+    }
   };
 
   const handleUploadError: MuxUploaderProps["onError"] = (event) => {

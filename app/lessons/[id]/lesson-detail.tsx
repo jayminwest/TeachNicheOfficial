@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,102 +28,33 @@ interface LessonDetailProps {
   id: string;
 }
 
-export default function LessonDetail({ id }: LessonDetailProps) {
-  const [lesson, setLesson] = useState<Lesson | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+async function LessonDetail({ id }: LessonDetailProps) {
+  const { data: lesson, error } = await supabase
+    .from('lessons')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  useEffect(() => {
-    if (lesson?.mux_playback_id) {
-      const playerInitTime = mux.utils.now();
-      
-      mux.monitor('#lesson-video', {
-        debug: false,
-        data: {
-          env_key: process.env.NEXT_PUBLIC_MUX_ENV_KEY!, 
-          player_name: 'Lesson Player',
-          player_init_time: playerInitTime,
-          video_id: lesson.id,
-          video_title: lesson.title,
-          video_stream_type: 'on-demand',
-        }
-      });
-    }
-
-    return () => {
-      const player = document.querySelector('#lesson-video') as HTMLElement & { mux?: { destroy: () => void } };
-      if (player?.mux) {
-        player.mux.destroy();
-      }
-    };
-  }, [lesson?.id, lesson?.title, lesson?.mux_playback_id]);
-
-  useEffect(() => {
-    async function fetchLesson() {
-      try {
-        const { data, error } = await supabase
-          .from('lessons')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
-        if (!data) throw new Error('Lesson not found');
-
-        // If we have an asset ID but no playback ID, get it from Mux
-        if (data.mux_asset_id && !data.mux_playback_id) {
-          const response = await fetch(`/api/mux/playback-id?assetId=${data.mux_asset_id}`);
-          const result = await response.json();
-          
-          if (!response.ok) {
-            console.error('Error fetching playback ID:', result);
-            throw new Error(result.error || 'Failed to fetch playback ID');
-          }
-          
-          if (result.playbackId) {
-            data.mux_playback_id = result.playbackId;
-            // Update the database with the playback ID
-            await supabase
-              .from('lessons')
-              .update({ mux_playback_id: result.playbackId })
-              .eq('id', data.id);
-          }
-        }
-        
-        setLesson(data);
-      } catch (error) {
-        console.error('Error fetching lesson:', {
-          message: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-          error: JSON.stringify(error, Object.getOwnPropertyNames(error))
-        });
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to load lesson. Please try again.",
-          variant: "destructive",
-        });
-        router.push('/lessons');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchLesson();
-  }, [id, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
-        <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
-          <div className="flex justify-center items-center min-h-[400px]">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        </div>
-      </div>
-    );
+  if (error) {
+    console.error('Error fetching lesson:', error);
+    return null;
   }
 
   if (!lesson) return null;
+
+  // If we have an asset ID but no playback ID, get it from Mux
+  if (lesson.mux_asset_id && !lesson.mux_playback_id) {
+    const response = await fetch(`/api/mux/playback-id?assetId=${lesson.mux_asset_id}`);
+    const result = await response.json();
+    
+    if (response.ok && result.playbackId) {
+      lesson.mux_playback_id = result.playbackId;
+      await supabase
+        .from('lessons')
+        .update({ mux_playback_id: result.playbackId })
+        .eq('id', lesson.id);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">

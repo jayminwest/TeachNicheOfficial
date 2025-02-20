@@ -150,16 +150,6 @@ export function VideoUploader({
         setStatus('ready');
       }
     }
-    console.log('Detail event - Status:', status, 'Asset ID:', assetId);
-    
-    if (status === 'complete' && assetId) {
-      setStatus('ready');
-      onUploadComplete(assetId);
-    } else if (status === 'processing') {
-      setStatus('processing');
-    } else {
-      console.log('Unexpected status:', status);
-    }
   };
 
   const handleUploadError: MuxUploadErrorHandler = (error) => {

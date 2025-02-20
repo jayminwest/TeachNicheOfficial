@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
-import { LessonCheckout } from "@/components/ui/lesson-checkout";
+import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";

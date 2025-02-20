@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
-import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
+import { AlertCircle, CheckCircle2, Upload, Loader2 } from "lucide-react";
 import MuxUploader from "@mux/mux-uploader-react";
 
 
@@ -145,7 +145,9 @@ export function VideoUploader({
     }
 
     try {
-      // First get the upload status to get the asset ID
+      setStatus("processing");
+      
+      // Get the upload status to get the asset ID
       const uploadResponse = await fetch(`/api/video/upload-status?uploadId=${currentAssetId}`);
       if (!uploadResponse.ok) {
         throw new Error('Failed to get upload status');
@@ -156,7 +158,28 @@ export function VideoUploader({
         throw new Error('No asset ID in upload response');
       }
 
-      console.log("Upload completed successfully. Upload ID:", currentAssetId, "Asset ID:", uploadData.asset_id);
+      // Wait for the asset to be ready
+      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${uploadData.asset_id}`);
+      if (!assetResponse.ok) {
+        throw new Error('Failed to get asset status');
+      }
+
+      const assetData = await assetResponse.json();
+      if (assetData.status === 'errored') {
+        throw new Error('Video processing failed');
+      }
+
+      if (!assetData.playbackId) {
+        throw new Error('No playback ID available');
+      }
+
+      console.log("Upload and processing completed successfully:", {
+        uploadId: currentAssetId,
+        assetId: uploadData.asset_id,
+        status: assetData.status,
+        playbackId: assetData.playbackId
+      });
+
       setStatus("ready");
       onUploadComplete(uploadData.asset_id);
     } catch (error) {
@@ -220,9 +243,10 @@ export function VideoUploader({
       <div className="flex items-center gap-2 text-sm">
         {status === 'error' && <AlertCircle className="h-4 w-4 text-destructive" />}
         {status === 'ready' && <CheckCircle2 className="h-4 w-4 text-primary" />}
+        {status === 'processing' && <Loader2 className="h-4 w-4 animate-spin" />}
         <p className="text-muted-foreground">
           {status === 'uploading' && `Uploading... ${progress}%`}
-          {status === 'processing' && 'Processing video...'}
+          {status === 'processing' && 'Processing video...'} 
           {status === 'ready' && 'Upload complete!'}
           {status === 'error' && (errorMessage || 'Upload failed. Please try again.')}
         </p>

@@ -7,8 +7,8 @@ import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
 import MuxUploader from "@mux/mux-uploader-react";
 
-// Use the built-in CustomEvent type
-type MuxCustomEvent<T> = CustomEvent<T>;
+// Import types from @mux/mux-uploader-react
+import type { MuxUploaderProps, UploadOptions } from "@mux/mux-uploader-react";
 
 interface VideoUploaderProps {
   endpoint: string | (() => Promise<string>);
@@ -27,27 +27,14 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
-type MuxUploadStartEvent = MuxCustomEvent<{
-  file?: File;
-}>;
-
-type MuxUploadProgressEvent = MuxCustomEvent<{
-  loaded?: number;
-  total?: number;
-}>;
-
-type MuxUploadSuccessEvent = MuxCustomEvent<{
+// Event handler types matching MuxUploader's expected types
+type MuxUploadStartEvent = CustomEvent<File>;
+type MuxUploadProgressEvent = CustomEvent<number>;
+type MuxUploadSuccessEvent = CustomEvent<{
   status?: 'processing' | 'complete';
   assetId?: string;
 }>;
-
-type MuxUploadErrorEvent = MuxCustomEvent<{
-  message?: string;
-  error?: {
-    type: string;
-    message: string;
-  }
-}>;
+type MuxUploadErrorEvent = CustomEvent<Error>;
 
 export function VideoUploader({ 
   endpoint,
@@ -109,7 +96,7 @@ export function VideoUploader({
 
   const handleUploadStart = async (event: MuxUploadStartEvent) => {
     try {
-      if (!event.detail.file) {
+      if (!event.detail) {
         throw new Error('No file selected');
       }
 
@@ -130,9 +117,8 @@ export function VideoUploader({
   };
 
   const handleProgress = (event: MuxUploadProgressEvent) => {
-    if (event.detail.loaded && event.detail.total) {
-      const percent = Math.round((event.detail.loaded / event.detail.total) * 100);
-      setProgress(percent);
+    if (event.detail) {
+      setProgress(event.detail);
     }
   };
 
@@ -171,18 +157,8 @@ export function VideoUploader({
   };
 
   const handleUploadError = (event: MuxUploadErrorEvent) => {
-    const { message, error } = event.detail;
     console.error('Upload error:', event.detail);
-    
-    if (error?.type === 'size_exceeded') {
-      handleError(new Error(`File size exceeds the ${maxSizeMB}MB limit`));
-    } else if (error?.type === 'format_unsupported') {
-      handleError(new Error(`File format not supported. Accepted formats: ${acceptedTypes.join(', ')}`));
-    } else if (error?.type === 'server_error') {
-      handleError(new Error('Server error occurred. Please try again later.'));
-    } else {
-      handleError(new Error(message || 'Upload failed'));
-    }
+    handleError(event.detail);
   };
 
   console.log('Current uploadEndpoint:', uploadEndpoint);

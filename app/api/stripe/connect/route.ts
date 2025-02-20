@@ -31,8 +31,14 @@ export async function POST(request: Request) {
     
     if (authError) {
       console.error('Authentication error:', authError);
-      return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+      console.error('Auth error details:', authError.message);
+      return NextResponse.json({ 
+        error: 'Authentication failed', 
+        details: authError.message 
+      }, { status: 401 });
     }
+
+    console.log('Authenticated user:', user);
     
     // Parse and validate request body
     let body;

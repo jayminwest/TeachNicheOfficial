@@ -19,8 +19,14 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
     
     try {
       setIsLoading(true);
-      console.log('Initiating Stripe Connect...', { userId: user.id });
       
+      // First refresh the session
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        throw new Error('Failed to refresh authentication');
+      }
+      
+      console.log('Initiating Stripe Connect...', { userId: user.id });
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {

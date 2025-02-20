@@ -127,4 +127,19 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
       <Toaster />
     </div>
   );
+} catch (error) {
+  console.error('Unexpected error:', error);
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+      <div className="container max-w-4xl px-4 py-10">
+        <Link href="/lessons">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Lessons
+          </Button>
+        </Link>
+        <p className="text-destructive">An unexpected error occurred. Please try again later.</p>
+      </div>
+    </div>
+  );
 }

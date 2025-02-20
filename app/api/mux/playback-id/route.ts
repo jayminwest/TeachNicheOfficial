@@ -47,25 +47,27 @@ export async function GET(request: Request) {
 
       return NextResponse.json({ playbackId: playbackId.id });
     } catch (muxError: unknown) {
-      console.error('Mux API error:', {
+      const errorDetails = {
         error: muxError,
-        message: muxError.message,
-        type: muxError.type,
-        details: muxError.details
-      });
+        message: muxError instanceof Error ? muxError.message : 'Unknown error',
+        type: (muxError as any)?.type,
+        details: (muxError as any)?.details
+      };
+      console.error('Mux API error:', errorDetails);
       throw muxError;
     }
   } catch (error: unknown) {
-    console.error('Error fetching Mux asset:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      type: error.type,
-      details: error.details || error
-    });
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      code: (error as any)?.code,
+      type: (error as any)?.type,
+      details: (error as any)?.details || error
+    };
+    console.error('Error fetching Mux asset:', errorDetails);
 
     // Check if it's a Mux API error
-    if (error.type && error.type.startsWith('mux')) {
+    if ((error as any)?.type?.startsWith('mux')) {
       return NextResponse.json(
         { error: `Mux API error: ${error.type}`, details: error.message },
         { status: error.status || 500 }

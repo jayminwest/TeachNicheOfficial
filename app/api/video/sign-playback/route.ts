@@ -8,22 +8,6 @@ if (!MUX_SIGNING_KEY || !MUX_SIGNING_KEY_ID) {
   console.error('Missing required environment variables for JWT signing');
 }
 
-// Extract and decode the base64 private key
-function formatPrivateKey(key: string) {
-  // Remove the "sk-{keyId}" prefix to get just the base64 encoded key
-  const base64Key = key.split('LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQ')[1];
-  
-  if (!base64Key) {
-    throw new Error('Invalid private key format');
-  }
-
-  // Decode the base64 key
-  const decodedKey = Buffer.from(base64Key, 'base64').toString();
-  
-  // Add back the header
-  return '-----BEGIN RSA PRIVATE KEY-----' + decodedKey;
-}
-
 export async function POST(request: Request) {
   try {
     const { playbackId } = await request.json();
@@ -31,8 +15,6 @@ export async function POST(request: Request) {
     if (!playbackId) {
       return NextResponse.json({ error: 'Playback ID is required' }, { status: 400 });
     }
-
-    const formattedKey = formatPrivateKey(MUX_SIGNING_KEY!);
 
     const token = jwt.sign(
       {

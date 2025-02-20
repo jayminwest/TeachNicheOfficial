@@ -13,6 +13,8 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
   const { toast } = useToast();
 
   const handleConnect = async () => {
+    if (isLoading) return;
+    
     try {
       setIsLoading(true);
       console.log('Initiating Stripe Connect...');
@@ -22,6 +24,7 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
       
       console.log('Response status:', response.status);

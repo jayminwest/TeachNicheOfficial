@@ -7,14 +7,22 @@ import { StripeConnectButton } from "@/components/ui/stripe-connect-button"
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage() {
   const supabase = createServerComponentClient({ cookies })
   
   // Get the user's profile data including stripe_account_id
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('stripe_account_id')
     .single()
+
+  if (error) {
+    console.error('Error fetching profile:', error);
+  }
+
+  console.log('Profile:', profile);
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">

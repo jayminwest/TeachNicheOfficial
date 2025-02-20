@@ -3,12 +3,17 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
+  console.log('Stripe Connect endpoint hit');
   try {
+    console.log('Creating Supabase client');
     const supabase = createRouteHandlerClient({ cookies });
     
-    // Get the current user
+    console.log('Getting user');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('User:', user);
     if (authError) {
       console.error('Auth error:', authError);
       return NextResponse.json({ error: 'Authentication error' }, { status: 401 });

@@ -11,18 +11,51 @@ interface LessonDetailProps {
 }
 
 export default async function LessonDetail({ id }: LessonDetailProps) {
-  const { data: lesson, error } = await supabase
-    .from('lessons')
-    .select('*')
-    .eq('id', id)
-    .single();
+  try {
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'published')
+      .is('deleted_at', null)
+      .single();
 
-  if (error) {
-    console.error('Error fetching lesson:', error);
-    return null;
-  }
+    if (error) {
+      console.error('Error fetching lesson:', {
+        message: error.message,
+        details: error.details,
+        code: error.code
+      });
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+          <div className="container max-w-4xl px-4 py-10">
+            <Link href="/lessons">
+              <Button variant="ghost" className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Lessons
+              </Button>
+            </Link>
+            <p className="text-destructive">Error loading lesson. Please try again later.</p>
+          </div>
+        </div>
+      );
+    }
 
-  if (!lesson) return null;
+    if (!lesson) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+          <div className="container max-w-4xl px-4 py-10">
+            <Link href="/lessons">
+              <Button variant="ghost" className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Lessons
+              </Button>
+            </Link>
+            <p className="text-muted-foreground">Lesson not found or not available.</p>
+          </div>
+        </div>
+      );
+    }
 
   // If we have an asset ID but no playback ID, get it from Mux
   if (lesson.mux_asset_id && !lesson.mux_playback_id) {

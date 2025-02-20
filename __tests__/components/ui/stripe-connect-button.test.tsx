@@ -360,4 +360,48 @@ describe('StripeConnectButton', () => {
       description: 'No redirect URL received from server'
     }));
   });
+
+  it('sends correct locale in API request', async () => {
+    const mockSession = {
+      access_token: 'test-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 3600
+    };
+    
+    jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
+      data: { session: mockSession },
+      error: null
+    });
+
+    // Mock navigator.language
+    const originalLanguage = navigator.language;
+    Object.defineProperty(navigator, 'language', {
+      value: 'fr-FR',
+      configurable: true
+    });
+
+    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    
+    const button = screen.getByRole('button');
+    await act(async () => {
+      await button.click();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/stripe/connect',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Accept-Language': 'fr-FR'
+        }),
+        body: expect.stringMatching(/"locale":"fr-FR"/)
+      })
+    );
+
+    // Restore original language
+    Object.defineProperty(navigator, 'language', {
+      value: originalLanguage,
+      configurable: true
+    });
+  });
 });

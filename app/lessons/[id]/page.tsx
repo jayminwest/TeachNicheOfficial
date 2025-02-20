@@ -2,8 +2,6 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-import { Metadata } from 'next';
-
 interface PageProps {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };

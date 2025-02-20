@@ -1,3 +1,4 @@
+import React from 'react';
 import { screen, act } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { renderWithStripe } from '../../test-utils';

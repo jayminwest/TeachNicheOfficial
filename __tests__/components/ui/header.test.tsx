@@ -145,7 +145,8 @@ describe('Header', () => {
       render(<Header />)
       
       // When loading, neither auth nor unauth buttons should be present
-      expect(screen.queryByText('Sign In')).not.toBeInTheDocument()
+      const signInButtons = screen.queryAllByText('Sign In')
+      expect(signInButtons.length).toBe(0)
       expect(screen.queryByText('Profile')).not.toBeInTheDocument()
       expect(screen.queryByText('Sign Out')).not.toBeInTheDocument()
     })

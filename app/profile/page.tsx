@@ -17,7 +17,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) {
-      redirect('/');
       return;
     }
 
@@ -40,7 +39,7 @@ export default function ProfilePage() {
   }, [user]);
 
   if (!user) {
-    return null;
+    redirect('/');
   }
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">

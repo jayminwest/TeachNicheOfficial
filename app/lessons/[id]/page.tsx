@@ -2,13 +2,14 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-interface PageProps {
+export interface PageProps {
   params: {
     id: string;
   };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-async function LessonPage({ params }: PageProps) {
+export default async function Page({ params }: PageProps) {
   return (
     <Suspense
       fallback={
@@ -25,5 +26,3 @@ async function LessonPage({ params }: PageProps) {
     </Suspense>
   );
 }
-
-export default LessonPage;

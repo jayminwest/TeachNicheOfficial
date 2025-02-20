@@ -81,14 +81,21 @@ export async function GET(request: Request) {
     console.error('Error fetching Mux asset:', errorDetails);
 
     // Check if it's a Mux API error
-    if ((error as ExtendedError)?.type?.startsWith('mux')) {
+    const typedError = error as ExtendedError;
+    if (typedError?.type?.startsWith('mux')) {
       return NextResponse.json(
-        { error: `Mux API error: ${error.type}`, details: error.message },
-        { status: error.status || 500 }
+        { 
+          error: `Mux API error: ${typedError.type}`, 
+          details: typedError.message || 'Unknown error'
+        },
+        { status: typedError.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: 'Failed to fetch playback ID', details: error.message },
+      { 
+        error: 'Failed to fetch playback ID', 
+        details: typedError.message || 'Unknown error'
+      },
       { status: 500 }
     );
   }

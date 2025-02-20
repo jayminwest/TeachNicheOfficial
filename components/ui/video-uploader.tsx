@@ -25,16 +25,9 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
-// Import types from @mux/mux-uploader-react
-import type { MuxUploaderProps } from "@mux/mux-uploader-react";
-
 // Event handler types for MuxUploader
 interface MuxUploaderEventDetail {
   file?: File;
-}
-
-interface MuxUploaderProgressEventDetail {
-  progress: number;
 }
 
 interface MuxUploaderSuccessEventDetail {

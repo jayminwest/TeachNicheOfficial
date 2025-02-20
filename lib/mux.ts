@@ -22,6 +22,11 @@ interface MuxVideo {
         id: string;
       }>;
     }>;
+    createPlaybackId: (assetId: string, options: {
+      policy: string;
+    }) => Promise<{
+      id: string;
+    }>;
   };
 }
 
@@ -53,6 +58,9 @@ if (typeof window === 'undefined') {
     },
     assets: {
       retrieve: (): never => {
+        throw new Error('Mux operations can only be performed on the server side');
+      },
+      createPlaybackId: (): never => {
         throw new Error('Mux operations can only be performed on the server side');
       }
     }

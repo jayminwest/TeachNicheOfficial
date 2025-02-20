@@ -152,8 +152,10 @@ export function VideoUploader({
     }
   };
 
-  const handleUploadError: MuxUploadErrorHandler = (error) => {
-    console.error('Upload error:', error);
+  const handleUploadError: MuxUploadErrorHandler = (event) => {
+    console.error('Upload error:', event);
+    // Convert the event to an Error object
+    const error = new Error(event instanceof Error ? event.message : 'Upload failed');
     handleError(error);
   };
 

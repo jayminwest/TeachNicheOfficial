@@ -31,14 +31,37 @@ export async function GET(request: Request) {
     // Verify the account exists and is properly set up
     const account = await stripe.accounts.retrieve(accountId);
     
+    // First verify that the user has a stripe_account_id in their profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile.stripe_account_id) {
+      console.error('Profile verification failed:', profileError);
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=profile-verification-failed`
+      );
+    }
+
+    // Verify the account ID matches the one in the profile
+    if (profile.stripe_account_id !== accountId) {
+      console.error('Account ID mismatch');
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=account-mismatch`
+      );
+    }
+
     if (account.details_submitted) {
-      // Update both fields in the database
+      // Update onboarding status only if we have verified everything
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
           stripe_onboarding_complete: true 
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .eq('stripe_account_id', accountId); // Additional safety check
 
       if (updateError) {
         console.error('Failed to update onboarding status:', updateError);

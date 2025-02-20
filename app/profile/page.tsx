@@ -15,7 +15,6 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
   const [profile, setProfile] = useState<{ 
     stripe_account_id: string | null;
-    stripe_onboarding_complete: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -28,7 +27,7 @@ export default function ProfilePage() {
     async function fetchProfile() {
       const { data, error } = await supabase
         .from('profiles')
-        .select('stripe_account_id, stripe_onboarding_complete')
+        .select('stripe_account_id')
         .eq('id', user.id)
         .single();
 
@@ -78,8 +77,7 @@ export default function ProfilePage() {
                     Connect your Stripe account to receive payments for your lessons
                   </p>
                   <StripeConnectButton 
-                    stripeAccountId={profile?.stripe_account_id} 
-                    onboardingComplete={profile?.stripe_onboarding_complete}
+                    stripeAccountId={profile?.stripe_account_id}
                   />
                 </div>
                 <AccountSettings />

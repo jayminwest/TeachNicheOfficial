@@ -84,5 +84,11 @@ describe('Header', () => {
       render(<Header />)
       expect(screen.getByText('Teach Niche')).toBeInTheDocument()
     })
+
+    it('renders navigation items', () => {
+      render(<Header />)
+      expect(screen.getByText('Home')).toBeInTheDocument()
+      expect(screen.getByText('About')).toBeInTheDocument()
+    })
   })
 })

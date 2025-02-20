@@ -8,14 +8,18 @@ import Stripe from 'stripe';
 import { POST } from '@/app/api/webhooks/stripe/route';
 
 // Mock Stripe
-const mockConstructEvent = jest.fn();
 jest.mock('stripe', () => {
-  return jest.fn().mockImplementation(() => ({
+  const mockConstructEvent = jest.fn();
+  const mock = jest.fn().mockImplementation(() => ({
     webhooks: {
       constructEvent: mockConstructEvent
     }
   }));
+  mock.mockConstructEvent = mockConstructEvent;
+  return mock;
 });
+
+const mockConstructEvent = jest.mocked(require('stripe')).mockConstructEvent;
 
 // Mock Supabase
 jest.mock('@supabase/auth-helpers-nextjs', () => ({

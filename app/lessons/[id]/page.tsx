@@ -4,8 +4,9 @@ import { Loader2 } from "lucide-react";
 
 export default async function LessonPage({ 
   params 
-}: { 
-  params: { id: string } 
+}: {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const { id } = params;
   return (

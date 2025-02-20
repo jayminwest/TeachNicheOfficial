@@ -165,12 +165,17 @@ export function LessonForm({
                   });
                   
                   // Wait for the asset to be ready and get the playback ID
-                  const response = await fetch(`/api/video/asset-status?assetId=${assetId}`);
+                  const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
                   if (!response.ok) {
-                    throw new Error('Failed to get asset status');
+                    const errorData = await response.json();
+                    throw new Error(
+                      errorData.error || errorData.details || 
+                      `Failed to get asset status: ${response.status}`
+                    );
                   }
                   
                   const data = await response.json();
+                  console.log("Asset status response:", data);
                   if (data.playbackId) {
                     form.setValue("muxPlaybackId", data.playbackId, {
                       shouldValidate: true,

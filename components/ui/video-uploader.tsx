@@ -7,8 +7,6 @@ import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
 import MuxUploader from "@mux/mux-uploader-react";
 
-// Import types from @mux/mux-uploader-react
-import type { MuxUploaderProps, UploadOptions } from "@mux/mux-uploader-react";
 
 interface VideoUploaderProps {
   endpoint: string | (() => Promise<string>);

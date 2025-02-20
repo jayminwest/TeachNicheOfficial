@@ -1,11 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import MuxUploader from "@mux/mux-uploader-react";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
+import MuxUploader, { 
+  CustomEvent,
+  UploadEvent 
+} from "@mux/mux-uploader-react";
 
 interface VideoUploaderProps {
   endpoint: string | (() => Promise<string>);
@@ -23,12 +26,6 @@ interface VideoUploaderProps {
 }
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
-
-// Import the MuxUploader component and its types
-import MuxUploader, { 
-  CustomEvent,
-  UploadEvent 
-} from "@mux/mux-uploader-react";
 
 interface MuxUploadStartEvent extends CustomEvent {
   detail: {

@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'

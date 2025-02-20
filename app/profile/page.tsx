@@ -12,10 +12,18 @@ export const dynamic = 'force-dynamic';
 export default async function ProfilePage() {
   const supabase = createServerComponentClient({ cookies })
   
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
   // Get the user's profile data including stripe_account_id
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('stripe_account_id')
+    .eq('id', user.id)
     .single()
 
   if (error) {

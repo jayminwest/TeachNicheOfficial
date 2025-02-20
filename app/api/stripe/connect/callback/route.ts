@@ -85,3 +85,61 @@ export async function GET(request: Request) {
     );
   }
 }
+import { stripe } from '@/lib/stripe';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const accountId = searchParams.get('account_id');
+
+    if (!accountId) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=missing-account-id`
+      );
+    }
+
+    // Retrieve the account to check its status
+    const account = await stripe.accounts.retrieve(accountId);
+    
+    // Check if the account has completed onboarding
+    const isComplete = 
+      account.details_submitted && 
+      account.payouts_enabled &&
+      account.charges_enabled;
+
+    // Update the profile in Supabase
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ 
+        stripe_onboarding_complete: isComplete 
+      })
+      .eq('stripe_account_id', accountId);
+
+    if (updateError) {
+      console.error('Failed to update profile:', updateError);
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
+      );
+    }
+
+    // Redirect back to profile with success message
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=onboarding-complete`
+    );
+
+  } catch (error) {
+    console.error('Stripe callback error:', error);
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=callback-failed`
+    );
+  }
+}

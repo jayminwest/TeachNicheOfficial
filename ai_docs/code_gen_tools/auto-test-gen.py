@@ -132,12 +132,14 @@ class AiderAgent:
             config_dict = yaml.safe_load(f)
 
         # Use CLI provided prompt path if available, otherwise use the prompt path from config
-        prompt_path = Path(prompt_path) if prompt_path else Path(config_dict["prompt"])
-        if not prompt_path.exists():
-            raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
-
-        with open(prompt_path) as f:
-            config_dict["prompt"] = f.read()
+        prompt_path = Path(prompt_path) if prompt_path else Path(config_dict.get("prompt"))
+        if prompt_path and prompt_path.exists():
+            with open(prompt_path) as f:
+                config_dict["prompt"] = f.read()
+        else:
+            # Use default test writing prompt from the YAML if no file provided
+            if "prompt" not in config_dict:
+                raise ValueError("No prompt specified in config and no prompt file provided")
 
         return AiderAgentConfig(**config_dict)
 
@@ -399,7 +401,7 @@ Return JSON with the structure: {{
             main_model=Model(self.config.coder_model),
             io=InputOutput(yes=True),
             fnames=[str(component_file)],  # The component being tested
-            read_only_fnames=[self.config.prompt],  # Test writing guidelines
+            read_only_fnames=[],  # We'll provide the guidelines in the prompt
             auto_commits=False,
             suggest_shell_commands=False
         )
@@ -407,9 +409,8 @@ Return JSON with the structure: {{
         # Generate test file path
         test_file = Path("__tests__") / component_file.with_suffix(".test.tsx").name
         
-        # Use the test writing prompt directly
-        with open(self.config.prompt) as f:
-            structured_prompt = f.read()
+        # Use the stored prompt content directly
+        structured_prompt = self.config.prompt
         
         console.print("\n[bold green]Using Test Writing Prompt:[/]\n")
         console.print(Markdown(structured_prompt))

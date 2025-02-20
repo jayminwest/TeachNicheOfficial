@@ -16,6 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Playback ID is required' }, { status: 400 });
     }
 
+    // The signing key is already properly formatted in the environment variable
     const token = jwt.sign(
       {
         sub: playbackId,
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
         exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
         kid: MUX_SIGNING_KEY_ID,
       },
-      formattedKey,
+      MUX_SIGNING_KEY,
       { algorithm: 'RS256' }
     );
 

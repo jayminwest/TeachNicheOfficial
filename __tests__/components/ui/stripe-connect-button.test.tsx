@@ -289,4 +289,42 @@ describe('StripeConnectButton', () => {
     expect(updatedButton).toBeDisabled();
     expect(updatedButton).toHaveTextContent(/connected to stripe/i);
   });
+
+  it('handles country not supported error appropriately', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    const mockSession = {
+      access_token: 'test-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 3600
+    };
+    
+    jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
+      data: { session: mockSession },
+      error: null
+    });
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ 
+        error: { 
+          code: 'country_not_supported'
+        },
+        supported_countries: ['US', 'GB', 'CA']
+      })
+    });
+
+    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    
+    const button = screen.getByRole('button');
+    await act(async () => {
+      await button.click();
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      variant: 'destructive',
+      title: 'Error',
+      description: expect.stringContaining('Sorry, Stripe is not yet supported in your country')
+    }));
+  });
 });

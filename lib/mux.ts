@@ -1,7 +1,32 @@
 import Mux from '@mux/mux-node';
 
+// Define types for Mux Video API
+interface MuxVideo {
+  uploads: {
+    create: (options: {
+      new_asset_settings: {
+        playback_policy: string[];
+        encoding_tier: string;
+      };
+      cors_origin: string;
+    }) => Promise<{
+      url: string;
+      id: string;
+    }>;
+  };
+  assets: {
+    retrieve: (assetId: string) => Promise<{
+      id: string;
+      status: string;
+      playback_ids?: Array<{
+        id: string;
+      }>;
+    }>;
+  };
+}
+
 // Only initialize Mux client on the server side
-let Video: any;
+let Video: MuxVideo;
 
 if (typeof window === 'undefined') {
   const tokenId = process.env.MUX_TOKEN_ID;
@@ -22,12 +47,12 @@ if (typeof window === 'undefined') {
   // Stub for client-side
   Video = {
     uploads: {
-      create: () => {
+      create: (): never => {
         throw new Error('Mux operations can only be performed on the server side');
       }
     },
     assets: {
-      retrieve: () => {
+      retrieve: (): never => {
         throw new Error('Mux operations can only be performed on the server side');
       }
     }

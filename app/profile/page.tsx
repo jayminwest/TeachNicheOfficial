@@ -25,6 +25,8 @@ export default function ProfilePage() {
     }
 
     async function fetchProfile() {
+      if (!user?.id) return;
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('stripe_account_id')

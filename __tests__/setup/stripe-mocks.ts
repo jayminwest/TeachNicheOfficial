@@ -1,4 +1,5 @@
 export const mockStripeClient = {
+  redirectToCheckout: jest.fn(),
   checkout: {
     sessions: {
       create: jest.fn().mockResolvedValue({

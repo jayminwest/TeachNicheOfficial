@@ -1,34 +1,16 @@
-import { Suspense } from "react";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-import { useRouter } from "next/navigation";
-import mux from 'mux-embed';
-
-interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  content?: string;
-  status: string;
-  mux_asset_id?: string;
-  mux_playback_id?: string;
-  created_at: string;
-  creator_id: string;
-  version: number;
-}
 
 interface LessonDetailProps {
   id: string;
 }
 
-async function LessonDetail({ id }: LessonDetailProps) {
+export default async function LessonDetail({ id }: LessonDetailProps) {
   const { data: lesson, error } = await supabase
     .from('lessons')
     .select('*')

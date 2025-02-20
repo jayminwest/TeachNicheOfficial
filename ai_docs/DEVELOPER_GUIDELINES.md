@@ -70,7 +70,9 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## 7. Video Handling (Vimeo)
  
- - Vimeo API for video uploading, editing, etc. 
+ - Mux API for video uploading, streaming and analytics
+ - Follow Mux SDK best practices for video handling
+ - Implement proper error handling for upload/playback failures
  
  
  
@@ -176,7 +178,29 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  - Coverage reports generated on every PR
  - Performance benchmarks tracked over time
  
- ## 12. Documentation
+ ## 10. Security
+ 
+ - Input validation using zod schemas
+ - XSS prevention via React's built-in escaping
+ - CSRF protection via Next.js defaults
+ - API routes protected with proper auth middleware
+ - Secure session handling via Supabase Auth
+ 
+ ## 11. Error Handling & Monitoring
+ 
+ - Use React Error Boundaries for UI errors
+ - Consistent API error responses
+ - Client-side error tracking via error monitoring service
+ - Structured logging in production
+ 
+ ## 12. Performance
+ 
+ - Route-based code splitting
+ - Image optimization via Next/Image
+ - Bundle analysis in CI pipeline
+ - Core Web Vitals monitoring
+ 
+ ## 13. Documentation
  
  - **Code Comments:**  Write clear and concise comments in the code to explain complex logic and functionality.  Prioritize self-documenting code and minimize the need for comments.
  - **README.md:**  Maintain a comprehensive `README.md` file in the project root with project description, setup instructions, and other relevant information. Keep `README.md` concise and focused on essential information.
@@ -289,7 +313,11 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## Deployment
  
- - Vercel Standards Go here
+ - Preview deployments for all PRs
+ - Production deploys require approval
+ - Environment variables managed in Vercel
+ - Zero-downtime deployments
+ - Automated rollbacks on failure
  
  
  

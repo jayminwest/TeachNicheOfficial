@@ -26,7 +26,10 @@ interface VideoUploaderProps {
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
 // Event handler types matching MuxUploader's expected types
-type MuxUploadStartEvent = CustomEvent<File>;
+type MuxUploadStartEvent = CustomEvent<{
+  file: File;
+  chunkSize: number;
+}>;
 type MuxUploadProgressEvent = CustomEvent<number>;
 type MuxUploadSuccessEvent = CustomEvent<{
   status?: 'processing' | 'complete';
@@ -94,7 +97,7 @@ export function VideoUploader({
 
   const handleUploadStart = async (event: MuxUploadStartEvent) => {
     try {
-      if (!event.detail) {
+      if (!event.detail?.file) {
         throw new Error('No file selected');
       }
 
@@ -104,7 +107,7 @@ export function VideoUploader({
       
       console.log('handleUploadStart called with endpoint:', uploadEndpoint);
       
-      validateFile(event.detail);
+      validateFile(event.detail.file);
       
       setStatus('uploading');
       setProgress(0);

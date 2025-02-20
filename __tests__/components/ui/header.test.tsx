@@ -138,14 +138,15 @@ describe('Header', () => {
 
       render(<Header />)
       const menuButton = screen.getByText('Menu Icon').parentElement
-      expect(screen.queryByRole('button', { name: /join teacher waitlist/i })).not.toBeInTheDocument()
+      const mobileMenu = screen.queryByTestId('mobile-menu')
+      expect(mobileMenu).not.toBeInTheDocument()
       
       fireEvent.click(menuButton!)
-      expect(screen.getByRole('button', { name: /join teacher waitlist/i })).toBeInTheDocument()
+      expect(screen.getByTestId('mobile-menu')).toBeInTheDocument()
       
       const closeButton = screen.getByText('X Icon').parentElement
       fireEvent.click(closeButton!)
-      expect(screen.queryByRole('button', { name: /join teacher waitlist/i })).not.toBeInTheDocument()
+      expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
     })
 
     it('handles sign out click', async () => {
@@ -168,6 +169,10 @@ describe('Header', () => {
         user: null,
         loading: false
       }))
+
+      // Mock querySelector
+      const mockElement = { scrollIntoView: mockScrollIntoView }
+      document.querySelector = jest.fn().mockReturnValue(mockElement)
 
       render(<Header />)
       const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i })

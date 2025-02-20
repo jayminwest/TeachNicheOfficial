@@ -99,8 +99,8 @@ describe('StripeConnectButton', () => {
 
     // Wait for loading state
     await screen.findByText(/connecting/i);
-    const button = screen.getByRole('button');
-    expect(button).toHaveTextContent(/connecting/i);
-    expect(button).toHaveAttribute('aria-busy', 'true');
+    const loadingButton = screen.getByRole('button');
+    expect(loadingButton).toHaveTextContent(/connecting/i);
+    expect(loadingButton).toHaveAttribute('aria-busy', 'true');
   });
 });

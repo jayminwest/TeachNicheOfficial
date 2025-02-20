@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { mockStripeClient } from '../../setup/stripe-mocks';
-import { renderWithStripe } from '../../test-utils';
+import { renderWithStripe } from '@/test-utils';
 
 describe('StripeConnectButton', () => {
   describe('rendering', () => {

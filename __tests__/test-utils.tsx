@@ -37,3 +37,29 @@ function render(
 
 export * from '@testing-library/react'
 export { render }
+import React from 'react';
+import { render } from '@testing-library/react';
+import { loadStripe } from '@stripe/stripe-js';
+
+interface ProvidersProps {
+  children: React.ReactNode;
+  stripePromise?: Promise<any>;
+}
+
+const Providers = ({ children, stripePromise }: ProvidersProps) => {
+  return <>{children}</>;
+};
+
+export const renderWithStripe = (
+  ui: React.ReactElement,
+  options = {}
+) => {
+  return render(ui, {
+    wrapper: ({ children }) => (
+      <Providers stripePromise={loadStripe('test_key')}>
+        {children}
+      </Providers>
+    ),
+    ...options,
+  });
+};

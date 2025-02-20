@@ -90,7 +90,8 @@ export function VideoUploader({
   useEffect(() => {
     getUploadUrl()
       .then(setUploadEndpoint)
-      .catch(_error => {
+      .catch(error => {
+        console.error('Failed to get upload URL:', error);
         handleError(new Error('Failed to get upload URL'));
       });
   }, [endpoint, getUploadUrl, handleError]);

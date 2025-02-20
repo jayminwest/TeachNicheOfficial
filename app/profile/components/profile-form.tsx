@@ -41,6 +41,7 @@ export function ProfileForm() {
 
   async function onSubmit(data: ProfileFormValues) {
     try {
+      console.log('Updating profile with data:', data);
       // TODO: Implement profile update logic with Supabase
       toast({
         title: "Profile updated",

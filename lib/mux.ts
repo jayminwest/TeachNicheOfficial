@@ -1,21 +1,8 @@
 import Mux from '@mux/mux-node';
 
-// Import Mux SDK types
-import type { Video } from '@mux/mux-node';
-
-// Define our interface using Mux SDK types
-interface MuxVideo {
-  uploads: {
-    create: (body: Parameters<typeof Video.uploads.create>[0]) => ReturnType<typeof Video.uploads.create>;
-  };
-  assets: {
-    retrieve: (assetId: string) => ReturnType<typeof Video.assets.retrieve>;
-    createPlaybackId: (assetId: string, options: Parameters<typeof Video.assets.createPlaybackId>[1]) => ReturnType<typeof Video.assets.createPlaybackId>;
-  };
-}
-
 // Only initialize Mux client on the server side
-let Video: MuxVideo;
+let muxClient: Mux | null = null;
+let Video: Mux['video'] | null = null;
 
 if (typeof window === 'undefined') {
   const tokenId = process.env.MUX_TOKEN_ID;
@@ -26,29 +13,12 @@ if (typeof window === 'undefined') {
   }
 
   // Initialize the client
-  const muxClient = new Mux({
-    tokenId: tokenId,
-    tokenSecret: tokenSecret
+  muxClient = new Mux({
+    tokenId,
+    tokenSecret
   });
 
   Video = muxClient.video;
-} else {
-  // Stub for client-side
-  Video = {
-    uploads: {
-      create: (): never => {
-        throw new Error('Mux operations can only be performed on the server side');
-      }
-    },
-    assets: {
-      retrieve: (): never => {
-        throw new Error('Mux operations can only be performed on the server side');
-      },
-      createPlaybackId: (): never => {
-        throw new Error('Mux operations can only be performed on the server side');
-      }
-    }
-  };
 }
 
 export { Video };

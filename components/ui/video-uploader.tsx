@@ -6,8 +6,7 @@ import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
 import MuxUploader, { 
-  CustomEvent,
-  UploadEvent 
+  CustomEvent
 } from "@mux/mux-uploader-react";
 
 interface VideoUploaderProps {

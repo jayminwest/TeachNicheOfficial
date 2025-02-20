@@ -2,12 +2,12 @@ import { Suspense } from "react";
 import LessonDetail from "./lesson-detail";
 import { Loader2 } from "lucide-react";
 
-export default async function LessonPage({ 
-  params 
-}: {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default async function LessonPage({ params, searchParams }: Props) {
   const { id } = params;
   return (
     <Suspense

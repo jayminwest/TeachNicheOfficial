@@ -3,26 +3,23 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { POST } from '@/app/api/webhooks/stripe/route';
-import { headers } from 'next/headers';
 
-// Setup global Request object for tests
-global.Request = class Request {
-  private url: string;
-  private options: RequestInit;
+// Mock the headers function
+jest.mock('next/headers', () => ({
+  headers: () => ({
+    get: jest.fn().mockImplementation((key) => 
+      key === 'stripe-signature' ? 'test_signature' : null
+    )
+  }),
+  cookies: () => ({})
+}));
 
-  constructor(url: string, options?: RequestInit) {
-    this.url = url;
-    this.options = options || {};
-  }
-
-  text() {
-    return Promise.resolve(
-      typeof this.options.body === 'string' 
-        ? this.options.body 
-        : JSON.stringify(this.options.body)
-    );
-  }
-} as unknown as typeof Request;
+// Setup Request mock
+const mockRequest = (body: any) => {
+  return {
+    text: () => Promise.resolve(JSON.stringify(body))
+  } as Request;
+};
 
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs');
@@ -71,10 +68,7 @@ describe('Stripe Webhook Handler', () => {
 
     mockStripeWebhooks.constructEvent.mockReturnValueOnce(mockEvent);
 
-    const request = new Request('http://localhost:3000/api/webhooks/stripe', {
-      method: 'POST',
-      body: JSON.stringify({ data: 'test' })
-    });
+    const request = mockRequest({ data: 'test' });
 
     const response = await POST(request);
     expect(response).toBeInstanceOf(NextResponse);
@@ -85,10 +79,7 @@ describe('Stripe Webhook Handler', () => {
   it('handles missing signatures', async () => {
     jest.spyOn(headers(), 'get').mockReturnValueOnce(null);
 
-    const request = new Request('http://localhost:3000/api/webhooks/stripe', {
-      method: 'POST',
-      body: JSON.stringify({ data: 'test' })
-    });
+    const request = mockRequest({ data: 'test' });
 
     const response = await POST(request);
     expect(response.status).toBe(400);
@@ -109,10 +100,7 @@ describe('Stripe Webhook Handler', () => {
 
     mockStripeWebhooks.constructEvent.mockReturnValueOnce(mockEvent);
 
-    const request = new Request('http://localhost:3000/api/webhooks/stripe', {
-      method: 'POST',
-      body: JSON.stringify({ data: 'test' })
-    });
+    const request = mockRequest({ data: 'test' });
 
     const response = await POST(request);
     expect(response.status).toBe(200);
@@ -132,10 +120,7 @@ describe('Stripe Webhook Handler', () => {
 
     mockStripeWebhooks.constructEvent.mockReturnValueOnce(mockEvent);
 
-    const request = new Request('http://localhost:3000/api/webhooks/stripe', {
-      method: 'POST',
-      body: JSON.stringify({ data: 'test' })
-    });
+    const request = mockRequest({ data: 'test' });
 
     const response = await POST(request);
     expect(response.status).toBe(200);

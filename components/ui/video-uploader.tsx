@@ -26,7 +26,6 @@ type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
 // Import the types from @mux/mux-uploader-react
 import type { 
-  UploaderConfig, 
   UploadStartEvent,
   UploadProgressEvent,
   UploadSuccessEvent,

@@ -1,11 +1,14 @@
 import Mux from '@mux/mux-node';
 
 // Define types for Mux Video API
+// Import types from Mux SDK
+import type { Asset, PlaybackID, PlaybackPolicy } from '@mux/mux-node';
+
 interface MuxVideo {
   uploads: {
     create: (body: {
       new_asset_settings: {
-        playback_policy: Array<'public' | 'signed'>;
+        playback_policy: PlaybackPolicy[];
         encoding_tier?: 'smart' | 'baseline' | 'premium';
       };
       cors_origin: string;
@@ -15,20 +18,10 @@ interface MuxVideo {
     }>;
   };
   assets: {
-    retrieve: (assetId: string) => Promise<{
-      id: string;
-      status: string;
-      playback_ids?: Array<{
-        id: string;
-        policy: 'public' | 'signed';
-      }>;
-    }>;
+    retrieve: (assetId: string) => Promise<Asset>;
     createPlaybackId: (assetId: string, options: {
-      policy: 'public' | 'signed';
-    }) => Promise<{
-      id: string;
-      policy: 'public' | 'signed';
-    }>;
+      policy: PlaybackPolicy;
+    }) => Promise<PlaybackID>;
   };
 }
 

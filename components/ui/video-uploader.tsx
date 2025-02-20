@@ -31,6 +31,7 @@ export function VideoUploader({
   endpoint,
   onUploadComplete, 
   onError,
+  onUploadStart,
   maxSizeMB = 500,
   acceptedTypes = ['video/mp4', 'video/quicktime'],
   className,

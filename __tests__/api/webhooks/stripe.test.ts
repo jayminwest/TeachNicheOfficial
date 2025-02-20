@@ -84,16 +84,19 @@ describe('Stripe Webhook Handler', () => {
     
     expect(mockConstructEvent).toHaveBeenCalledWith(
       payload,
-      'test_signature',
+      mockSignature,
       webhookSecret
     );
   });
 
   it('handles invalid signatures', async () => {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const invalidSignature = `t=${timestamp},v1=invalid_signature`;
+    
     mockConstructEvent.mockImplementationOnce(() => {
       throw new Stripe.errors.StripeSignatureVerificationError({
         message: 'Invalid signature',
-        header: 'test_signature',
+        header: invalidSignature,
         payload: '{}'
       });
     });
@@ -102,7 +105,7 @@ describe('Stripe Webhook Handler', () => {
       method: 'POST',
       body: '{}',
       headers: new Headers({
-        'stripe-signature': 'invalid_signature'
+        'stripe-signature': invalidSignature
       })
     });
 

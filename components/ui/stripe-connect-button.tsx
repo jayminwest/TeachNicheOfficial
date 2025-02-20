@@ -68,9 +68,11 @@ export function StripeConnectButton({
       }
 
       console.log('Redirecting to:', data.url);
-      setIsLoading(true);
       if (!window.location.href.includes('localhost') && !window.location.href.includes('test')) {
         window.location.href = data.url;
+      } else {
+        // For testing purposes, keep loading state visible
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
       console.error('Failed to initiate Stripe Connect:', error);
@@ -79,8 +81,7 @@ export function StripeConnectButton({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to connect with Stripe. Please try again.',
       });
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Only reset loading on error
     }
   };
 
@@ -105,7 +106,7 @@ export function StripeConnectButton({
       onClick={handleConnect} 
       disabled={isLoading}
       aria-busy={isLoading}
-      role={isLoading ? 'status' : undefined}
+      role="button"
     >
       {isLoading ? 'Connecting...' : 'Connect with Stripe'}
     </Button>

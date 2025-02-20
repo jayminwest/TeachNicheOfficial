@@ -3,11 +3,11 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from './button';
-import { Input } from './input';
-import { Textarea } from './textarea';
-import { VideoUploader } from './video-uploader';
-import { useToast } from './use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { VideoUploader } from '@/components/ui/video-uploader';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Form,
   FormControl,

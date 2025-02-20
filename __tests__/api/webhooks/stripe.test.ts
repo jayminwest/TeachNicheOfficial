@@ -49,10 +49,13 @@ describe('Stripe Webhook Handler', () => {
       }
     };
 
+    // Create properly formatted signature (t=timestamp,v1=signature)
+    const timestamp = Math.floor(Date.now() / 1000);
+    const mockSignature = `t=${timestamp},v1=test_signature`;
     const rawBody = JSON.stringify({ data: 'test' });
-    const mockSignature = 'test_signature';
 
     mockStripeWebhooks.constructEvent.mockImplementationOnce((body, signature, secret) => {
+      // Verify signature format matches Stripe's expected format
       if (body === rawBody && signature === mockSignature) {
         return mockEvent;
       }

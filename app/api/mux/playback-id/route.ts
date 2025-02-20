@@ -47,22 +47,36 @@ export async function GET(request: Request) {
 
       return NextResponse.json({ playbackId: playbackId.id });
     } catch (muxError: unknown) {
+      interface MuxErrorType {
+        type?: string;
+        details?: string;
+        status?: number;
+      }
+      
       const errorDetails = {
         error: muxError,
         message: muxError instanceof Error ? muxError.message : 'Unknown error',
-        type: (muxError as any)?.type,
-        details: (muxError as any)?.details
+        type: (muxError as MuxErrorType)?.type,
+        details: (muxError as MuxErrorType)?.details
       };
       console.error('Mux API error:', errorDetails);
       throw muxError;
     }
   } catch (error: unknown) {
+    interface ExtendedError {
+      code?: string;
+      type?: string;
+      details?: string;
+      status?: number;
+      message?: string;
+    }
+
     const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      code: (error as any)?.code,
-      type: (error as any)?.type,
-      details: (error as any)?.details || error
+      code: (error as ExtendedError)?.code,
+      type: (error as ExtendedError)?.type,
+      details: (error as ExtendedError)?.details || error
     };
     console.error('Error fetching Mux asset:', errorDetails);
 

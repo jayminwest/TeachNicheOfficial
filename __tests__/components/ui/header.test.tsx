@@ -90,5 +90,27 @@ describe('Header', () => {
       expect(screen.getByText('Home')).toBeInTheDocument()
       expect(screen.getByText('About')).toBeInTheDocument()
     })
+
+    it('shows sign in and waitlist buttons when user is not authenticated', () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: null,
+        loading: false
+      }))
+      
+      render(<Header />)
+      expect(screen.getByText('Sign In')).toBeInTheDocument()
+      expect(screen.getByText('Join Teacher Waitlist')).toBeInTheDocument()
+    })
+
+    it('shows profile and sign out buttons when user is authenticated', () => {
+      (useAuth as jest.Mock).mockImplementation(() => ({
+        user: { id: '123', email: 'test@example.com' },
+        loading: false
+      }))
+      
+      render(<Header />)
+      expect(screen.getByText('Profile')).toBeInTheDocument()
+      expect(screen.getByText('Sign Out')).toBeInTheDocument()
+    })
   })
 })

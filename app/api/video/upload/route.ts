@@ -28,15 +28,19 @@ async function handlePostRequest() {
     console.log('Starting upload request initialization');
     const upload = await createUpload();
 
-    console.log('Successfully created upload URL:', {
-      id: upload.id,
-      hasUrl: !!upload.url,
-      headers: {
-        origin,
-        allowMethods: 'POST, PUT, OPTIONS, HEAD',
-        allowHeaders: 'Content-Type, Content-Length, Content-Range'
-      }
+    console.log('Upload created:', {
+      uploadId: upload.id,
+      uploadUrl: upload.url,
+      uploadStatus: upload.status,
+      fullResponse: upload
     });
+
+    const response = {
+      url: upload.url,
+      assetId: upload.id
+    };
+
+    console.log('Sending response:', response);
 
     return NextResponse.json(
       {
@@ -154,9 +158,21 @@ export async function PUT(request: Request) {
       }
     });
 
+    console.log('Mux upload response:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
     if (!response.ok) {
       throw new Error(`Mux upload failed: ${response.status} ${response.statusText}`);
     }
+
+    const responseData = response.status === 308 
+      ? { status: 'processing' }
+      : { status: 'complete' };
+
+    console.log('Sending response:', responseData);
 
     const headers = {
       'Access-Control-Allow-Origin': origin,

@@ -129,8 +129,14 @@ export function VideoUploader({
   };
 
   const handleSuccess: MuxUploaderProps["onSuccess"] = (event) => {
+    console.log("Raw success event:", event);
+    
     if (!event.detail) {
-      console.warn("Success event missing detail");
+      console.warn("Success event missing detail:", {
+        event,
+        eventType: event instanceof CustomEvent ? 'CustomEvent' : typeof event,
+        eventKeys: Object.keys(event)
+      });
       return;
     }
     const { status: uploadStatus, assetId } = event.detail;

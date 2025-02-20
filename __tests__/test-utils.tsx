@@ -14,13 +14,12 @@ const mockAuthContext = {
 
 interface CustomRenderOptions {
   withAuth?: boolean;
-  withStripe?: boolean;
   providerProps?: Parameters<typeof Providers>[0];
 }
 
 function render(
   ui: React.ReactElement,
-  { withAuth = false, withStripe = false, providerProps, ...options }: CustomRenderOptions = {}
+  { withAuth = false, providerProps, ...options }: CustomRenderOptions = {}
 ) {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     let wrapped = (
@@ -55,7 +54,6 @@ export const renderWithStripe = (
 ) => {
   return render(ui, {
     withAuth: true,
-    withStripe: true,
     ...options,
   });
 };

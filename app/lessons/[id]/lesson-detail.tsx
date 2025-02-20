@@ -11,6 +11,23 @@ interface LessonDetailProps {
 }
 
 export default async function LessonDetail({ id }: LessonDetailProps) {
+  // Redirect to new lesson page if the ID is "create"
+  if (id === "create") {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+        <div className="container max-w-4xl px-4 py-10">
+          <p className="text-muted-foreground">Redirecting to new lesson page...</p>
+          {/* Add client-side redirect since this is a server component */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.location.href = '/lessons/new'`
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (!id) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">

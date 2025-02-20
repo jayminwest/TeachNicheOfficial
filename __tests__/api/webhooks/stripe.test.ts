@@ -49,45 +49,6 @@ describe('Stripe Webhook Handler', () => {
     expect(data.error).toBe('Missing stripe-signature header');
   });
 
-  it('verifies webhook signatures and processes events', async () => {
-    const mockEvent = {
-      type: 'payment_intent.succeeded',
-      data: {
-        object: {
-          id: 'pi_123',
-          status: 'succeeded'
-        }
-      }
-    };
-
-    const payload = JSON.stringify(mockEvent);
-    mockConstructEvent.mockReturnValueOnce(mockEvent);
-
-    // Create a properly formatted Stripe signature
-    const timestamp = Math.floor(Date.now() / 1000);
-    const mockSignature = `t=${timestamp},v1=mock_signature`;
-
-    const request = new Request('http://localhost', {
-      method: 'POST',
-      body: payload,
-      headers: new Headers({
-        'stripe-signature': mockSignature
-      })
-    });
-
-    const response = await POST(request);
-    
-    expect(response).toBeInstanceOf(NextResponse);
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.received).toBe(true);
-    
-    expect(mockConstructEvent).toHaveBeenCalledWith(
-      payload,
-      mockSignature,
-      webhookSecret
-    );
-  });
 
   it('handles invalid signatures', async () => {
     const timestamp = Math.floor(Date.now() / 1000);

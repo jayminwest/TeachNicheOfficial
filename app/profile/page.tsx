@@ -40,7 +40,7 @@ export default function ProfilePage() {
     }
 
     fetchProfile();
-  }, [user]);
+  }, [user, loading]);
 
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">

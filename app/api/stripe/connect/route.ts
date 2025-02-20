@@ -12,8 +12,7 @@ async function getAuthenticatedUser(request: Request) {
   
   // First try cookie-based session
   const {
-    data: { session },
-    error: sessionError
+    data: { session }
   } = await supabase.auth.getSession();
 
   if (session?.user) {
@@ -59,7 +58,7 @@ export async function POST(request: Request) {
     try {
       body = await request.json();
     } catch (e) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+      return NextResponse.json({ error: `Invalid request body: ${e instanceof Error ? e.message : 'Unknown error'}` }, { status: 400 });
     }
 
     // Verify the user ID matches

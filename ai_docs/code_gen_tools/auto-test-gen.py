@@ -108,10 +108,11 @@ class AiderAgentConfig(BaseModel):
 class AiderAgent:
     """Autonomous Code Generation and Iterative Improvement System"""
 
-    def __init__(self, config_path: str = "auto_aider_config.yaml", prompt_path: Optional[str] = None):
+    def __init__(self, config_path: str = "auto_aider_config.yaml", prompt_path: Optional[str] = None, component_dir: Optional[str] = None):
         self.config = self._validate_config(Path(config_path), prompt_path)
         self.test_template = TEST_TEMPLATE
         self.query_priority = QUERY_PRIORITY
+        self.component_dir = component_dir
         # Initialize Aider's coder (using the model specified in the config)
         self.coder = Coder.create(
             main_model=Model(self.config.coder_model),
@@ -475,7 +476,7 @@ Do not make any code changes. Only return the JSON response.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Autonomous Code Generation and Iterative Improvement System using Aider"
+        description="Autonomous Test Generation and Verification System"
     )
     parser.add_argument(
         "--prompt",
@@ -483,7 +484,42 @@ if __name__ == "__main__":
         help="Path to the prompt markdown file",
         default=None
     )
+    parser.add_argument(
+        "--component-dir",
+        type=str,
+        help="Directory containing UI components to test",
+        default="components/ui"
+    )
     args = parser.parse_args()
 
-    agent = AiderAgent(prompt_path=args.prompt)
-    agent.run()
+    agent = AiderAgent(prompt_path=args.prompt, component_dir=args.component_dir)
+    
+    # Process components directory
+    console.print(f"\n[bold blue]Processing components in {args.component_dir}...[/]\n")
+    
+    # Get list of all component files
+    component_path = Path(args.component_dir)
+    if not component_path.exists():
+        console.print(f"[bold red]Error:[/] Directory not found: {args.component_dir}")
+        exit(1)
+        
+    components = []
+    for ext in ["tsx", "ts"]:
+        components.extend(component_path.glob(f"*.{ext}"))
+    
+    if not components:
+        console.print(f"[bold yellow]Warning:[/] No components found in {args.component_dir}")
+        exit(0)
+        
+    # Process each component
+    for component_file in components:
+        console.print(f"\n[bold cyan]Processing component:[/] {component_file.name}")
+        
+        # Generate test file path
+        test_file = Path("__tests__") / component_file.with_suffix(".test.tsx").name
+        
+        # Create high-level idea for the component
+        high_level_idea = f"Generate comprehensive tests for the {component_file.stem} component following the project's testing standards"
+        
+        # Run the agent
+        agent.run()

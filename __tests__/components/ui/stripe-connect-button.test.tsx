@@ -105,6 +105,9 @@ describe('StripeConnectButton', () => {
   });
 
   it('handles API errors appropriately', async () => {
+    // Spy on console.error to suppress the expected error log
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    
     // Mock failed API response
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,

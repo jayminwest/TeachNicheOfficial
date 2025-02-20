@@ -98,8 +98,7 @@ export async function POST(request: Request) {
       type: 'account_onboarding',
       refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
-      collect: 'eventually_due',
-      locale: body.locale || 'auto'
+      collect: 'eventually_due'
     });
 
     // Store the Stripe account ID in Supabase

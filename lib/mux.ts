@@ -8,40 +8,43 @@ if (!tokenId || !tokenSecret) {
   throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
 }
 
-// Initialize Mux client with retry logic
-let muxClient: Mux | null = null;
-let initAttempts = 0;
-const maxInitAttempts = 3;
-const initRetryDelay = 1000; // 1 second
+// Initialize Mux client
+const initMuxClient = async () => {
+  let muxClient: Mux | null = null;
+  let initAttempts = 0;
+  const maxInitAttempts = 3;
+  const initRetryDelay = 1000; // 1 second
 
-while (initAttempts < maxInitAttempts && !muxClient) {
-  try {
-    muxClient = new Mux({
-      tokenId: tokenId,
-      tokenSecret: tokenSecret
-    });
-    
-    // Test the client with a basic API call
-    await muxClient.video.assets.list({ limit: 1 });
-    console.log('Mux Video client initialized successfully');
-  } catch (error) {
-    initAttempts++;
-    console.error(`Initialization attempt ${initAttempts}/${maxInitAttempts} failed:`, error);
-    
-    if (initAttempts === maxInitAttempts) {
-      console.error('Max initialization attempts reached');
-      throw new Error('Failed to initialize Mux client after max attempts');
+  while (initAttempts < maxInitAttempts && !muxClient) {
+    try {
+      muxClient = new Mux({
+        tokenId: tokenId,
+        tokenSecret: tokenSecret
+      });
+      
+      // Test the client with a basic API call
+      await muxClient.video.assets.list({ limit: 1 });
+      console.log('Mux Video client initialized successfully');
+      return muxClient;
+    } catch (error) {
+      initAttempts++;
+      console.error(`Initialization attempt ${initAttempts}/${maxInitAttempts} failed:`, error);
+      
+      if (initAttempts === maxInitAttempts) {
+        console.error('Max initialization attempts reached');
+        throw new Error('Failed to initialize Mux client after max attempts');
+      }
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, initRetryDelay));
     }
-    
-    // Wait before retrying
-    await new Promise(resolve => setTimeout(resolve, initRetryDelay));
   }
-}
 
-if (!muxClient) {
   throw new Error('Failed to initialize Mux client');
-}
+};
 
+// Initialize the client
+const muxClient = await initMuxClient();
 export const Video = muxClient.video;
 
 export interface MuxUploadResponse {

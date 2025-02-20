@@ -13,10 +13,11 @@ export default async function ProfilePage() {
   const supabase = createServerComponentClient({ cookies })
   
   // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
   
-  if (!user) {
-    throw new Error('Not authenticated');
+  if (userError || !user) {
+    // Redirect to home page if not authenticated
+    return Response.redirect(new URL('/', request.url));
   }
 
   // Get the user's profile data including stripe_account_id

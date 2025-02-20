@@ -113,15 +113,20 @@ function Header() {
                         <Button variant="ghost">Learn More</Button>
                     </Link>
                     {user ? (
-                        <Button 
-                            variant="ghost"
-                            onClick={async () => {
-                                await supabase.auth.signOut();
-                                window.location.href = '/';
-                            }}
-                        >
-                            Sign Out
-                        </Button>
+                        <>
+                            <Link href="/profile">
+                                <Button variant="ghost">Profile</Button>
+                            </Link>
+                            <Button 
+                                variant="ghost"
+                                onClick={async () => {
+                                    await supabase.auth.signOut();
+                                    window.location.href = '/';
+                                }}
+                            >
+                                Sign Out
+                            </Button>
+                        </>
                     ) : (
                         <>
                             <Dialog>
@@ -166,16 +171,21 @@ function Header() {
                                     <Button variant="ghost" className="w-full">Learn More</Button>
                                 </Link>
                                 {user ? (
-                                    <Button 
-                                        variant="ghost"
-                                        className="w-full"
-                                        onClick={async () => {
-                                            await supabase.auth.signOut();
-                                            window.location.href = '/';
-                                        }}
-                                    >
-                                        Sign Out
-                                    </Button>
+                                    <>
+                                        <Link href="/profile">
+                                            <Button variant="ghost" className="w-full">Profile</Button>
+                                        </Link>
+                                        <Button 
+                                            variant="ghost"
+                                            className="w-full"
+                                            onClick={async () => {
+                                                await supabase.auth.signOut();
+                                                window.location.href = '/';
+                                            }}
+                                        >
+                                            Sign Out
+                                        </Button>
+                                    </>
                                 ) : (
                                     <>
                                         <Dialog>

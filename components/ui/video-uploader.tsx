@@ -25,17 +25,14 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
-// Event handler types matching MuxUploader's expected types
-type MuxUploadStartEvent = CustomEvent<{
-  file: File;
-  chunkSize: number;
-}>;
-type MuxUploadProgressEvent = CustomEvent<number>;
-type MuxUploadSuccessEvent = CustomEvent<{
-  status?: 'processing' | 'complete';
-  assetId?: string;
-}>;
-type MuxUploadErrorEvent = CustomEvent<Error>;
+// Import types from @mux/mux-uploader-react
+import type { MuxUploaderProps } from "@mux/mux-uploader-react";
+
+// Event handler types for MuxUploader
+type MuxUploadStartHandler = MuxUploaderProps['onUploadStart'];
+type MuxUploadProgressHandler = MuxUploaderProps['onProgress'];
+type MuxUploadSuccessHandler = MuxUploaderProps['onSuccess'];
+type MuxUploadErrorHandler = MuxUploaderProps['onError'];
 
 export function VideoUploader({ 
   endpoint,
@@ -95,7 +92,7 @@ export function VideoUploader({
       });
   }, [endpoint, getUploadUrl, handleError]);
 
-  const handleUploadStart = async (event: MuxUploadStartEvent) => {
+  const handleUploadStart: MuxUploadStartHandler = async (event) => {
     try {
       if (!event.detail?.file) {
         throw new Error('No file selected');
@@ -117,13 +114,13 @@ export function VideoUploader({
     }
   };
 
-  const handleProgress = (event: MuxUploadProgressEvent) => {
+  const handleProgress: MuxUploadProgressHandler = (event) => {
     if (event.detail) {
       setProgress(event.detail);
     }
   };
 
-  const handleSuccess = (event: MuxUploadSuccessEvent) => {
+  const handleSuccess: MuxUploadSuccessHandler = (event) => {
     console.log('Upload success event:', event);
     
     if (!event.detail) {
@@ -157,7 +154,7 @@ export function VideoUploader({
     }
   };
 
-  const handleUploadError = (event: MuxUploadErrorEvent) => {
+  const handleUploadError: MuxUploadErrorHandler = (event) => {
     console.error('Upload error:', event.detail);
     handleError(event.detail);
   };

@@ -2,6 +2,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { mockStripeClient } from '../../setup/stripe-mocks';
 import { renderWithStripe } from '../../test-utils';
+import { AuthContext } from '@/auth/AuthContext';
 
 const mockUser = {
   id: 'test-user-id',
@@ -32,9 +33,7 @@ describe('StripeConnectButton', () => {
   describe('rendering', () => {
     it('renders connect button when not connected', () => {
       renderWithStripe(
-        <AuthContext.Provider value={mockAuthContext}>
-          <StripeConnectButton stripeAccountId={null} />
-        </AuthContext.Provider>
+        <StripeConnectButton stripeAccountId={null} />
       );
       
       const button = screen.getByRole('button');
@@ -43,9 +42,7 @@ describe('StripeConnectButton', () => {
 
     it('renders connected status when account exists', () => {
       renderWithStripe(
-        <AuthContext.Provider value={mockAuthContext}>
-          <StripeConnectButton stripeAccountId="acct_test123" />
-        </AuthContext.Provider>
+        <StripeConnectButton stripeAccountId="acct_test123" />
       );
       
       const button = screen.getByRole('button');
@@ -54,9 +51,7 @@ describe('StripeConnectButton', () => {
 
     it('shows loading state during connection', async () => {
       renderWithStripe(
-        <AuthContext.Provider value={mockAuthContext}>
-          <StripeConnectButton stripeAccountId={null} />
-        </AuthContext.Provider>
+        <StripeConnectButton stripeAccountId={null} />
       );
       
       const button = screen.getByRole('button');
@@ -82,9 +77,7 @@ describe('StripeConnectButton', () => {
       });
 
       renderWithStripe(
-        <AuthContext.Provider value={mockAuthContext}>
-          <StripeConnectButton stripeAccountId={null} />
-        </AuthContext.Provider>
+        <StripeConnectButton stripeAccountId={null} />
       );
       
       const button = screen.getByRole('button');
@@ -105,9 +98,7 @@ describe('StripeConnectButton', () => {
       });
 
       renderWithStripe(
-        <AuthContext.Provider value={mockAuthContext}>
-          <StripeConnectButton stripeAccountId={null} />
-        </AuthContext.Provider>
+        <StripeConnectButton stripeAccountId={null} />
       );
       
       const button = screen.getByRole('button');

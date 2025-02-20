@@ -28,7 +28,11 @@ function render(
     );
 
     if (withAuth) {
-      wrapped = <AuthProvider>{wrapped}</AuthProvider>;
+      wrapped = (
+        <AuthContext.Provider value={mockAuthContext}>
+          {wrapped}
+        </AuthContext.Provider>
+      );
     }
 
     return wrapped;

@@ -88,6 +88,15 @@ export function VideoUploader({
 
   const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {
     const file = event.detail?.file;
+    console.log("Upload start event:", {
+      file: file ? {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      } : null,
+      uploadEndpoint
+    });
+
     if (!file) {
       handleError(new Error("No file selected"));
       return;
@@ -104,14 +113,18 @@ export function VideoUploader({
       if (typeof onUploadStart === "function") {
         onUploadStart();
       }
+      console.log("Upload started successfully");
     } catch (error) {
+      console.error("Upload start error:", error);
       handleError(error instanceof Error ? error : new Error("Invalid file"));
     }
   };
 
   const handleProgress: MuxUploaderProps["onProgress"] = (event) => {
     if (event instanceof CustomEvent) {
-      setProgress(event.detail);
+      const progressValue = event.detail;
+      console.log("Upload progress:", progressValue);
+      setProgress(progressValue);
     }
   };
 
@@ -121,24 +134,43 @@ export function VideoUploader({
       return;
     }
     const { status: uploadStatus, assetId } = event.detail;
-    console.log("Upload success event:", event.detail);
+    console.log("Upload success event:", {
+      detail: event.detail,
+      status: uploadStatus,
+      assetId: assetId
+    });
+
     if (uploadStatus === "complete" && assetId) {
+      console.log("Upload completed successfully with assetId:", assetId);
       setStatus("ready");
       onUploadComplete(assetId);
     } else if (uploadStatus === "processing") {
+      console.log("Upload is processing");
       setStatus("processing");
     } else {
-      console.warn("Unexpected status:", uploadStatus);
+      console.warn("Unexpected upload status:", {
+        status: uploadStatus,
+        assetId: assetId,
+        fullEvent: event
+      });
     }
   };
 
   const handleUploadError: MuxUploaderProps["onError"] = (event) => {
     if (event instanceof CustomEvent) {
       const error = event.detail;
-      console.error("Upload error:", error);
+      console.error("Upload error (CustomEvent):", {
+        error,
+        message: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       handleError(error);
     } else {
-      console.error("Upload error:", event);
+      console.error("Upload error (unknown type):", {
+        event,
+        type: typeof event,
+        toString: String(event)
+      });
       handleError(new Error("Upload failed"));
     }
   };

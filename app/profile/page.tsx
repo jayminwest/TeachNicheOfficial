@@ -6,6 +6,7 @@ import { ContentManagement } from "./components/content-management"
 import { StripeConnectButton } from "@/components/ui/stripe-connect-button"
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export default async function ProfilePage() {
   
   if (userError || !user) {
     // Redirect to home page if not authenticated
-    return Response.redirect(new URL('/', request.url));
+    redirect('/');
   }
 
   // Get the user's profile data including stripe_account_id

@@ -18,24 +18,13 @@ jest.mock('stripe', () => {
   }));
 });
 
-// Mock next/headers
-let mockHeadersGet = jest.fn().mockImplementation((key) => 
-  key === 'stripe-signature' ? 'test_signature' : null
-);
-
-jest.mock('next/headers', () => ({
-  headers: () => ({
-    get: mockHeadersGet
-  }),
-  cookies: () => ({})
-}));
-
 describe('Stripe Webhook Handler', () => {
   it('handles missing signatures', async () => {
-    mockHeadersGet.mockReturnValueOnce(null);
-    
     const request = {
-      text: () => Promise.resolve('{}')
+      text: () => Promise.resolve('{}'),
+      headers: {
+        get: () => null
+      }
     } as unknown as Request;
 
     const response = await POST(request);
@@ -59,7 +48,10 @@ describe('Stripe Webhook Handler', () => {
     mockStripeWebhooks.constructEvent.mockReturnValueOnce(mockEvent);
 
     const request = {
-      text: () => Promise.resolve(JSON.stringify({ data: 'test' }))
+      text: () => Promise.resolve(JSON.stringify({ data: 'test' })),
+      headers: {
+        get: () => 'test_signature'
+      }
     } as unknown as Request;
 
     const response = await POST(request);

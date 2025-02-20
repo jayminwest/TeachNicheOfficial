@@ -121,10 +121,21 @@ export function VideoUploader({
     }
   };
 
-  const handleSuccess: MuxUploadSuccessHandler = (data) => {
-    console.log('Upload success event:', data);
+  const handleSuccess: MuxUploadSuccessHandler = (event) => {
+    console.log('Upload success event:', event);
     
-    if (!data) {
+    if (event instanceof CustomEvent && event.detail) {
+      // Handle event with detail data
+      const { status, assetId } = event.detail;
+      console.log('Detail event - Status:', status, 'Asset ID:', assetId);
+      
+      if (status === 'complete' && assetId) {
+        setStatus('ready');
+        onUploadComplete(assetId);
+      } else if (status === 'processing') {
+        setStatus('processing');
+      }
+    } else {
       // This is the initial success event, indicating upload is complete
       console.log('Initial success event - upload complete');
       setStatus('processing');
@@ -138,11 +149,7 @@ export function VideoUploader({
         onUploadComplete(uploadId);
         setStatus('ready');
       }
-      return;
     }
-    
-    // Handle subsequent events with data
-    const { status, assetId } = data;
     console.log('Detail event - Status:', status, 'Asset ID:', assetId);
     
     if (status === 'complete' && assetId) {

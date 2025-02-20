@@ -389,21 +389,27 @@ Return JSON with the structure: {{
         response = input("Does the final review meet your expectations? (y/n): ").strip().lower()
         return response == "y"
 
-    def run(self):
+    def run(self, component_file: Path):
         """
-        Run the autonomous iterative improvement process.
-        First, prompt the user for a high-level idea, generate a structured prompt,
-        and ask for confirmation before running the iterative process.
-        (Steps I & J: Iteratively generate, execute, and evaluate until success.)
+        Run the test generation process for a single component.
+        Uses the test writing prompt to generate appropriate tests.
         """
-        # Step 1: Get high-level idea from the user.
-        high_level_idea = input("Enter your high-level idea: ").strip()
-        if not high_level_idea:
-            print("No idea provided. Exiting.")
-            return
+        # Reset coder's context to only include relevant files
+        self.coder = Coder.create(
+            main_model=Model(self.config.coder_model),
+            io=InputOutput(yes=True),
+            fnames=[str(component_file)],  # The component being tested
+            read_only_fnames=[self.config.prompt],  # Test writing guidelines
+            auto_commits=False,
+            suggest_shell_commands=False
+        )
 
-        # Step 2: Build a structured prompt using Aider's chat (simulating /ask).
-        structured_prompt = self.build_structured_prompt(high_level_idea)
+        # Generate test file path
+        test_file = Path("__tests__") / component_file.with_suffix(".test.tsx").name
+        
+        # Use the test writing prompt directly
+        with open(self.config.prompt) as f:
+            structured_prompt = f.read()
         
         # Save the prompt to JSON file
         prompt_data = json.loads(self.coder.run(f"""I have the following high-level idea: "{high_level_idea}".
@@ -479,12 +485,6 @@ if __name__ == "__main__":
         description="Autonomous Test Generation and Verification System"
     )
     parser.add_argument(
-        "--prompt",
-        type=str,
-        help="Path to the prompt markdown file",
-        default=None
-    )
-    parser.add_argument(
         "--component-dir",
         type=str,
         help="Directory containing UI components to test",
@@ -492,8 +492,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    agent = AiderAgent(prompt_path=args.prompt, component_dir=args.component_dir)
-    
     # Process components directory
     console.print(f"\n[bold blue]Processing components in {args.component_dir}...[/]\n")
     
@@ -515,11 +513,12 @@ if __name__ == "__main__":
     for component_file in components:
         console.print(f"\n[bold cyan]Processing component:[/] {component_file.name}")
         
-        # Generate test file path
-        test_file = Path("__tests__") / component_file.with_suffix(".test.tsx").name
+        # Create new agent instance for each component to ensure clean context
+        agent = AiderAgent()
         
-        # Create high-level idea for the component
-        high_level_idea = f"Generate comprehensive tests for the {component_file.stem} component following the project's testing standards"
+        # Run the agent for this component
+        agent.run(component_file)
         
-        # Run the agent
-        agent.run()
+        # Wait for user confirmation before proceeding
+        if input(f"\nTests generated for {component_file.name}. Continue to next component? (y/n): ").lower() != 'y':
+            break

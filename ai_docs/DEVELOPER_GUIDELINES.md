@@ -201,7 +201,7 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  ```
  main (production)
    ↳ staging (optional)
-     ↳ develop
+     ↳ dev
        ↳ feature/xyz
        ↳ bugfix/xyz
        ↳ hotfix/xyz
@@ -218,22 +218,22 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
 
  #### Starting a New Feature
  ```bash
- git checkout develop
- git pull origin develop
+ git checkout dev
+ git pull origin dev
  git checkout -b feature/your-feature-name
  ```
 
  #### Working on a Bug Fix
  ```bash
- git checkout develop
- git pull origin develop
+ git checkout dev
+ git pull origin dev
  git checkout -b bugfix/bug-description
  ```
 
  #### Creating a Release
  ```bash
- git checkout develop
- git pull origin develop
+ git checkout dev
+ git pull origin dev
  git checkout -b release/v1.0.0
  # Make version bumps and final adjustments
  ```
@@ -246,7 +246,7 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  # After fix is complete and tested
  git checkout main
  git merge hotfix/critical-fix
- git checkout develop
+ git checkout dev
  git merge hotfix/critical-fix
  ```
 
@@ -257,7 +257,7 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  - Require linear history
  - Do not allow direct pushes
 
- #### Develop Branch
+ #### Dev Branch
  - Require pull request reviews before merging
  - Require status checks to pass
  - Allow pull request merges
@@ -265,10 +265,10 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  ### Merging Strategy
  ```bash
  # When feature is complete
- git checkout develop
- git pull origin develop
+ git checkout dev
+ git pull origin dev
  git merge feature/your-feature
- git push origin develop
+ git push origin dev
 
  # When ready for release
  git checkout main

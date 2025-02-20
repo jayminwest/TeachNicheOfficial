@@ -103,4 +103,26 @@ describe('StripeConnectButton', () => {
     expect(loadingButton).toHaveTextContent(/connecting/i);
     expect(loadingButton).toHaveAttribute('aria-busy', 'true');
   });
+
+  it('handles API errors appropriately', async () => {
+    // Mock failed API response
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ 
+        error: 'Failed to connect with Stripe'
+      })
+    });
+
+    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    
+    const button = screen.getByRole('button');
+    await act(async () => {
+      await button.click();
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      variant: 'destructive',
+      title: 'Error'
+    }));
+  });
 });

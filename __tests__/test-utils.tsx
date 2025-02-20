@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
+import { render as rtlRender, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from 'next-themes';
 import { ToastProvider } from '@/components/ui/toast';
 

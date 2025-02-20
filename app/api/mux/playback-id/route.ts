@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     try {
       console.log('Creating playback ID for asset:', assetId);
       // First check if the asset exists and is ready
-      const asset = await Video.assets.get(assetId);
+      const asset = await Video.assets.retrieve(assetId);
       
       if (!asset || !asset.status) {
         return NextResponse.json(

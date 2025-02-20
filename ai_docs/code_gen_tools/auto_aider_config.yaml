@@ -1,0 +1,26 @@
+# Configuration file for AiderAgent
+
+# Path to the prompt markdown file
+prompt: "default_prompt.md"
+
+# Model configurations
+coder_model: "ollama/deepseek-r1:70b"
+evaluator_model: "ollama/deepseek-r1:70b"
+
+# Execution settings
+max_iterations: 3
+execution_command: "npm test && vercel build"
+
+# Program type and monitoring
+program_type: "long_running"  # Options: "script" or "long_running"
+startup_timeout: 5  # seconds to wait for program startup
+health_check_command: null  # e.g. "curl http://localhost:8000/health"
+
+# File access controls
+context_editable:
+
+context_read_only:
+  - "ai_docs/DEVELOPER_GUIDELINES.md"
+
+# Evaluation settings
+evaluator: "default"

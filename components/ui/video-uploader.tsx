@@ -27,12 +27,6 @@ type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
 
-// Event handler types for MuxUploader
-type MuxUploadStartHandler = MuxUploaderProps["onUploadStart"];
-type MuxUploadProgressHandler = MuxUploaderProps["onProgress"]; 
-type MuxUploadSuccessHandler = MuxUploaderProps["onSuccess"];
-type MuxUploadErrorHandler = MuxUploaderProps["onError"];
-
 export function VideoUploader({ 
   endpoint,
   onUploadComplete, 
@@ -65,7 +59,7 @@ export function VideoUploader({
     }
   };
 
-  const [uploadEndpoint, setUploadEndpoint] = useState<string | undefined>();
+  const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
 
   // First step: Get the Mux upload URL from our API
   const getUploadUrl = useCallback(async (): Promise<string> => {
@@ -91,76 +85,56 @@ export function VideoUploader({
       });
   }, [endpoint, getUploadUrl, handleError]);
 
-  const handleUploadStart: MuxUploadStartHandler = async (event) => {
+  const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {
+    const file = event.detail?.file;
+    if (!file) {
+      handleError(new Error("No file selected"));
+      return;
+    }
+    if (!uploadEndpoint) {
+      handleError(new Error("Upload URL not available. Please try again."));
+      return;
+    }
     try {
-      if (!event.detail?.file) {
-        throw new Error('No file selected');
-      }
-
-      if (!uploadEndpoint) {
-        throw new Error('Upload URL not available. Please try again.');
-      }
-      
-      console.log('handleUploadStart called with endpoint:', uploadEndpoint);
-      
-      validateFile(event.detail.file);
-      
-      setStatus('uploading');
+      validateFile(file);
+      setStatus("uploading");
       setProgress(0);
-      setErrorMessage('');
+      setErrorMessage("");
+      if (typeof onUploadStart === "function") {
+        onUploadStart();
+      }
     } catch (error) {
-      handleError(error instanceof Error ? error : new Error('Invalid file'));
+      handleError(error instanceof Error ? error : new Error("Invalid file"));
     }
   };
 
-  const handleProgress: MuxUploadProgressHandler = (event) => {
-    if (typeof event === 'number') {
-      setProgress(event);
-    } else if (event instanceof CustomEvent) {
-      setProgress(event.detail);
-    }
+  const handleProgress: MuxUploaderProps["onProgress"] = (event) => {
+    setProgress(event.detail);
   };
 
-  const handleSuccess: MuxUploadSuccessHandler = (event) => {
-    console.log('Upload success event:', event);
-    
-    if (event instanceof CustomEvent && event.detail) {
-      // Handle event with detail data
-      const { status, assetId } = event.detail;
-      console.log('Detail event - Status:', status, 'Asset ID:', assetId);
-      
-      if (status === 'complete' && assetId) {
-        setStatus('ready');
-        onUploadComplete(assetId);
-      } else if (status === 'processing') {
-        setStatus('processing');
-      }
+  const handleSuccess: MuxUploaderProps["onSuccess"] = (event) => {
+    const { status: uploadStatus, assetId } = event.detail;
+    console.log("Upload success event:", event.detail);
+    if (uploadStatus === "complete" && assetId) {
+      setStatus("ready");
+      onUploadComplete(assetId);
+    } else if (uploadStatus === "processing") {
+      setStatus("processing");
     } else {
-      // This is the initial success event, indicating upload is complete
-      console.log('Initial success event - upload complete');
-      setStatus('processing');
-      
-      // Extract asset ID from the upload URL
-      const url = new URL(uploadEndpoint || '');
-      const uploadId = url.searchParams.get('upload_id');
-      if (uploadId) {
-        console.log('Found upload ID:', uploadId);
-        // Use upload ID as temporary asset ID
-        onUploadComplete(uploadId);
-        setStatus('ready');
-      }
+      console.warn("Unexpected status:", uploadStatus);
     }
   };
 
-  const handleUploadError: MuxUploadErrorHandler = (event) => {
-    console.error('Upload error:', event);
-    // Convert the event to an Error object
-    const error = new Error(event instanceof Error ? event.message : 'Upload failed');
+  const handleUploadError: MuxUploaderProps["onError"] = (event) => {
+    const error = event.detail;
+    console.error("Upload error:", error);
     handleError(error);
   };
 
-  console.log('Current uploadEndpoint:', uploadEndpoint);
-  console.log('Current status:', status);
+  // Wait for the uploadEndpoint to be resolved before rendering the uploader
+  if (!uploadEndpoint) {
+    return <div>Loading upload URL...</div>;
+  }
 
   return (
     <div className={cn("relative space-y-4", className)}>
@@ -177,7 +151,7 @@ export function VideoUploader({
         chunkSize={chunkSize}
         dynamicChunkSize={dynamicChunkSize}
         useLargeFileWorkaround={useLargeFileWorkaround}
-        acceptTypes={acceptedTypes}
+        accept={acceptedTypes.join(",")}
         multiple={false}
       >
         {status === 'idle' && (

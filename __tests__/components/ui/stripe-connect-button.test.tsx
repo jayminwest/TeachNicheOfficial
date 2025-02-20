@@ -176,4 +176,57 @@ describe('StripeConnectButton', () => {
       description: 'Failed to get session'
     }));
   });
+
+  it('initiates oauth flow when clicked', async () => {
+    // Mock successful session
+    const mockSession = {
+      access_token: 'test-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 3600
+    };
+    
+    jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
+      data: { session: mockSession },
+      error: null
+    });
+
+    // Mock successful API response with OAuth URL
+    const mockOAuthUrl = 'https://connect.stripe.com/oauth/test';
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ url: mockOAuthUrl })
+    });
+
+    // Mock window.location for verification
+    const mockWindowLocation = {
+      href: 'http://localhost:3000/test'
+    };
+    Object.defineProperty(window, 'location', {
+      value: mockWindowLocation,
+      writable: true
+    });
+
+    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    
+    const button = screen.getByRole('button');
+    await act(async () => {
+      await button.click();
+    });
+
+    // Verify API call
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/stripe/connect',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer test-token'
+        })
+      })
+    );
+
+    // In test environment, verify URL was received but not redirected
+    const responseData = await (global.fetch as jest.Mock).mock.results[0].value.json();
+    expect(responseData.url).toBe(mockOAuthUrl);
+  });
 });

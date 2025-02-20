@@ -25,20 +25,13 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
+import type { MuxUploaderProps } from "@mux/mux-uploader-react";
+
 // Event handler types for MuxUploader
-interface MuxUploaderEventDetail {
-  file?: File;
-}
-
-interface MuxUploaderSuccessEventDetail {
-  status?: string;
-  assetId?: string;
-}
-
-type MuxUploadStartHandler = (event: CustomEvent<MuxUploaderEventDetail>) => void;
-type MuxUploadProgressHandler = (event: CustomEvent<number>) => void;
-type MuxUploadSuccessHandler = (event: CustomEvent<MuxUploaderSuccessEventDetail>) => void;
-type MuxUploadErrorHandler = (event: CustomEvent<Error>) => void;
+type MuxUploadStartHandler = MuxUploaderProps["onUploadStart"];
+type MuxUploadProgressHandler = MuxUploaderProps["onProgress"]; 
+type MuxUploadSuccessHandler = MuxUploaderProps["onSuccess"];
+type MuxUploadErrorHandler = MuxUploaderProps["onError"];
 
 export function VideoUploader({ 
   endpoint,
@@ -120,14 +113,14 @@ export function VideoUploader({
     }
   };
 
-  const handleProgress: MuxUploadProgressHandler = (event) => {
-    setProgress(event.detail);
+  const handleProgress: MuxUploadProgressHandler = (progress) => {
+    setProgress(progress);
   };
 
-  const handleSuccess: MuxUploadSuccessHandler = (event) => {
-    console.log('Upload success event:', event);
+  const handleSuccess: MuxUploadSuccessHandler = (data) => {
+    console.log('Upload success event:', data);
     
-    if (!event.detail) {
+    if (!data) {
       // This is the initial success event, indicating upload is complete
       console.log('Initial success event - upload complete');
       setStatus('processing');
@@ -144,8 +137,8 @@ export function VideoUploader({
       return;
     }
     
-    // Handle subsequent events with detail
-    const { status, assetId } = event.detail;
+    // Handle subsequent events with data
+    const { status, assetId } = data;
     console.log('Detail event - Status:', status, 'Asset ID:', assetId);
     
     if (status === 'complete' && assetId) {
@@ -158,9 +151,9 @@ export function VideoUploader({
     }
   };
 
-  const handleUploadError: MuxUploadErrorHandler = (event) => {
-    console.error('Upload error:', event.detail);
-    handleError(event.detail);
+  const handleUploadError: MuxUploadErrorHandler = (error) => {
+    console.error('Upload error:', error);
+    handleError(error);
   };
 
   console.log('Current uploadEndpoint:', uploadEndpoint);

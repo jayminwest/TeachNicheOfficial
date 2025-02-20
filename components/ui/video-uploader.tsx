@@ -104,7 +104,7 @@ export function VideoUploader({
       
       console.log('handleUploadStart called with endpoint:', uploadEndpoint);
       
-      validateFile(event.detail.file);
+      validateFile(event.detail);
       
       setStatus('uploading');
       setProgress(0);

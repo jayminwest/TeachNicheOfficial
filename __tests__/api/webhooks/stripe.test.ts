@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { POST } from '@/app/api/webhooks/stripe/route';
 
+// Set webhook secret for testing
+process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
+
 // Mock Stripe constructor and methods
 const mockStripeWebhooks = {
   constructEvent: jest.fn()
@@ -55,11 +58,17 @@ describe('Stripe Webhook Handler', () => {
     const rawBody = JSON.stringify({ data: 'test' });
 
     mockStripeWebhooks.constructEvent.mockImplementationOnce((body, signature, secret) => {
-      // Verify signature format matches Stripe's expected format
-      if (body === rawBody && signature === mockSignature) {
+      // Verify the secret matches what we expect
+      if (body === rawBody && 
+          signature === mockSignature && 
+          secret === process.env.STRIPE_WEBHOOK_SECRET) {
         return mockEvent;
       }
-      throw new Error('Invalid signature');
+      throw new Stripe.errors.StripeSignatureVerificationError({
+        message: 'Invalid signature',
+        header: signature,
+        payload: body
+      });
     });
 
     const request = {

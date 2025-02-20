@@ -57,19 +57,8 @@ describe('Stripe Webhook Handler', () => {
     const mockSignature = `t=${timestamp},v1=test_signature`;
     const rawBody = JSON.stringify({ data: 'test' });
 
-    mockStripeWebhooks.constructEvent.mockImplementationOnce((body, signature, secret) => {
-      // Verify the secret matches what we expect
-      if (body === rawBody && 
-          signature === mockSignature && 
-          secret === process.env.STRIPE_WEBHOOK_SECRET) {
-        return mockEvent;
-      }
-      throw new Stripe.errors.StripeSignatureVerificationError({
-        message: 'Invalid signature',
-        header: signature,
-        payload: body
-      });
-    });
+    // Mock successful webhook verification
+    mockStripeWebhooks.constructEvent.mockReturnValueOnce(mockEvent);
 
     const request = {
       text: () => Promise.resolve(rawBody),

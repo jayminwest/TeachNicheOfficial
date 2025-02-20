@@ -97,9 +97,9 @@ describe('StripeConnectButton', () => {
       await button.click();
     });
 
-    // Re-query the button after state updates
-    const updatedButton = screen.getByRole('button');
-    expect(updatedButton).toHaveTextContent(/connecting/i);
-    expect(updatedButton).toHaveAttribute('aria-busy', 'true');
+    // Wait for loading state
+    const connectingButton = await screen.findByText(/connecting/i);
+    expect(connectingButton).toBeInTheDocument();
+    expect(connectingButton).toHaveAttribute('aria-busy', 'true');
   });
 });

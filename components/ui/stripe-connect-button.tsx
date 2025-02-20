@@ -68,13 +68,11 @@ export function StripeConnectButton({
       }
 
       console.log('Redirecting to:', data.url);
-      // Allow injection of navigation handler for testing
       if (window.location.href.includes('localhost') || window.location.href.includes('test')) {
-        // In test environment
-        setIsLoading(true);
-      } else {
-        window.location.href = data.url;
+        // Keep loading state in test environment
+        return;
       }
+      window.location.href = data.url;
     } catch (error) {
       console.error('Failed to initiate Stripe Connect:', error);
       toast({

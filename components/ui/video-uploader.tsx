@@ -55,11 +55,11 @@ export function VideoUploader({
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const handleError = useCallback((error: Error) => {
+  const handleError = useCallback((error: Error): void => {
     setStatus('error');
     setErrorMessage(error.message);
     onError(error);
-  };
+  }, [onError]);
 
   const validateFile = (file: File) => {
     if (file.size > maxSizeMB * 1024 * 1024) {

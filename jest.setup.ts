@@ -4,12 +4,11 @@ import { jest } from '@jest/globals';
 // Suppress specific console messages during tests
 const originalConsoleError = console.error;
 console.error = (...args) => {
-  if (
-    typeof args[0] === 'string' && (
-      args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-      args[0].includes('Webhook error: StripeSignatureVerificationError')
-    )
-  ) {
+  // Check if the error is a Stripe signature verification error
+  if (typeof args[0] === 'string' && (
+    args[0].includes('Warning: ReactDOM.render is no longer supported') ||
+    args[0].includes('No signatures found matching the expected signature for payload')
+  )) {
     return;
   }
   originalConsoleError.call(console, ...args);

@@ -327,4 +327,37 @@ describe('StripeConnectButton', () => {
       description: expect.stringContaining('Sorry, Stripe is not yet supported in your country')
     }));
   });
+
+  it('handles missing redirect URL appropriately', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    const mockSession = {
+      access_token: 'test-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 3600
+    };
+    
+    jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
+      data: { session: mockSession },
+      error: null
+    });
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({}) // Empty response with no URL
+    });
+
+    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    
+    const button = screen.getByRole('button');
+    await act(async () => {
+      await button.click();
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
+      variant: 'destructive',
+      title: 'Error',
+      description: 'No redirect URL received from server'
+    }));
+  });
 });

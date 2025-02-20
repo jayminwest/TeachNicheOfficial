@@ -4,10 +4,9 @@ import { Loader2 } from "lucide-react";
 
 type Props = {
   params: { id: string }
-  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default async function LessonPage({ params, searchParams }: Props) {
+export default async function LessonPage({ params }: Props) {
   const { id } = params;
   return (
     <Suspense

@@ -177,7 +177,7 @@ export function VideoUploader({
         chunkSize={chunkSize}
         dynamicChunkSize={dynamicChunkSize}
         useLargeFileWorkaround={useLargeFileWorkaround}
-        accept={acceptedTypes.join(',')}
+        acceptTypes={acceptedTypes}
         multiple={false}
       >
         {status === 'idle' && (

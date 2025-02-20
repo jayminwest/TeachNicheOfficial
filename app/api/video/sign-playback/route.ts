@@ -8,24 +8,20 @@ if (!MUX_SIGNING_KEY || !MUX_SIGNING_KEY_ID) {
   console.error('Missing required environment variables for JWT signing');
 }
 
-// Format the private key by adding newlines if needed
+// Extract and decode the base64 private key
 function formatPrivateKey(key: string) {
-  // If key is already in PEM format, return as-is
-  if (key.includes('-----BEGIN PRIVATE KEY-----')) {
-    return key;
+  // Remove the "sk-{keyId}" prefix to get just the base64 encoded key
+  const base64Key = key.split('LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQ')[1];
+  
+  if (!base64Key) {
+    throw new Error('Invalid private key format');
   }
 
-  const header = '-----BEGIN PRIVATE KEY-----';
-  const footer = '-----END PRIVATE KEY-----';
+  // Decode the base64 key
+  const decodedKey = Buffer.from(base64Key, 'base64').toString();
   
-  // Clean the key of any whitespace
-  const cleanKey = key.replace(/\s/g, '');
-
-  // Add newlines every 64 characters
-  const chunks = cleanKey.match(/.{1,64}/g) || [];
-  const formattedKey = chunks.join('\n');
-
-  return `${header}\n${formattedKey}\n${footer}`;
+  // Add back the header
+  return '-----BEGIN RSA PRIVATE KEY-----' + decodedKey;
 }
 
 export async function POST(request: Request) {

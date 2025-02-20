@@ -10,6 +10,9 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(lucide-react|@lucide)/)'
+  ],
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',

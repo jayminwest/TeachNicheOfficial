@@ -240,4 +240,24 @@ describe('StripeConnectButton', () => {
     // Verify the mock URL was used
     expect(mockOAuthUrl).toBe('https://connect.stripe.com/oauth/test');
   });
+
+  it('updates UI after successful connection', async () => {
+    // Start with no Stripe account
+    const { rerender } = renderWithStripe(
+      <StripeConnectButton stripeAccountId={null} />
+    );
+    
+    // Initial state should show connect button
+    expect(screen.getByRole('button')).toHaveTextContent(/connect with stripe/i);
+    
+    // Simulate successful connection by updating props
+    rerender(
+      <StripeConnectButton stripeAccountId="acct_123" />
+    );
+    
+    // Should now show connected state
+    const updatedButton = screen.getByRole('button');
+    expect(updatedButton).toBeDisabled();
+    expect(updatedButton).toHaveTextContent(/connected to stripe/i);
+  });
 });

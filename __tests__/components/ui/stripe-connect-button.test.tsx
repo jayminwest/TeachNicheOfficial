@@ -4,6 +4,16 @@ import { renderWithStripe } from '../../test-utils';
 import { AuthContext } from '@/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 
+// Mock fetch
+global.fetch = jest.fn();
+
+// Mock toast
+jest.mock('@/components/ui/use-toast', () => ({
+  useToast: () => ({
+    toast: jest.fn()
+  })
+}));
+
 const mockUseAuth = jest.fn().mockReturnValue({
   user: { id: 'test-user-id', email: 'test@example.com' },
   loading: false
@@ -49,7 +59,7 @@ describe('StripeConnectButton', () => {
   });
 
   it('shows loading state while connecting', async () => {
-    // Mock Supabase auth response
+    // Mock responses
     const mockSession = {
       access_token: 'test-token',
       refresh_token: 'test-refresh-token',
@@ -61,14 +71,20 @@ describe('StripeConnectButton', () => {
       error: null
     });
 
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ url: 'https://stripe.com/connect' })
+    });
+
     const { rerender } = renderWithStripe(
       <StripeConnectButton stripeAccountId={null} />
     );
 
     const button = screen.getByRole('button');
     
+    // Click and wait for state updates
     await act(async () => {
-      button.click();
+      await button.click();
     });
     
     expect(button).toBeDisabled();

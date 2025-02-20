@@ -21,7 +21,7 @@ jest.mock('stripe', () => {
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createRouteHandlerClient: jest.fn().mockReturnValue({
     from: jest.fn().mockReturnValue({
-      update: jest.fn().mockResolvedValue({ data: null, error: null })
+      update: jest.fn().mockResolvedValue({ data: {}, error: null })
     })
   })
 }));
@@ -57,7 +57,7 @@ describe('Stripe Webhook Handler', () => {
     mockConstructEvent.mockImplementationOnce(() => {
       throw new Stripe.errors.StripeSignatureVerificationError({
         message: 'Invalid signature',
-        header: invalidSignature,
+        headers: invalidSignature,
         payload: '{}'
       });
     });

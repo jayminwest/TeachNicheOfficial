@@ -65,7 +65,12 @@ describe('StripeConnectButton', () => {
     const mockSession = {
       access_token: 'test-token',
       refresh_token: 'test-refresh-token',
-      expires_in: 3600
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com'
+      }
     };
     
     jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({

@@ -240,8 +240,10 @@ describe('Header', () => {
       
       // Mock window.location
       const originalLocation = window.location
-      delete window.location
-      window.location = { ...originalLocation, href: '' as any }
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...originalLocation, href: '' }
+      })
       
       fireEvent.click(waitlistButton)
       expect(window.location.href).toBe('/#email-signup')

@@ -7,8 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: Request) {
-  const cookieStore = await cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  const supabase = createRouteHandlerClient({ cookies });
   
   // First try cookie-based session
   const {
@@ -88,8 +87,7 @@ export async function POST(request: Request) {
     });
 
     // Store the Stripe account ID in Supabase
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createRouteHandlerClient({ cookies });
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ stripe_account_id: account.id })

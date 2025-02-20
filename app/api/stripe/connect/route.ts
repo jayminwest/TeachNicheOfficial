@@ -7,15 +7,27 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    console.log('Starting Stripe Connect process...');
+    
     // Get the session from the cookie
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
+    console.log('Session check:', { 
+      hasSession: !!session, 
+      sessionError: sessionError?.message 
+    });
+    
     if (sessionError || !session) {
+      console.log('Unauthorized - No valid session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { user } = session;
+    console.log('User found:', { 
+      userId: user.id,
+      hasEmail: !!user.email 
+    });
     if (!user.email) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }

@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useState } from 'react';
+import { useAuth } from '@/auth/AuthContext';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;
@@ -11,13 +12,14 @@ interface StripeConnectButtonProps {
 export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleConnect = async () => {
-    if (isLoading) return;
+    if (isLoading || !user) return;
     
     try {
       setIsLoading(true);
-      console.log('Initiating Stripe Connect...');
+      console.log('Initiating Stripe Connect...', { userId: user.id });
       
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
@@ -25,6 +27,7 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        body: JSON.stringify({ userId: user.id }),
       });
       
       console.log('Response status:', response.status);
@@ -52,6 +55,14 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
       setIsLoading(false);
     }
   };
+
+  if (!user) {
+    return (
+      <Button variant="outline" disabled>
+        Please sign in to connect Stripe
+      </Button>
+    );
+  }
 
   if (stripeAccountId) {
     return (

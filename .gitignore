@@ -43,5 +43,3 @@ next-env.d.ts
 
 # AI code generation tools
 ai_docs/code_gen_tools/*
-
-ai_docs/code_gen_tools/*

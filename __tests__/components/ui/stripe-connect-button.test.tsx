@@ -1,7 +1,8 @@
-import { screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { renderWithStripe } from '../../test-utils';
 import { AuthContext } from '@/auth/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 const mockUseAuth = jest.fn().mockReturnValue({
   user: { id: 'test-user-id', email: 'test@example.com' },
@@ -47,13 +48,28 @@ describe('StripeConnectButton', () => {
     expect(button).toHaveTextContent(/please sign in/i);
   });
 
-  it('shows loading state while connecting', () => {
+  it('shows loading state while connecting', async () => {
+    // Mock Supabase auth response
+    const mockSession = {
+      access_token: 'test-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 3600
+    };
+    
+    jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
+      data: { session: mockSession },
+      error: null
+    });
+
     const { rerender } = renderWithStripe(
       <StripeConnectButton stripeAccountId={null} />
     );
 
     const button = screen.getByRole('button');
-    button.click();
+    
+    await act(async () => {
+      button.click();
+    });
     
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-busy', 'true');

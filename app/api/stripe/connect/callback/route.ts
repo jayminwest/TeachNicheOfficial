@@ -15,25 +15,22 @@ export async function GET() {
       );
     }
 
-    // Get the user's Stripe account
-    const { data: accounts } = await stripe.accounts.list({
-      limit: 1,
-      email: user.email,
-    });
+    const searchParams = new URL(request.url).searchParams;
+    const accountId = searchParams.get('account_id');
+    
+    if (!accountId) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=missing-account`
+      );
+    }
 
-    if (accounts && accounts.data[0]) {
-      // Store the Stripe account ID in Supabase
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ stripe_account_id: accounts.data[0].id })
-        .eq('id', user.id);
-
-      if (updateError) {
-        console.error('Failed to update profile:', updateError);
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=update-failed`
-        );
-      }
+    // Verify the account exists and is properly set up
+    const account = await stripe.accounts.retrieve(accountId);
+    
+    if (!account.details_submitted) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=incomplete-onboarding`
+      );
     }
 
     return NextResponse.redirect(

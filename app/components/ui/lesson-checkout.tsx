@@ -1,7 +1,7 @@
 'use client';
 
 import { useStripe } from '@stripe/stripe-js';
-import { Button } from './button';
+import { Button } from '@/components/ui/button';
 
 interface LessonCheckoutProps {
   lessonId: string;

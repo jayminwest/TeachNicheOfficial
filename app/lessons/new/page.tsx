@@ -103,7 +103,7 @@ export default function NewLessonPage() {
       // Create new object with all form data plus playback ID
       const lessonData = {
         ...data,
-        muxPlaybackId: playbackId
+        muxPlaybackId: result.playbackId
       };
 
       // Verify session is still valid

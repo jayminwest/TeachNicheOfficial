@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react'
 import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
-import { usePathname } from 'next/navigation'
 
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
@@ -11,9 +10,22 @@ jest.mock('@/auth/AuthContext', () => ({
   }))
 }))
 
+// Mock next/navigation
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(() => '/'),
-  Link: ({ children }: { children: React.ReactNode }) => children
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn()
+  }))
+}))
+
+// Mock next/link
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  )
 }))
 
 // Mock components

@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     
     if (sessionError || !session) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=unauthorized`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=unauthorized`
       );
     }
 
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     
     if (!accountId) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=missing-account`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=missing-account`
       );
     }
 
@@ -33,17 +33,17 @@ export async function GET(request: Request) {
     
     if (!account.details_submitted) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=incomplete-onboarding`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
       );
     }
 
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=connected`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
     );
   } catch (error) {
     console.error('Stripe Connect callback error:', error);
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=callback-failed`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=callback-failed`
     );
   }
 }

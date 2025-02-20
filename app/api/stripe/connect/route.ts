@@ -84,8 +84,8 @@ export async function POST(request: Request) {
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       type: 'account_onboarding',
-      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?error=connect-refresh`,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/connect/callback?account_id=${account.id}`,
+      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
+      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
     });
 
     // Store the Stripe account ID in Supabase
@@ -102,9 +102,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: accountLink.url });
   } catch (error) {
-    console.error('Stripe Connect error:', error);
+    console.error('Stripe Connect error details:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      stripeError: error instanceof stripe.errors.StripeError ? error.raw : undefined
+    });
     return NextResponse.json(
-      { error: 'Failed to create Connect account' },
+      { 
+        error: 'Failed to create Connect account',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

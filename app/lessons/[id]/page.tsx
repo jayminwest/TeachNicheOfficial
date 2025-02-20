@@ -1,11 +1,11 @@
 import LessonDetail from "./lesson-detail";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 export default async function Page({ params }: PageProps) {
-  const { id } = await params;
+  const { id } = params;
   return <LessonDetail id={id} />;
 }

@@ -61,9 +61,10 @@ export function VideoUploader({
   };
 
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
+  const [currentAssetId, setCurrentAssetId] = useState<string | null>(null);
 
   // First step: Get the Mux upload URL from our API
-  const getUploadUrl = useCallback(async (): Promise<string> => {
+  const getUploadUrl = useCallback(async (): Promise<{url: string; assetId: string}> => {
     const response = await fetch(typeof endpoint === 'string' ? endpoint : await endpoint(), {
       method: 'POST'
     });
@@ -73,13 +74,19 @@ export function VideoUploader({
     }
 
     const data = await response.json();
-    return data.url;
+    if (!data.url || !data.assetId) {
+      throw new Error('Invalid upload response');
+    }
+    return data;
   }, [endpoint]);
 
   // Fetch endpoint URL when component mounts if it's a function
   useEffect(() => {
     getUploadUrl()
-      .then(setUploadEndpoint)
+      .then(({url, assetId}) => {
+        setUploadEndpoint(url);
+        setCurrentAssetId(assetId);
+      })
       .catch(error => {
         console.error('Failed to get upload URL:', error);
         handleError(new Error('Failed to get upload URL'));
@@ -131,35 +138,15 @@ export function VideoUploader({
   const handleSuccess: MuxUploaderProps["onSuccess"] = (event) => {
     console.log("Raw success event:", event);
     
-    if (!event.detail) {
-      console.warn("Success event missing detail:", {
-        event,
-        eventType: event instanceof CustomEvent ? 'CustomEvent' : typeof event,
-        eventKeys: Object.keys(event)
-      });
+    if (!currentAssetId) {
+      console.error("No asset ID available for completed upload");
+      handleError(new Error("Upload failed: No asset ID available"));
       return;
     }
-    const { status: uploadStatus, assetId } = event.detail;
-    console.log("Upload success event:", {
-      detail: event.detail,
-      status: uploadStatus,
-      assetId: assetId
-    });
 
-    if (uploadStatus === "complete" && assetId) {
-      console.log("Upload completed successfully with assetId:", assetId);
-      setStatus("ready");
-      onUploadComplete(assetId);
-    } else if (uploadStatus === "processing") {
-      console.log("Upload is processing");
-      setStatus("processing");
-    } else {
-      console.warn("Unexpected upload status:", {
-        status: uploadStatus,
-        assetId: assetId,
-        fullEvent: event
-      });
-    }
+    console.log("Upload completed successfully with assetId:", currentAssetId);
+    setStatus("ready");
+    onUploadComplete(currentAssetId);
   };
 
   const handleUploadError: MuxUploaderProps["onError"] = (event) => {

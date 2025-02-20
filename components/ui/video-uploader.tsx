@@ -109,7 +109,7 @@ export function VideoUploader({
     }
   };
 
-  const handleProgress: MuxUploaderProps["onProgress"] = (event) => {
+  const handleProgress: MuxUploaderProps["onProgress"] = (event: CustomEvent<number>) => {
     setProgress(event.detail);
   };
 

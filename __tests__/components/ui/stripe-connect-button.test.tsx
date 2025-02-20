@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { mockStripeClient } from '../../setup/stripe-mocks';
 import { renderWithStripe } from '../../test-utils';
@@ -77,7 +77,9 @@ describe('StripeConnectButton', () => {
       );
       
       const button = screen.getByRole('button');
-      await fireEvent.click(button);
+      await act(async () => {
+        await fireEvent.click(button);
+      });
 
       expect(global.fetch).toHaveBeenCalled();
     });
@@ -98,7 +100,9 @@ describe('StripeConnectButton', () => {
       );
       
       const button = screen.getByRole('button');
-      await fireEvent.click(button);
+      await act(async () => {
+        await fireEvent.click(button);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/failed to connect with stripe/i)).toBeInTheDocument();

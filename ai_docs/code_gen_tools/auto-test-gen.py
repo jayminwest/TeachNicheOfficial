@@ -48,23 +48,51 @@ class EvaluationResult(BaseModel):
     success: bool
     feedback: Optional[str]
 
+# Query priority for Testing Library
+QUERY_PRIORITY = [
+    "getByRole",
+    "getByLabelText", 
+    "getByPlaceholderText",
+    "getByText",
+    "getByTestId"
+]
+
+# Standard test template
+TEST_TEMPLATE = '''
+describe('{component_name}', () => {
+  // Standard test setup
+  const mockProps = createMockProps({component_name})
+  
+  describe('rendering', () => {
+    it('renders without crashing', () => {
+      render(<{component_name} {...mockProps} />)
+    })
+
+    it('renders expected elements', () => {
+      const { getByRole } = render(<{component_name} {...mockProps} />)
+      // Generated element checks
+    })
+  })
+
+  describe('interactions', () => {
+    it('handles user interactions', async () => {
+      const user = userEvent.setup()
+      const { getByRole } = render(<{component_name} {...mockProps} />)
+      // Generated interaction tests
+    })
+  })
+
+  describe('props', () => {
+    it('handles all required props', () => {
+      render(<{component_name} {...mockProps} />)
+      // Generated prop validation
+    })
+  })
+})
+'''
+
 class AiderAgentConfig(BaseModel):
-    """
-    Configuration schema for the Aider Agent.
-    
-    Attributes:
-        prompt: The template prompt to use for code generation
-        coder_model: The AI model to use for code generation
-        evaluator_model: The AI model to use for evaluation
-        max_iterations: Maximum number of improvement iterations
-        execution_command: Command to execute the generated code
-        context_editable: List of files that can be modified
-        context_read_only: List of files that should not be modified
-        evaluator: Type of evaluator to use (currently only "default")
-        program_type: Type of program ("script" or "long_running")
-        startup_timeout: Seconds to wait for program startup
-        health_check_command: Optional command to verify program health
-    """
+    """Configuration schema for the Aider Agent."""
     prompt: str
     coder_model: str
     evaluator_model: str
@@ -82,6 +110,8 @@ class AiderAgent:
 
     def __init__(self, config_path: str = "auto_aider_config.yaml", prompt_path: Optional[str] = None):
         self.config = self._validate_config(Path(config_path), prompt_path)
+        self.test_template = TEST_TEMPLATE
+        self.query_priority = QUERY_PRIORITY
         # Initialize Aider's coder (using the model specified in the config)
         self.coder = Coder.create(
             main_model=Model(self.config.coder_model),

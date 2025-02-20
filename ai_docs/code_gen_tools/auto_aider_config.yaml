@@ -9,15 +9,34 @@ evaluator_model: "ollama/deepseek-r1:70b"
 
 # Execution settings
 max_iterations: 3
-execution_command: "npm test && vercel build"
+execution_command: "npm test"
+
+# Test generation settings
+test_config:
+  test_dir: "__tests__"
+  test_command: "npm test"
+  component_types: 
+    - "tsx"
+    - "ts"
+  test_structure:
+    - "rendering"
+    - "interactions" 
+    - "props"
+  mock_patterns:
+    - "createMockUser"
+    - "mockSupabaseClient"
 
 # Program type and monitoring
-program_type: "long_running"  # Options: "script" or "long_running"
-startup_timeout: 5  # seconds to wait for program startup
-health_check_command: null  # e.g. "curl http://localhost:8000/health"
+program_type: "script"
+startup_timeout: 5
+health_check_command: null
 
 # File access controls
 context_editable:
+  - "components/ui/**/*.tsx"
+  - "components/ui/**/*.ts" 
+  - "__tests__/**/*.test.tsx"
+  - "__tests__/**/*.test.ts"
 
 context_read_only:
   - "ai_docs/DEVELOPER_GUIDELINES.md"

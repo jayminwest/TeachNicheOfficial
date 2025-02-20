@@ -31,4 +31,19 @@ describe('StripeConnectButton', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveTextContent(/connected to stripe/i);
   });
+
+  it('renders sign in message when user is not authenticated', () => {
+    mockUseAuth.mockReturnValueOnce({
+      user: null,
+      loading: false
+    });
+
+    renderWithStripe(
+      <StripeConnectButton stripeAccountId={null} />
+    );
+    
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent(/please sign in/i);
+  });
 });

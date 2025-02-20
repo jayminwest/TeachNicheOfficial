@@ -12,11 +12,13 @@ import { supabase } from "@/lib/supabase"
 import { redirect } from "next/navigation"
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [profile, setProfile] = useState<{ stripe_account_id: string | null } | null>(null);
 
   useEffect(() => {
+    if (loading) return;
     if (!user) {
+      redirect('/');
       return;
     }
 
@@ -38,7 +40,15 @@ export default function ProfilePage() {
     fetchProfile();
   }, [user]);
 
-  if (!user) {
+  if (loading) {
+    return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+      <div className="container max-w-4xl mx-auto px-4 py-8">
+        Loading...
+      </div>
+    </div>;
+  }
+
+  if (!user && !loading) {
     redirect('/');
   }
   return (

@@ -112,7 +112,7 @@ export function Header() {
                     <Link href="/about">
                         <Button variant="ghost">Learn More</Button>
                     </Link>
-                    {user ? (
+                    {!loading && user ? (
                         <>
                             <Link href="/profile">
                                 <Button variant="ghost">Profile</Button>
@@ -127,7 +127,7 @@ export function Header() {
                                 Sign Out
                             </Button>
                         </>
-                    ) : (
+                    ) : !loading ? (
                         <>
                             <Dialog>
                                 <DialogTrigger asChild>
@@ -170,7 +170,7 @@ export function Header() {
                                 <Link href="/about">
                                     <Button variant="ghost" className="w-full">Learn More</Button>
                                 </Link>
-                                {user ? (
+                                {!loading && user ? (
                                     <>
                                         <Link href="/profile">
                                             <Button variant="ghost" className="w-full">Profile</Button>
@@ -186,7 +186,7 @@ export function Header() {
                                             Sign Out
                                         </Button>
                                     </>
-                                ) : (
+                                ) : !loading ? (
                                     <>
                                         <Dialog>
                                             <DialogTrigger asChild>

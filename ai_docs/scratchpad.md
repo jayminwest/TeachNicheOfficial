@@ -27,14 +27,44 @@ All tests implemented in `__tests__/payment/checkout.test.tsx`:
 ## 2. Remaining Tests
 
 ### A. Webhook Testing
+Implementation Status:
+- ✓ Basic webhook endpoint created
+- ✓ Signature verification
+- ✓ Payment success handler
+- ✓ Account update handler
+
+Remaining Tests to Implement:
 ```typescript
 describe('Stripe Webhooks', () => {
-  it('processes successful payment webhooks')
-  it('handles refund webhooks')
-  it('manages subscription lifecycle events')
-  it('validates webhook signatures')
+  it('verifies webhook signatures')
+  it('processes payment_intent.succeeded events')
+  it('handles account.updated events')
+  it('rejects invalid signatures')
+  it('handles missing signatures')
+  it('updates database on payment success')
+  it('updates creator status on account verification')
 });
 ```
+
+Testing Steps:
+1. Install Stripe CLI:
+   ```bash
+   brew install stripe/stripe-cli/stripe
+   ```
+2. Login and forward webhooks:
+   ```bash
+   stripe login
+   stripe listen --forward-to localhost:3000/api/webhooks/stripe
+   ```
+3. Save webhook secret:
+   ```
+   STRIPE_WEBHOOK_SECRET=whsec_xxx...
+   ```
+4. Test webhook with CLI:
+   ```bash
+   stripe trigger payment_intent.succeeded
+   stripe trigger account.updated
+   ```
 
 ### B. Integration Tests
 ```typescript

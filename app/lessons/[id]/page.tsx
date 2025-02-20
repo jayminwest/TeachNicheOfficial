@@ -1,11 +1,11 @@
 import LessonDetail from "./lesson-detail";
 
-interface PageProps {
+export default async function Page({ 
+  params,
+}: { 
   params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default async function Page({ params }: PageProps) {
+}) {
   const { id } = params;
   return <LessonDetail id={id} />;
 }

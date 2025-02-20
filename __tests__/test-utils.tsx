@@ -1,8 +1,16 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Providers } from '@/components/providers';
-import { AuthProvider } from '@/auth/AuthContext';
+import { AuthContext } from '@/auth/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
+
+const mockAuthContext = {
+  user: {
+    id: 'test-user-id',
+    email: 'test@example.com'
+  },
+  loading: false
+};
 
 interface CustomRenderOptions {
   withAuth?: boolean;

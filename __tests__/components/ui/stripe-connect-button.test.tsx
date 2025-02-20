@@ -9,10 +9,6 @@ const mockUser = {
   email: 'test@example.com'
 };
 
-const mockAuthContext = {
-  user: mockUser,
-  loading: false
-};
 
 describe('StripeConnectButton', () => {
   beforeEach(() => {

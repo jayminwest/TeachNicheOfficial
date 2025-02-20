@@ -9,6 +9,6 @@
 
 ## Reporting a Vulnerability
 
-Please report security vulnerabilities to security@yourdomain.com.
+Please report security vulnerabilities to info@teach-niche.com.
 
 We will acknowledge receipt of your vulnerability report within 48 hours and send you regular updates about our progress.

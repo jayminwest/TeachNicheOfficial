@@ -53,9 +53,9 @@ export default function LessonDetail({ id }: LessonDetailProps) {
     }
 
     return () => {
-      const player = document.querySelector('#lesson-video');
-      if (player && 'mux' in player) {
-        (player as { mux: { destroy: () => void } }).mux.destroy();
+      const player = document.querySelector('#lesson-video') as HTMLElement & { mux?: { destroy: () => void } };
+      if (player?.mux) {
+        player.mux.destroy();
       }
     };
   }, [lesson?.id, lesson?.title, lesson?.mux_playback_id]);

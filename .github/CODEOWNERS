@@ -1,0 +1,7 @@
+# These owners will be the default owners for everything in the repo
+*       @your-username
+
+# Order is important; the last matching pattern takes precedence
+*.ts    @typescript-expert
+*.tsx   @react-expert
+/app/   @app-expert

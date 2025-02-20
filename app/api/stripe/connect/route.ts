@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
   
   const {

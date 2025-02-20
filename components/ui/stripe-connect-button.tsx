@@ -92,13 +92,18 @@ export function StripeConnectButton({
   if (stripeAccountId) {
     return (
       <Button variant="outline" disabled>
-        Connected with Stripe
+        Connected to Stripe
       </Button>
     );
   }
 
   return (
-    <Button onClick={handleConnect} disabled={isLoading}>
+    <Button 
+      onClick={handleConnect} 
+      disabled={isLoading}
+      aria-busy={isLoading}
+      role={isLoading ? 'status' : undefined}
+    >
       {isLoading ? 'Connecting...' : 'Connect with Stripe'}
     </Button>
   );

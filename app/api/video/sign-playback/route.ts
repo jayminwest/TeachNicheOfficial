@@ -8,16 +8,18 @@ if (!MUX_SIGNING_KEY || !MUX_SIGNING_KEY_ID) {
   console.error('Missing required environment variables for JWT signing');
 }
 
-// Format the private key by adding newlines
+// Format the private key by adding newlines if needed
 function formatPrivateKey(key: string) {
+  // If key is already in PEM format, return as-is
+  if (key.includes('-----BEGIN PRIVATE KEY-----')) {
+    return key;
+  }
+
   const header = '-----BEGIN PRIVATE KEY-----';
   const footer = '-----END PRIVATE KEY-----';
   
-  // Remove existing headers/footers and whitespace
-  const cleanKey = key
-    .replace(header, '')
-    .replace(footer, '')
-    .replace(/\s/g, '');
+  // Clean the key of any whitespace
+  const cleanKey = key.replace(/\s/g, '');
 
   // Add newlines every 64 characters
   const chunks = cleanKey.match(/.{1,64}/g) || [];

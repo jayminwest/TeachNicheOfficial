@@ -41,4 +41,7 @@ yarn-error.log*
 next-env.d.ts
 .aider*
 
+# AI code generation tools
+ai_docs/code_gen_tools/*
+
 ai_docs/code_gen_tools/*

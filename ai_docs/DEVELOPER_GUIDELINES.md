@@ -89,6 +89,10 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  - Name test files with `.test.tsx` or `.test.ts` suffix
  - Mirror the source file structure in test directories
  - One test file per source file
+ - Every new function/component/feature MUST include at least one basic test case at creation time
+   - Tests should verify core functionality before code review
+   - Additional test cases can be added later
+   - No PR will be accepted without accompanying tests
 
  ### 9.2 Testing Utilities
  We provide standard testing utilities to ensure consistency:

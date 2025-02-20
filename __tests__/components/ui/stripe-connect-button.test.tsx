@@ -21,4 +21,14 @@ describe('StripeConnectButton', () => {
     const button = screen.getByRole('button');
     expect(button).toHaveTextContent(/connect with stripe/i);
   });
+
+  it('renders disabled button when already connected', () => {
+    renderWithStripe(
+      <StripeConnectButton stripeAccountId="acct_123" />
+    );
+    
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent(/connected to stripe/i);
+  });
 });

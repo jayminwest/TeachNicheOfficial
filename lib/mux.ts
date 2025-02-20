@@ -221,7 +221,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
   try {
-    const asset = await Video.Assets.get(assetId);
+    const asset = await Video.Assets.retrieve(assetId);
     
     return {
       id: asset.id,

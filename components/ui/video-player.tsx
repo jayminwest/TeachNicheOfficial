@@ -36,9 +36,9 @@ export function VideoPlayer({
   return (
     <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
       <MuxPlayer
-        id={id}
         playbackId={playbackId}
         metadata={{ 
+          video_id: id,
           video_title: title,
         }}
         streamType="on-demand"

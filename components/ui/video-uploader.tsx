@@ -24,13 +24,41 @@ interface VideoUploaderProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
-// Import the types from @mux/mux-uploader-react
-import type { 
-  UploadStartEvent,
-  UploadProgressEvent,
-  UploadSuccessEvent,
-  UploadErrorEvent
+// Import the MuxUploader component and its types
+import MuxUploader, { 
+  CustomEvent,
+  UploadEvent 
 } from "@mux/mux-uploader-react";
+
+interface MuxUploadStartEvent extends CustomEvent {
+  detail: {
+    file?: File;
+  }
+}
+
+interface MuxUploadProgressEvent extends CustomEvent {
+  detail: {
+    loaded?: number;
+    total?: number;
+  }
+}
+
+interface MuxUploadSuccessEvent extends CustomEvent {
+  detail: {
+    status?: 'processing' | 'complete';
+    assetId?: string;
+  }
+}
+
+interface MuxUploadErrorEvent extends CustomEvent {
+  detail: {
+    message?: string;
+    error?: {
+      type: string;
+      message: string;
+    }
+  }
+}
 
 export function VideoUploader({ 
   endpoint,
@@ -90,7 +118,7 @@ export function VideoUploader({
       });
   }, [endpoint, getUploadUrl, handleError]);
 
-  const handleUploadStart = async (event: UploadStartEvent) => {
+  const handleUploadStart = async (event: MuxUploadStartEvent) => {
     try {
       if (!event.detail.file) {
         throw new Error('No file selected');
@@ -112,14 +140,14 @@ export function VideoUploader({
     }
   };
 
-  const handleProgress = (event: UploadProgressEvent) => {
+  const handleProgress = (event: MuxUploadProgressEvent) => {
     if (event.detail.loaded && event.detail.total) {
       const percent = Math.round((event.detail.loaded / event.detail.total) * 100);
       setProgress(percent);
     }
   };
 
-  const handleSuccess = (event: UploadSuccessEvent) => {
+  const handleSuccess = (event: MuxUploadSuccessEvent) => {
     console.log('Upload success event:', event);
     
     if (!event.detail) {
@@ -153,7 +181,7 @@ export function VideoUploader({
     }
   };
 
-  const handleUploadError = (event: UploadErrorEvent) => {
+  const handleUploadError = (event: MuxUploadErrorEvent) => {
     const { message, error } = event.detail;
     console.error('Upload error:', event.detail);
     

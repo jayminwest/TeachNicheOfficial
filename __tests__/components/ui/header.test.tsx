@@ -238,18 +238,21 @@ describe('Header', () => {
       render(<Header />)
       const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i })
       
-      // Mock window.location
-      const originalLocation = window.location
+      // Mock window.location.href
+      const originalHref = window.location.href
       Object.defineProperty(window, 'location', {
         configurable: true,
-        value: { ...originalLocation, href: '' }
+        value: { href: '' }
       })
       
       fireEvent.click(waitlistButton)
       expect(window.location.href).toBe('/#email-signup')
       
-      // Restore original location
-      window.location = originalLocation
+      // Clean up
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { href: originalHref }
+      })
     })
 
     it('expands navigation menu content when trigger is clicked', () => {

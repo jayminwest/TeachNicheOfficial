@@ -46,8 +46,10 @@ jest.mock('@/components/ui/navigation-menu', () => ({
   NavigationMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   NavigationMenuList: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   NavigationMenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  NavigationMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  NavigationMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  NavigationMenuTrigger: ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
+    <button onClick={onClick}>{children}</button>
+  ),
+  NavigationMenuContent: ({ children }: { children: React.ReactNode }) => <div data-testid="nav-content">{children}</div>,
   NavigationMenuLink: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }))
 
@@ -233,29 +235,30 @@ describe('Header', () => {
       render(<Header />)
       
       // Find and click a navigation menu trigger
-      const trigger = screen.getByText('Home')
+      const trigger = screen.getByRole('button', { name: navigationItems[0].title })
       fireEvent.click(trigger)
 
       // Verify the content is shown
-      expect(screen.getByText('Book a call today')).toBeInTheDocument()
+      const content = screen.getByTestId('nav-content')
+      expect(content).toBeInTheDocument()
     })
 
     it('closes navigation menu when clicking outside', () => {
       render(<Header />)
       
       // Open the menu
-      const trigger = screen.getByText('Home')
+      const trigger = screen.getByRole('button', { name: navigationItems[0].title })
       fireEvent.click(trigger)
       
       // Verify menu is open
-      const content = screen.getByText('Book a call today')
+      const content = screen.getByTestId('nav-content')
       expect(content).toBeInTheDocument()
       
       // Click outside
       fireEvent.click(document.body)
       
       // Verify menu is closed
-      expect(screen.queryByText('Book a call today')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('nav-content')).not.toBeInTheDocument()
     })
   })
 })

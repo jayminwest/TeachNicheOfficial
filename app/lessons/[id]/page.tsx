@@ -1,10 +1,14 @@
 import LessonDetail from "./lesson-detail";
 
-export default async function Page({ 
-  params 
-}: { 
-  params: { id: string } 
+interface PageParams {
+  id: string;
+}
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<PageParams>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   return <LessonDetail id={id} />;
 }

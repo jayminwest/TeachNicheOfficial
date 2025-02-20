@@ -65,7 +65,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
           </div>
         </div>
       ) : user ? (
-        <>{router.push('/dashboard')}</>
+        <>{router.push('/')}</>
       ) : (
         <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
       <form onSubmit={handleSubmit}>

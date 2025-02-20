@@ -26,6 +26,7 @@
  - **Variable and Function Naming:**  Use descriptive and meaningful names for variables and functions. Follow camelCase convention. Keep names concise and to the point.
  - **Avoid Magic Numbers:**  Use constants for numerical values with specific meanings.
  - **Minimalism in Code:** Aim for the simplest solution that solves the problem. Avoid unnecessary abstractions or overly complex patterns when a simpler approach suffices.  **Keep it simple, and avoid "gold plating".**
+ - DO NOT USE "any" types
  
  ### 1.3. React Specific Guidelines
  

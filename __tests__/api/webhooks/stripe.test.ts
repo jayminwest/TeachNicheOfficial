@@ -63,11 +63,15 @@ describe('Stripe Webhook Handler', () => {
     const payload = JSON.stringify(mockEvent);
     mockConstructEvent.mockReturnValueOnce(mockEvent);
 
+    // Create a properly formatted Stripe signature
+    const timestamp = Math.floor(Date.now() / 1000);
+    const mockSignature = `t=${timestamp},v1=mock_signature`;
+
     const request = new Request('http://localhost', {
       method: 'POST',
       body: payload,
       headers: new Headers({
-        'stripe-signature': 'test_signature'
+        'stripe-signature': mockSignature
       })
     });
 

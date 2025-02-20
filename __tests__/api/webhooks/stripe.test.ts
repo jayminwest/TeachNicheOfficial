@@ -1,36 +1,31 @@
+/**
+ * @jest-environment node
+ */
+
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { POST } from '@/app/api/webhooks/stripe/route';
 
-// Mock the headers function
+// Mock dependencies
+jest.mock('@supabase/auth-helpers-nextjs');
+
+let mockHeadersGet = jest.fn().mockImplementation((key) => 
+  key === 'stripe-signature' ? 'test_signature' : null
+);
+
 jest.mock('next/headers', () => ({
   headers: () => ({
-    get: jest.fn().mockImplementation((key) => 
-      key === 'stripe-signature' ? 'test_signature' : null
-    )
+    get: mockHeadersGet
   }),
   cookies: () => ({})
 }));
 
 // Setup Request mock
-const mockRequest = (body: any) => {
-  return {
-    text: () => Promise.resolve(JSON.stringify(body))
-  } as Request;
-};
-
-// Mock dependencies
-jest.mock('@supabase/auth-helpers-nextjs');
-jest.mock('next/headers', () => ({
-  headers: () => ({
-    get: jest.fn().mockImplementation((key) => 
-      key === 'stripe-signature' ? 'test_signature' : null
-    )
-  }),
-  cookies: () => ({})
-}));
+const mockRequest = (body: any) => ({
+  text: () => Promise.resolve(JSON.stringify(body))
+} as unknown as Request);
 
 // Mock Stripe constructor and methods
 const mockStripeWebhooks = {
@@ -77,7 +72,7 @@ describe('Stripe Webhook Handler', () => {
   });
 
   it('handles missing signatures', async () => {
-    jest.spyOn(headers(), 'get').mockReturnValueOnce(null);
+    mockHeadersGet.mockReturnValueOnce(null);
 
     const request = mockRequest({ data: 'test' });
 
@@ -132,10 +127,7 @@ describe('Stripe Webhook Handler', () => {
       throw new Error('Invalid signature');
     });
 
-    const request = new Request('http://localhost:3000/api/webhooks/stripe', {
-      method: 'POST',
-      body: JSON.stringify({ data: 'test' })
-    });
+    const request = mockRequest({ data: 'test' });
 
     const response = await POST(request);
     expect(response.status).toBe(400);

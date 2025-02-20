@@ -16,7 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from './form';
+} from '@/components/ui/form';
 
 const lessonFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),

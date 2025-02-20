@@ -1,7 +1,9 @@
 'use client';
 
-import { useStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface LessonCheckoutProps {
   lessonId: string;
@@ -9,12 +11,12 @@ interface LessonCheckoutProps {
 }
 
 export function LessonCheckout({ lessonId, price }: LessonCheckoutProps) {
-  const stripe = useStripe();
 
   const handleCheckout = async () => {
+    // Create checkout session and redirect
+    const stripe = await stripePromise;
     if (!stripe) return;
 
-    // Create checkout session and redirect
     const response = await fetch('/api/checkout', {
       method: 'POST',
       headers: {

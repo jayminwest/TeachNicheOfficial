@@ -15,24 +15,35 @@ export function StripeConnectButton({ stripeAccountId }: StripeConnectButtonProp
   const handleConnect = async () => {
     try {
       setIsLoading(true);
+      console.log('Initiating Stripe Connect...');
+      
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to connect with Stripe');
       }
 
-      // Redirect to Stripe Connect onboarding
+      if (!data.url) {
+        throw new Error('No redirect URL received from server');
+      }
+
+      console.log('Redirecting to:', data.url);
       window.location.href = data.url;
     } catch (error) {
       console.error('Failed to initiate Stripe Connect:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to connect with Stripe. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to connect with Stripe. Please try again.',
       });
     } finally {
       setIsLoading(false);

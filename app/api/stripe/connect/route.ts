@@ -3,14 +3,21 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError) {
+      console.error('Auth error:', authError);
+      return NextResponse.json({ error: 'Authentication error' }, { status: 401 });
+    }
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
+    }
+    if (!user.email) {
+      return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }
 
     // Create Stripe Connect account

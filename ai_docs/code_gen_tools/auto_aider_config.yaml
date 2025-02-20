@@ -1,49 +1,21 @@
 # Configuration file for AiderAgent
-
-# Path to the prompt markdown file
 prompt: "ai_docs/code_gen_tools/test_writing_prompt.md"
-
-# Model configurations
 coder_model: "ollama/deepseek-r1:70b"
 evaluator_model: "ollama/deepseek-r1:70b"
-
-# Execution settings
 max_iterations: 3
 execution_commands:
   - command: "npm test"
     description: "Run tests"
   - command: "vercel build"
     description: "Verify build"
-
-# Test generation settings
-test_config:
-  test_dir: "__tests__"
-  test_command: "npm test"
-  component_types: 
-    - "tsx"
-    - "ts"
-  test_structure:
-    - "rendering"
-    - "interactions" 
-    - "props"
-  mock_patterns:
-    - "createMockUser"
-    - "mockSupabaseClient"
-
-# Program type and monitoring
-program_type: "script"
-startup_timeout: 5
-health_check_command: null
-
-# File access controls
 context_editable:
   - "components/ui/**/*.tsx"
   - "components/ui/**/*.ts" 
   - "__tests__/**/*.test.tsx"
   - "__tests__/**/*.test.ts"
-
 context_read_only:
   - "ai_docs/DEVELOPER_GUIDELINES.md"
-
-# Evaluation settings
 evaluator: "default"
+program_type: "script"
+startup_timeout: 5
+health_check_command: null

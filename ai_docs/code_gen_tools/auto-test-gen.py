@@ -97,7 +97,7 @@ class AiderAgentConfig(BaseModel):
     coder_model: str
     evaluator_model: str
     max_iterations: int
-    execution_command: str
+    execution_commands: List[dict]
     context_editable: List[str]
     context_read_only: List[str]
     evaluator: Literal["default"]

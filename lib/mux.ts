@@ -150,6 +150,10 @@ export async function waitForAssetReady(assetId: string, options = {
  * Creates a new direct upload URL for Mux
  */
 export async function createUpload(isFree: boolean = false): Promise<MuxUploadResponse> {
+  if (!Video) {
+    throw new Error('Mux Video client not initialized');
+  }
+
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
@@ -182,6 +186,10 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  * Checks the status of a Mux asset
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
+  if (!Video) {
+    throw new Error('Mux Video client not initialized');
+  }
+
   try {
     const asset = await Video.assets.retrieve(assetId);
     

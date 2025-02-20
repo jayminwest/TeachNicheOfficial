@@ -111,4 +111,30 @@ describe('LessonCheckout', () => {
       expect(purchaseButton).toBeInTheDocument();
     });
   });
+
+  describe('error handling', () => {
+    it('handles invalid price errors', async () => {
+      // Setup
+      const user = userEvent.setup();
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: () => Promise.resolve({ 
+          error: 'Invalid price: must be a positive number' 
+        })
+      });
+
+      // Render
+      renderWithStripe(<LessonCheckout lessonId="test_lesson" price={-50} />);
+
+      // Act
+      const button = screen.getByRole('button', { name: /purchase lesson/i });
+      await user.click(button);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText(/invalid price/i)).toBeInTheDocument();
+      });
+    });
+  });
 });

@@ -9,6 +9,13 @@ export async function POST(request: Request) {
   try {
     const { lessonId, price } = await request.json();
 
+    if (!price || price <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid price: must be a positive number' },
+        { status: 400 }
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [

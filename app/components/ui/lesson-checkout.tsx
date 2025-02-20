@@ -15,7 +15,11 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
   const isSuccess = searchParams?.get('success') === 'true';
   const isCanceled = searchParams?.get('canceled') === 'true';
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleCheckout = async () => {
+    setError(null);
+    
     // Create checkout session and redirect
     const stripe = await stripePromise;
     if (!stripe) return;
@@ -31,8 +35,14 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       }),
     });
 
-    const { sessionId } = await response.json();
-    await stripe.redirectToCheckout({ sessionId });
+    const data = await response.json();
+    
+    if (!response.ok) {
+      setError(data.error);
+      return;
+    }
+
+    await stripe.redirectToCheckout({ sessionId: data.sessionId });
   };
 
   if (isSuccess) {
@@ -44,8 +54,13 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
   }
 
   return (
-    <Button onClick={handleCheckout}>
-      Purchase Lesson
-    </Button>
+    <div>
+      {error && (
+        <div className="text-red-600 text-sm mb-2">{error}</div>
+      )}
+      <Button onClick={handleCheckout}>
+        Purchase Lesson
+      </Button>
+    </div>
   );
 }

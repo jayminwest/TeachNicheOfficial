@@ -1,38 +1,47 @@
+'use client';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card"
 import { ProfileForm } from "./components/profile-form"
 import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"
 import { StripeConnectButton } from "@/components/ui/stripe-connect-button"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { useAuth } from "@/auth/AuthContext"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 import { redirect } from "next/navigation"
 
-export const dynamic = 'force-dynamic';
+export default function ProfilePage() {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<{ stripe_account_id: string | null } | null>(null);
 
-export default async function ProfilePage() {
-  const supabase = createServerComponentClient({ cookies })
-  
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  if (userError || !user) {
-    // Redirect to home page if not authenticated
-    redirect('/');
+  useEffect(() => {
+    if (!user) {
+      redirect('/');
+      return;
+    }
+
+    async function fetchProfile() {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('stripe_account_id')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      setProfile(data);
+    }
+
+    fetchProfile();
+  }, [user]);
+
+  if (!user) {
+    return null;
   }
-
-  // Get the user's profile data including stripe_account_id
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('stripe_account_id')
-    .eq('id', user.id)
-    .single()
-
-  if (error) {
-    console.error('Error fetching profile:', error);
-  }
-
-  console.log('Profile:', profile);
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">

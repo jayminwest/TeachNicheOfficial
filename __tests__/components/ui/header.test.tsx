@@ -98,8 +98,9 @@ describe('Header', () => {
       }))
       
       render(<Header />)
-      expect(screen.getByText('Sign In')).toBeInTheDocument()
-      expect(screen.getByText('Join Teacher Waitlist')).toBeInTheDocument()
+      // Get the first Sign In button (the one in the header)
+      expect(screen.getAllByText('Sign In')[0]).toBeInTheDocument()
+      expect(screen.getByText(/Join Teacher Waitlist/)).toBeInTheDocument()
     })
 
     it('shows profile and sign out buttons when user is authenticated', () => {

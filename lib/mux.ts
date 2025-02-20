@@ -1,7 +1,7 @@
 import Mux from '@mux/mux-node';
 
 // Only initialize Mux client on the server side
-let Video: typeof Mux.Video | null;
+let Video: typeof Mux.Video;
 
 if (typeof window === 'undefined') {
   const tokenId = process.env.MUX_TOKEN_ID;
@@ -49,7 +49,7 @@ if (typeof window === 'undefined') {
       
       if (initAttempts === maxInitAttempts) {
         console.error('Max initialization attempts reached');
-        Video = null;
+        throw new Error('Failed to initialize Mux client after max attempts');
         break;
       }
       

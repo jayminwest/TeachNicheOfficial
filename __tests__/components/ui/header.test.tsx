@@ -40,9 +40,14 @@ jest.mock('next/link', () => ({
 // Navigation items for testing
 const navigationItems = [
   {
-    title: "Home",
-    href: "/",
-    description: "",
+    title: "Resources",
+    description: "Teaching resources and guides",
+    items: [
+      {
+        title: "Getting Started",
+        href: "/resources/getting-started"
+      }
+    ]
   },
   {
     title: "About",
@@ -249,30 +254,28 @@ describe('Header', () => {
       render(<Header />)
       
       // Find and click a navigation menu trigger
-      const trigger = screen.getByText('Home')
+      const trigger = screen.getByText('Resources')
       fireEvent.click(trigger)
 
-      // Verify the content is shown
-      const content = screen.getByTestId('nav-content')
-      expect(content).toBeInTheDocument()
+      // Verify the content is shown by checking for menu content
+      expect(screen.getByText('Getting Started')).toBeInTheDocument()
     })
 
     it('closes navigation menu when clicking outside', () => {
       render(<Header />)
       
       // Open the menu
-      const trigger = screen.getByText('Home')
+      const trigger = screen.getByText('Resources')
       fireEvent.click(trigger)
       
       // Verify menu is open
-      const content = screen.getByTestId('nav-content')
-      expect(content).toBeInTheDocument()
+      expect(screen.getByText('Getting Started')).toBeInTheDocument()
       
       // Click outside
       fireEvent.click(document.body)
       
       // Verify menu is closed
-      expect(screen.queryByTestId('nav-content')).not.toBeInTheDocument()
+      expect(screen.queryByText('Getting Started')).not.toBeInTheDocument()
     })
   })
 })

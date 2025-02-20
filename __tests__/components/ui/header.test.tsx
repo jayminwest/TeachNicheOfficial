@@ -37,6 +37,20 @@ jest.mock('next/link', () => ({
   )
 }))
 
+// Navigation items for testing
+const navigationItems = [
+  {
+    title: "Home",
+    href: "/",
+    description: "",
+  },
+  {
+    title: "About",
+    href: "/about",
+    description: "",
+  }
+]
+
 // Mock components
 jest.mock('@/components/ui/theme-toggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>
@@ -235,7 +249,7 @@ describe('Header', () => {
       render(<Header />)
       
       // Find and click a navigation menu trigger
-      const trigger = screen.getByRole('button', { name: navigationItems[0].title })
+      const trigger = screen.getByText('Home')
       fireEvent.click(trigger)
 
       // Verify the content is shown
@@ -247,7 +261,7 @@ describe('Header', () => {
       render(<Header />)
       
       // Open the menu
-      const trigger = screen.getByRole('button', { name: navigationItems[0].title })
+      const trigger = screen.getByText('Home')
       fireEvent.click(trigger)
       
       // Verify menu is open

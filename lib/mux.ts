@@ -27,7 +27,7 @@ if (typeof window === 'undefined') {
       }
 
       // Test the client with a basic API call
-      await videoClient.assets.list({ limit: 1 });
+      await videoClient.Assets.list({ limit: 1 });
       
       // If we get here, initialization was successful
       console.log('Mux Video client initialized successfully');
@@ -191,7 +191,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
-    const upload = await Video.uploads.create({
+    const upload = await Video.Uploads.create({
       new_asset_settings: {
         playback_policy: isFree ? ['public'] : ['signed'],
         encoding_tier: 'baseline',
@@ -221,7 +221,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
   try {
-    const asset = await Video.assets.get(assetId);
+    const asset = await Video.Assets.get(assetId);
     
     return {
       id: asset.id,

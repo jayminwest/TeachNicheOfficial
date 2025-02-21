@@ -16,7 +16,7 @@ describe('AboutPage', () => {
     })
 
     it('renders expected elements', async () => {
-      const { getByRole, getByLabelText, queryByRole } = render(<AboutPage />)
+      const { getByRole, getByText } = render(<AboutPage />)
       
       // Test main heading
       const mainHeading = getByRole('heading', { name: 'About Teach Niche' })
@@ -51,7 +51,7 @@ describe('AboutPage', () => {
 
   describe('interactions', () => {
     it('handles accordion interactions correctly', async () => {
-      const { getByRole, queryByRole } = render(<AboutPage />)
+      const { getByRole, getByText } = render(<AboutPage />)
 
       // Test accordion functionality
       const valuesTrigger = getByRole('button', { name: 'Values' })

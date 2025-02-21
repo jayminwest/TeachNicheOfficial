@@ -69,9 +69,8 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`
     },
-    credentials: 'include',
+    credentials: 'same-origin',
     body: JSON.stringify({ requestId, voteType }),
   })
 

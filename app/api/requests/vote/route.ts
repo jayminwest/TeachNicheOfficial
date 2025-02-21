@@ -8,14 +8,6 @@ export const runtime = 'edge'
 export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
-    // Get auth token from request header
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401 }
-      )
-    }
 
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })

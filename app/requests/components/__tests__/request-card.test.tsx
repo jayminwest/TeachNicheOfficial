@@ -9,7 +9,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 jest.mock('@/auth/AuthContext')
 jest.mock('@/components/ui/use-toast')
 jest.mock('@/lib/supabase/requests')
-jest.mock('@supabase/auth-helpers-nextjs')
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createClientComponentClient: jest.fn()
+}))
 
 describe('RequestCard', () => {
   const mockRequest = {

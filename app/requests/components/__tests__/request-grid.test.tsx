@@ -50,13 +50,17 @@ describe('RequestGrid', () => {
 
   it('loads and displays requests when no initial data provided', async () => {
     const { rerender } = render(<RequestGrid />)
-
-    await waitFor(() => {
-      expect(getRequests).toHaveBeenCalled()
+    
+    await act(async () => {
+      await waitFor(() => {
+        expect(getRequests).toHaveBeenCalled()
+      })
     })
 
     // Mock the state update that would happen after data loads
-    rerender(<RequestGrid initialRequests={mockRequests} />)
+    await act(async () => {
+      rerender(<RequestGrid initialRequests={mockRequests} />)
+    })
 
     expect(screen.getByText('Request 1')).toBeInTheDocument()
     expect(screen.getByText('Request 2')).toBeInTheDocument()
@@ -67,8 +71,10 @@ describe('RequestGrid', () => {
     
     render(<RequestGrid />)
 
-    await waitFor(() => {
-      expect(screen.getByText(/no lesson requests found/i)).toBeInTheDocument()
+    await act(async () => {
+      await waitFor(() => {
+        expect(screen.getByText(/no lesson requests found/i)).toBeInTheDocument()
+      })
     })
   })
 

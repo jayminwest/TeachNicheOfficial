@@ -31,11 +31,6 @@ describe('RequestCard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useAuth as jest.Mock).mockReturnValue({ user: mockUser, loading: false })
-    ;(createClientComponentClient as jest.Mock).mockReturnValue({
-      auth: {
-        getSession: jest.fn().mockResolvedValue({ data: { session: { user: mockUser } } })
-      }
-    })
   })
 
   it('renders request details correctly', () => {

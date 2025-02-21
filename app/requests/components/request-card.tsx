@@ -38,20 +38,6 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       return
     }
 
-    // Verify session is active
-    const supabase = createClientComponentClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('Session check result:', session?.user?.id);
-    
-    if (!session?.user?.id) {
-      console.log('Aborting - no session');
-      toast({
-        title: "Session expired",
-        description: "Please sign in again to vote",
-        variant: "destructive"
-      })
-      return
-    }
 
     try {
       setIsVoting(true);

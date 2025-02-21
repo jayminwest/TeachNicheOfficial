@@ -21,11 +21,15 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const { user, loading } = useAuth()
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
+    console.log('handleVote called:', { type, loading, userId: user?.id });
+    
     if (loading) {
-      return
+      console.log('Aborting - auth loading');
+      return;
     }
     
     if (!user?.id) {
+      console.log('Aborting - no user');
       toast({
         title: "Authentication required",
         description: "Please sign in to vote on requests",
@@ -37,7 +41,10 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
     // Verify session is active
     const supabase = createClientComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
+    console.log('Session check result:', session?.user?.id);
+    
     if (!session?.user?.id) {
+      console.log('Aborting - no session');
       toast({
         title: "Session expired",
         description: "Please sign in again to vote",
@@ -47,13 +54,13 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
     }
 
     try {
-      setIsVoting(true)
-      console.log('Starting vote process in RequestCard')
-      await voteOnRequest(request.id, type)
-      console.log('Vote successful, calling onVote()')
-      onVote()
+      setIsVoting(true);
+      console.log('Calling voteOnRequest with:', { requestId: request.id, type });
+      await voteOnRequest(request.id, type);
+      console.log('Vote successful');
+      onVote();
     } catch (error: any) {
-      console.error('Failed to vote:', error)
+      console.error('Vote failed:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to submit vote. Please try again.",
@@ -85,7 +92,10 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleVote('upvote')}
+            onClick={() => {
+              console.log('Button clicked - attempting vote:', request.id);
+              handleVote('upvote');
+            }}
             disabled={isVoting}
             aria-label="thumbs up"
           >

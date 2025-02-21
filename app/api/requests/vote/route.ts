@@ -4,11 +4,14 @@ import { cookies } from 'next/headers'
 import { voteSchema } from '@/lib/schemas/lesson-request'
 
 export async function POST(request: Request) {
+  console.log('Vote API route called');
   try {
     const supabase = createRouteHandlerClient({ cookies })
     const { data: { session } } = await supabase.auth.getSession()
+    console.log('API session check:', session?.user?.id);
 
     if (!session) {
+      console.log('API aborting - no session');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -16,6 +19,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
+    console.log('Vote request body:', body);
     const { requestId, voteType } = voteSchema.parse(body)
 
     // Check for existing vote
@@ -27,8 +31,10 @@ export async function POST(request: Request) {
         user_id: session.user.id 
       })
       .single()
+    console.log('Existing vote check:', existingVote);
 
     if (existingVote) {
+      console.log('Deleting existing vote');
       // Delete existing vote if it exists
       await supabase
         .from('lesson_request_votes')
@@ -37,6 +43,7 @@ export async function POST(request: Request) {
     }
 
     // Insert new vote
+    console.log('Inserting new vote');
     const { error: voteError } = await supabase
       .from('lesson_request_votes')
       .insert([{
@@ -45,14 +52,22 @@ export async function POST(request: Request) {
         vote_type: voteType
       }])
 
-    if (voteError) throw voteError
+    if (voteError) {
+      console.error('Vote insert error:', voteError);
+      throw voteError;
+    }
 
     // Update vote count
+    console.log('Updating vote count');
     const { error: updateError } = await supabase
       .rpc('update_vote_count', { request_id: requestId })
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('Vote count update error:', updateError);
+      throw updateError;
+    }
 
+    console.log('Vote process completed successfully');
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error processing vote:', error)

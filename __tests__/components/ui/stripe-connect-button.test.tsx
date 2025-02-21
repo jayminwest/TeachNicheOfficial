@@ -21,12 +21,12 @@ jest.mock('@/components/ui/use-toast', () => ({
   })
 }));
 
-// Mock auth context
+// Mock auth context with the imported mock
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: () => mockUseAuth()
+  useAuth: () => mockUseAuth
 }));
 
-// Mock supabase after importing mockSupabaseClient
+// Mock supabase with the imported mock
 jest.mock('@/lib/supabase', () => ({
   supabase: mockSupabaseClient
 }));

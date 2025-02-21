@@ -102,7 +102,7 @@ export const stripe = typeof window === 'undefined'
   : null;
 
 // Helper to ensure stripe instance exists (server-side only)
-const getStripe = () => {
+export const getStripe = () => {
   if (!stripe) {
     throw new Error('Stripe can only be accessed on the server side');
   }

@@ -1,4 +1,4 @@
-import { stripe, stripeConfig, createConnectSession, StripeError } from '@/app/services/stripe';
+import { stripe, stripeConfig, createConnectSession, StripeError, getStripe } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
 
     if (updateError) {
       // If we fail to update the database, delete the Stripe account to maintain consistency
-      await stripe.accounts.del(account.id);
+      await getStripe().accounts.del(account.id);
       throw new Error('Failed to update profile with Stripe account');
     }
 

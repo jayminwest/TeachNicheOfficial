@@ -20,8 +20,6 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { user } = useAuth();
-  
   const handleCheckout = async () => {
     try {
       setError(null);

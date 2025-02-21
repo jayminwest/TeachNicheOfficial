@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { supabase } from '@/app/services/supabase'
-import type { Database } from '@/types/database'
 import type { LessonAccess, PurchaseStatus } from '@/types/purchase'
 
 interface AccessCacheEntry {
@@ -121,7 +120,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       mounted = false
       clearTimeout(timeoutId)
     }
-  }, [lessonId, user, supabase])
+  }, [lessonId, user])
 
   return { ...access, loading, error }
 }

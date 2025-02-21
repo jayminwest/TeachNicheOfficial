@@ -21,8 +21,6 @@ export async function POST(request: Request) {
       )
     }
 
-    const user = session.user
-
     const { lessonId } = await request.json()
 
     if (!lessonId) {

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/auth/AuthContext'
 import { toast } from '@/components/ui/use-toast'
+import { supabase } from '@/lib/supabase'
 import {
   Form,
   FormControl,
@@ -50,12 +51,18 @@ export function RequestForm() {
         throw new Error('You must be logged in to submit a request')
       }
 
-      const result = await createRequest({
-        ...data,
-        user_id: user.id,
-        status: 'pending',
-        vote_count: 0
-      })
+      const { data: result, error } = await supabase
+        .from('lesson_requests')
+        .insert({
+          ...data,
+          user_id: user.id,
+          status: 'pending',
+          vote_count: 0
+        })
+        .select()
+        .single()
+
+      if (error) throw error
       
       if (!result) {
         throw new Error('Failed to create request')

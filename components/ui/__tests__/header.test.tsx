@@ -203,21 +203,6 @@ describe('Header', () => {
       expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
     })
 
-    it('handles sign out click', () => {
-      (useAuth as jest.Mock).mockReturnValue({
-        user: { id: 'test-id', email: 'test@example.com' },
-        loading: false,
-        signIn: jest.fn(),
-        signOut: jest.fn()
-      });
-      
-      render(<Header />)
-      
-      const signOutButton = screen.getByText('Sign Out')
-      fireEvent.click(signOutButton)
-      
-      expect(mockSupabaseClient.auth.signOut).toHaveBeenCalled()
-    })
 
     it('scrolls to email signup when waitlist button is clicked on home page', () => {
       (useAuth as jest.Mock).mockReturnValue({

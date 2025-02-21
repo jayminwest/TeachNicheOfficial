@@ -57,20 +57,44 @@ export async function POST(request: Request) {
     try {
       body = await request.json();
     } catch (e) {
-      return NextResponse.json({ error: `Invalid request body: ${e instanceof Error ? e.message : 'Unknown error'}` }, { status: 400 });
+      console.error('Request body parse error:', e);
+      return NextResponse.json({ 
+        error: 'Invalid request format',
+        details: e instanceof Error ? e.message : 'Unknown error'
+      }, { status: 400 });
+    }
+
+    // Validate required fields
+    if (!body?.userId || !body?.email) {
+      console.error('Missing required fields:', { body });
+      return NextResponse.json({ 
+        error: 'Missing required fields',
+        details: 'Both userId and email are required'
+      }, { status: 400 });
     }
 
     // Verify the user ID matches
     if (user.id !== body.userId) {
       console.error('User ID mismatch:', { sessionId: user.id, requestId: body.userId });
-      return NextResponse.json({ error: 'User ID mismatch' }, { status: 401 });
-    }
-    if (!user.email) {
-      return NextResponse.json({ error: 'User email not found' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Authentication error',
+        details: 'User ID mismatch'
+      }, { status: 401 });
     }
 
+    // Verify email matches
+    if (user.email !== body.email) {
+      console.error('Email mismatch:', { sessionEmail: user.email, requestEmail: body.email });
+      return NextResponse.json({ 
+        error: 'Authentication error',
+        details: 'Email mismatch'
+      }, { status: 401 });
+    }
+
+    console.log('Creating Stripe Connect account for:', { userId: user.id, email: user.email });
+    
     // Create Stripe Connect account with international support
-    const account = await stripe.accounts.create({
+    const account = await getStripe().accounts.create({
       type: 'standard',
       email: user.email,
       metadata: {

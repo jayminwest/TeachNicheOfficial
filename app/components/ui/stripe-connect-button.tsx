@@ -55,7 +55,8 @@ export function StripeConnectButton({
         credentials: 'include',
         body: JSON.stringify({ 
           userId: user.id,
-          locale: userLocale
+          locale: userLocale,
+          email: user.email // Add email to payload
         }),
       });
       
@@ -63,7 +64,12 @@ export function StripeConnectButton({
       
       if (!response.ok) {
         const error = data.error || {};
-        throw new Error(error.message || 'Failed to connect with Stripe');
+        console.error('Stripe connect error:', {
+          status: response.status,
+          error: error,
+          details: data.details
+        });
+        throw new Error(error.message || data.details || 'Failed to connect with Stripe');
       }
 
       if (!data.url) {

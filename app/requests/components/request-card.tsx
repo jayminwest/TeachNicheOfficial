@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
@@ -54,8 +54,8 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">{request.title}</CardTitle>
-        <div className="text-sm text-muted-foreground">
-          {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+        <div className="text-sm text-muted-foreground" suppressHydrationWarning>
+          {new Date(request.created_at).toLocaleDateString()}
         </div>
       </CardHeader>
       <CardContent>

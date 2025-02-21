@@ -12,7 +12,47 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent): Promise<void> => {
+export async function POST(request: Request) {
+  const body = await request.text();
+  const signature = request.headers.get('stripe-signature');
+
+  if (!signature) {
+    return NextResponse.json(
+      { error: 'Missing stripe-signature header' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      webhookSecret
+    );
+
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        await handlePaymentIntent(event.data.object as Stripe.PaymentIntent);
+        break;
+
+      case 'account.updated':
+        await handleAccount(event.data.object as Stripe.Account);
+        break;
+
+      // Add more event types as needed
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return NextResponse.json(
+      { error: 'Webhook signature verification failed' },
+      { status: 400 }
+    );
+  }
+}
+
+async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
   const supabase = createRouteHandlerClient<Database>({ cookies });
   
   // Get purchase record by payment intent with lesson and creator details
@@ -70,7 +110,7 @@ const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent)
   console.log('Purchase completed:', purchase.id);
 };
 
-const handleAccountUpdated = async (account: Stripe.Account): Promise<void> => {
+async function handleAccount(account: Stripe.Account): Promise<void> {
   const supabase = createRouteHandlerClient<Database>({ cookies });
   
   // Update creator's profile with account status
@@ -90,42 +130,3 @@ const handleAccountUpdated = async (account: Stripe.Account): Promise<void> => {
   console.log('Creator account status updated:', account.id);
 };
 
-export async function POST(request: Request) {
-  const body = await request.text();
-  const signature = request.headers.get('stripe-signature');
-
-  if (!signature) {
-    return NextResponse.json(
-      { error: 'Missing stripe-signature header' },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret
-    );
-
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
-        break;
-
-      case 'account.updated':
-        await handleAccountUpdated(event.data.object as Stripe.Account);
-        break;
-
-      // Add more event types as needed
-    }
-
-    return NextResponse.json({ received: true });
-  } catch (err) {
-    console.error('Webhook error:', err);
-    return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
-      { status: 400 }
-    );
-  }
-}

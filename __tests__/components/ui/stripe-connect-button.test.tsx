@@ -2,9 +2,9 @@ import React from 'react';
 import { screen, act } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { renderWithStripe } from '../../test-utils';
-import { mockStripeClient } from '@/__mocks__/services/stripe';
-import { mockUser, mockUseAuth } from '@/__mocks__/services/auth';
-import { mockSupabaseClient } from '@/__mocks__/services/supabase';
+import { mockStripeClient } from '../../../__mocks__/services/stripe';
+import { mockUseAuth } from '../../../__mocks__/services/auth';
+import { mockSupabaseClient } from '../../../__mocks__/services/supabase';
 
 // Store original window.location
 const originalLocation = window.location;

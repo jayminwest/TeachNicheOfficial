@@ -19,6 +19,7 @@ interface RequestCardProps {
 export function RequestCard({ request, onVote }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
   const [hasVoted, setHasVoted] = useState(false)
+  const [voteCount, setVoteCount] = useState(request.vote_count)
   const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 
@@ -120,7 +121,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
             aria-label="thumbs up"
           >
             <ThumbsUp className="w-4 h-4 mr-1" />
-            <span>{request.vote_count}</span>
+            <span>{voteCount}</span>
           </Button>
         </div>
         <div className="text-sm text-muted-foreground">

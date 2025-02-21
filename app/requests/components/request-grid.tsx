@@ -9,16 +9,17 @@ import { Loader2 } from 'lucide-react'
 interface RequestGridProps {
   initialRequests?: LessonRequest[]
   category?: string
+  sortBy: 'popular' | 'newest' | 'trending'
 }
 
-export function RequestGrid({ initialRequests, category }: RequestGridProps) {
+export function RequestGrid({ initialRequests, category, sortBy }: RequestGridProps) {
   const [requests, setRequests] = useState<LessonRequest[]>(initialRequests || [])
   const [isLoading, setIsLoading] = useState(!initialRequests)
 
   const loadRequests = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await getRequests({ category })
+      const data = await getRequests({ category, sortBy })
       setRequests(data)
     } catch (error) {
       console.error('Failed to load requests:', error)

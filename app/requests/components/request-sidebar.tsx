@@ -9,6 +9,8 @@ import { cn } from '@/app/lib/utils'
 interface RequestSidebarProps {
   selectedCategory?: string
   onSelectCategory: (category?: string) => void
+  sortBy: 'popular' | 'newest' | 'trending'
+  onSortChange: (sort: 'popular' | 'newest' | 'trending') => void
   isOpen: boolean
   onClose: () => void
 }
@@ -16,6 +18,8 @@ interface RequestSidebarProps {
 export function RequestSidebar({ 
   selectedCategory, 
   onSelectCategory,
+  sortBy,
+  onSortChange,
   isOpen,
   onClose
 }: RequestSidebarProps) {
@@ -24,14 +28,55 @@ export function RequestSidebar({
       "fixed inset-y-0 left-0 z-30 w-64 bg-background border-r transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
       isOpen ? "translate-x-0" : "-translate-x-full"
     )}>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-8">
         <div className="flex justify-between items-center lg:hidden">
-          <h2 className="font-semibold">Categories</h2>
+          <h2 className="font-semibold">Filter & Sort</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="space-y-1">
+
+        {/* Sort Options */}
+        <div>
+          <h3 className="font-semibold mb-3">Sort By</h3>
+          <div className="space-y-1">
+            <Button
+              variant={sortBy === 'popular' ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => {
+                onSortChange('popular')
+                onClose()
+              }}
+            >
+              Most Popular
+            </Button>
+            <Button
+              variant={sortBy === 'newest' ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => {
+                onSortChange('newest')
+                onClose()
+              }}
+            >
+              Newest First
+            </Button>
+            <Button
+              variant={sortBy === 'trending' ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => {
+                onSortChange('trending')
+                onClose()
+              }}
+            >
+              Trending
+            </Button>
+          </div>
+        </div>
+
+        {/* Categories */}
+        <div>
+          <h3 className="font-semibold mb-3">Categories</h3>
+          <div className="space-y-1">
           <Button
             variant={!selectedCategory ? "secondary" : "ghost"}
             className="w-full justify-start"

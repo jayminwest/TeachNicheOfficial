@@ -8,6 +8,7 @@ import { Menu } from 'lucide-react'
 
 export default function RequestsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>()
+  const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'trending'>('popular')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
@@ -24,6 +25,8 @@ export default function RequestsPage() {
         <RequestSidebar
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
@@ -48,7 +51,10 @@ export default function RequestsPage() {
                 </p>
               </div>
             </div>
-            <RequestGrid category={selectedCategory} />
+            <RequestGrid 
+              category={selectedCategory}
+              sortBy={sortBy}
+            />
           </div>
         </div>
       </div>

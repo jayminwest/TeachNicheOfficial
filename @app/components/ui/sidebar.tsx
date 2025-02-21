@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/app/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/app/components/ui/badge"
 import {
   Blocks,
   ChevronsUpDown,
@@ -21,20 +21,20 @@ import {
   UserSearch,
 } from "lucide-react";
 import Image from "next/image";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/app/components/ui/avatar"
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/app/components/ui/dropdown-menu";
+import { Separator } from "@/app/components/ui/separator";
+import { Skeleton } from "@/app/components/ui/skeleton"
 
 const sidebarVariants = {
   open: {

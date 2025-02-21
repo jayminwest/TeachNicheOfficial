@@ -4,7 +4,7 @@ import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
 
 // Mock the supabase client before importing Header
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/app/lib/supabase', () => ({
   supabase: {
     auth: {
       signOut: jest.fn().mockResolvedValue({}),

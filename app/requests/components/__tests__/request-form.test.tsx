@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { RequestForm } from '@/app/requests/components/request-form'
 import { toast } from '@/app/components/ui/use-toast'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/app/lib/supabase'
 
 // Mock dependencies
 jest.mock('@/app/components/ui/use-toast')

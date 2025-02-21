@@ -11,14 +11,16 @@ export async function POST(request: Request) {
       cookies: () => cookieStore
     })
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
 
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Please sign in to continue' },
         { status: 401 }
       )
     }
+
+    const user = session.user
 
     const { lessonId } = await request.json()
 

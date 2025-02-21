@@ -27,9 +27,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setError(null);
       setIsLoading(true);
 
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      
-      if (!currentUser) {
+      if (!user) {
         setError('Please sign in to purchase this lesson');
         return;
       }

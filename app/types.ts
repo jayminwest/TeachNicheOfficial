@@ -17,3 +17,12 @@ export interface LessonRequestVote {
   vote_type: 'up' | 'down';
   created_at: string;
 }
+export interface LessonRequest {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  created_at: string;
+  vote_count: number;
+}

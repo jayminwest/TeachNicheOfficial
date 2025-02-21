@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/app/components/ui/button';
+import { useToast } from '@/app/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/auth/AuthContext';
 import { supabase } from '@/lib/supabase';

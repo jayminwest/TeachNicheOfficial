@@ -205,11 +205,21 @@ BEGIN
     END IF;
 END $$;
 
--- Add triggers
-create trigger handle_updated_at before update
-  on purchases
-  for each row
-  execute procedure moddatetime (updated_at);
+-- Create updated_at trigger function if it doesn't exist
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Add trigger for updated_at
+DROP TRIGGER IF EXISTS update_purchases_updated_at ON purchases;
+CREATE TRIGGER update_purchases_updated_at
+    BEFORE UPDATE ON purchases
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 ```
 
 2. Purchase Types

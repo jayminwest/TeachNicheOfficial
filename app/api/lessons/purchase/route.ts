@@ -7,10 +7,7 @@ import { Database } from '@/types/database'
 export async function POST(request: Request) {
   try {
     // Initialize Supabase client with proper cookie handling
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient<Database>({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = createRouteHandlerClient<Database>({ cookies })
     
     // Get both session and user data for double verification
     const [

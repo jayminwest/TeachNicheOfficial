@@ -25,6 +25,10 @@ const mockSession = {
   refresh_token: 'test-refresh-token'
 };
 
+// Define base types for query responses
+type QueryResponse<T> = Promise<{ data: T | null; error: null | Error }>;
+type QueryListResponse<T> = Promise<{ data: T[] | null; error: null | Error }>;
+
 const mockQueryBuilder = {
   eq: jest.fn().mockReturnThis(),
   neq: jest.fn().mockReturnThis(),
@@ -43,18 +47,24 @@ const mockQueryBuilder = {
   select: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
-  single: jest.fn().mockResolvedValue({
-    data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
-    error: null
-  }),
-  maybeSingle: jest.fn().mockResolvedValue({
-    data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
-    error: null
-  }),
-  execute: jest.fn().mockResolvedValue({
-    data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
-    error: null
-  })
+  single: jest.fn().mockImplementation((): QueryResponse<Record<string, any>> => 
+    Promise.resolve({
+      data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
+      error: null
+    })
+  ),
+  maybeSingle: jest.fn().mockImplementation((): QueryResponse<Record<string, any>> => 
+    Promise.resolve({
+      data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
+      error: null
+    })
+  ),
+  execute: jest.fn().mockImplementation((): QueryListResponse<Record<string, any>> => 
+    Promise.resolve({
+      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
+      error: null
+    })
+  )
 };
 
 export const mockSupabaseClient = {

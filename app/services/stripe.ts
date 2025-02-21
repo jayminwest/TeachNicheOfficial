@@ -53,14 +53,19 @@ export interface AccountVerificationResult {
 
 // Validate and load configuration
 const validateConfig = () => {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not set');
+  // Only validate on server side
+  if (typeof window === 'undefined') {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not set');
+    }
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      throw new Error('STRIPE_WEBHOOK_SECRET is not set');
+    }
   }
+  
+  // Always validate public key as it's needed on client
   if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
     throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set');
-  }
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    throw new Error('STRIPE_WEBHOOK_SECRET is not set');
   }
 };
 

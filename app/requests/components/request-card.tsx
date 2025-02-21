@@ -23,6 +23,22 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 
+  useEffect(() => {
+    async function checkVoteStatus() {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('lesson_request_votes')
+        .select()
+        .match({ request_id: request.id, user_id: user.id })
+        .maybeSingle();
+      
+      setHasVoted(!!data);
+    }
+
+    checkVoteStatus();
+  }, [user, request.id, supabase]);
+
   const handleVote = async () => {
     try {
       if (!user) {
@@ -121,7 +137,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
             disabled={isVoting}
             aria-label="thumbs up"
           >
-            <ThumbsUp className="w-4 h-4 mr-1" />
+            <ThumbsUp className={`w-4 h-4 mr-1 ${hasVoted ? 'fill-current text-primary' : ''}`} />
             <span>{voteCount}</span>
           </Button>
         </div>

@@ -1,6 +1,6 @@
 import { Hero } from "@/app/components/ui/animated-hero";
-import { Features } from "@/components/ui/features";
-import { EmailSignup } from "@/components/ui/email-signup";
+import { Features } from "@/app/components/ui/features";
+import { EmailSignup } from "@/app/components/ui/email-signup";
 
 export default function Home() {
   return (

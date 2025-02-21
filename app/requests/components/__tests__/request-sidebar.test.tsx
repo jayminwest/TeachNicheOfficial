@@ -29,13 +29,13 @@ describe('RequestSidebar', () => {
     render(<RequestSidebar {...defaultProps} sortBy="popular" />)
     
     const popularButton = screen.getByRole('button', { name: /most popular/i })
-    expect(popularButton).toHaveClass('secondary')
+    expect(popularButton.className).toContain('bg-secondary')
   })
 
   it('shows selected category', () => {
-    render(<RequestSidebar {...defaultProps} selectedCategory="Beginner Fundamentals" />)
+    render(<RequestSidebar {...defaultProps} selectedCategory="Beginner Basics" />)
     
-    const categoryButton = screen.getByRole('button', { name: /beginner fundamentals/i })
-    expect(categoryButton).toHaveClass('secondary')
+    const categoryButton = screen.getByRole('button', { name: /beginner basics/i })
+    expect(categoryButton.className).toContain('bg-secondary')
   })
 })

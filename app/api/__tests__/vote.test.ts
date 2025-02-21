@@ -23,7 +23,10 @@ const mockRequest = (url: string, init?: RequestInit) => ({
 global.Request = jest.fn().mockImplementation(mockRequest);
 
 // Mock dependencies
-jest.mock('@supabase/auth-helpers-nextjs')
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createRouteHandlerClient: jest.fn()
+}))
+
 jest.mock('next/headers', () => ({
   cookies: () => ({
     getAll: () => []
@@ -52,7 +55,7 @@ describe('Vote API Route', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+    ;(createRouteHandlerClient as jest.Mock).mockImplementation(() => mockSupabase)
   })
 
   it('requires authentication', async () => {

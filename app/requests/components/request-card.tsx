@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThumbsUp } from 'lucide-react'
 import { LessonRequest } from '@/lib/types'
-import { voteOnRequest } from '@/lib/supabase/requests'
 import { useAuth } from '@/auth/AuthContext'
 import { toast } from '@/components/ui/use-toast'
-import { formatDistanceToNow } from 'date-fns'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface RequestCardProps {
@@ -21,10 +19,10 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const [hasVoted, setHasVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(request.vote_count)
   const supabase = createClientComponentClient()
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
 
   // Fetch current vote count from Supabase
-  const updateVoteCount = async () => {
+  const updateVoteCount = useCallback(async () => {
     const { data, error } = await supabase
       .from('lesson_request_votes')
       .select('*')
@@ -122,7 +120,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       
       await updateVoteCount();
       onVote();
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Vote failed:', error);
       toast({
         title: "Error",

@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { RequestCard } from '@/app/requests/components/request-card'
 import { useAuth } from '@/auth/AuthContext'
-import { toast } from '@/components/ui/use-toast'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { mockSupabaseClient } from '@/__mocks__/services/supabase'
 import { mockAuthContext } from '@/__mocks__/services/auth'

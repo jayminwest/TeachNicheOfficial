@@ -6,4 +6,9 @@ export const lessonRequestSchema = z.object({
   category: z.string().min(1, "Category is required")
 })
 
+export const voteSchema = z.object({
+  requestId: z.string(),
+  voteType: z.enum(['upvote', 'downvote'])
+})
+
 export type LessonRequestFormData = z.infer<typeof lessonRequestSchema>

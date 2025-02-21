@@ -31,7 +31,7 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
     if (!initialRequests) {
       loadRequests()
     }
-  }, [category, initialRequests])
+  }, [category, initialRequests, loadRequests])
 
   if (isLoading) {
     return (

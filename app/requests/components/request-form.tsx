@@ -18,7 +18,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { lessonRequestSchema, LessonRequestFormData } from '@/lib/schemas/lesson-request'
-import { createRequest } from '@/lib/supabase/requests'
 
 const categories = [
   'Beginner Fundamentals',
@@ -73,7 +72,7 @@ export function RequestForm() {
         title: "Success",
         description: "Your request has been submitted successfully."
       })
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Failed to create request:', error)
       
       const errorMessage = error.code === '42501' 

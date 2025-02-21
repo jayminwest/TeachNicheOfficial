@@ -1,15 +1,15 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/app/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { toast } from "@/components/ui/use-toast"
+} from "@/app/components/ui/card"
+import { Switch } from "@/app/components/ui/switch"
+import { toast } from "@/app/components/ui/use-toast"
 
 export function AccountSettings() {
   const handleDeleteAccount = async () => {

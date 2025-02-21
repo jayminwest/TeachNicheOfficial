@@ -25,8 +25,10 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 jest.mock('@/app/components/ui/use-toast')
+// Mock createClientComponentClient as a Jest mock function
+const mockCreateClientComponentClient = jest.fn(() => mockSupabaseClient)
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createClientComponentClient: () => mockSupabaseClient
+  createClientComponentClient: mockCreateClientComponentClient
 }))
 
 describe('RequestCard', () => {
@@ -44,7 +46,7 @@ describe('RequestCard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockUseAuth.mockReturnValue(mockAuthContext)
-    ;(createClientComponentClient as jest.Mock).mockReturnValue(mockSupabaseClient)
+    mockCreateClientComponentClient.mockReturnValue(mockSupabaseClient)
   })
 
   it('renders request details correctly', () => {

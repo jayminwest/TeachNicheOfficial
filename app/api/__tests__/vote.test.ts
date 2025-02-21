@@ -2,6 +2,22 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import { POST } from '../requests/vote/route'
 
+// Mock global Request and Response
+global.Request = class Request {
+  url: string
+  method: string
+  body: string
+  constructor(url: string, init?: RequestInit) {
+    this.url = url
+    this.method = init?.method || 'GET'
+    this.body = init?.body as string
+  }
+
+  async json() {
+    return JSON.parse(this.body)
+  }
+} as unknown as typeof Request
+
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs')
 jest.mock('next/headers', () => ({

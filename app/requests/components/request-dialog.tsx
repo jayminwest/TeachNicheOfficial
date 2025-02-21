@@ -20,7 +20,7 @@ export function RequestDialog() {
     defaultValues: {
       title: '',
       description: '',
-      category: '',
+      category: 'Trick Tutorial', // Set a default category
       instagram_handle: '',
       tags: []
     }

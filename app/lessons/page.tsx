@@ -31,8 +31,8 @@ export default function LessonsPage() {
           ...lesson,
           thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
           description: lesson.description || '',
-          averageRating: lesson.rating_average || 0,
-          totalRatings: lesson.rating_count || 0
+          averageRating: lesson.average_stars || 0,
+          totalRatings: lesson.review_count || 0
         }));
         
         setLessons(transformedLessons);

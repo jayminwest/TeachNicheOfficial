@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/app/components/ui/button'
+import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { ThumbsUp } from 'lucide-react'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
@@ -18,6 +19,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
   const [hasVoted, setHasVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(request.vote_count)
+  const [showAuth, setShowAuth] = useState(false)
   const supabase = createClientComponentClient()
   const { user } = useAuth()
 
@@ -62,11 +64,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const handleVote = async () => {
     try {
       if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to vote on requests",
-          variant: "destructive"
-        })
+        setShowAuth(true)
         return
       }
 
@@ -167,5 +165,10 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
         </div>
       </CardFooter>
     </Card>
+    <AuthDialog 
+      open={showAuth} 
+      onOpenChange={setShowAuth}
+      defaultView="sign-up"
+    />
   )
 }

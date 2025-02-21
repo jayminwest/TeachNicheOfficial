@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest } from '@/app/lib/supabase/requests'
+import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog"
 import { Button } from "@/app/components/ui/button"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form"
@@ -17,6 +18,7 @@ import { toast } from '@/app/components/ui/use-toast'
 
 export function RequestDialog() {
   const [open, setOpen] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
   const { user } = useAuth()
   
   const form = useForm<LessonRequestFormData>({
@@ -50,11 +52,7 @@ export function RequestDialog() {
           onClick={(e) => {
             if (!user) {
               e.preventDefault()
-              toast({
-                title: "Authentication Required",
-                description: "Please sign in to create a lesson request",
-                variant: "destructive"
-              })
+              setShowAuth(true)
             }
           }}
         >
@@ -156,5 +154,10 @@ export function RequestDialog() {
         </Form>
       </DialogContent>
     </Dialog>
+    <AuthDialog 
+      open={showAuth} 
+      onOpenChange={setShowAuth}
+      defaultView="sign-up"
+    />
   )
 }

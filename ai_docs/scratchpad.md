@@ -1,8 +1,31 @@
 # Lesson Purchase Flow Implementation Plan
 
+## Database Enums
+
+```sql
+CREATE TYPE purchase_status AS ENUM (
+  'pending',
+  'processing',
+  'completed',
+  'failed',
+  'refunded'
+);
+
+CREATE TYPE lesson_status AS ENUM (
+  'draft',
+  'published',
+  'archived',
+  'deleted'
+);
+```
+
 ## Type Definitions
 
 ```typescript
+// Database generated types
+type PurchaseStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+type LessonStatus = 'draft' | 'published' | 'archived' | 'deleted'
+
 interface PurchaseError {
   code: string
   message: string
@@ -16,17 +39,52 @@ interface Purchase {
   creator_id: string
   purchase_date: string
   stripe_session_id: string
-  amount: number // In cents
-  platform_fee: number // In cents
-  creator_earnings: number // In cents
+  amount: number // Stored as integer cents
+  platform_fee: number // Stored as integer cents
+  creator_earnings: number // Stored as integer cents
   payment_intent_id: string
-  fee_percentage: number
-  status: 'pending' | 'completed' | 'failed'
+  fee_percentage: number // Stored as integer (e.g. 10 for 10%)
+  status: PurchaseStatus
   error?: PurchaseError
   metadata?: Record<string, any>
   created_at: string
   updated_at: string
   version: number
+}
+
+// Add missing types from schema
+interface Lesson {
+  id: string
+  title: string
+  description: string
+  price: number // Stored as integer cents
+  creator_id: string
+  stripe_product_id: string | null
+  stripe_price_id: string | null
+  content: string | null
+  content_url: string | null
+  thumbnail_url: string | null
+  is_featured: boolean
+  status: LessonStatus
+  mux_asset_id: string | null
+  mux_playback_id: string | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  version: number
+}
+
+interface Profile {
+  id: string
+  full_name: string
+  email: string
+  bio: string | null
+  avatar_url: string | null
+  social_media_tag: string | null
+  stripe_account_id: string | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
 }
 
 interface LessonAccess {

@@ -1,41 +1,5 @@
 # Lesson Purchase Flow Implementation Plan
 
-## Critical Files Needed
-
-### 1. Database Migration
-File: supabase/migrations/[timestamp]_create_purchases_table.sql
-```sql
--- Check if purchase_status enum exists
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'purchase_status') THEN
-        CREATE TYPE purchase_status AS ENUM (
-            'pending',
-            'processing',
-            'completed',
-            'failed',
-            'refunded'
-        );
-    END IF;
-END $$;
-
--- Check if lesson_status enum exists
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'lesson_status') THEN
-        CREATE TYPE lesson_status AS ENUM (
-            'draft',
-            'published',
-            'archived',
-            'deleted'
-        );
-    END IF;
-END $$;
-
--- Enable PostgreSQL cryptographic functions
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-```
-
 ## Type Definitions
 
 ```typescript
@@ -130,19 +94,13 @@ interface PurchaseApiResponse {
 - /app/hooks/use-lesson-access.ts - Access control hook
 - /app/components/ui/lesson-access-gate.tsx - Access gate component
 
-4. Database:
-- /supabase/migrations/[timestamp]_create_purchases_table.sql - Purchase table schema
-
-5. Types:
+4. Types:
 - /types/purchase.ts - Purchase-related type definitions
 
 ## Implementation Steps
 
 ### Step 1: Create Access Control Hook
 File: app/hooks/use-lesson-access.ts
-
-```typescript
-// Create Purchases Table Migration
 ```sql
 -- Enable RLS
 alter table purchases enable row level security;

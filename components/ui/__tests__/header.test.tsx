@@ -10,15 +10,7 @@ import { Header } from '@/components/ui/header'
 // Mock the supabase client
 const mockSupabaseClient = createMockSupabaseClient();
 jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      signOut: jest.fn().mockResolvedValue({}),
-      getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: jest.fn().mockReturnValue({ 
-        data: { subscription: { unsubscribe: jest.fn() } }
-      })
-    }
-  }
+  supabase: mockSupabaseClient
 }))
 
 // Mock Lucide icons

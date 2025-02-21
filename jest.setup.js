@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom'
 import { TextEncoder, TextDecoder } from 'util'
+import { jest } from '@jest/globals'
+
+// Enable new JSX transform
+jest.unstable_mockModule('react/jsx-runtime', () => ({
+  jsx: jest.fn(),
+  jsxs: jest.fn(),
+}))
 
 // Set up test environment variables
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test-supabase-url.com'

@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
-import { mockUser, mockAuthContext, mockUseAuth } from '@/__mocks__/services/auth'
 import { mockSupabaseClient } from '@/__mocks__/services/supabase'
 
 // Mock Lucide icons
@@ -40,24 +39,6 @@ jest.mock('next/link', () => ({
   )
 }))
 
-// Navigation items for testing
-const navigationItems = [
-  {
-    title: "Resources",
-    description: "Teaching resources and guides",
-    items: [
-      {
-        title: "Getting Started",
-        href: "/resources/getting-started"
-      }
-    ]
-  },
-  {
-    title: "About",
-    href: "/about",
-    description: "",
-  }
-]
 
 // Mock components
 jest.mock('@/components/ui/theme-toggle', () => ({
@@ -222,7 +203,7 @@ describe('Header', () => {
         signOut: jest.fn()
       });
       
-      const { supabase } = require('@/lib/supabase')
+      const { supabase } = await import('@/lib/supabase')
       render(<Header />)
       
       const signOutButton = screen.getByText('Sign Out')
@@ -254,7 +235,7 @@ describe('Header', () => {
         loading: false
       })
 
-      const { usePathname } = require('next/navigation')
+      const { usePathname } = await import('next/navigation')
       ;(usePathname as jest.Mock).mockImplementation(() => '/about')
       
       render(<Header />)

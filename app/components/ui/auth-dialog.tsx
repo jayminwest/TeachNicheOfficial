@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent } from './dialog'
+import { Dialog, DialogContent, DialogTitle } from './dialog'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
 
@@ -17,6 +17,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] p-0">
+        <DialogTitle className="sr-only">Authentication</DialogTitle>
         {view === 'sign-in' ? (
           <SignInPage onSwitchToSignUp={() => setView('sign-up')} />
         ) : (

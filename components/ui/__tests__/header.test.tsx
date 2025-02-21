@@ -203,7 +203,7 @@ describe('Header', () => {
         signOut: jest.fn()
       });
       
-      const { supabase } = require('@/lib/supabase');
+      const supabase = mockSupabaseClient;
       render(<Header />)
       
       const signOutButton = screen.getByText('Sign Out')
@@ -235,7 +235,7 @@ describe('Header', () => {
         loading: false
       })
 
-      const { usePathname } = require('next/navigation');
+      const { usePathname } = jest.mocked(require('next/navigation'));
       (usePathname as jest.Mock).mockImplementation(() => '/about')
       
       render(<Header />)

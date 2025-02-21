@@ -77,12 +77,18 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
   // Calculate fees for creator earnings
   const { creatorEarnings } = calculateFees(purchase.amount)
 
+  const creatorStripeAccountId = purchase.lesson.creator.stripe_account_id;
+  if (!creatorStripeAccountId) {
+    console.error('Creator stripe account not found for purchase:', purchase.id);
+    return;
+  }
+
   // Create transfer to creator
   try {
     const transfer = await stripe.transfers.create({
       amount: creatorEarnings,
       currency: stripeConfig.defaultCurrency,
-      destination: purchase.lesson.creator.stripe_account_id,
+      destination: creatorStripeAccountId,
       transfer_group: purchase.stripe_session_id,
       source_transaction: paymentIntent.id
     });

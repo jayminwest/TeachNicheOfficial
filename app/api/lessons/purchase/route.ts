@@ -12,21 +12,36 @@ export async function POST(request: Request) {
       cookies: () => cookieStore 
     })
     
-    // Get session and handle auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      console.error('Auth error:', authError || 'No authenticated user')
+    // Get both session and user data for double verification
+    const [
+      { data: { session }, error: sessionError },
+      { data: { user }, error: userError }
+    ] = await Promise.all([
+      supabase.auth.getSession(),
+      supabase.auth.getUser()
+    ])
+
+    if (sessionError || userError || !session?.user || !user) {
+      console.error('Auth error:', {
+        sessionError,
+        userError,
+        hasSession: !!session?.user,
+        hasUser: !!user
+      })
       return NextResponse.json(
-        { error: 'Please sign in to continue' },
+        { error: 'Authentication required. Please sign in again.' },
         { status: 401 }
       )
     }
-    
-    if (sessionError || !session?.user) {
-      console.error('Auth error:', sessionError || 'No session')
+
+    // Verify user IDs match
+    if (session.user.id !== user.id) {
+      console.error('User ID mismatch:', {
+        sessionUserId: session.user.id,
+        userId: user.id
+      })
       return NextResponse.json(
-        { error: 'Your session has expired. Please sign in again.' },
+        { error: 'Invalid authentication state. Please sign in again.' },
         { status: 401 }
       )
     }

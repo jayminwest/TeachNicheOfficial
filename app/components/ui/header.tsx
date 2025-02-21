@@ -8,7 +8,7 @@ import { useAuth } from "@/app/services/auth/AuthContext";
 import { SignInPage } from "./sign-in";
 import { SignUpPage } from "./sign-up";
 import { Dialog, DialogContent, DialogTrigger } from "./dialog";
-import { createBrowserClient } from "@/app/services/supabase";
+import { supabase } from "@/app/services/supabase";
 
 interface NavigationItem {
     title: string;
@@ -125,7 +125,6 @@ export function Header() {
                             <Button 
                                 variant="ghost"
                                 onClick={async () => {
-                                    const supabase = createBrowserClient();
                                     await supabase.auth.signOut();
                                     window.location.href = '/';
                                 }}

@@ -9,13 +9,5 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
 }
 
-// For server-side usage
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
-
-// For client-side components
-export const createBrowserClient = () => {
-  return createClientComponentClient<Database>()
-}
+// Create a single client instance
+export const supabase = createClientComponentClient<Database>()

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { createBrowserClient } from '@/app/services/supabase';
+import { supabase } from '@/app/services/supabase';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -27,8 +27,6 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setError(null);
       setIsLoading(true);
 
-      const supabase = createBrowserClient();
-      
       // Check auth status
       const { data: { session } } = await supabase.auth.getSession();
       

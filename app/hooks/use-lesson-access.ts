@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { createBrowserClient } from '@/app/services/supabase'
+import { supabase } from '@/app/services/supabase'
 import type { Database } from '@/types/database'
 import type { LessonAccess, PurchaseStatus } from '@/types/purchase'
 
@@ -25,7 +25,6 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   
-  const supabase = createBrowserClient()
   
   useEffect(() => {
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes

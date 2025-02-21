@@ -22,7 +22,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 
-  const handleVote = async (type: 'upvote' | 'downvote') => {
+  const handleVote = async () => {
     try {
       if (!user) {
         toast({
@@ -67,7 +67,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
           .insert({
             request_id: request.id,
             user_id: user.id,
-            vote_type: type
+            vote_type: 'up'
           });
 
         if (insertError) throw insertError;
@@ -115,10 +115,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              console.log('Button clicked - attempting vote:', request.id);
-              handleVote('upvote');
-            }}
+            onClick={handleVote}
             disabled={isVoting}
             aria-label="thumbs up"
           >

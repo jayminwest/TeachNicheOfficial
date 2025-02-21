@@ -104,13 +104,115 @@ interface PurchaseApiResponse {
 }
 ```
 
+## Required Files
+
+1. Purchase API Routes:
+- /app/api/purchases/route.ts - Main purchase endpoints
+- /app/api/purchases/[id]/route.ts - Individual purchase management
+
+2. Video Protection:
+- /app/api/video/sign-playback/route.ts - Secure video playback
+- /app/components/ui/protected-video-player.tsx - Protected player component
+
+3. Access Control:
+- /app/hooks/use-lesson-access.ts - Access control hook
+- /app/components/ui/lesson-access-gate.tsx - Access gate component
+
+4. Database:
+- /supabase/migrations/[timestamp]_create_purchases_table.sql - Purchase table schema
+
+5. Types:
+- /types/purchase.ts - Purchase-related type definitions
+
 ## Implementation Steps
 
 ### Step 1: Create Access Control Hook
 File: app/hooks/use-lesson-access.ts
 
 ```typescript
-import { useEffect, useState } from 'react'
+// Create Purchases Table Migration
+```sql
+-- Enable RLS
+alter table purchases enable row level security;
+
+-- Create purchases table
+create table public.purchases (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid not null references auth.users(id),
+  lesson_id uuid not null references public.lessons(id),
+  creator_id uuid not null references auth.users(id),
+  purchase_date timestamp with time zone,
+  stripe_session_id text unique,
+  amount integer not null, -- Stored as integer cents
+  platform_fee integer not null, -- Stored as integer cents
+  creator_earnings integer not null, -- Stored as integer cents
+  payment_intent_id text,
+  fee_percentage integer not null, -- Stored as integer (e.g. 10 for 10%)
+  status purchase_status not null default 'pending',
+  error jsonb,
+  metadata jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  version integer default 1,
+  constraint purchases_stripe_session_id_key unique (stripe_session_id)
+);
+
+-- Add RLS policies
+create policy "Users can view their own purchases."
+  on purchases for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "Creators can view purchases for their lessons."
+  on purchases for select
+  to authenticated
+  using (auth.uid() = creator_id);
+
+-- Add indexes
+create index idx_purchases_user_lesson on purchases(user_id, lesson_id);
+create index idx_purchases_creator on purchases(creator_id);
+create index idx_purchases_stripe_session on purchases(stripe_session_id);
+
+-- Add triggers
+create trigger handle_updated_at before update
+  on purchases
+  for each row
+  execute procedure moddatetime (updated_at);
+```
+
+2. Purchase Types
+```typescript
+// types/purchase.ts
+export interface PurchaseError {
+  code: string;
+  message: string;
+  details?: Record<string, any>;
+}
+
+export interface Purchase {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  creator_id: string;
+  purchase_date: string | null;
+  stripe_session_id: string;
+  amount: number;
+  platform_fee: number;
+  creator_earnings: number;
+  payment_intent_id: string | null;
+  fee_percentage: number;
+  status: PurchaseStatus;
+  error?: PurchaseError;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  version: number;
+}
+
+export type PurchaseStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+```
+
+### Step 1: Create Core Components
 import { useAuth } from '@/services/auth/AuthContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/types/supabase'

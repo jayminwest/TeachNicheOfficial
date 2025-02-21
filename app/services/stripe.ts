@@ -128,7 +128,7 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
   return {
     isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
     missingRequirements: account.requirements?.currently_due || [],
-    pendingVerification: account.requirements?.pending_verification?.length > 0
+    pendingVerification: Array.isArray(account.requirements?.pending_verification) && account.requirements.pending_verification.length > 0
   };
 };
 

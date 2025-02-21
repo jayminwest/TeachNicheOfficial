@@ -1,4 +1,4 @@
-import { stripe } from '@/app/services/stripe';
+import { verifyConnectedAccount, StripeError } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -28,36 +28,16 @@ export async function GET(request: Request) {
       );
     }
 
-    // Verify the account exists and is properly set up
-    const account = await stripe.accounts.retrieve(accountId);
-    
-    // First verify that the user has a stripe_account_id in their profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('stripe_account_id')
-      .eq('id', user.id)
-      .single();
+    // Verify the connected account using our utility
+    const { verified, status } = await verifyConnectedAccount(user.id, accountId, supabase);
 
-    if (profileError || !profile.stripe_account_id) {
-      console.error('Profile verification failed:', profileError);
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=profile-verification-failed`
-      );
-    }
-
-    // Verify the account ID matches the one in the profile
-    if (profile.stripe_account_id !== accountId) {
-      console.error('Account ID mismatch');
+    if (!verified) {
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=account-mismatch`
       );
     }
 
-    // Check if the account has completed onboarding
-    const isComplete = 
-      account.details_submitted && 
-      account.payouts_enabled &&
-      account.charges_enabled;
+    const isComplete = status.isComplete;
 
     if (isComplete) {
       // Update onboarding status only if we have verified everything

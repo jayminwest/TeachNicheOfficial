@@ -1,4 +1,4 @@
-import { stripe } from '@/app/services/stripe';
+import { getAccountStatus, StripeError } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -25,18 +25,10 @@ export async function GET() {
       return NextResponse.json({ error: 'No Stripe account found' }, { status: 404 });
     }
 
-    // Get account details from Stripe
-    const account = await stripe.accounts.retrieve(profile.stripe_account_id);
+    // Get account status using our utility
+    const status = await getAccountStatus(profile.stripe_account_id);
 
-    return NextResponse.json({
-      id: account.id,
-      charges_enabled: account.charges_enabled,
-      payouts_enabled: account.payouts_enabled,
-      capabilities: account.capabilities,
-      requirements: account.requirements,
-      country: account.country,
-      default_currency: account.default_currency
-    });
+    return NextResponse.json(status);
   } catch (error) {
     console.error('Error fetching Stripe account status:', error);
     return NextResponse.json(

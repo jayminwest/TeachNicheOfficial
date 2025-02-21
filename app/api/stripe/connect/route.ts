@@ -1,4 +1,4 @@
-import { stripe } from '@/app/services/stripe';
+import { stripe, stripeConfig, createConnectSession, StripeError } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -92,13 +92,12 @@ export async function POST(request: Request) {
       }
     });
 
-    // Create account link for onboarding with locale support
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      type: 'account_onboarding',
-      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
-      collect: 'eventually_due'
+    // Create account link using our utility
+    const accountLink = await createConnectSession({
+      accountId: account.id,
+      refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
+      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
+      type: 'account_onboarding'
     });
 
     // Store the Stripe account ID in Supabase

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/app/components/ui/button'
-import { useAuth } from '@/auth/AuthContext'
+import { useAuth } from '@/app/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
 import { supabase } from '@/app/lib/supabase'
 import {

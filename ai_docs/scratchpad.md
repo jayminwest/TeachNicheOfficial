@@ -227,6 +227,117 @@ export interface Purchase {
 export type PurchaseStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
 ```
 
+### Required New Files
+
+1. Loading Components:
+```typescript
+// app/components/ui/loading-spinner.tsx
+export function LoadingSpinner() {
+  return (
+    <div className="flex justify-center items-center p-4">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
+
+// app/components/ui/purchase-prompt.tsx
+export function PurchasePrompt({ lessonId, price }: { lessonId: string; price: number }) {
+  return (
+    <div className="p-6 bg-muted rounded-lg">
+      <h3 className="text-lg font-semibold mb-2">Purchase Required</h3>
+      <p className="text-muted-foreground mb-4">
+        Purchase this lesson to get full access to the content
+      </p>
+      <LessonCheckout 
+        lessonId={lessonId}
+        price={price}
+        searchParams={new URLSearchParams(window.location.search)}
+      />
+    </div>
+  );
+}
+```
+
+2. Error Handling:
+```typescript
+// app/lib/errors.ts
+export class PurchaseError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+    public details?: Record<string, any>
+  ) {
+    super(message);
+    this.name = 'PurchaseError';
+  }
+}
+
+export class VideoAccessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'VideoAccessError';
+  }
+}
+
+export function handleApiError(error: unknown): PurchaseError {
+  if (error instanceof PurchaseError) {
+    return error;
+  }
+  
+  if (error instanceof Error) {
+    return new PurchaseError('unknown_error', error.message);
+  }
+  
+  return new PurchaseError(
+    'unknown_error',
+    'An unexpected error occurred'
+  );
+}
+```
+
+3. Error Boundary:
+```typescript
+// app/components/ui/error-boundary.tsx
+'use client';
+
+import { Component, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
+  };
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="p-4 border border-red-200 rounded bg-red-50">
+          <h2 className="text-red-800 font-semibold">Something went wrong</h2>
+          <p className="text-red-600 text-sm">
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
 ### Step 1: Create Core Components
 import { useAuth } from '@/services/auth/AuthContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'

@@ -9,6 +9,7 @@ import { voteOnRequest } from '@/lib/supabase/requests'
 import { useAuth } from '@/auth/AuthContext'
 import { toast } from '@/components/ui/use-toast'
 import { formatDistanceToNow } from 'date-fns'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface RequestCardProps {
   request: LessonRequest
@@ -34,6 +35,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
     }
 
     // Verify session is active
+    const supabase = createClientComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user?.id) {
       toast({

@@ -33,9 +33,12 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       }
 
       setIsVoting(true);
-      console.log('Calling voteOnRequest with:', { requestId: request.id, type });
-      const result = await voteOnRequest(request.id, type);
-      console.log('Vote result:', result);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Authentication required');
+      }
+      
+      const result = await voteOnRequest(request.id, type, session.access_token);
       
       if (result.error) {
         throw new Error(result.error.message);

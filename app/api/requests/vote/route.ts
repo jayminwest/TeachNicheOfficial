@@ -3,25 +3,41 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { voteSchema } from '@/lib/schemas/lesson-request'
 
+export const runtime = 'edge'
+
 export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    console.log('API session check:', { userId: session?.user?.id, error: sessionError });
-
-    if (sessionError) {
-      console.log('API aborting - session error:', sessionError);
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    
+    // Get session with full error handling
+    const sessionResponse = await supabase.auth.getSession()
+    console.log('API full session response:', sessionResponse);
+    
+    if (sessionResponse.error) {
+      console.log('API aborting - session error:', sessionResponse.error);
       return NextResponse.json(
-        { error: 'Session error: ' + sessionError.message },
+        { error: 'Session error: ' + sessionResponse.error.message },
         { status: 401 }
       )
     }
 
+    const session = sessionResponse.data.session
     if (!session?.user?.id) {
-      console.log('API aborting - no valid session');
+      console.log('API aborting - no valid session user');
       return NextResponse.json(
-        { error: 'No valid session found' },
+        { error: 'No authenticated user found' },
+        { status: 401 }
+      )
+    }
+
+    // Verify the session is still valid
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      console.log('API aborting - invalid user:', userError);
+      return NextResponse.json(
+        { error: 'Invalid user session' },
         { status: 401 }
       )
     }

@@ -87,6 +87,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
             size="sm"
             onClick={() => handleVote('upvote')}
             disabled={isVoting}
+            aria-label="thumbs up"
           >
             <ThumbsUp className="w-4 h-4 mr-1" />
             <span>{request.vote_count}</span>
@@ -96,6 +97,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
             size="sm"
             onClick={() => handleVote('downvote')}
             disabled={isVoting}
+            aria-label="thumbs down"
           >
             <ThumbsDown className="w-4 h-4" />
           </Button>

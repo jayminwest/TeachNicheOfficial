@@ -6,7 +6,8 @@ const customJestConfig = {
   },
   transform: {
     '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', {
-      presets: ['next/babel']
+      presets: ['next/babel'],
+      runtime: 'automatic'
     }]
   },
   transformIgnorePatterns: [

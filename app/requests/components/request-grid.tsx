@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { LessonRequest } from '@/lib/types'
 import { getRequests } from '@/lib/supabase/requests'
 import { RequestCard } from './request-card'
@@ -15,7 +15,7 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
   const [requests, setRequests] = useState<LessonRequest[]>(initialRequests || [])
   const [isLoading, setIsLoading] = useState(!initialRequests)
 
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await getRequests({ category })
@@ -25,7 +25,7 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [category])
 
   useEffect(() => {
     if (!initialRequests) {

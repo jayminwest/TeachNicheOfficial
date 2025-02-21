@@ -26,24 +26,13 @@ export function RequestGrid({ initialRequests, category, sortBy }: RequestGridPr
     } finally {
       setIsLoading(false)
     }
-  }, [category])
+  }, [category, sortBy])
 
   useEffect(() => {
     if (!initialRequests) {
-      const load = async () => {
-        try {
-          setIsLoading(true)
-          const data = await getRequests({ category, sortBy })
-          setRequests(data)
-        } catch (error) {
-          console.error('Failed to load requests:', error)
-        } finally {
-          setIsLoading(false)
-        }
-      }
-      load()
+      loadRequests();
     }
-  }, [category, initialRequests])
+  }, [category, sortBy, initialRequests, loadRequests])
 
   if (isLoading) {
     return (

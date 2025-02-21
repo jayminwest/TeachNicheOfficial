@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { Database } from '@/types/database';
+import { stripeConfig } from '@/services/stripe';
+import { calculateFees } from '@/lib/utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-01-27.acacia'
@@ -7,11 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { Database } from '@/types/database'
-
-async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent) => {
   const supabase = createRouteHandlerClient<Database>({ cookies })
   
   // Get purchase record by payment intent with lesson and creator details
@@ -69,7 +70,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   console.log('Purchase completed:', purchase.id)
 }
 
-async function handleAccountUpdated(account: Stripe.Account) {
+const handleAccountUpdated = async (account: Stripe.Account) => {
   const supabase = createRouteHandlerClient<Database>({ cookies })
   
   // Update creator's profile with account status

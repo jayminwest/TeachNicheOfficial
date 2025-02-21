@@ -155,16 +155,18 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
                 day: 'numeric'
               })}
             </span>
-            {request.instagram_handle && (
-              <a 
-                href={`https://instagram.com/${request.instagram_handle.replace('@', '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
-              >
-                {request.instagram_handle}
-              </a>
-            )}
+            <span className="text-sm h-[20px]"> {/* Fixed height placeholder */}
+              {request.instagram_handle && (
+                <a 
+                  href={`https://instagram.com/${request.instagram_handle.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  {request.instagram_handle}
+                </a>
+              )}
+            </span>
           </div>
         </CardHeader>
         <CardContent className="pb-3">

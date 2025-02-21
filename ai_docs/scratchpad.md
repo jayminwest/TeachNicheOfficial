@@ -795,7 +795,165 @@ Implementation Details:
 - Test error scenarios
 - Validate webhook handling
 
-### Step 10: Documentation & Cleanup
+### Step 10: Additional Components
+
+1. Stripe Webhook Handler:
+```typescript
+// app/api/webhooks/stripe/route.ts
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const { lessonId, userId, creatorId } = session.metadata;
+  
+  const supabase = createRouteHandlerClient({ cookies });
+  
+  await supabase
+    .from('purchases')
+    .update({
+      status: 'completed',
+      payment_intent_id: session.payment_intent as string,
+      purchase_date: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_session_id', session.id);
+}
+
+// Add to webhook handler switch statement:
+case 'checkout.session.completed':
+  await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+  break;
+```
+
+2. Protected Video Player:
+```typescript
+// app/components/ui/protected-video-player.tsx
+import { VideoPlayer } from './video-player'
+import { LessonAccessGate } from './lesson-access-gate'
+import { PurchasePrompt } from './purchase-prompt'
+
+interface ProtectedVideoPlayerProps {
+  lessonId: string
+  playbackId: string
+  title: string
+  className?: string
+}
+
+export function ProtectedVideoPlayer({
+  lessonId,
+  playbackId,
+  title,
+  className
+}: ProtectedVideoPlayerProps) {
+  return (
+    <LessonAccessGate 
+      lessonId={lessonId}
+      fallback={<PurchasePrompt lessonId={lessonId} />}
+    >
+      <VideoPlayer
+        playbackId={playbackId}
+        title={title}
+        className={className}
+        id={lessonId}
+      />
+    </LessonAccessGate>
+  )
+}
+```
+
+3. Purchase API Route:
+```typescript
+// app/api/purchases/route.ts
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+
+export async function GET(request: Request) {
+  const supabase = createRouteHandlerClient({ cookies })
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const lessonId = searchParams.get('lessonId')
+
+  if (!lessonId) {
+    return NextResponse.json({ error: 'Missing lessonId' }, { status: 400 })
+  }
+
+  const { data: purchase, error } = await supabase
+    .from('purchases')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .eq('lesson_id', lessonId)
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ purchase })
+}
+```
+
+4. Purchase Status Hook:
+```typescript
+// app/hooks/use-purchase-status.ts
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/services/auth/AuthContext'
+import type { PurchaseStatus } from '@/types/purchase'
+
+export function usePurchaseStatus(lessonId: string) {
+  const { user } = useAuth()
+  const [status, setStatus] = useState<PurchaseStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    if (!user || !lessonId) {
+      setStatus(null)
+      setLoading(false)
+      return
+    }
+
+    let mounted = true
+
+    async function checkStatus() {
+      try {
+        const response = await fetch(`/api/purchases?lessonId=${lessonId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch purchase status')
+        }
+        const { purchase } = await response.json()
+        
+        if (mounted) {
+          setStatus(purchase?.status || null)
+          setError(null)
+        }
+      } catch (err) {
+        console.error('Error checking purchase status:', err)
+        if (mounted) {
+          setStatus(null)
+          setError(err instanceof Error ? err : new Error('Unknown error'))
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    checkStatus()
+
+    return () => {
+      mounted = false
+    }
+  }, [lessonId, user])
+
+  return { status, loading, error }
+}
+```
+
+### Step 11: Documentation & Cleanup
 Implementation Details:
 - Document new components
 - Add usage examples

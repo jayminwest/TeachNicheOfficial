@@ -15,7 +15,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
 import { PlusCircle } from 'lucide-react'
 
-export function RequestDialog() {
+interface RequestDialogProps {
+  children: React.ReactNode
+}
+
+export function RequestDialog({ children }: RequestDialogProps) {
   const [open, setOpen] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const { user } = useAuth()
@@ -47,18 +51,14 @@ export function RequestDialog() {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button 
-            className="gap-2"
-            onClick={(e) => {
-              if (!user) {
-                e.preventDefault()
-                setShowAuth(true)
-              }
-            }}
-          >
-            <PlusCircle className="h-5 w-5" />
-            New Request
-          </Button>
+          <div onClick={(e) => {
+            if (!user) {
+              e.preventDefault()
+              setShowAuth(true)
+            }
+          }}>
+            {children}
+          </div>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

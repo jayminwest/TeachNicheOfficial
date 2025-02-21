@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen, act } from '@testing-library/react';
+import { render } from '@/__tests__/test-utils';
 import { StripeConnectButton } from '../stripe-connect-button';
 import { mockUseAuth, createMockUser, resetAuthMocks } from '@/__mocks__/services/auth';
 import { mockSupabaseClient, createMockSession, resetSupabaseMocks } from '@/__mocks__/services/supabase';
@@ -43,19 +44,19 @@ describe('StripeConnectButton', () => {
     resetSupabaseMocks();
   });
 
+  const renderStripeButton = (props: React.ComponentProps<typeof StripeConnectButton>) => {
+    return render(<StripeConnectButton {...props} />);
+  };
+
   it('renders connect button when not connected', () => {
-    renderWithStripe(
-      <StripeConnectButton stripeAccountId={null} />
-    );
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     expect(button).toHaveTextContent(/connect with stripe/i);
   });
 
   it('renders disabled button when already connected', () => {
-    renderWithStripe(
-      <StripeConnectButton stripeAccountId="acct_123" />
-    );
+    renderStripeButton({ stripeAccountId: "acct_123" });
     
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
@@ -68,9 +69,7 @@ describe('StripeConnectButton', () => {
       loading: false
     });
 
-    renderWithStripe(
-      <StripeConnectButton stripeAccountId={null} />
-    );
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
@@ -89,9 +88,7 @@ describe('StripeConnectButton', () => {
       json: () => Promise.resolve({ url: 'https://stripe.com/connect' })
     });
 
-    renderWithStripe(
-      <StripeConnectButton stripeAccountId={null} />
-    );
+    renderStripeButton({ stripeAccountId: null });
 
     const button = screen.getByRole('button');
     
@@ -115,7 +112,7 @@ describe('StripeConnectButton', () => {
       })
     });
 
-    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     await act(async () => {
@@ -138,7 +135,7 @@ describe('StripeConnectButton', () => {
       error: null
     });
 
-    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     await act(async () => {
@@ -162,7 +159,7 @@ describe('StripeConnectButton', () => {
       error: new Error('Failed to get session')
     });
 
-    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     await act(async () => {
@@ -201,7 +198,7 @@ describe('StripeConnectButton', () => {
       })
     });
 
-    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     await act(async () => {
@@ -234,7 +231,7 @@ describe('StripeConnectButton', () => {
       json: () => Promise.resolve({}) // Empty response with no URL
     });
 
-    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     await act(async () => {
@@ -267,7 +264,7 @@ describe('StripeConnectButton', () => {
       configurable: true
     });
 
-    renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
+    renderStripeButton({ stripeAccountId: null });
     
     const button = screen.getByRole('button');
     await act(async () => {

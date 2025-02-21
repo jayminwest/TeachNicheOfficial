@@ -109,17 +109,6 @@ export const getStripe = () => {
   return stripe;
 };
 
-// Helper functions
-export const calculateFees = (amount: number) => {
-  const platformFee = Math.round(amount * (stripeConfig.platformFeePercent / 100));
-  const creatorEarnings = amount - platformFee;
-  
-  return {
-    platformFee,
-    creatorEarnings,
-    feePercentage: stripeConfig.platformFeePercent
-  };
-};
 
 // Helper functions and utilities
 export const getAccountStatus = async (accountId: string): Promise<StripeAccountStatus> => {

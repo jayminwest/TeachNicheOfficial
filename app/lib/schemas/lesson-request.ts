@@ -22,13 +22,15 @@ export interface LessonRequestVote {
 }
 
 export const LESSON_CATEGORIES = [
-  'Kendama',
-  'Juggling',
-  'Yo-yo',
-  'Pen Spinning',
-  'Card Flourishing',
-  'Diabolo',
-  'Contact Juggling',
+  'Trick Tutorial',
+  'Beginner Basics',
+  'Advanced Techniques',
+  'Combo Tutorial',
+  'Theory & Concepts',
+  'Equipment Guide',
+  'Maintenance Tips',
+  'Style Development',
+  'Competition Prep',
   'Other'
 ] as const
 

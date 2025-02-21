@@ -17,10 +17,14 @@ interface RequestCardProps {
 
 export function RequestCard({ request, onVote }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
-    if (!user) {
+    if (loading) {
+      return
+    }
+    
+    if (!user?.id) {
       toast({
         title: "Authentication required",
         description: "Please sign in to vote on requests",

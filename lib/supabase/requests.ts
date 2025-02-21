@@ -57,13 +57,11 @@ export async function getRequests(filters?: {
 
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
   const supabase = createClientComponentClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!session?.user) {
+  if (!user?.id) {
     throw new Error('Please sign in to vote on requests')
   }
-  
-  const user = session.user
   
   // First check for existing vote
   const { data: existingVote } = await supabase

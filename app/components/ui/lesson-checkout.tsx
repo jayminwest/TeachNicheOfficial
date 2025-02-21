@@ -18,10 +18,16 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const { user } = useAuth();
+  
   const handleCheckout = async () => {
     try {
       setError(null);
       setIsLoading(true);
+
+      if (!user) {
+        throw new Error('Please sign in to purchase this lesson');
+      }
       
       // Create checkout session and redirect
       const stripe = await stripePromise;

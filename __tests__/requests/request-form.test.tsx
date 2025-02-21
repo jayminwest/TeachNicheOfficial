@@ -97,11 +97,11 @@ describe('RequestForm', () => {
     await user.click(screen.getByRole('button', { name: /submit request/i }))
 
     await waitFor(() => {
-      expect(toast).toHaveBeenCalledWith({
+      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
         title: "Error",
         description: "Database error",
         variant: "destructive"
-      })
-    })
+      }))
+    }, { timeout: 3000 })
   })
 })

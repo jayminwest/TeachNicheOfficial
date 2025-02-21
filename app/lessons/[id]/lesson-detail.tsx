@@ -1,10 +1,10 @@
-import { VideoPlayer } from "@/components/ui/video-player";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { VideoPlayer } from "@/app/components/ui/video-player";
+import { Card } from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/app/components/ui/toaster";
 
 interface LessonDetailProps {
   id: string;

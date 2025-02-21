@@ -6,6 +6,9 @@ interface Lesson {
   description: string;
   price: number;
   created_at: string;
+  thumbnailUrl: string;
+  averageRating: number;
+  totalRatings: number;
 }
 
 interface LessonGridProps {

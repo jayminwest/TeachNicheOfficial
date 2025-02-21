@@ -1,6 +1,9 @@
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
+import { LessonPreviewDialog } from "@/app/components/ui/lesson-preview-dialog";
 
 interface LessonCardProps {
   lesson: {
@@ -8,38 +11,60 @@ interface LessonCardProps {
     title: string;
     description: string;
     price: number;
+    thumbnailUrl: string;
+    averageRating: number;
+    totalRatings: number;
   };
 }
 
 export function LessonCard({ lesson }: LessonCardProps) {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   return (
-    <Card className="h-full hover:shadow-md transition-shadow">
-      <div className="p-6">
-        <Link href={`/lessons/${lesson.id}`}>
+    <>
+      <Card 
+        className="h-full hover:shadow-md transition-shadow cursor-pointer"
+        onClick={() => setIsPreviewOpen(true)}
+      >
+        <div className="relative aspect-video w-full">
+          <Image
+            src={lesson.thumbnailUrl}
+            alt={lesson.title}
+            fill
+            className="object-cover rounded-t-lg"
+          />
+        </div>
+        <div className="p-6">
           <h3 className="font-semibold mb-2 line-clamp-2">
             {lesson.title}
           </h3>
           <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
             {lesson.description}
           </p>
-        </Link>
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium">
-            {lesson.price === 0 ? (
-              <span className="text-green-600">Free</span>
-            ) : (
-              <span>${lesson.price.toFixed(2)}</span>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">
+              {lesson.price === 0 ? (
+                <span className="text-green-600">Free</span>
+              ) : (
+                <span>${lesson.price.toFixed(2)}</span>
+              )}
+            </div>
+            {lesson.price > 0 && (
+              <LessonCheckout 
+                lessonId={lesson.id} 
+                price={lesson.price}
+                searchParams={new URLSearchParams(window.location.search)}
+              />
             )}
           </div>
-          {lesson.price > 0 && (
-            <LessonCheckout 
-              lessonId={lesson.id} 
-              price={lesson.price}
-              searchParams={new URLSearchParams(window.location.search)}
-            />
-          )}
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      <LessonPreviewDialog
+        lesson={lesson}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
+    </>
   );
 }

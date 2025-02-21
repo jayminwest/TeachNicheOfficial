@@ -106,12 +106,13 @@ describe('RequestsPage', () => {
     // Verify sidebar is visible
     expect(screen.getByText('Filter & Sort')).toBeInTheDocument()
 
-    // Close sidebar
-    const closeButton = screen.getByRole('button', { name: 'Close sidebar' })
+    // Close sidebar using the X button
+    const closeButton = screen.getByRole('button', { name: /x/i })
     await user.click(closeButton)
 
-    // Verify sidebar is hidden (implementation dependent)
-    // This might need to check for a specific class or attribute
+    // Verify sidebar is hidden by checking the transform class
+    const sidebar = screen.getByTestId('request-sidebar')
+    expect(sidebar).toHaveClass('-translate-x-full')
   })
 
   it('shows auth dialog when non-authenticated user tries to create request', async () => {
@@ -122,9 +123,11 @@ describe('RequestsPage', () => {
     const newRequestButton = screen.getByRole('button', { name: /new request/i })
     await user.click(newRequestButton)
 
-    // Wait for auth dialog to appear
+    // Wait for auth dialog to appear and check for sign in/up text
     await waitFor(() => {
-      expect(screen.getByText(/sign up/i)).toBeInTheDocument()
+      const dialog = screen.getByRole('dialog')
+      expect(dialog).toBeInTheDocument()
+      expect(screen.getByText(/sign in/i)).toBeInTheDocument()
     })
   })
 

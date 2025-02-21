@@ -32,7 +32,7 @@ describe('RequestDialog', () => {
     
     await user.click(screen.getByRole('button', { name: /new request/i }))
     
-    expect(screen.getByText(/sign up/i)).toBeInTheDocument()
+    expect(screen.getByText(/join teach niche/i)).toBeInTheDocument()
   })
 
   it('shows request form when authenticated user clicks button', async () => {

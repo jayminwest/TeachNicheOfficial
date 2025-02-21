@@ -3,7 +3,9 @@ import { NextResponse } from 'next/server'
 import { POST, GET } from '../requests/route'
 
 // Mock dependencies
-jest.mock('@supabase/auth-helpers-nextjs')
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createRouteHandlerClient: jest.fn()
+}))
 jest.mock('next/headers', () => ({
   cookies: () => ({
     getAll: () => []
@@ -42,7 +44,7 @@ describe('Requests API Routes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+    (createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
   })
 
   describe('POST /api/requests', () => {

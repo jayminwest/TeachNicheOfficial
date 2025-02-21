@@ -57,40 +57,54 @@ export async function getRequests(filters?: {
 
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
   const supabase = createClientComponentClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    throw new Error('User must be authenticated to vote')
+  }
   
   // First check for existing vote
   const { data: existingVote } = await supabase
     .from('lesson_request_votes')
     .select()
-    .match({ request_id: requestId })
+    .match({ 
+      request_id: requestId,
+      user_id: user.id 
+    })
     .single()
 
   if (existingVote) {
-    // Delete existing vote
-    const { error: deleteError } = await supabase
+    if (existingVote.vote_type === voteType) {
+      // Delete existing vote if same type
+      const { error: deleteError } = await supabase
+        .from('lesson_request_votes')
+        .delete()
+        .match({ id: existingVote.id })
+      if (deleteError) throw deleteError
+    } else {
+      // Update vote type if different
+      const { error: updateError } = await supabase
+        .from('lesson_request_votes')
+        .update({ vote_type: voteType })
+        .match({ id: existingVote.id })
+      if (updateError) throw updateError
+    }
+  } else {
+    // Insert new vote
+    const { error: insertError } = await supabase
       .from('lesson_request_votes')
-      .delete()
-      .match({ id: existingVote.id })
-    if (deleteError) throw deleteError
+      .insert([{ 
+        request_id: requestId,
+        user_id: user.id,
+        vote_type: voteType,
+        created_at: new Date().toISOString()
+      }])
+    if (insertError) throw insertError
   }
-
-  // Insert new vote
-  const { data, error: insertError } = await supabase
-    .from('lesson_request_votes')
-    .insert([{ 
-      request_id: requestId,
-      user_id: supabase.auth.user()?.id,
-      vote_type: voteType,
-      created_at: new Date().toISOString()
-    }])
-  
-  if (insertError) throw insertError
 
   // Update vote count
   const { error: updateError } = await supabase
     .rpc('update_vote_count', { request_id: requestId })
   
   if (updateError) throw updateError
-  
-  return data as LessonRequestVote[]
 }

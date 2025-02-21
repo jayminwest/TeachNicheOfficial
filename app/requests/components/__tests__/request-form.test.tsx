@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestForm } from '@/app/requests/components/request-form'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from '@/app/components/ui/use-toast'
 import { useAuth } from '@/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 

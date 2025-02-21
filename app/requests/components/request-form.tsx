@@ -35,8 +35,7 @@ export function RequestForm() {
     defaultValues: {
       title: '',
       description: '',
-      category: '',
-      tags: []
+      category: ''
     }
   })
 

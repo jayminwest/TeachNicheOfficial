@@ -2,10 +2,6 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
-import { createMockSupabaseClient } from '@/__mocks__/services/supabase'
-
-// Create mock client instance
-const mockSupabaseClient = createMockSupabaseClient();
 
 // Mock the supabase client before importing Header
 jest.mock('@/lib/supabase', () => ({
@@ -227,7 +223,7 @@ describe('Header', () => {
         loading: false
       })
 
-      const { usePathname } = jest.mocked(require('next/navigation'));
+      const { usePathname } = jest.requireMock('next/navigation');
       (usePathname as jest.Mock).mockImplementation(() => '/about')
       
       render(<Header />)

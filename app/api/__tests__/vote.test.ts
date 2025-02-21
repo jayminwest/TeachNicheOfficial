@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { POST } from '../requests/vote/route'
 
 // Mock global Request and Response before tests
-global.Request = class MockRequest {
+const mockRequest = class MockRequest {
   url: string
   method: string
   body: string
@@ -16,7 +16,10 @@ global.Request = class MockRequest {
   async json() {
     return JSON.parse(this.body)
   }
-} as unknown as typeof Request
+}
+
+// @ts-ignore - Mocking global Request
+global.Request = mockRequest
 
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs')

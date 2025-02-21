@@ -39,6 +39,7 @@ export default function RequestsPage() {
                 size="icon"
                 className="lg:hidden"
                 onClick={() => setIsSidebarOpen(true)}
+                aria-label="Toggle sidebar"
               >
                 <Menu className="h-6 w-6" />
               </Button>
@@ -47,7 +48,7 @@ export default function RequestsPage() {
                   {selectedCategory || 'All'} Lesson Requests
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                  Vote on existing requests or create your own to help shape our content
+                  Browse and vote on lesson requests or create your own
                 </p>
               </div>
             </div>

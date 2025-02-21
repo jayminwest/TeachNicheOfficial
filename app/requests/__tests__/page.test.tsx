@@ -45,7 +45,7 @@ describe('RequestsPage', () => {
     render(<RequestsPage />)
     
     expect(screen.getByText(/lesson requests/i)).toBeInTheDocument()
-    expect(screen.getByText(/browse and vote/i)).toBeInTheDocument()
+    expect(screen.getByText(/Browse and vote on lesson requests/i)).toBeInTheDocument()
   })
 
   it('renders the request grid with initial data', async () => {
@@ -67,7 +67,7 @@ describe('RequestsPage', () => {
     })
 
     // Click category filter
-    const categoryButton = screen.getByRole('button', { name: 'Beginner Fundamentals' })
+    const categoryButton = screen.getByRole('button', { name: 'Beginner Basics' })
     await user.click(categoryButton)
 
     // Verify getRequests was called with correct category
@@ -100,7 +100,7 @@ describe('RequestsPage', () => {
     render(<RequestsPage />)
 
     // Find and click mobile menu button
-    const menuButton = screen.getByRole('button', { name: /toggle sidebar/i })
+    const menuButton = screen.getByRole('button', { name: 'Toggle sidebar' })
     await user.click(menuButton)
 
     // Verify sidebar is visible
@@ -122,8 +122,10 @@ describe('RequestsPage', () => {
     const newRequestButton = screen.getByRole('button', { name: /new request/i })
     await user.click(newRequestButton)
 
-    // Verify auth dialog appears
-    expect(screen.getByText(/sign up/i)).toBeInTheDocument()
+    // Wait for auth dialog to appear
+    await waitFor(() => {
+      expect(screen.getByText(/sign up/i)).toBeInTheDocument()
+    })
   })
 
   it('allows authenticated users to create requests', async () => {
@@ -139,7 +141,9 @@ describe('RequestsPage', () => {
     const newRequestButton = screen.getByRole('button', { name: /new request/i })
     await user.click(newRequestButton)
 
-    // Verify request dialog appears instead of auth dialog
-    expect(screen.getByText(/create new lesson request/i)).toBeInTheDocument()
+    // Wait for request dialog to appear
+    await waitFor(() => {
+      expect(screen.getByText(/create new lesson request/i)).toBeInTheDocument()
+    })
   })
 })

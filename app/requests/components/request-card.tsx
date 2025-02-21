@@ -52,7 +52,8 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       const { data } = await supabase
         .from('lesson_request_votes')
         .select()
-        .match({ request_id: request.id, user_id: user.id })
+        .eq('request_id', request.id)
+        .eq('user_id', user.id)
         .maybeSingle();
       
       setHasVoted(!!data);

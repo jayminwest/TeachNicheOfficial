@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { createMockResponse, createAsyncMock, MockConfig, resetMocks } from '../utils/mock-helpers';
+import { createAsyncMock, MockConfig, resetMocks } from '../utils/mock-helpers';
 
 // Types for auth data
 export interface MockUser {

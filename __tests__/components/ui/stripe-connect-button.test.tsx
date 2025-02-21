@@ -5,6 +5,7 @@ import { renderWithStripe } from '../../test-utils';
 import { mockStripeClient } from '../../../__mocks__/services/stripe';
 import { mockUseAuth } from '../../../__mocks__/services/auth';
 import { mockSupabaseClient } from '../../../__mocks__/services/supabase';
+import { supabase } from '@/lib/supabase';
 
 // Store original window.location
 const originalLocation = window.location;
@@ -20,10 +21,12 @@ jest.mock('@/components/ui/use-toast', () => ({
   })
 }));
 
+// Mock auth context
 jest.mock('@/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }));
 
+// Mock supabase after importing mockSupabaseClient
 jest.mock('@/lib/supabase', () => ({
   supabase: mockSupabaseClient
 }));

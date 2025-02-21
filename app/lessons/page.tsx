@@ -49,8 +49,7 @@ export default function LessonsPage() {
             averageRating,
             totalRatings
           };
-        }
-        }));
+        });
         
         setLessons(transformedLessons);
       } catch (error) {

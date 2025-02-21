@@ -45,119 +45,121 @@ export function RequestDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          className="gap-2"
-          onClick={(e) => {
-            if (!user) {
-              e.preventDefault()
-              setShowAuth(true)
-            }
-          }}
-        >
-          <PlusCircle className="h-5 w-5" />
-          New Request
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create New Lesson Request</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter lesson title..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Describe what you'd like to learn..." 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="instagram_handle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preferred Teacher's Instagram</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="@username" 
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button 
+            className="gap-2"
+            onClick={(e) => {
+              if (!user) {
+                e.preventDefault()
+                setShowAuth(true)
+              }
+            }}
+          >
+            <PlusCircle className="h-5 w-5" />
+            New Request
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Lesson Request</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
+                      <Input placeholder="Enter lesson title..." {...field} />
                     </FormControl>
-                    <SelectContent 
-                      className="max-h-[200px] overflow-y-auto relative z-[9999]"
-                      position="popper"
-                      sideOffset={5}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Describe what you'd like to learn..." 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="instagram_handle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Teacher's Instagram</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="@username" 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      defaultValue={field.value}
                     >
-                      {LESSON_CATEGORIES.map((category) => (
-                        <SelectItem 
-                          key={category} 
-                          value={category}
-                          className="cursor-pointer"
-                        >
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Submit Request
-            </Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-    <AuthDialog 
-      open={showAuth} 
-      onOpenChange={setShowAuth}
-      defaultView="sign-up"
-    />
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent 
+                        className="max-h-[200px] overflow-y-auto relative z-[9999]"
+                        position="popper"
+                        sideOffset={5}
+                      >
+                        {LESSON_CATEGORIES.map((category) => (
+                          <SelectItem 
+                            key={category} 
+                            value={category}
+                            className="cursor-pointer"
+                          >
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Submit Request
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      <AuthDialog 
+        open={showAuth} 
+        onOpenChange={setShowAuth}
+        defaultView="sign-up"
+      />
+    </>
   )
 }

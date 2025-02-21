@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";

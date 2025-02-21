@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { lessonRequestSchema } from '@/lib/schemas/lesson-request'
+import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
 
 export async function POST(request: Request) {
   try {

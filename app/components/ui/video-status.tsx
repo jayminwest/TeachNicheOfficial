@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 interface VideoStatusProps {

@@ -5,7 +5,7 @@ import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/auth/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/app/lib/supabase';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;

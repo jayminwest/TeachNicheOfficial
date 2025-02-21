@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "./button";
 import { Input } from "./input";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/app/lib/supabase";
 import { motion } from "framer-motion";
 
 export function EmailSignup() {

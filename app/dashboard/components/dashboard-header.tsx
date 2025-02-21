@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/app/components/ui/card"
-import { cn } from "@/lib/utils"
+import { cn } from "@/app/lib/utils"
 
 const stats = [
   { label: "Total Earnings", value: "$1,234", change: "+12%" },

@@ -8,7 +8,7 @@ import { ContentManagement } from "./components/content-management"
 import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
 import { useAuth } from "@/auth/AuthContext"
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/app/lib/supabase"
 import { redirect } from "next/navigation"
 
 export default function ProfilePage() {

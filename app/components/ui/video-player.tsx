@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 import MuxPlayer from "@mux/mux-player-react";
 import { useState, useEffect } from "react";
 

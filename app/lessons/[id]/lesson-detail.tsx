@@ -3,7 +3,7 @@ import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/app/lib/supabase";
 import { Toaster } from "@/app/components/ui/toaster";
 
 interface LessonDetailProps {

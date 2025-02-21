@@ -6,7 +6,7 @@ import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { LessonGrid } from "@/app/components/ui/lesson-grid";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/app/lib/supabase";
 import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 

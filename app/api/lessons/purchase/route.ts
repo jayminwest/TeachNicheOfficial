@@ -103,6 +103,9 @@ export async function POST(request: Request) {
       }
     })
 
+    // Wait for payment intent to be created
+    const paymentIntent = await stripe.paymentIntents.retrieve(checkoutSession.payment_intent as string)
+
     // Generate UUID for purchase record
     const purchaseId = crypto.randomUUID()
 
@@ -120,7 +123,7 @@ export async function POST(request: Request) {
         creator_earnings: creatorEarnings,
         fee_percentage: stripeConfig.platformFeePercent,
         status: 'pending',
-        payment_intent_id: checkoutSession.payment_intent as string,
+        payment_intent_id: paymentIntent.id,
         metadata: {
           version: '1'
         }

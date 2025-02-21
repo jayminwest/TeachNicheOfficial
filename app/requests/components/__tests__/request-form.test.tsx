@@ -8,7 +8,7 @@ import { supabase } from '@/app/lib/supabase'
 // Mock dependencies
 jest.mock('@/app/components/ui/use-toast')
 jest.mock('@/auth/AuthContext')
-jest.mock('@/lib/supabase')
+jest.mock('@/app/lib/supabase')
 
 describe('RequestForm', () => {
   const mockUser = { id: 'test-user-id' }

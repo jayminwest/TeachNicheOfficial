@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { RequestGrid } from '@/app/requests/components/request-grid'
 import { getRequests } from '@/app/lib/supabase/requests'
 
-jest.mock('@/lib/supabase/requests')
+jest.mock('@/app/lib/supabase/requests')
 jest.mock('@supabase/auth-helpers-nextjs')
 
 describe('RequestGrid', () => {

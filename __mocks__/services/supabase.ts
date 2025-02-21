@@ -1,7 +1,67 @@
 import { jest } from '@jest/globals';
+import { createMockResponse, createAsyncMock, MockConfig, resetMocks } from '../utils/mock-helpers';
 
-// Define mock user first since it's used in other mocks
-export const mockSupabaseUser = {
+// Types for Supabase data
+export interface SupabaseUser {
+  id: string;
+  email: string;
+  user_metadata: {
+    full_name: string;
+    avatar_url: string;
+  };
+  app_metadata: {
+    provider: string;
+    providers: string[];
+  };
+  aud: string;
+  created_at: string;
+  role: string;
+  updated_at: string;
+}
+
+export interface SupabaseSession {
+  user: SupabaseUser;
+  access_token: string;
+  refresh_token: string;
+}
+
+export interface StorageFile {
+  name: string;
+  id?: string;
+  updated_at?: string;
+  created_at?: string;
+  last_accessed_at?: string;
+  metadata?: Record<string, any>;
+}
+
+// Query builder types
+export interface QueryFilters {
+  eq?: any;
+  neq?: any;
+  gt?: any;
+  gte?: any;
+  lt?: any;
+  lte?: any;
+  like?: string;
+  ilike?: string;
+  is?: any;
+  in?: any[];
+  contains?: any;
+  containedBy?: any;
+  range?: [any, any];
+  overlap?: any[];
+  [key: string]: any;
+}
+
+export interface QueryOptions {
+  limit?: number;
+  offset?: number;
+  order?: { column: string; ascending?: boolean };
+  single?: boolean;
+}
+
+// Factory functions to create mock data
+export const createMockUser = (overrides = {}): SupabaseUser => ({
   id: 'test-user-id',
   email: 'test@example.com',
   user_metadata: {
@@ -15,152 +75,139 @@ export const mockSupabaseUser = {
   aud: 'authenticated',
   created_at: '2023-01-01T00:00:00.000Z',
   role: 'authenticated',
-  updated_at: '2023-01-01T00:00:00.000Z'
-};
+  updated_at: '2023-01-01T00:00:00.000Z',
+  ...overrides
+});
 
-// Create reusable mock data
-const mockSession = {
-  user: mockSupabaseUser,
+export const createMockSession = (overrides = {}): SupabaseSession => ({
+  user: createMockUser(),
   access_token: 'test-token',
-  refresh_token: 'test-refresh-token'
+  refresh_token: 'test-refresh-token',
+  ...overrides
+});
+
+export const createMockStorageFile = (overrides = {}): StorageFile => ({
+  name: 'test.jpg',
+  id: 'file_123',
+  updated_at: '2023-01-01T00:00:00.000Z',
+  created_at: '2023-01-01T00:00:00.000Z',
+  last_accessed_at: '2023-01-01T00:00:00.000Z',
+  metadata: {},
+  ...overrides
+});
+
+// Create configurable query builder
+export const createMockQueryBuilder = (config: MockConfig = {}) => {
+  const baseData = { id: 1, created_at: '2023-01-01T00:00:00.000Z' };
+  
+  return {
+    eq: jest.fn().mockReturnThis(),
+    neq: jest.fn().mockReturnThis(),
+    gt: jest.fn().mockReturnThis(),
+    gte: jest.fn().mockReturnThis(),
+    lt: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
+    like: jest.fn().mockReturnThis(),
+    ilike: jest.fn().mockReturnThis(),
+    is: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
+    contains: jest.fn().mockReturnThis(),
+    containedBy: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
+    overlap: jest.fn().mockReturnThis(),
+    textSearch: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    not: jest.fn().mockReturnThis(),
+    filter: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
+    single: createAsyncMock(baseData, config),
+    maybeSingle: createAsyncMock(baseData, config),
+    execute: createAsyncMock([baseData], config),
+    count: createAsyncMock([{ count: 5 }], config)
+  };
 };
 
-// Define base types for query responses
-type QueryResponse<T> = Promise<{ data: T | null; error: null | Error }>;
-type QueryListResponse<T> = Promise<{ data: T[] | null; error: null | Error }>;
+// Create mock Supabase client with configurable behavior
+export const createMockSupabaseClient = (config: MockConfig = {}) => {
+  const mockUser = createMockUser();
+  const mockSession = createMockSession();
+  const mockFile = createMockStorageFile();
+  const queryBuilder = createMockQueryBuilder(config);
 
-const mockQueryBuilder = {
-  eq: jest.fn().mockReturnThis(),
-  neq: jest.fn().mockReturnThis(),
-  gt: jest.fn().mockReturnThis(),
-  gte: jest.fn().mockReturnThis(),
-  lt: jest.fn().mockReturnThis(),
-  lte: jest.fn().mockReturnThis(),
-  like: jest.fn().mockReturnThis(),
-  ilike: jest.fn().mockReturnThis(),
-  is: jest.fn().mockReturnThis(),
-  in: jest.fn().mockReturnThis(),
-  contains: jest.fn().mockReturnThis(),
-  containedBy: jest.fn().mockReturnThis(),
-  range: jest.fn().mockReturnThis(),
-  overlap: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  order: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnThis(),
-  single: jest.fn().mockImplementation((): QueryResponse<Record<string, any>> => 
-    Promise.resolve({
-      data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
-      error: null
-    })
-  ),
-  maybeSingle: jest.fn().mockImplementation((): QueryResponse<Record<string, any>> => 
-    Promise.resolve({
-      data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
-      error: null
-    })
-  ),
-  execute: jest.fn().mockImplementation((): QueryListResponse<Record<string, any>> => 
-    Promise.resolve({
-      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
-      error: null
-    })
-  ),
-  count: jest.fn().mockImplementation(() => 
-    Promise.resolve({
-      data: [{ count: 5 }],
-      error: null
-    })
-  )
-};
+  return {
+    auth: {
+      getSession: createAsyncMock({ session: mockSession }, config),
+      getUser: createAsyncMock({ user: mockUser }, config),
+      signInWithOAuth: createAsyncMock({ user: mockUser, session: mockSession }, config),
+      signInWithPassword: createAsyncMock({ user: mockUser, session: mockSession }, config),
+      signUp: createAsyncMock({ user: mockUser, session: mockSession }, config),
+      signOut: createAsyncMock({}, config),
+      resetPasswordForEmail: createAsyncMock({}, config),
+      updateUser: createAsyncMock({ user: mockUser }, config),
+      onAuthStateChange: jest.fn().mockImplementation((callback) => {
+        callback('SIGNED_IN', { user: mockUser });
+        return { data: { subscription: { unsubscribe: jest.fn() } } };
+      }),
+      mfa: {
+        enroll: createAsyncMock({ id: 'factor_123' }, config),
+        challenge: createAsyncMock({ id: 'challenge_123' }, config),
+        verify: createAsyncMock({ id: 'challenge_123' }, config),
+        unenroll: createAsyncMock({}, config),
+      }
+    },
 
-export const mockSupabaseClient = {
-  auth: {
-    getSession: jest.fn().mockResolvedValue({
-      data: { session: mockSession },
-      error: null
-    }),
-    getUser: jest.fn().mockResolvedValue({
-      data: { user: mockSupabaseUser },
-      error: null
-    }),
-    signInWithOAuth: jest.fn().mockResolvedValue({
-      data: { user: mockSupabaseUser, session: mockSession },
-      error: null
-    }),
-    signInWithPassword: jest.fn().mockResolvedValue({
-      data: { user: mockSupabaseUser, session: mockSession },
-      error: null
-    }),
-    signUp: jest.fn().mockResolvedValue({
-      data: { user: mockSupabaseUser, session: mockSession },
-      error: null
-    }),
-    signOut: jest.fn().mockResolvedValue({ error: null }),
-    resetPasswordForEmail: jest.fn().mockResolvedValue({ error: null }),
-    updateUser: jest.fn().mockResolvedValue({
-      data: { user: mockSupabaseUser },
-      error: null
-    }),
-    onAuthStateChange: jest.fn().mockImplementation((callback) => {
-      callback('SIGNED_IN', { user: mockSupabaseUser });
-      return { data: { subscription: { unsubscribe: jest.fn() } } };
-    })
-  },
+    from: jest.fn().mockImplementation((table) => ({
+      ...queryBuilder,
+      insert: createAsyncMock([{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }], config),
+      upsert: createAsyncMock([{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }], config),
+      update: createAsyncMock({ id: 1, updated_at: '2023-01-01T00:00:00.000Z' }, config),
+      delete: createAsyncMock({ id: 1 }, config)
+    })),
 
-  from: jest.fn().mockImplementation((table) => ({
-    ...mockQueryBuilder,
-    insert: jest.fn().mockResolvedValue({
-      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
-      error: null
-    }),
-    upsert: jest.fn().mockResolvedValue({
-      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
-      error: null
-    }),
-    update: jest.fn().mockResolvedValue({
-      data: { id: 1, updated_at: '2023-01-01T00:00:00.000Z' },
-      error: null
-    }),
-    delete: jest.fn().mockResolvedValue({
-      data: { id: 1 },
-      error: null
-    })
-  })),
+    storage: {
+      from: jest.fn().mockReturnValue({
+        upload: createAsyncMock({ path: 'test.jpg' }, config),
+        download: createAsyncMock(new Blob(['test']), config),
+        getPublicUrl: jest.fn().mockReturnValue({
+          data: { publicUrl: 'https://example.com/test.jpg' }
+        }),
+        list: createAsyncMock([mockFile], config),
+        remove: createAsyncMock(null, config),
+        createSignedUrl: createAsyncMock({ 
+          signedUrl: 'https://example.com/signed-test.jpg',
+          path: 'test.jpg',
+          expiresIn: 3600 
+        }, config),
+        move: createAsyncMock({ path: 'new-test.jpg' }, config),
+        copy: createAsyncMock({ path: 'copy-test.jpg' }, config)
+      })
+    },
 
-  storage: {
-    from: jest.fn().mockReturnValue({
-      upload: jest.fn().mockResolvedValue({
-        data: { path: 'test.jpg' },
-        error: null
-      }),
-      download: jest.fn().mockResolvedValue({
-        data: new Blob(['test']),
-        error: null
-      }),
-      getPublicUrl: jest.fn().mockReturnValue({
-        data: { publicUrl: 'https://example.com/test.jpg' }
-      }),
-      list: jest.fn().mockResolvedValue({
-        data: [{ name: 'test.jpg' }],
-        error: null
-      }),
-      remove: jest.fn().mockResolvedValue({
-        data: null,
-        error: null
-      }),
-      createSignedUrl: jest.fn().mockResolvedValue({
-        data: { signedUrl: 'https://example.com/signed-test.jpg' },
-        error: null
-      }),
-      move: jest.fn().mockResolvedValue({
-        data: { path: 'new-test.jpg' },
-        error: null
+    rpc: jest.fn().mockImplementation((func, params) => 
+      createAsyncMock({ result: 'success' }, config)()
+    ),
+    
+    // Additional utilities
+    schema: jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      execute: createAsyncMock({ definitions: [] }, config)
+    }),
+    
+    // Functions for managing subscriptions
+    channel: jest.fn().mockReturnValue({
+      on: jest.fn().mockReturnThis(),
+      subscribe: jest.fn().mockResolvedValue({ 
+        unsubscribe: jest.fn().mockResolvedValue(null) 
       })
     })
-  },
-
-  rpc: jest.fn().mockImplementation((func, params) => ({
-    data: { result: 'success' },
-    error: null
-  }))
+  };
 };
+
+export const mockSupabaseClient = createMockSupabaseClient();
+
+// Export function to reset all mocks
+export const resetSupabaseMocks = () => resetMocks(mockSupabaseClient);

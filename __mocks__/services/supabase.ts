@@ -24,11 +24,13 @@ export const mockSupabaseClient = {
     update: jest.fn().mockReturnThis(),
     delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
     single: jest.fn(),
     maybeSingle: jest.fn(),
     limit: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis(),
     range: jest.fn().mockReturnThis(),
+    count: jest.fn().mockResolvedValue({ count: 5 }),
   })),
   schema: jest.fn().mockReturnThis(),
 };

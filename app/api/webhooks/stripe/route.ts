@@ -108,7 +108,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
   }
 
   console.log('Purchase completed:', purchase.id);
-};
+}
 
 async function handleAccount(account: Stripe.Account): Promise<void> {
   const supabase = createRouteHandlerClient<Database>({ cookies });
@@ -128,5 +128,5 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
   }
 
   console.log('Creator account status updated:', account.id);
-};
+}
 

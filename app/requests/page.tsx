@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { RequestForm } from './components/request-form'
+import { RequestDialog } from './components/request-dialog'
 import { RequestGrid } from './components/request-grid'
 import { Loader2 } from 'lucide-react'
 
@@ -10,13 +10,15 @@ export const metadata = {
 
 export default function RequestsPage() {
   return (
-    <div className="container mx-auto px-4 py-24">
-      <div className="max-w-2xl mx-auto mb-12">
-        <h1 className="text-4xl font-bold mb-4">Lesson Requests</h1>
-        <p className="text-muted-foreground mb-8">
-          Request new lessons or vote on existing requests to help us prioritize content creation.
-        </p>
-        <RequestForm />
+    <div className="container mx-auto px-4 py-12">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold">Lesson Requests</h1>
+          <p className="text-muted-foreground mt-2">
+            Vote on existing requests or create your own to help shape our content
+          </p>
+        </div>
+        <RequestDialog onRequestCreated={() => {}} />
       </div>
       
       <Suspense 

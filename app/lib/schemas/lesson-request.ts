@@ -9,6 +9,7 @@ export interface LessonRequest {
   status: 'open' | 'in_progress' | 'completed';
   vote_count: number;
   category: string;
+  instagram_handle?: string;
   tags?: string[];
 }
 
@@ -24,6 +25,7 @@ export const lessonRequestSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title cannot exceed 100 characters"),
   description: z.string().min(10, "Description must be at least 10 characters").max(1000, "Description cannot exceed 1000 characters"),
   category: z.string().min(1, "Category is required"),
+  instagram_handle: z.string().optional().regex(/^@?[\w](?!.*?\.{2})[\w.]{1,28}[\w]$/, "Invalid Instagram handle"),
   tags: z.array(z.string()).optional().default([])
 })
 

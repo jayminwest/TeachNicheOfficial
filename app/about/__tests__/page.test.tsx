@@ -1,4 +1,4 @@
-import { render } from '../../components/ui/test-utils'
+import { render } from '../../../components/ui/test-utils'
 import { axe } from 'axe-core'
 import React from 'react'
 import AboutPage from '../page'

@@ -97,3 +97,73 @@ describe('RequestForm', () => {
     })
   })
 })
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { RequestForm } from '../request-form'
+import { useAuth } from '@/app/services/auth/AuthContext'
+import { supabase } from '@/app/services/supabase'
+import { toast } from '@/app/components/ui/use-toast'
+
+// Mock dependencies
+jest.mock('@/app/services/auth/AuthContext')
+jest.mock('@/app/services/supabase')
+jest.mock('@/app/components/ui/use-toast')
+
+describe('RequestForm', () => {
+  const mockUser = { id: 'test-user-id' }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(useAuth as jest.Mock).mockReturnValue({ user: mockUser })
+  })
+
+  it('renders form fields', () => {
+    render(<RequestForm />)
+    
+    expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/category/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /submit request/i })).toBeInTheDocument()
+  })
+
+  it('disables submit button when not authenticated', () => {
+    ;(useAuth as jest.Mock).mockReturnValue({ user: null })
+    
+    render(<RequestForm />)
+    
+    const submitButton = screen.getByRole('button', { name: /submit request/i })
+    expect(submitButton).toBeDisabled()
+    expect(submitButton).toHaveAttribute('title', 'Please log in to submit a request')
+  })
+
+  it('submits form with valid data', async () => {
+    const mockInsertResponse = {
+      data: { id: '123', title: 'Test Request' },
+      error: null
+    }
+    
+    ;(supabase.from as jest.Mock).mockReturnValue({
+      insert: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue(mockInsertResponse)
+        })
+      })
+    })
+
+    const user = userEvent.setup()
+    render(<RequestForm />)
+
+    await user.type(screen.getByLabelText(/title/i), 'Test Request')
+    await user.type(screen.getByLabelText(/description/i), 'Test Description')
+    await user.selectOptions(screen.getByLabelText(/category/i), 'Beginner Fundamentals')
+    
+    await user.click(screen.getByRole('button', { name: /submit request/i }))
+
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith({
+        title: "Success",
+        description: "Your request has been submitted successfully."
+      })
+    })
+  })
+})

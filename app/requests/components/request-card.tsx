@@ -200,11 +200,6 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
               {voteCount === 1 ? 'vote' : 'votes'}
             </span>
           </Button>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
-              ID: {request.id.slice(0, 8)}
-            </span>
-          </div>
         </CardFooter>
       </Card>
       <AuthDialog 

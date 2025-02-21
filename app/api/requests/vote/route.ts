@@ -12,32 +12,12 @@ export async function POST(request: Request) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
-    // Get session with full error handling
-    const sessionResponse = await supabase.auth.getSession()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (sessionResponse.error) {
-      console.log('API aborting - session error:', sessionResponse.error);
+    if (sessionError || !session?.user?.id) {
+      console.log('API aborting - auth error:', sessionError || 'No user session');
       return NextResponse.json(
-        { error: 'Session error: ' + sessionResponse.error.message },
-        { status: 401 }
-      )
-    }
-
-    const session = sessionResponse.data.session
-    if (!session?.user?.id) {
-      console.log('API aborting - no valid session user');
-      return NextResponse.json(
-        { error: 'No authenticated user found' },
-        { status: 401 }
-      )
-    }
-
-    // Verify the session is still valid
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      console.log('API aborting - invalid user:', userError);
-      return NextResponse.json(
-        { error: 'Invalid user session' },
+        { error: 'Authentication required' },
         { status: 401 }
       )
     }

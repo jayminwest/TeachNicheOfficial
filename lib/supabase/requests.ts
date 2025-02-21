@@ -58,13 +58,6 @@ export async function getRequests(filters?: {
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
   
-  const supabase = createClientComponentClient()
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-  
-  if (sessionError || !session) {
-    throw new Error('Authentication required')
-  }
-
   const response = await fetch('/api/requests/vote', {
     method: 'POST',
     headers: {

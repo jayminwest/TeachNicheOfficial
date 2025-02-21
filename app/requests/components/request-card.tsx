@@ -18,13 +18,13 @@ interface RequestCardProps {
 
 export function RequestCard({ request, onVote }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
+  const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
     try {
-      if (loading) return;
-      
-      if (!user?.id) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
         toast({
           title: "Authentication required",
           description: "Please sign in to vote on requests",

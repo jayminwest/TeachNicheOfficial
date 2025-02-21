@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createRequest } from '@/app/lib/supabase/requests'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog"
 import { Button } from "@/app/components/ui/button"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form"
@@ -28,8 +29,7 @@ export function RequestDialog() {
 
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
-      // TODO: Add your Supabase create request call here
-      // TODO: Add your Supabase create request call here
+      await createRequest(data)
       setOpen(false)
       form.reset()
       // Trigger a page refresh or update

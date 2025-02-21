@@ -195,7 +195,7 @@ describe('Header', () => {
       expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
     })
 
-    it('handles sign out click', async () => {
+    it('handles sign out click', () => {
       (useAuth as jest.Mock).mockReturnValue({
         user: { id: 'test-id', email: 'test@example.com' },
         loading: false,
@@ -203,7 +203,7 @@ describe('Header', () => {
         signOut: jest.fn()
       });
       
-      const { supabase } = await import('@/lib/supabase')
+      const { supabase } = require('@/lib/supabase');
       render(<Header />)
       
       const signOutButton = screen.getByText('Sign Out')
@@ -235,8 +235,8 @@ describe('Header', () => {
         loading: false
       })
 
-      const { usePathname } = await import('next/navigation')
-      ;(usePathname as jest.Mock).mockImplementation(() => '/about')
+      const { usePathname } = require('next/navigation');
+      (usePathname as jest.Mock).mockImplementation(() => '/about')
       
       render(<Header />)
       const waitlistButton = screen.getByRole('button', { name: /join teacher waitlist/i })

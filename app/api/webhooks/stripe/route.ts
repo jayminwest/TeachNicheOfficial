@@ -33,9 +33,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       status: 'completed',
       purchase_date: new Date().toISOString(),
       metadata: {
-        ...(purchase.metadata || {}),
         stripe_payment_status: paymentIntent.status,
-        payment_completed_at: new Date().toISOString()
+        payment_completed_at: new Date().toISOString(),
+        ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
       }
     })
     .eq('id', purchase.id)

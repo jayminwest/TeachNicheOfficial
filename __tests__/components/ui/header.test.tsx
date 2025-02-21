@@ -15,7 +15,7 @@ jest.mock('lucide-react', () => ({
 
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: jest.fn()
+  useAuth: () => mockUseAuth()
 }))
 
 jest.mock('@/lib/supabase', () => ({
@@ -115,11 +115,19 @@ describe('Header', () => {
 
   describe('rendering', () => {
     it('renders without crashing', () => {
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: false
+      });
       render(<Header />)
       expect(screen.getByText('Teach Niche')).toBeInTheDocument()
     })
 
     it('renders navigation items', () => {
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: false
+      });
       render(<Header />)
       expect(screen.getByText('Home')).toBeInTheDocument()
       expect(screen.getByText('About')).toBeInTheDocument()
@@ -139,10 +147,12 @@ describe('Header', () => {
 
     it('shows profile and sign out buttons when user is authenticated', () => {
       (useAuth as jest.Mock).mockReturnValue({
-        user: mockUser,
-        loading: false
-      })
-      
+        user: { id: 'test-id', email: 'test@example.com' },
+        loading: false,
+        signIn: jest.fn(),
+        signOut: jest.fn()
+      });
+        
       render(<Header />)
       expect(screen.getByText('Profile')).toBeInTheDocument()
       expect(screen.getByText('Sign Out')).toBeInTheDocument()

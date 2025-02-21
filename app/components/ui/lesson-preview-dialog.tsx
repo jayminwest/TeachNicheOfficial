@@ -34,17 +34,19 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
           />
         </div>
 
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex items-center">
-            <StarIcon className="w-5 h-5 text-yellow-400" />
-            <span className="ml-1 font-medium">
-              {lesson.averageRating.toFixed(1)}
+        {(lesson.averageRating !== undefined && lesson.totalRatings !== undefined) && (
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center">
+              <StarIcon className="w-5 h-5 text-yellow-400" />
+              <span className="ml-1 font-medium">
+                {lesson.averageRating.toFixed(1)}
+              </span>
+            </div>
+            <span className="text-muted-foreground text-sm">
+              ({lesson.totalRatings} ratings)
             </span>
           </div>
-          <span className="text-muted-foreground text-sm">
-            ({lesson.totalRatings} ratings)
-          </span>
-        </div>
+        )}
 
         <DialogDescription className="text-base">
           {lesson.description}

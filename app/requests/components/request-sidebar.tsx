@@ -34,7 +34,7 @@ export function RequestSidebar({
       <div className="p-6 space-y-8">
         <div className="flex justify-between items-center lg:hidden">
           <h2 className="font-semibold">Filter & Sort</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </Button>
         </div>

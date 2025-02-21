@@ -106,8 +106,8 @@ describe('RequestsPage', () => {
     // Verify sidebar is visible
     expect(screen.getByText('Filter & Sort')).toBeInTheDocument()
 
-    // Close sidebar using the X button
-    const closeButton = screen.getByRole('button', { name: /x/i })
+    // Close sidebar using the close button
+    const closeButton = screen.getByRole('button', { name: /close/i })
     await user.click(closeButton)
 
     // Verify sidebar is hidden by checking the transform class

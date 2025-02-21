@@ -3,7 +3,7 @@ import { screen, act } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { renderWithStripe } from '../../test-utils';
 import { mockUseAuth, mockUser } from '../../../__mocks__/services/auth';
-import { mockSupabaseClient } from '../../../__mocks__/services/supabase';
+import { mockSupabaseClient as supabase } from '../../../__mocks__/services/supabase';
 
 // Store original window.location
 const originalLocation = window.location;

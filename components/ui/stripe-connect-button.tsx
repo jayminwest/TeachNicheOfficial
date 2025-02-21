@@ -88,7 +88,11 @@ export function StripeConnectButton({
 
   if (!user) {
     return (
-      <Button variant="outline" disabled>
+      <Button 
+        variant="outline" 
+        disabled
+        className="opacity-50 cursor-not-allowed"
+      >
         Please sign in to connect Stripe
       </Button>
     );

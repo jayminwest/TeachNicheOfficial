@@ -71,12 +71,14 @@ export function RequestForm() {
         title: "Success",
         description: "Your request has been submitted successfully."
       })
-    } catch (error: Error | unknown) {
+    } catch (error: unknown) {
       console.error('Failed to create request:', error)
       
-      const errorMessage = error.code === '42501' 
+      const errorMessage = error && typeof error === 'object' && 'code' in error && error.code === '42501'
         ? 'Permission denied. Please try logging out and back in.'
-        : error.message || "Failed to submit request. Please try again."
+        : error && typeof error === 'object' && 'message' in error
+          ? error.message as string 
+          : "Failed to submit request. Please try again."
       
       toast({
         title: "Error",

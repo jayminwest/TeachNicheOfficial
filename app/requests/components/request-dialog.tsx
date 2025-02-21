@@ -114,7 +114,12 @@ export function RequestDialog() {
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                    <SelectContent 
+                      className="max-h-[200px] overflow-y-auto"
+                      position="popper"
+                      side="bottom"
+                      align="start"
+                    >
                       {LESSON_CATEGORIES.map((category) => (
                         <SelectItem 
                           key={category} 

@@ -8,7 +8,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { SignInPage } from "./sign-in";
 import { SignUpPage } from "./sign-up";
 import { Dialog, DialogContent, DialogTrigger } from "./dialog";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/app/lib/supabase";
 
 interface NavigationItem {
     title: string;

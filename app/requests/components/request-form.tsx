@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/app/components/ui/button'
 import { useAuth } from '@/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/app/lib/supabase'
 import {
   Form,
   FormControl,
@@ -17,7 +17,7 @@ import {
 } from '@/app/components/ui/form'
 import { Input } from '@/app/components/ui/input'
 import { Textarea } from '@/app/components/ui/textarea'
-import { lessonRequestSchema, LessonRequestFormData } from '@/lib/schemas/lesson-request'
+import { lessonRequestSchema, LessonRequestFormData } from '@/app/lib/schemas/lesson-request'
 
 const categories = [
   'Beginner Fundamentals',

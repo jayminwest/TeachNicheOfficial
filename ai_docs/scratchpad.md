@@ -3,6 +3,12 @@
 ## Type Definitions
 
 ```typescript
+interface PurchaseError {
+  code: string
+  message: string
+  details?: Record<string, any>
+}
+
 interface Purchase {
   id: string
   user_id: string
@@ -10,12 +16,13 @@ interface Purchase {
   creator_id: string
   purchase_date: string
   stripe_session_id: string
-  amount: number
-  platform_fee: number
-  creator_earnings: number
+  amount: number // In cents
+  platform_fee: number // In cents
+  creator_earnings: number // In cents
   payment_intent_id: string
   fee_percentage: number
   status: 'pending' | 'completed' | 'failed'
+  error?: PurchaseError
   metadata?: Record<string, any>
   created_at: string
   updated_at: string
@@ -49,9 +56,18 @@ export function useLessonAccess(lessonId: string) {
   const { user } = useAuth()
   const [hasAccess, setHasAccess] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   const supabase = createClientComponentClient<Database>()
   
+  // Cache access check results
+  const cacheKey = `lesson-access-${lessonId}-${user?.id}`
+  
   useEffect(() => {
+    const TIMEOUT_MS = 5000
+    const RETRY_ATTEMPTS = 3
+    let attempts = 0
+    let timeoutId: NodeJS.Timeout
+
     async function checkAccess() {
       if (!user) {
         setHasAccess(false)
@@ -59,7 +75,23 @@ export function useLessonAccess(lessonId: string) {
         return
       }
 
+      // Check cache first
+      const cached = sessionStorage.getItem(cacheKey)
+      if (cached) {
+        const { hasAccess: cachedAccess, timestamp } = JSON.parse(cached)
+        // Cache valid for 5 minutes
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          setHasAccess(cachedAccess)
+          setLoading(false)
+          return
+        }
+      }
+
       try {
+        timeoutId = setTimeout(() => {
+          throw new Error('Access check timed out')
+        }, TIMEOUT_MS)
+
         const { data: purchase } = await supabase
           .from('purchases')
           .select('status')
@@ -68,19 +100,40 @@ export function useLessonAccess(lessonId: string) {
           .eq('status', 'completed')
           .single()
 
+        clearTimeout(timeoutId)
+        
+        // Cache the result
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          hasAccess: !!purchase,
+          timestamp: Date.now()
+        }))
+
         setHasAccess(!!purchase)
+        setError(null)
       } catch (error) {
         console.error('Error checking lesson access:', error)
+        setError(error as Error)
         setHasAccess(false)
+        
+        // Retry logic
+        if (attempts < RETRY_ATTEMPTS) {
+          attempts++
+          setTimeout(checkAccess, 1000 * attempts)
+        }
       } finally {
+        clearTimeout(timeoutId)
         setLoading(false)
       }
     }
 
     checkAccess()
-  }, [lessonId, user])
 
-  return { hasAccess, loading }
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [lessonId, user, cacheKey])
+
+  return { hasAccess, loading, error }
 }
 ```
 

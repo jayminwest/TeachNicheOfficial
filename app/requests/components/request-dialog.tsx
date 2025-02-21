@@ -115,9 +115,10 @@ export function RequestDialog() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent 
-                      className="max-h-[200px] overflow-y-auto"
-                      position="popper"
-                      sideOffset={0}
+                      className="max-h-[200px] overflow-y-auto z-[100]"
+                      position="item-aligned"
+                      side="bottom"
+                      align="start"
                     >
                       {LESSON_CATEGORIES.map((category) => (
                         <SelectItem 

@@ -114,9 +114,13 @@ export function RequestDialog() {
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
                       {LESSON_CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
+                        <SelectItem 
+                          key={category} 
+                          value={category}
+                          className="cursor-pointer"
+                        >
                           {category}
                         </SelectItem>
                       ))}

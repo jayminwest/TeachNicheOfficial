@@ -44,7 +44,7 @@ describe('RequestsPage', () => {
   it('renders the page title and description', () => {
     render(<RequestsPage />)
     
-    expect(screen.getByText(/lesson requests/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /all lesson requests/i })).toBeInTheDocument()
     expect(screen.getByText(/Browse and vote on lesson requests/i)).toBeInTheDocument()
   })
 
@@ -72,7 +72,7 @@ describe('RequestsPage', () => {
 
     // Verify getRequests was called with correct category
     expect(getRequests).toHaveBeenCalledWith(
-      expect.objectContaining({ category: 'Beginner Fundamentals' })
+      expect.objectContaining({ category: 'Beginner Basics' })
     )
   })
 
@@ -107,7 +107,7 @@ describe('RequestsPage', () => {
     expect(screen.getByText('Filter & Sort')).toBeInTheDocument()
 
     // Close sidebar
-    const closeButton = screen.getByRole('button', { name: /close/i })
+    const closeButton = screen.getByRole('button', { name: 'Close sidebar' })
     await user.click(closeButton)
 
     // Verify sidebar is hidden (implementation dependent)

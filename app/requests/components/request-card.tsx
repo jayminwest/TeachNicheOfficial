@@ -54,7 +54,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
         .select()
         .eq('request_id', request.id)
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
       
       setHasVoted(!!data);
     }

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/auth/AuthContext'
+import { toast } from '@/components/ui/use-toast'
 import {
   Form,
   FormControl,
@@ -49,11 +50,17 @@ export function RequestForm() {
         throw new Error('You must be logged in to submit a request')
       }
 
-      await createRequest({
+      const result = await createRequest({
         ...data,
-        user_id: user.id
+        user_id: user.id,
+        status: 'pending',
+        vote_count: 0
       })
       
+      if (!result) {
+        throw new Error('Failed to create request')
+      }
+
       form.reset()
       toast({
         title: "Success",
@@ -61,9 +68,14 @@ export function RequestForm() {
       })
     } catch (error: any) {
       console.error('Failed to create request:', error)
+      
+      const errorMessage = error.code === '42501' 
+        ? 'Permission denied. Please try logging out and back in.'
+        : error.message || "Failed to submit request. Please try again."
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to submit request. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {

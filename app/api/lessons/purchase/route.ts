@@ -6,8 +6,11 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
+    
+    // Wait for cookie store to be ready
+    await cookieStore.getAll()
     
     const {
       data: { session },

@@ -49,14 +49,18 @@ export function RequestDialog({ children }: RequestDialogProps) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <div onClick={(e) => {
-            if (!user) {
-              e.preventDefault()
-              setShowAuth(true)
-            }
-          }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              if (!user) {
+                e.preventDefault()
+                setShowAuth(true)
+              }
+            }}
+            aria-label="New Request"
+          >
             {children}
-          </div>
+          </button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

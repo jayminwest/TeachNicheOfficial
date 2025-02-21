@@ -26,11 +26,19 @@ jest.mock('next/headers', () => ({
 }))
 
 // Mock Request and Response globals that would be available in Node environment
-global.Request = class Request {
+class MockRequest {
+  url: string;
+  method?: string;
+  body?: string;
+
   constructor(input: string | Request, init?: RequestInit) {
-    return new globalThis.Request(input, init)
+    this.url = typeof input === 'string' ? input : input.url;
+    this.method = init?.method || 'GET';
+    this.body = init?.body as string;
   }
-} as typeof Request
+}
+
+global.Request = MockRequest as unknown as typeof Request;
 
 describe('Requests API Routes', () => {
   const mockSession = {

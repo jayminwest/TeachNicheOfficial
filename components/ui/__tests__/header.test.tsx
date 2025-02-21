@@ -6,11 +6,10 @@ import { useAuth } from '@/auth/AuthContext'
 import { createMockSupabaseClient } from '@/__mocks__/services/supabase'
 
 // Mock the supabase client
-jest.mock('@/lib/supabase', () => ({
-  supabase: createMockSupabaseClient()
-}))
-
 const mockSupabaseClient = createMockSupabaseClient()
+jest.mock('@/lib/supabase', () => ({
+  supabase: mockSupabaseClient
+}))
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({

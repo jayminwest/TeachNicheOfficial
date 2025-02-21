@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
-import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
+import { LessonGrid } from "@/app/components/ui/lesson-grid";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/components/ui/use-toast";
-import { Toaster } from "@/components/ui/toaster";
+import { supabase } from "@/app/services/supabase";
+import { toast } from "@/app/components/ui/use-toast";
+import { Toaster } from "@/app/components/ui/toaster";
 
-interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  created_at: string;
-  // Add other fields as needed once we see the API implementation
-}
+import type { Lesson } from '@/types/lesson'
 
 export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -32,7 +25,16 @@ export default function LessonsPage() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setLessons(data || []);
+        
+        // Transform the data to match the Lesson type
+        const transformedLessons: Lesson[] = (data || []).map(lesson => ({
+          ...lesson,
+          thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
+          averageRating: lesson.average_rating || 0,
+          totalRatings: lesson.total_ratings || 0
+        }));
+        
+        setLessons(transformedLessons);
       } catch (error) {
         console.error('Error fetching lessons:', error);
         toast({
@@ -86,38 +88,7 @@ export default function LessonsPage() {
             </Link>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lessons.map((lesson) => (
-              <Card key={lesson.id} className="h-full hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  <Link href={`/lessons/${lesson.id}`}>
-                    <h3 className="font-semibold mb-2 line-clamp-2">
-                      {lesson.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {lesson.description}
-                    </p>
-                  </Link>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium">
-                      {lesson.price === 0 ? (
-                        <span className="text-green-600">Free</span>
-                      ) : (
-                        <span>${lesson.price.toFixed(2)}</span>
-                      )}
-                    </div>
-                    {lesson.price > 0 && (
-                      <LessonCheckout 
-                        lessonId={lesson.id} 
-                        price={lesson.price}
-                        searchParams={new URLSearchParams(window.location.search)}
-                      />
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <LessonGrid lessons={lessons} />
         )}
       </div>
       <Toaster />

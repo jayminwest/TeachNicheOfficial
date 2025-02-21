@@ -1,12 +1,12 @@
 "use client";
 
-import { LessonForm } from "@/components/ui/lesson-form";
-import { toast } from "@/components/ui/use-toast";
-import { Toaster } from "@/components/ui/toaster";
+import { LessonForm } from "@/app/components/ui/lesson-form";
+import { toast } from "@/app/components/ui/use-toast";
+import { Toaster } from "@/app/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { waitForAssetReady } from "@/lib/mux";
+import { supabase } from "@/app/services/supabase";
+import { waitForAssetReady } from "@/app/services/mux";
 
 export default function NewLessonPage() {
   const router = useRouter();

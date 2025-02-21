@@ -215,15 +215,81 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## Architecture
  
- ### Project Structure
- ```
- /app
- ├── components/   # Reusable UI components
- ├── lib/         # Pure utility functions and types
- ├── hooks/       # Shared React hooks
- ├── api/         # API route handlers
- └── services/    # External service integrations
- ```
+### Project Structure
+
+The project follows Next.js 13+ app router conventions with a clear separation of concerns:
+
+```
+/app
+├── api/                  # API route handlers
+│   ├── checkout/        # Payment/checkout endpoints
+│   ├── lessons/         # Lesson management
+│   ├── mux/            # Video service integration
+│   ├── requests/       # Lesson requests
+│   ├── stripe/         # Payment processing
+│   ├── video/          # Video handling
+│   └── webhooks/       # External service webhooks
+├── components/          # Shared components
+│   ├── providers.tsx   # App-wide providers
+│   └── ui/             # Reusable UI components
+│       └── __tests__/  # Component tests
+├── dashboard/          # Dashboard feature
+│   ├── components/     # Dashboard-specific components
+│   └── page.tsx       # Dashboard page
+├── lessons/           # Lesson management
+│   ├── [id]/         # Individual lesson pages
+│   ├── new/          # New lesson creation
+│   └── page.tsx      # Lessons list page
+├── lib/              # Shared utilities
+│   ├── schemas/      # Data validation schemas
+│   ├── supabase/    # Database utilities
+│   └── utils.ts     # General utilities
+├── profile/         # User profile feature
+│   ├── components/  # Profile-specific components
+│   └── page.tsx    # Profile page
+├── requests/        # Lesson requests feature
+│   ├── components/  # Request-specific components
+│   │   └── __tests__/ # Request component tests
+│   └── page.tsx    # Requests page
+└── services/       # External service integrations
+    ├── auth/       # Authentication
+    ├── mux.ts      # Video service
+    ├── stripe.ts   # Payment processing
+    └── supabase.ts # Database client
+```
+
+Key organizational principles:
+
+1. **Feature-based Organization**
+   - Major features have dedicated directories (dashboard, lessons, profile, requests)
+   - Each feature directory contains its specific components and pages
+
+2. **Component Organization**
+   - Shared UI components in /components/ui
+   - Feature-specific components co-located with their features
+   - Tests co-located with components in __tests__ directories
+
+3. **API Routes**
+   - Grouped by feature/service
+   - Clear separation of concerns (auth, video, payments, etc.)
+   - Webhook handlers isolated in /api/webhooks
+
+4. **Services & Utilities**
+   - External service integrations in /services
+   - Shared utilities and schemas in /lib
+   - Database utilities separated in /lib/supabase
+
+5. **Testing Structure**
+   - Tests co-located with components
+   - Consistent naming convention (*.test.tsx)
+   - Shared test utilities in project root /__mocks__
+
+This structure promotes:
+- Clear separation of concerns
+- Easy feature location and navigation
+- Scalable organization for new features
+- Consistent testing approach
+- Modular component development
 
  ## Git Branching Strategy
 

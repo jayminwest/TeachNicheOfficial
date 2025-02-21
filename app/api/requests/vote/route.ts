@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { voteSchema } from '@/lib/schemas/lesson-request'
+import { voteSchema } from '@/app/lib/schemas/lesson-request'
 
 export const runtime = 'edge'
 

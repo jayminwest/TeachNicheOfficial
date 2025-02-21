@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Video } from '@/lib/mux';
+import { Video } from '@/app/services/mux';
 
 export async function GET(request: Request) {
   if (!Video || typeof Video.assets?.retrieve !== 'function') {

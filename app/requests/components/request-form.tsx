@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/auth/AuthContext'
-import { toast } from '@/components/ui/use-toast'
-import { supabase } from '@/lib/supabase'
+import { Button } from '@/app/components/ui/button'
+import { useAuth } from '@/app/services/auth/AuthContext'
+import { toast } from '@/app/components/ui/use-toast'
+import { supabase } from '@/app/services/supabase'
 import {
   Form,
   FormControl,
@@ -14,10 +14,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { lessonRequestSchema, LessonRequestFormData } from '@/lib/schemas/lesson-request'
+} from '@/app/components/ui/form'
+import { Input } from '@/app/components/ui/input'
+import { Textarea } from '@/app/components/ui/textarea'
+import { lessonRequestSchema, LessonRequestFormData } from '@/app/lib/schemas/lesson-request'
 
 const categories = [
   'Beginner Fundamentals',

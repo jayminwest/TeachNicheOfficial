@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/app/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { ThumbsUp } from 'lucide-react'
-import { LessonRequest } from '@/lib/schemas/lesson-request'
-import { useAuth } from '@/auth/AuthContext'
-import { toast } from '@/components/ui/use-toast'
+import { LessonRequest } from '@/app/lib/schemas/lesson-request'
+import { useAuth } from '@/app/services/auth/AuthContext'
+import { toast } from '@/app/components/ui/use-toast'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface RequestCardProps {
@@ -23,17 +23,19 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
   // Fetch current vote count from Supabase
   const updateVoteCount = useCallback(async () => {
-    const { count, error } = await supabase
-      .from('lesson_request_votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('request_id', request.id);
-    
-    if (error) {
+    try {
+      const { count, error } = await supabase
+        .from('lesson_request_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('request_id', request.id);
+      
+      if (error) throw error;
+      
+      // Use a function to update state to avoid race conditions
+      setVoteCount(prev => count ?? prev);
+    } catch (error) {
       console.error('Error fetching vote count:', error);
-      return;
     }
-    
-    setVoteCount(count || 0);
   }, [supabase, request.id]);
 
   // Update vote count on mount and after votes

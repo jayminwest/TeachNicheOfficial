@@ -1,14 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestForm } from '@/app/requests/components/request-form'
-import { toast } from '@/components/ui/use-toast'
-import { useAuth } from '@/auth/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { toast } from '@/app/components/ui/use-toast'
+import { useAuth } from '@/app/services/auth/AuthContext'
+import { supabase } from '@/app/services/supabase'
 
 // Mock dependencies
-jest.mock('@/components/ui/use-toast')
-jest.mock('@/auth/AuthContext')
-jest.mock('@/lib/supabase')
+jest.mock('@/app/components/ui/use-toast')
+jest.mock('@/app/services/auth/AuthContext')
+jest.mock('@/app/services/supabase')
 
 describe('RequestForm', () => {
   const mockUser = { id: 'test-user-id' }

@@ -1,14 +1,14 @@
 'use client';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
+import { Card } from "@/app/components/ui/card"
 import { ProfileForm } from "./components/profile-form"
 import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"
-import { StripeConnectButton } from "@/components/ui/stripe-connect-button"
-import { useAuth } from "@/auth/AuthContext"
+import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
+import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/app/services/supabase"
 import { redirect } from "next/navigation"
 
 export default function ProfilePage() {

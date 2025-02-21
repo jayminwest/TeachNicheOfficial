@@ -71,8 +71,25 @@ describe('[ComponentName]', () => {
 - Aim for 80% minimum coverage
 - 100% coverage for critical paths
 
-Here is the code to test:
-[PASTE CODE HERE]
+Here are the files to test:
+{files}
 
 Please generate comprehensive tests following these guidelines.
+```
+
+Example usage:
+```python
+files = """
+app/components/ui/button.tsx:
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'primary' | 'secondary';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
+  // Component implementation
+});
+"""
+
+test_prompt = prompt.format(files=files)
 ```

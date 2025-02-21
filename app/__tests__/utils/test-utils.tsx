@@ -2,6 +2,7 @@ import React from 'react'
 import { render as testingLibraryRender } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from 'next-themes'
+import 'jest-axe/extend-expect'
 
 // Mock matchMedia if it's not available (jest environment)
 if (!window.matchMedia) {

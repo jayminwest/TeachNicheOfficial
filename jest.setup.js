@@ -45,6 +45,8 @@ const mockRouter = {
   prefetch: jest.fn()
 };
 
+require('whatwg-fetch')
+
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
   useSearchParams: () => new URLSearchParams(),

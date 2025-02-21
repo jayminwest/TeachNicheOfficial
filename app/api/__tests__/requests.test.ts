@@ -10,6 +10,13 @@ jest.mock('next/headers', () => ({
   })
 }))
 
+// Mock Request and Response globals that would be available in Node environment
+global.Request = class Request {
+  constructor(input: string | Request, init?: RequestInit) {
+    return new (require('whatwg-fetch').Request)(input, init)
+  }
+} as typeof Request
+
 describe('Requests API Routes', () => {
   const mockSession = {
     user: { id: 'test-user-id' }

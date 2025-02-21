@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
-import { useAuth } from "@/auth/AuthContext";
+import { useAuth } from "@/app/services/auth/AuthContext";
 import { SignInPage } from "./sign-in";
 import { SignUpPage } from "./sign-up";
 import { Dialog, DialogContent, DialogTrigger } from "./dialog";
-import { supabase } from "@/app/lib/supabase";
+import { supabase } from "@/app/services/supabase";
 
 interface NavigationItem {
     title: string;

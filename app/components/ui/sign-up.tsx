@@ -12,8 +12,8 @@ import {
 import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
 import { Icons } from '@/app/components/ui/icons'
-import { signUp, signInWithGoogle } from '@/auth/supabaseAuth'
-import { useAuth } from '@/auth/AuthContext'
+import { signUp, signInWithGoogle } from '@/app/services/auth/supabaseAuth'
+import { useAuth } from '@/app/services/auth/AuthContext'
 
 interface SignUpPageProps {
   onSwitchToSignIn: () => void;

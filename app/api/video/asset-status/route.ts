@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Video } from '@/app/lib/mux';
+import { Video } from '@/app/services/mux';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

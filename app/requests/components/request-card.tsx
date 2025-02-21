@@ -5,7 +5,7 @@ import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { ThumbsUp } from 'lucide-react'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
-import { useAuth } from '@/auth/AuthContext'
+import { useAuth } from '@/app/services/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 

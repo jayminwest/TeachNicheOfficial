@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
-import { AuthProvider } from "@/auth/AuthContext"
+import { AuthProvider } from "@/app/services/auth/AuthContext"
 
 type ThemeProviderProps = Parameters<typeof NextThemesProvider>[0]
 

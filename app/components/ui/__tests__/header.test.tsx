@@ -1,10 +1,10 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { useAuth } from '@/auth/AuthContext'
+import { useAuth } from '@/app/services/auth/AuthContext'
 
 // Mock the supabase client before importing Header
-jest.mock('@/app/lib/supabase', () => ({
+jest.mock('@/app/services/supabase', () => ({
   supabase: {
     auth: {
       signOut: jest.fn().mockResolvedValue({}),
@@ -27,7 +27,7 @@ jest.mock('lucide-react', () => ({
 }))
 
 // Mock the dependencies
-jest.mock('@/auth/AuthContext', () => ({
+jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn()
 }))
 

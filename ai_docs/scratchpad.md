@@ -1,5 +1,7 @@
 # Lesson Purchase Flow Implementation Plan
 
+Please implement the following plan, setp by step. Ask for files to be added to the chat as you need them.
+
 ## Type Definitions
 
 ```typescript

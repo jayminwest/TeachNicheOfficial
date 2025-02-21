@@ -7,28 +7,18 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { POST } from '@/app/api/webhooks/stripe/route';
 
-// Mock Stripe
-jest.mock('stripe', () => {
-  const mockConstructEvent = jest.fn();
-  const mock = jest.fn().mockImplementation(() => ({
-    webhooks: {
-      constructEvent: mockConstructEvent
-    }
-  }));
-  mock.mockConstructEvent = mockConstructEvent;
-  return mock;
-});
+import { mockStripeClient } from '@/__mocks__/services/stripe';
+import { mockSupabaseClient } from '@/__mocks__/services/supabase';
 
-const mockConstructEvent = jest.mocked(require('stripe')).mockConstructEvent;
+// Mock Stripe
+jest.mock('stripe', () => mockStripeClient);
 
 // Mock Supabase
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn().mockReturnValue({
-    from: jest.fn().mockReturnValue({
-      update: jest.fn().mockResolvedValue({ data: {}, error: null })
-    })
-  })
+  createRouteHandlerClient: () => mockSupabaseClient
 }));
+
+const mockConstructEvent = mockStripeClient.webhooks.constructEvent;
 
 describe('Stripe Webhook Handler', () => {
   const webhookSecret = 'whsec_test_secret';

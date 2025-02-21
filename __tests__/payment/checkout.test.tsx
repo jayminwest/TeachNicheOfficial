@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockStripeClient, mockCheckoutSession } from '../setup/stripe-mocks';
+import { mockStripeClient, mockCheckoutSession } from '@/__mocks__/services/stripe';
 import { renderWithStripe } from '../test-utils';
 import { LessonCheckout } from '@/app/components/ui/lesson-checkout';
 

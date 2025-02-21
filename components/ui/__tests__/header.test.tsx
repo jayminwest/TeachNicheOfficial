@@ -17,9 +17,6 @@ jest.mock('@/auth/AuthContext', () => ({
   useAuth: jest.fn()
 }))
 
-jest.mock('@/lib/supabase', () => ({
-  supabase: mockSupabaseClient
-}))
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -76,13 +73,6 @@ jest.mock('@/components/ui/sign-up', () => ({
   SignUpPage: () => <div>Sign Up</div>
 }))
 
-jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      signOut: jest.fn()
-    }
-  }
-}))
 
 describe('Header', () => {
   const mockScrollIntoView = jest.fn();
@@ -203,13 +193,12 @@ describe('Header', () => {
         signOut: jest.fn()
       });
       
-      const supabase = mockSupabaseClient;
       render(<Header />)
       
       const signOutButton = screen.getByText('Sign Out')
       fireEvent.click(signOutButton)
       
-      expect(supabase.auth.signOut).toHaveBeenCalled()
+      expect(mockSupabaseClient.auth.signOut).toHaveBeenCalled()
     })
 
     it('scrolls to email signup when waitlist button is clicked on home page', () => {

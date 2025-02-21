@@ -48,7 +48,9 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
     try {
       setIsVoting(true)
+      console.log('Starting vote process in RequestCard')
       await voteOnRequest(request.id, type)
+      console.log('Vote successful, calling onVote()')
       onVote()
     } catch (error: any) {
       console.error('Failed to vote:', error)

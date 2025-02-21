@@ -3,8 +3,8 @@ import Stripe from 'stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
-import { stripeConfig } from '@/services/stripe';
-import { calculateFees } from '@/lib/utils';
+import { stripeConfig } from '@/app/services/stripe';
+import { calculateFees } from '@/app/lib/utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-01-27.acacia'

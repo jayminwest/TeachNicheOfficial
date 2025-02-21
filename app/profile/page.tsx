@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
-import { Card } from "@/components/ui/card"
+import { Card } from "@/app/components/ui/card"
 import { ProfileForm } from "./components/profile-form"
 import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"

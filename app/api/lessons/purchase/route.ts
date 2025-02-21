@@ -15,17 +15,10 @@ export async function POST(request: Request) {
       error: sessionError
     } = await supabase.auth.getSession()
     
-    if (sessionError) {
-      console.error('Session error:', sessionError)
+    if (sessionError || !session?.user) {
+      console.error('Auth error:', sessionError || 'No session')
       return NextResponse.json(
-        { error: 'Authentication failed' },
-        { status: 401 }
-      )
-    }
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Your session has expired. Please sign in again.' },
         { status: 401 }
       )
     }

@@ -26,10 +26,6 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setError(null);
       setIsLoading(true);
 
-      if (!user) {
-        throw new Error('Please sign in to purchase this lesson');
-      }
-      
       // Create checkout session and redirect
       const stripe = await stripePromise;
       if (!stripe) {

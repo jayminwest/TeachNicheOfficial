@@ -209,9 +209,11 @@ describe('Header', () => {
 
     it('handles sign out click', async () => {
       (useAuth as jest.Mock).mockReturnValue({
-        user: mockUser,
-        loading: false
-      })
+        user: { id: 'test-id', email: 'test@example.com' },
+        loading: false,
+        signIn: jest.fn(),
+        signOut: jest.fn()
+      });
       
       const { supabase } = require('@/lib/supabase')
       render(<Header />)

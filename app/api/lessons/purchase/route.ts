@@ -14,18 +14,19 @@ export async function POST(request: Request) {
     })
 
     // Get session with error handling
-    let session;
-    try {
-      const { data, error } = await supabase.auth.getSession()
-      if (error) throw error
-      if (!data.session?.user) {
-        throw new Error('No authenticated user')
-      }
-      session = data.session
-    } catch (error) {
-      console.error('Session fetch error:', error)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      console.error('Session error:', sessionError)
       return NextResponse.json(
-        { error: 'Authentication required. Please sign in again.' },
+        { error: 'Failed to validate session' },
+        { status: 401 }
+      )
+    }
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Please sign in to continue' },
         { status: 401 }
       )
     }

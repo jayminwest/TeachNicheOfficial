@@ -85,10 +85,12 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  ## 9. Testing Standards
 
  ### 9.1 Test Organization
- - Place test files in `__tests__` directories adjacent to the code being tested
+ - Place test files in a directory next to the file being tested (e.g., `app/requests/request-form.test.tsx` for `app/requests/request-form.tsx`)
  - Name test files with `.test.tsx` or `.test.ts` suffix
- - Mirror the source file structure in test directories
  - One test file per source file
+ - All mocks are centralized in the `__mocks__` directory at the project root
+   - Organized by service/feature (e.g., `__mocks__/services/auth.ts`)
+   - Provides consistent mock data and interfaces across all tests
  - Every new function/component/feature MUST include at least one basic test case at creation time
    - Tests should verify core functionality before code review
    - Additional test cases can be added later

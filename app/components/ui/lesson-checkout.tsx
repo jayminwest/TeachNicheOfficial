@@ -36,6 +36,11 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         throw new Error('Stripe failed to initialize');
       }
 
+      if (!user) {
+        setError('Please sign in to purchase this lesson');
+        return;
+      }
+
       const response = await fetch('/api/lessons/purchase', {
         method: 'POST',
         headers: {
@@ -48,8 +53,12 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         }),
       });
 
-      if (response.status === 401) {
-        throw new Error('Please sign in to purchase this lesson');
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Your session has expired. Please sign in again.');
+          return;
+        }
+        throw new Error('Failed to create checkout session');
       }
 
       const data = await response.json();

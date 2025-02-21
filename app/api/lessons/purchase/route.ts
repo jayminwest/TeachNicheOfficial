@@ -6,10 +6,14 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient<Database>({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
     
     // Get session with proper cookie handling
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession()
     
     if (sessionError) {
       console.error('Session error:', sessionError)

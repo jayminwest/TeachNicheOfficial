@@ -84,6 +84,14 @@ export async function POST(request: Request) {
     // Calculate fees
     const { platformFee, creatorEarnings } = calculateFees(lesson.price)
 
+    // Verify Stripe client is initialized
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Payment service not configured' },
+        { status: 500 }
+      )
+    }
+
     // Create Stripe Checkout Session
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',

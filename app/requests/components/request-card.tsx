@@ -37,12 +37,13 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       setIsVoting(true);
       
       // Check if vote exists
-      const { data: existingVote } = await supabase
+      const { data: existingVote, error: queryError } = await supabase
         .from('lesson_request_votes')
-        .select('*')
-        .eq('request_id', request.id)
-        .eq('user_id', user.id)
-        .single();
+        .select()
+        .match({ request_id: request.id, user_id: user.id })
+        .maybeSingle();
+
+      if (queryError) throw queryError;
 
       if (existingVote) {
         // Remove vote if it exists

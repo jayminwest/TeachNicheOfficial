@@ -42,19 +42,40 @@ describe('RequestCard', () => {
     expect(screen.getByText(mockRequest.vote_count.toString())).toBeInTheDocument()
   })
 
-  it('handles vote when user is logged in', async () => {
+  it('handles vote toggle when user is logged in', async () => {
+    const mockSupabase = {
+      from: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValueOnce({ data: null })
+        .mockResolvedValueOnce({ data: { id: '1' } }),
+      insert: jest.fn().mockResolvedValue({ error: null }),
+      delete: jest.fn().mockResolvedValue({ error: null })
+    };
+    (createClientComponentClient as jest.Mock).mockReturnValue(mockSupabase);
+    
     const user = userEvent.setup()
     render(<RequestCard request={mockRequest} onVote={mockOnVote} />)
     
+    // First click - add vote
     await user.click(screen.getByRole('button', { name: /thumbs up/i }))
 
     await waitFor(() => {
-      expect(voteOnRequest).toHaveBeenCalledWith(mockRequest.id, 'upvote')
       expect(toast).toHaveBeenCalledWith({
         title: "Success",
-        description: "Your vote has been recorded",
+        description: "Vote added",
       })
-      expect(mockOnVote).toHaveBeenCalled()
+    })
+
+    // Second click - remove vote
+    await user.click(screen.getByRole('button', { name: /thumbs up/i }))
+
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith({
+        title: "Success",
+        description: "Vote removed",
+      })
+      expect(mockOnVote).toHaveBeenCalledTimes(2)
     })
   })
 

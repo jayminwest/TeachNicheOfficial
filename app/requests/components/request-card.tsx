@@ -33,24 +33,52 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       }
 
       setIsVoting(true);
-      const { data: result, error } = await supabase
+      
+      // Check if vote exists
+      const { data: existingVote } = await supabase
         .from('lesson_request_votes')
-        .insert({
-          request_id: request.id,
-          user_id: user.id,
-          vote_type: 'up'
-        })
-        .select()
+        .select('*')
+        .eq('request_id', request.id)
+        .eq('user_id', user.id)
         .single();
 
-      if (error) {
-        throw error;
+      if (existingVote) {
+        // Remove vote if it exists
+        const { error: deleteError } = await supabase
+          .from('lesson_request_votes')
+          .delete()
+          .eq('request_id', request.id)
+          .eq('user_id', user.id);
+
+        if (deleteError) throw deleteError;
+        
+        setHasVoted(false);
+        setVoteCount(prev => prev - 1);
+        
+        toast({
+          title: "Success",
+          description: "Vote removed",
+        });
+      } else {
+        // Add vote if it doesn't exist
+        const { error: insertError } = await supabase
+          .from('lesson_request_votes')
+          .insert({
+            request_id: request.id,
+            user_id: user.id,
+            vote_type: type
+          });
+
+        if (insertError) throw insertError;
+        
+        setHasVoted(true);
+        setVoteCount(prev => prev + 1);
+        
+        toast({
+          title: "Success",
+          description: "Vote added",
+        });
       }
-      
-      toast({
-        title: "Success",
-        description: "Your vote has been recorded",
-      });
       
       onVote();
     } catch (error: any) {

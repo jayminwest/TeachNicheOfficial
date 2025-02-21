@@ -132,43 +132,45 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">{request.title}</CardTitle>
-        <div className="text-sm text-muted-foreground" suppressHydrationWarning>
-          {new Date(request.created_at).toLocaleDateString()}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-2">{request.description}</p>
-        <div className="flex items-center gap-2">
-          <span className="text-xs px-2 py-1 bg-primary/10 rounded-full">
-            {request.category}
-          </span>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleVote}
-            disabled={isVoting}
-            aria-label="thumbs up"
-          >
-            <ThumbsUp className={`w-4 h-4 mr-1 ${hasVoted ? 'fill-current text-primary' : ''}`} />
-            <span>{voteCount}</span>
-          </Button>
-        </div>
-        <div className="text-sm text-muted-foreground">
-          Status: {request.status}
-        </div>
-      </CardFooter>
-    </Card>
-    <AuthDialog 
-      open={showAuth} 
-      onOpenChange={setShowAuth}
-      defaultView="sign-up"
-    />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">{request.title}</CardTitle>
+          <div className="text-sm text-muted-foreground" suppressHydrationWarning>
+            {new Date(request.created_at).toLocaleDateString()}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-2">{request.description}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-2 py-1 bg-primary/10 rounded-full">
+              {request.category}
+            </span>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleVote}
+              disabled={isVoting}
+              aria-label="thumbs up"
+            >
+              <ThumbsUp className={`w-4 h-4 mr-1 ${hasVoted ? 'fill-current text-primary' : ''}`} />
+              <span>{voteCount}</span>
+            </Button>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Status: {request.status}
+          </div>
+        </CardFooter>
+      </Card>
+      <AuthDialog 
+        open={showAuth} 
+        onOpenChange={setShowAuth}
+        defaultView="sign-up"
+      />
+    </>
   )
 }

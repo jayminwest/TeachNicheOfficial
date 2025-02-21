@@ -795,68 +795,183 @@ Implementation Details:
 - Test error scenarios
 - Validate webhook handling
 
-### Step 10: Additional Components
+### Step 10: Implemented Components
 
-1. Stripe Webhook Handler:
+1. Mux Playback Signing:
 ```typescript
-// app/api/webhooks/stripe/route.ts
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const { lessonId, userId, creatorId } = session.metadata;
-  
-  const supabase = createRouteHandlerClient({ cookies });
-  
-  await supabase
-    .from('purchases')
-    .update({
-      status: 'completed',
-      payment_intent_id: session.payment_intent as string,
-      purchase_date: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
-    .eq('stripe_session_id', session.id);
-}
+// From app/api/mux/sign-playback/route.ts
+export async function POST(request: Request) {
+  try {
+    const { playbackId } = await request.json();
 
-// Add to webhook handler switch statement:
-case 'checkout.session.completed':
-  await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
-  break;
+    if (!playbackId) {
+      return NextResponse.json({ error: 'Playback ID is required' }, { status: 400 });
+    }
+
+    const token = jwt.sign(
+      {
+        sub: playbackId,
+        aud: 'v',
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        kid: MUX_SIGNING_KEY_ID,
+      },
+      MUX_SIGNING_KEY,
+      { algorithm: 'RS256' }
+    );
+
+    return NextResponse.json({ token });
+  } catch (error) {
+    console.error('Error signing playback token:', error);
+    return NextResponse.json(
+      { error: 'Failed to sign playback token' },
+      { status: 500 }
+    );
+  }
+}
 ```
 
-2. Protected Video Player:
+2. Lesson Checkout Component:
 ```typescript
-// app/components/ui/protected-video-player.tsx
-import { VideoPlayer } from './video-player'
-import { LessonAccessGate } from './lesson-access-gate'
-import { PurchasePrompt } from './purchase-prompt'
+// From app/components/ui/lesson-checkout.tsx
+export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {
+  const isSuccess = searchParams?.get('success') === 'true';
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-interface ProtectedVideoPlayerProps {
-  lessonId: string
-  playbackId: string
-  title: string
-  className?: string
-}
+  const handleCheckout = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
+      }
 
-export function ProtectedVideoPlayer({
-  lessonId,
-  playbackId,
-  title,
-  className
-}: ProtectedVideoPlayerProps) {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessonId,
+          price,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      const { error } = await stripe.redirectToCheckout({ 
+        sessionId: data.sessionId 
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="text-green-600 font-medium">
+        Payment Successful
+      </div>
+    );
+  }
+
   return (
-    <LessonAccessGate 
-      lessonId={lessonId}
-      fallback={<PurchasePrompt lessonId={lessonId} />}
-    >
-      <VideoPlayer
-        playbackId={playbackId}
-        title={title}
-        className={className}
-        id={lessonId}
-      />
-    </LessonAccessGate>
-  )
+    <div>
+      {error && (
+        <div className="text-red-600 text-sm mb-2">{error}</div>
+      )}
+      <Button 
+        onClick={handleCheckout} 
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <span className="mr-2">Processing...</span>
+            <span className="animate-spin">⚪</span>
+          </>
+        ) : (
+          'Purchase Lesson'
+        )}
+      </Button>
+    </div>
+  );
 }
 ```
+
+### Still Needed:
+
+1. Rate Limiting Implementation:
+```typescript
+// TODO: Add rate limiting middleware for API routes
+import rateLimit from 'express-rate-limit'
+import { NextResponse } from 'next/server'
+
+export const rateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+})
+```
+
+2. Complete Test Suite:
+```typescript
+// TODO: Implement comprehensive tests
+describe('Lesson Purchase Flow', () => {
+  describe('Checkout Process', () => {
+    it('creates stripe session successfully')
+    it('handles stripe initialization errors')
+    it('validates lesson exists')
+    it('prevents duplicate purchases')
+  })
+
+  describe('Access Control', () => {
+    it('grants access after successful purchase')
+    it('denies access without purchase')
+    it('handles expired purchases')
+  })
+
+  describe('Video Playback', () => {
+    it('generates valid playback tokens')
+    it('handles token expiration')
+    it('prevents unauthorized access')
+  })
+})
+```
+
+### Clarification Needed:
+
+The following aspects need product/business decisions:
+
+1. Refund Handling:
+- How long after purchase can refunds be requested?
+- Should access be immediately revoked on refund?
+- What happens to partial/prorated refunds?
+
+2. Failed Payment Retry Strategy:
+- How many retry attempts?
+- What interval between retries?
+- Should temporary access be granted during retry period?
+
+3. Access Grace Period:
+- Should there be a grace period after purchase?
+- How long should it be?
+- How to handle access during payment processing?
+
+4. Pending Payment Access:
+- Should any content be accessible during pending state?
+- How to handle timeouts/abandoned checkouts?
+- What's the maximum pending period?
 
 3. Purchase API Route:
 ```typescript

@@ -62,7 +62,7 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## 6. Payment Integration (Stripe Connect)
  
- - **Stripe API:**  Use the Stripe API for payment processing. Handle Stripe interactions securely, especially on the server-side (Edge Functions). Keep Stripe integration as straightforward as possible, leveraging Stripe's pre-built components and APIs.
+ - **Stripe API:**  Use the Stripe API for payment processing. Handle Stripe interactions securely, especially on the server-side (Edge Functions). Keep Stripe integration as straightforward as possible, leveraging Stripe's pre-built components and APIs. Version '2025-01-27.acacia'.
  - **Checkout Sessions:**  Implement Stripe Checkout Sessions for a streamlined payment experience. Use the simplest checkout flow that meets the requirements.
  - **Webhook Handling:**  Set up Stripe webhook handlers in Edge Functions to securely process payment confirmations and updates. Keep webhook handlers concise and focused on essential tasks.
  - **Error Handling:**  Implement proper error handling for payment failures and edge cases. Keep error handling simple and -friendly.

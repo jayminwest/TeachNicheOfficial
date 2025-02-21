@@ -21,10 +21,24 @@ export interface LessonRequestVote {
   created_at: string;
 }
 
+export const LESSON_CATEGORIES = [
+  'Kendama',
+  'Juggling',
+  'Yo-yo',
+  'Pen Spinning',
+  'Card Flourishing',
+  'Diabolo',
+  'Contact Juggling',
+  'Other'
+] as const
+
 export const lessonRequestSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title cannot exceed 100 characters"),
   description: z.string().min(10, "Description must be at least 10 characters").max(1000, "Description cannot exceed 1000 characters"),
-  category: z.string().min(1, "Category is required"),
+  category: z.enum(LESSON_CATEGORIES, {
+    required_error: "Please select a category",
+    invalid_type_error: "Please select a valid category"
+  }),
   instagram_handle: z.string().regex(/^@?[\w](?!.*?\.{2})[\w.]{1,28}[\w]$/, "Invalid Instagram handle").optional(),
   tags: z.array(z.string()).optional().default([])
 })

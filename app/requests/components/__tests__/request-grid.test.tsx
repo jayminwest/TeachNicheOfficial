@@ -49,21 +49,19 @@ describe('RequestGrid', () => {
   })
 
   it('loads and displays requests when no initial data provided', async () => {
-    const { rerender } = render(<RequestGrid />)
+    render(<RequestGrid />)
     
-    await act(async () => {
-      await waitFor(() => {
-        expect(getRequests).toHaveBeenCalled()
-      })
+    // First verify loading state
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+
+    // Wait for data to load and render
+    await waitFor(() => {
+      expect(screen.getByText('Request 1')).toBeInTheDocument()
+      expect(screen.getByText('Request 2')).toBeInTheDocument()
     })
 
-    // Mock the state update that would happen after data loads
-    await act(async () => {
-      rerender(<RequestGrid initialRequests={mockRequests} />)
-    })
-
-    expect(screen.getByText('Request 1')).toBeInTheDocument()
-    expect(screen.getByText('Request 2')).toBeInTheDocument()
+    // Verify loading spinner is gone
+    expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
   })
 
   it('displays empty state when no requests found', async () => {
@@ -71,10 +69,12 @@ describe('RequestGrid', () => {
     
     render(<RequestGrid />)
 
-    await act(async () => {
-      await waitFor(() => {
-        expect(screen.getByText(/no lesson requests found/i)).toBeInTheDocument()
-      })
+    // First wait for loading state to appear
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+
+    // Then wait for empty state to appear
+    await waitFor(() => {
+      expect(screen.getByText(/no lesson requests found/i)).toBeInTheDocument()
     })
   })
 

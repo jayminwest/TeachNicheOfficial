@@ -41,7 +41,7 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
     )
   }
 
-  if (requests.length === 0) {
+  if (!isLoading && requests.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">No lesson requests found.</p>

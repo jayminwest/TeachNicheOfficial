@@ -31,27 +31,6 @@ const mockAuthContext = {
   loading: false
 }
 
-// Define test component props
-const mockRequest = {
-  from: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockReturnThis(),
-  update: jest.fn().mockReturnThis(),
-  delete: jest.fn().mockReturnThis(),
-  eq: jest.fn().mockReturnThis(),
-  single: jest.fn().mockReturnThis(),
-  match: jest.fn().mockReturnThis(),
-  maybeSingle: jest.fn().mockReturnThis(),
-  count: jest.fn().mockReturnThis(),
-  head: jest.fn().mockReturnThis()
-}
-
-// Mock auth context
-const mockAuthContext = {
-  user: { id: 'testuser', email: 'test@example.com' },
-  loading: false
-}
-
 describe('RequestCard', () => {
   const mockRequest = {
     id: '123',

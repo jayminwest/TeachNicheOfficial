@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { LessonRequest } from '@/lib/types'
-import { getRequests } from '@/lib/supabase/requests'
+import { getRequests } from '../../../lib/supabase/requests'
 import { RequestCard } from './request-card'
 import { Loader2 } from 'lucide-react'
 

@@ -6,6 +6,7 @@ import { useToast } from '@/app/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { supabase } from '@/app/services/supabase';
+import { stripeConfig } from '@/app/services/stripe';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;
@@ -36,8 +37,14 @@ export function StripeConnectButton({
 
       const { session } = result.data;
 
+      // Get user's locale and check if their country is supported
       const userLocale = navigator.language || 'en';
+      const userCountry = userLocale.split('-')[1] || 'US';
       
+      if (!stripeConfig.supportedCountries.includes(userCountry)) {
+        throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${stripeConfig.supportedCountries.join(', ')}`);
+      }
+
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {
@@ -56,9 +63,6 @@ export function StripeConnectButton({
       
       if (!response.ok) {
         const error = data.error || {};
-        if (error.code === 'country_not_supported') {
-          throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${data.supported_countries?.join(', ') || 'none'}`);
-        }
         throw new Error(error.message || 'Failed to connect with Stripe');
       }
 

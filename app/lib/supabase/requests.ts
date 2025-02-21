@@ -1,8 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { LessonRequest, LessonRequestVote } from '../types'
 import { LessonRequestFormData } from '../schemas/lesson-request'
+import { toast } from '@/components/ui/use-toast'
 
-export async function createRequest(data: LessonRequestFormData) {
+export async function createRequest(data: LessonRequestFormData): Promise<LessonRequest> {
   const supabase = createClientComponentClient()
   const { data: request, error } = await supabase
     .from('lesson_requests')
@@ -15,7 +16,20 @@ export async function createRequest(data: LessonRequestFormData) {
     .select()
     .single()
   
-  if (error) throw error
+  if (error) {
+    toast({
+      title: "Error creating request",
+      description: error.message,
+      variant: "destructive"
+    })
+    throw error
+  }
+  
+  toast({
+    title: "Request created",
+    description: "Your lesson request has been submitted successfully."
+  })
+  
   return request as LessonRequest
 }
 

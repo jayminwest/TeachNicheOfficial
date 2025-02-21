@@ -45,6 +45,11 @@ export function Header() {
             title: "About",
             href: "/about",
             description: "",
+        },
+        {
+            title: "Requests",
+            href: "/requests",
+            description: "Request new lessons",
         }
     ];
 

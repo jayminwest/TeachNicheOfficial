@@ -4,6 +4,7 @@ import { LessonPreviewDialog } from '@/app/components/ui/lesson-preview-dialog'
 // Mock the next/image component
 jest.mock('next/image', () => ({
   __esModule: true,
+  // eslint-disable-next-line @next/next/no-img-element
   default: (props: { src: string; alt: string; fill?: boolean; className?: string }) => (
     <img src={props.src} alt={props.alt} className={props.className} />
   )

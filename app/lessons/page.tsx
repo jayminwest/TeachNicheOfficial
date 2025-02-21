@@ -10,14 +10,7 @@ import { supabase } from "@/app/services/supabase";
 import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 
-interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  created_at: string;
-  // Add other fields as needed once we see the API implementation
-}
+import type { Lesson } from '@/types/lesson'
 
 export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -32,7 +25,16 @@ export default function LessonsPage() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setLessons(data || []);
+        
+        // Transform the data to match the Lesson type
+        const transformedLessons: Lesson[] = (data || []).map(lesson => ({
+          ...lesson,
+          thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
+          averageRating: lesson.average_rating || 0,
+          totalRatings: lesson.total_ratings || 0
+        }));
+        
+        setLessons(transformedLessons);
       } catch (error) {
         console.error('Error fetching lessons:', error);
         toast({

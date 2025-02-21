@@ -43,7 +43,7 @@ describe('Requests API Routes', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    jest.resetAllMocks()
     (createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
   })
 

@@ -115,9 +115,10 @@ export function RequestDialog() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent 
-                      className="max-h-[200px] overflow-y-auto"
+                      className="max-h-[200px] overflow-y-auto relative z-[9999]"
                       position="popper"
                       sideOffset={5}
+                      portal={true}
                     >
                       {LESSON_CATEGORIES.map((category) => (
                         <SelectItem 

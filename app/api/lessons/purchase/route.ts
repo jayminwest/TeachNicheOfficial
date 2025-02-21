@@ -89,10 +89,9 @@ export async function POST(request: Request) {
       }],
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=cancelled`,
-      payment_intent_data: {
-        application_fee_amount: platformFee,
-        transfer_data: {
-          destination: lesson.creator.stripe_account_id,
+      payment_method_options: {
+        card: {
+          setup_future_usage: 'off_session',
         },
       },
       metadata: {
@@ -103,8 +102,13 @@ export async function POST(request: Request) {
       }
     })
 
-    // Wait for payment intent to be created
-    const paymentIntent = await stripe.paymentIntents.retrieve(checkoutSession.payment_intent as string)
+    // Create a transfer for the creator after payment
+    const transfer = await stripe.transfers.create({
+      amount: creatorEarnings,
+      currency: stripeConfig.defaultCurrency,
+      destination: lesson.creator.stripe_account_id,
+      transfer_group: checkoutSession.id,
+    })
 
     // Generate UUID for purchase record
     const purchaseId = crypto.randomUUID()
@@ -123,7 +127,7 @@ export async function POST(request: Request) {
         creator_earnings: creatorEarnings,
         fee_percentage: stripeConfig.platformFeePercent,
         status: 'pending',
-        payment_intent_id: paymentIntent.id,
+        payment_intent_id: checkoutSession.id, // Use session ID instead of payment intent
         metadata: {
           version: '1'
         }

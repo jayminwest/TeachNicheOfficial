@@ -173,7 +173,16 @@ export const verifyStripeWebhook = (
 export const verifyConnectedAccount = async (
   userId: string,
   accountId: string,
-  supabaseClient: any
+  supabaseClient: {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => Promise<{
+          data: { stripe_account_id: string | null } | null;
+          error: Error | null;
+        }>;
+      };
+    };
+  }
 ): Promise<AccountVerificationResult> => {
   try {
     // Get profile

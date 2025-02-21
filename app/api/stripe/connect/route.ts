@@ -1,4 +1,4 @@
-import { stripe, stripeConfig, createConnectSession, StripeError, getStripe } from '@/app/services/stripe';
+import { stripe, createConnectSession, getStripe } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';

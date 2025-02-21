@@ -102,10 +102,7 @@ export async function POST(request: Request) {
       },
       capabilities: {
         card_payments: { requested: true },
-        transfers: { requested: true },
-        sepa_debit_payments: { requested: true },
-        bacs_debit_payments: { requested: true },
-        au_becs_debit_payments: { requested: true }
+        transfers: { requested: true }
       },
       settings: {
         payouts: {

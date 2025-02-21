@@ -1,71 +1,6 @@
 import { jest } from '@jest/globals';
 
-export const mockSupabaseClient = {
-  auth: {
-    signInWithOAuth: jest.fn().mockResolvedValue({ data: { user: mockSupabaseUser }, error: null }),
-    signOut: jest.fn().mockResolvedValue({ error: null }),
-    getSession: jest.fn().mockResolvedValue({
-      data: { 
-        session: {
-          user: mockSupabaseUser,
-          access_token: 'test-token',
-          refresh_token: 'test-refresh-token'
-        }
-      },
-      error: null
-    }),
-    onAuthStateChange: jest.fn().mockImplementation((callback) => {
-      callback('SIGNED_IN', { user: mockSupabaseUser });
-      return { data: { subscription: { unsubscribe: jest.fn() } } };
-    }),
-    getUser: jest.fn().mockResolvedValue({ data: { user: mockSupabaseUser }, error: null }),
-  },
-  storage: {
-    from: jest.fn().mockReturnValue({
-      upload: jest.fn().mockResolvedValue({ data: { path: 'test.jpg' }, error: null }),
-      download: jest.fn().mockResolvedValue({ data: new Blob(), error: null }),
-      getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'https://example.com/test.jpg' } }),
-      list: jest.fn().mockResolvedValue({ data: [{ name: 'test.jpg' }], error: null }),
-      remove: jest.fn().mockResolvedValue({ data: null, error: null })
-    }),
-  },
-  from: jest.fn().mockImplementation((table) => ({
-    select: jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnThis(),
-      match: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ 
-        data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' }, 
-        error: null 
-      }),
-      maybeSingle: jest.fn().mockResolvedValue({ 
-        data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' }, 
-        error: null 
-      }),
-      limit: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      range: jest.fn().mockReturnThis(),
-      count: jest.fn().mockResolvedValue({ count: 5 }),
-    }),
-    insert: jest.fn().mockResolvedValue({ 
-      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }], 
-      error: null 
-    }),
-    update: jest.fn().mockResolvedValue({ 
-      data: { id: 1, updated_at: '2023-01-01T00:00:00.000Z' }, 
-      error: null 
-    }),
-    delete: jest.fn().mockResolvedValue({ data: { id: 1 }, error: null }),
-    upsert: jest.fn().mockResolvedValue({ 
-      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }], 
-      error: null 
-    }),
-  })),
-  rpc: jest.fn().mockImplementation((func, params) => ({
-    data: null,
-    error: null
-  })),
-};
-
+// Define mock user first since it's used in other mocks
 export const mockSupabaseUser = {
   id: 'test-user-id',
   email: 'test@example.com',
@@ -81,4 +16,135 @@ export const mockSupabaseUser = {
   created_at: '2023-01-01T00:00:00.000Z',
   role: 'authenticated',
   updated_at: '2023-01-01T00:00:00.000Z'
+};
+
+// Create reusable mock data
+const mockSession = {
+  user: mockSupabaseUser,
+  access_token: 'test-token',
+  refresh_token: 'test-refresh-token'
+};
+
+const mockQueryBuilder = {
+  eq: jest.fn().mockReturnThis(),
+  neq: jest.fn().mockReturnThis(),
+  gt: jest.fn().mockReturnThis(),
+  gte: jest.fn().mockReturnThis(),
+  lt: jest.fn().mockReturnThis(),
+  lte: jest.fn().mockReturnThis(),
+  like: jest.fn().mockReturnThis(),
+  ilike: jest.fn().mockReturnThis(),
+  is: jest.fn().mockReturnThis(),
+  in: jest.fn().mockReturnThis(),
+  contains: jest.fn().mockReturnThis(),
+  containedBy: jest.fn().mockReturnThis(),
+  range: jest.fn().mockReturnThis(),
+  overlap: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  order: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  single: jest.fn().mockResolvedValue({
+    data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
+    error: null
+  }),
+  maybeSingle: jest.fn().mockResolvedValue({
+    data: { id: 1, created_at: '2023-01-01T00:00:00.000Z' },
+    error: null
+  }),
+  execute: jest.fn().mockResolvedValue({
+    data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
+    error: null
+  })
+};
+
+export const mockSupabaseClient = {
+  auth: {
+    getSession: jest.fn().mockResolvedValue({
+      data: { session: mockSession },
+      error: null
+    }),
+    getUser: jest.fn().mockResolvedValue({
+      data: { user: mockSupabaseUser },
+      error: null
+    }),
+    signInWithOAuth: jest.fn().mockResolvedValue({
+      data: { user: mockSupabaseUser, session: mockSession },
+      error: null
+    }),
+    signInWithPassword: jest.fn().mockResolvedValue({
+      data: { user: mockSupabaseUser, session: mockSession },
+      error: null
+    }),
+    signUp: jest.fn().mockResolvedValue({
+      data: { user: mockSupabaseUser, session: mockSession },
+      error: null
+    }),
+    signOut: jest.fn().mockResolvedValue({ error: null }),
+    resetPasswordForEmail: jest.fn().mockResolvedValue({ error: null }),
+    updateUser: jest.fn().mockResolvedValue({
+      data: { user: mockSupabaseUser },
+      error: null
+    }),
+    onAuthStateChange: jest.fn().mockImplementation((callback) => {
+      callback('SIGNED_IN', { user: mockSupabaseUser });
+      return { data: { subscription: { unsubscribe: jest.fn() } } };
+    })
+  },
+
+  from: jest.fn().mockImplementation((table) => ({
+    ...mockQueryBuilder,
+    insert: jest.fn().mockResolvedValue({
+      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
+      error: null
+    }),
+    upsert: jest.fn().mockResolvedValue({
+      data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
+      error: null
+    }),
+    update: jest.fn().mockResolvedValue({
+      data: { id: 1, updated_at: '2023-01-01T00:00:00.000Z' },
+      error: null
+    }),
+    delete: jest.fn().mockResolvedValue({
+      data: { id: 1 },
+      error: null
+    })
+  })),
+
+  storage: {
+    from: jest.fn().mockReturnValue({
+      upload: jest.fn().mockResolvedValue({
+        data: { path: 'test.jpg' },
+        error: null
+      }),
+      download: jest.fn().mockResolvedValue({
+        data: new Blob(['test']),
+        error: null
+      }),
+      getPublicUrl: jest.fn().mockReturnValue({
+        data: { publicUrl: 'https://example.com/test.jpg' }
+      }),
+      list: jest.fn().mockResolvedValue({
+        data: [{ name: 'test.jpg' }],
+        error: null
+      }),
+      remove: jest.fn().mockResolvedValue({
+        data: null,
+        error: null
+      }),
+      createSignedUrl: jest.fn().mockResolvedValue({
+        data: { signedUrl: 'https://example.com/signed-test.jpg' },
+        error: null
+      }),
+      move: jest.fn().mockResolvedValue({
+        data: { path: 'new-test.jpg' },
+        error: null
+      })
+    })
+  },
+
+  rpc: jest.fn().mockImplementation((func, params) => ({
+    data: { result: 'success' },
+    error: null
+  }))
 };

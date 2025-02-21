@@ -38,7 +38,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
         .insert({
           request_id: request.id,
           user_id: user.id,
-          vote_type: type
+          vote_type: 'up'
         })
         .select()
         .single();

@@ -50,7 +50,12 @@ describe('Vote API Route', () => {
       eq: jest.fn().mockReturnThis(),
       insert: jest.fn().mockResolvedValue({ error: null })
     }),
-    rpc: jest.fn().mockResolvedValue({ error: null })
+    rpc: jest.fn().mockImplementation((name, args) => {
+      if (name === 'update_vote_count') {
+        return Promise.resolve({ error: null });
+      }
+      return Promise.reject(new Error('Unknown RPC call'));
+    })
   }
 
   beforeEach(() => {
@@ -68,8 +73,8 @@ describe('Vote API Route', () => {
     const request = new Request('http://localhost/api/requests/vote', {
       method: 'POST',
       body: JSON.stringify({
-        requestId: '123',
-        voteType: 'up'
+        requestId: '123e4567-e89b-12d3-a456-426614174000',
+        voteType: 'upvote'
       })
     })
 

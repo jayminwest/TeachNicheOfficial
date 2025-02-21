@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest } from '@/app/lib/supabase/requests'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog"
 import { Button } from "@/app/components/ui/button"
@@ -12,9 +13,11 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
 import { PlusCircle } from 'lucide-react'
+import { toast } from '@/app/components/ui/use-toast'
 
 export function RequestDialog() {
   const [open, setOpen] = useState(false)
+  const { user } = useAuth()
   
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),
@@ -42,7 +45,19 @@ export function RequestDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button 
+          className="gap-2"
+          onClick={(e) => {
+            if (!user) {
+              e.preventDefault()
+              toast({
+                title: "Authentication Required",
+                description: "Please sign in to create a lesson request",
+                variant: "destructive"
+              })
+            }
+          }}
+        >
           <PlusCircle className="h-5 w-5" />
           New Request
         </Button>

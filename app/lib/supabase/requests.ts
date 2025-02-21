@@ -4,6 +4,16 @@ import { toast } from '@/app/components/ui/use-toast'
 
 export async function createRequest(data: LessonRequestFormData): Promise<LessonRequest> {
   const supabase = createClientComponentClient()
+  
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.user) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to create a lesson request",
+      variant: "destructive"
+    })
+    throw new Error('Authentication required')
+  }
   const { data: request, error } = await supabase
     .from('lesson_requests')
     .insert([{

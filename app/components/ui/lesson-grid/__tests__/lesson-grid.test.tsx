@@ -1,5 +1,15 @@
 import { render, screen } from '@testing-library/react'
-import { LessonGrid } from '../lesson-grid'
+import { LessonGrid } from '@/app/components/ui/lesson-grid'
+
+// Mock LessonCard component
+jest.mock('@/app/components/ui/lesson-card', () => ({
+  LessonCard: ({ lesson }: { lesson: any }) => (
+    <div data-testid="lesson-card">
+      <h3>{lesson.title}</h3>
+      <p>{lesson.description}</p>
+    </div>
+  )
+}))
 
 describe('LessonGrid', () => {
   it('renders grid with multiple lessons', () => {
@@ -28,7 +38,9 @@ describe('LessonGrid', () => {
 
     render(<LessonGrid lessons={mockLessons} />)
 
+    // Check if both lessons are rendered
     expect(screen.getByText('Lesson 1')).toBeInTheDocument()
     expect(screen.getByText('Lesson 2')).toBeInTheDocument()
+    expect(screen.getAllByTestId('lesson-card')).toHaveLength(2)
   })
 })

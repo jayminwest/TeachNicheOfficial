@@ -1,5 +1,16 @@
 import { render, screen } from '@testing-library/react'
-import { LessonPreviewDialog } from '../lesson-preview-dialog'
+import { LessonPreviewDialog } from '@/app/components/ui/lesson-preview-dialog'
+
+// Mock the next/image component
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props: any) => <img {...props} />
+}))
+
+// Mock the LessonCheckout component
+jest.mock('@/app/components/ui/lesson-checkout', () => ({
+  LessonCheckout: () => <button>Purchase</button>
+}))
 
 describe('LessonPreviewDialog', () => {
   it('renders dialog with lesson details when open', () => {
@@ -21,10 +32,12 @@ describe('LessonPreviewDialog', () => {
       />
     )
 
+    // Verify content renders
     expect(screen.getByText('Test Lesson')).toBeInTheDocument()
     expect(screen.getByText('Test Description')).toBeInTheDocument()
     expect(screen.getByText('$29.99')).toBeInTheDocument()
     expect(screen.getByText('4.5')).toBeInTheDocument()
     expect(screen.getByText('(100 ratings)')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Purchase' })).toBeInTheDocument()
   })
 })

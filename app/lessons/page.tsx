@@ -21,18 +21,35 @@ export default function LessonsPage() {
       try {
         const { data, error } = await supabase
           .from('lessons')
-          .select('*')
+          .select(`
+            *,
+            reviews (
+              rating
+            )
+          `)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
         
         // Transform the data to match the Lesson type
-        const transformedLessons: Lesson[] = (data || []).map(lesson => ({
-          ...lesson,
-          thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
-          description: lesson.description || '',
-          averageRating: lesson.rating || 0,
-          totalRatings: lesson.reviews || 0
+        const transformedLessons: Lesson[] = (data || []).map(lesson => {
+          const reviews = lesson.reviews || [];
+          const totalRatings = reviews.length;
+          const averageRating = totalRatings > 0 
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalRatings 
+            : 0;
+
+          return {
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description || '',
+            price: lesson.price,
+            thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
+            created_at: lesson.created_at,
+            averageRating,
+            totalRatings
+          };
+        }
         }));
         
         setLessons(transformedLessons);

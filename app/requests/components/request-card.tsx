@@ -193,7 +193,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
             className="transition-all duration-200 hover:scale-105"
           >
             <ThumbsUp className={`w-4 h-4 mr-2 transition-transform group-hover:scale-110 ${
-              hasVoted ? 'fill-current text-primary' : ''
+              hasVoted ? 'fill-current text-foreground' : ''
             }`} />
             <span className="font-medium">{voteCount}</span>
             <span className="ml-1 text-xs text-muted-foreground">

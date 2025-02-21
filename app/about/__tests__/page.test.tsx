@@ -1,4 +1,4 @@
-import { render, userEvent } from '../../../components/ui/test-utils'
+import { render, userEvent } from '../../__tests__/utils/test-utils'
 import { axe } from 'jest-axe'
 import React from 'react'
 import AboutPage from '../page'

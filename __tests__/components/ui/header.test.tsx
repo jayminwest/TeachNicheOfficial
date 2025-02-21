@@ -15,7 +15,7 @@ jest.mock('lucide-react', () => ({
 
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: () => mockUseAuth()
+  useAuth: jest.fn()
 }))
 
 jest.mock('@/lib/supabase', () => ({
@@ -111,6 +111,13 @@ describe('Header', () => {
     Element.prototype.scrollIntoView = mockScrollIntoView;
     // Reset all mocks
     jest.clearAllMocks();
+    // Reset useAuth mock before each test
+    (useAuth as jest.Mock).mockImplementation(() => ({
+      user: null,
+      loading: false,
+      signIn: jest.fn(),
+      signOut: jest.fn()
+    }));
   });
 
   describe('rendering', () => {

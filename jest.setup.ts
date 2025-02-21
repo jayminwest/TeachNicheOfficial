@@ -2,8 +2,9 @@ import '@testing-library/jest-dom';
 import { jest } from '@jest/globals';
 import { TextEncoder, TextDecoder } from 'util';
 
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+// Use type assertions to avoid type mismatches
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
+global.TextDecoder = TextDecoder as typeof global.TextDecoder;
 
 // Suppress specific console messages during tests
 const originalConsoleError = console.error;

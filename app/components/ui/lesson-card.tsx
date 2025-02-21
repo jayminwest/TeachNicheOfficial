@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
 import { LessonPreviewDialog } from "@/app/components/ui/lesson-preview-dialog";

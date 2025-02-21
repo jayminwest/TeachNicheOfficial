@@ -1,9 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import { LessonGrid } from '@/app/components/ui/lesson-grid'
 
+import type { Lesson } from '@/types/lesson'
+
 // Mock LessonCard component
 jest.mock('@/app/components/ui/lesson-card', () => ({
-  LessonCard: ({ lesson }: { lesson: any }) => (
+  LessonCard: ({ lesson }: { lesson: Lesson }) => (
     <div data-testid="lesson-card">
       <h3>{lesson.title}</h3>
       <p>{lesson.description}</p>

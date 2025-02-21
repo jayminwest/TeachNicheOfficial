@@ -4,7 +4,9 @@ import { LessonPreviewDialog } from '@/app/components/ui/lesson-preview-dialog'
 // Mock the next/image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => <img {...props} />
+  default: (props: { src: string; alt: string; fill?: boolean; className?: string }) => (
+    <img src={props.src} alt={props.alt} className={props.className} />
+  )
 }))
 
 // Mock the LessonCheckout component

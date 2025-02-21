@@ -125,10 +125,13 @@ export async function POST(request: Request) {
     })
 
     // Record pending purchase
+    // Generate UUID for purchase record
+    const purchaseId = crypto.randomUUID()
+    
     const { error: purchaseError } = await supabase
       .from('purchases')
       .insert({
-        user_id: session.user.id,
+        id: purchaseId,
         lesson_id: lessonId,
         creator_id: lesson.creator_id,
         stripe_session_id: checkoutSession.id,
@@ -137,7 +140,11 @@ export async function POST(request: Request) {
         creator_earnings: creatorEarnings,
         fee_percentage: stripeConfig.platformFeePercent,
         status: 'pending',
-        payment_intent_id: checkoutSession.payment_intent as string
+        payment_intent_id: checkoutSession.payment_intent as string,
+        metadata: {
+          user_id: session.user.id,
+          version: '1'
+        }
       })
 
     if (purchaseError) {

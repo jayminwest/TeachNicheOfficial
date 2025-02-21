@@ -27,9 +27,18 @@ jest.mock('@/auth/AuthContext', () => ({
   })
 }));
 
+// Create supabase mock object
+const supabase = {
+  ...mockSupabaseClient,
+  auth: {
+    ...mockSupabaseClient.auth,
+    getSession: jest.fn()
+  }
+};
+
 // Mock supabase
 jest.mock('@/lib/supabase', () => ({
-  supabase: mockSupabaseClient
+  supabase
 }));
 
 describe('StripeConnectButton', () => {

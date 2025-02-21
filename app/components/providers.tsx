@@ -7,21 +7,14 @@ import { AuthProvider } from "@/app/services/auth/AuthContext"
 type ThemeProviderProps = Parameters<typeof NextThemesProvider>[0]
 
 export function Providers({ children, ...props }: ThemeProviderProps) {
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
-
+  // Use suppressHydrationWarning on the wrapper div
   return (
-    <NextThemesProvider {...props}>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-    </NextThemesProvider>
+    <div suppressHydrationWarning>
+      <NextThemesProvider {...props}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </NextThemesProvider>
+    </div>
   )
 }

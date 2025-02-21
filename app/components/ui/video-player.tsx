@@ -3,12 +3,14 @@
 import { cn } from "@/app/lib/utils";
 import MuxPlayer from "@mux/mux-player-react";
 import { useState, useEffect } from "react";
+import { LessonAccessGate } from "./lesson-access-gate";
 
 interface VideoPlayerProps {
   playbackId: string;
   title: string;
   className?: string;
   id?: string;
+  price?: number;
   isFree?: boolean;
 }
 
@@ -17,6 +19,7 @@ export function VideoPlayer({
   title, 
   className,
   id,
+  price,
   isFree = false
 }: VideoPlayerProps) {
   const [jwt, setJwt] = useState<string>();
@@ -34,7 +37,7 @@ export function VideoPlayer({
   }, [playbackId, isFree]);
 
   return (
-    <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
+    <LessonAccessGate lessonId={id!} price={price} className={cn("aspect-video rounded-lg overflow-hidden", className)}>
       <MuxPlayer
         playbackId={playbackId}
         metadata={{ 
@@ -46,6 +49,6 @@ export function VideoPlayer({
           playback: jwt
         }}
       />
-    </div>
+    </LessonAccessGate>
   );
 }

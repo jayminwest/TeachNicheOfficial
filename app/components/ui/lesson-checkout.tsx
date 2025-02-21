@@ -13,7 +13,7 @@ interface LessonCheckoutProps {
 }
 
 export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {
-  const isSuccess = searchParams?.get('success') === 'true';
+  const isSuccess = searchParams?.get('purchase') === 'success';
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +29,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         throw new Error('Stripe failed to initialize');
       }
 
-      const response = await fetch('/api/checkout', {
+      const response = await fetch('/api/lessons/purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

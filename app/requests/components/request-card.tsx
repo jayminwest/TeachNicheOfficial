@@ -33,11 +33,11 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       setIsVoting(true)
       await voteOnRequest(request.id, type)
       onVote()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to vote:', error)
       toast({
         title: "Error",
-        description: "Failed to submit vote. Please try again.",
+        description: error.message || "Failed to submit vote. Please try again.",
         variant: "destructive"
       })
     } finally {

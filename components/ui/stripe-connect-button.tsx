@@ -55,10 +55,11 @@ export function StripeConnectButton({
       const data = await response.json();
       
       if (!response.ok) {
-        if (data.error?.code === 'country_not_supported') {
-          throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${data.supported_countries.join(', ')}`);
+        const error = data.error || {};
+        if (error.code === 'country_not_supported') {
+          throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${data.supported_countries?.join(', ') || 'none'}`);
         }
-        throw new Error(data.error?.message || 'Failed to connect with Stripe');
+        throw new Error(error.message || 'Failed to connect with Stripe');
       }
 
       if (!data.url) {

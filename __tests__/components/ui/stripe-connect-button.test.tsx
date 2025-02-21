@@ -158,10 +158,12 @@ describe('StripeConnectButton', () => {
       await button.click();
     });
 
-    // Wait for loading state
+    // Click button and wait for loading state
     await act(async () => {
-      await screen.findByText(/connecting/i);
+      fireEvent.click(button);
     });
+    
+    // Verify loading state
     const loadingButton = screen.getByRole('button');
     expect(loadingButton).toHaveTextContent(/connecting/i);
     expect(loadingButton).toHaveAttribute('aria-busy', 'true');
@@ -203,9 +205,8 @@ describe('StripeConnectButton', () => {
     });
 
     // Mock fetch to avoid actual API calls
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: { message: 'No active session' } })
+    (global.fetch as jest.Mock).mockImplementation(() => {
+      throw new Error('No active session');
     });
 
     renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
@@ -233,9 +234,8 @@ describe('StripeConnectButton', () => {
     });
 
     // Mock fetch to avoid actual API calls
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: { message: 'Failed to get session' } })
+    (global.fetch as jest.Mock).mockImplementation(() => {
+      throw new Error('Failed to get session');
     });
 
     renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
@@ -258,7 +258,8 @@ describe('StripeConnectButton', () => {
       access_token: 'test-token',
       refresh_token: 'test-refresh-token',
       expires_in: 3600,
-      user: mockUser
+      user: mockUser,
+      token_type: 'bearer'
     };
     
     jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
@@ -355,7 +356,8 @@ describe('StripeConnectButton', () => {
       ok: false,
       json: () => Promise.resolve({ 
         error: { 
-          code: 'country_not_supported'
+          code: 'country_not_supported',
+          message: 'Sorry, Stripe is not yet supported in your country'
         },
         supported_countries: ['US', 'GB', 'CA']
       })

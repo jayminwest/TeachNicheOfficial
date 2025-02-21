@@ -1,12 +1,12 @@
-// Mock setup must come before imports
-jest.mock('@/app/services/auth/AuthContext')
-jest.mock('@/app/components/ui/use-toast')
-jest.mock('@supabase/auth-helpers-nextjs')
-
 import { render, screen } from '@testing-library/react'
 import { RequestCard } from '@/app/requests/components/request-card'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+
+// Mock modules
+jest.mock('@/app/services/auth/AuthContext')
+jest.mock('@/app/components/ui/use-toast')
+jest.mock('@supabase/auth-helpers-nextjs')
 
 // Define mock Supabase client
 const mockSupabaseClient = {
@@ -23,20 +23,11 @@ const mockSupabaseClient = {
   head: jest.fn().mockReturnThis()
 }
 
-// Mock implementations
-const mockUseAuth = jest.fn()
-const mockCreateClientComponentClient = jest.fn()
-
-// Set default mock returns
-mockUseAuth.mockReturnValue({
+// Mock auth context
+const mockAuthContext = {
   user: { id: 'testuser', email: 'test@example.com' },
   loading: false
-})
-mockCreateClientComponentClient.mockReturnValue(mockSupabaseClient)
-
-// Apply mocks
-;(useAuth as jest.Mock).mockImplementation(() => mockUseAuth())
-;(createClientComponentClient as jest.Mock).mockImplementation(() => mockCreateClientComponentClient())
+}
 
 describe('RequestCard', () => {
   const mockRequest = {
@@ -52,8 +43,8 @@ describe('RequestCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    mockUseAuth.mockReturnValue(mockAuthContext)
-    mockCreateClientComponentClient.mockReturnValue(mockSupabaseClient)
+    ;(useAuth as jest.Mock).mockReturnValue(mockAuthContext)
+    ;(createClientComponentClient as jest.Mock).mockReturnValue(mockSupabaseClient)
   })
 
   it('renders request details correctly', () => {

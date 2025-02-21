@@ -1,36 +1,36 @@
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
-import { VideoUploader } from '@/app/components/ui/video-uploader';
-import { useToast } from '@/app/components/ui/use-toast';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/app/components/ui/form';
+"use client";
+
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "./button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "./form";
+import { Input } from "./input";
+import { Textarea } from "./textarea";
+import { VideoUploader } from "./video-uploader";
+import { toast } from "@/components/ui/use-toast";
+import { Card } from "./card";
+import { Loader2 } from "lucide-react";
 
 const lessonFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  price: z.number().min(0, 'Price must be 0 or greater'),
-  content: z.string().optional(),
-  muxAssetId: z.string().min(1, 'Video is required'),
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string()
+    .min(10, "Description must be at least 10 characters")
+    .max(500, "Description must be less than 500 characters"),
+  muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
+  price: z.number()
+    .min(0, "Price must be positive")
+    .max(999.99, "Price must be less than $1000")
+    .optional(),
 });
 
 type LessonFormData = z.infer<typeof lessonFormSchema>;
 
 interface LessonFormProps {
-  initialData?: Partial<LessonFormData>;
+  initialData?: LessonFormData;
   onSubmit: (data: LessonFormData) => Promise<void>;
   isSubmitting?: boolean;
   className?: string;
@@ -38,73 +38,54 @@ interface LessonFormProps {
 
 export function LessonForm({ 
   initialData, 
-  onSubmit, 
+  onSubmit,
   isSubmitting = false,
   className 
 }: LessonFormProps) {
-  const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
-
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonFormSchema),
-    defaultValues: {
-      title: initialData?.title || '',
-      description: initialData?.description || '',
-      price: initialData?.price || 0,
-      content: initialData?.content || '',
-      muxAssetId: initialData?.muxAssetId || '',
-    }
+    defaultValues: initialData || {
+      title: "",
+      description: "",
+      price: 0,
+      muxAssetId: "", // Initialize muxAssetId field
+      muxPlaybackId: "", // Initialize muxPlaybackId field
+    },
   });
 
-  const handleSubmit = async (data: LessonFormData) => {
-    if (isUploading) {
-      toast({
-        title: "Please wait",
-        description: "Please wait for the video to finish uploading",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Manual validation
-      if (!data.title) {
-        throw new Error('Title is required');
-      }
-      if (!data.description) {
-        throw new Error('Description is required');
-      }
-      if (data.price < 0) {
-        throw new Error('Price must be 0 or greater');
-      }
-      if (!data.muxAssetId) {
-        throw new Error('Video is required');
-      }
-
-      await onSubmit(data);
-    } catch (error) {
-      console.error('Profile update failed:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save lesson',
-        variant: 'destructive',
-      });
-    }
-  };
+  const [videoUploaded, setVideoUploaded] = useState(false);
+  const hasVideo = videoUploaded || !!form.watch("muxAssetId");
+  
+  console.log("Form State:", {
+    muxAssetId: form.watch("muxAssetId"),
+    muxPlaybackId: form.watch("muxPlaybackId"),
+    hasVideo,
+    videoUploaded
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className={className}>
+      <form 
+        onSubmit={form.handleSubmit(onSubmit)} 
+        className={cn("space-y-8", className)}
+      >
         <div className="space-y-6">
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>Lesson Title</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input 
+                    {...field} 
+                    placeholder="Enter a clear, descriptive title"
+                    disabled={isSubmitting}
+                  />
                 </FormControl>
+                <FormDescription>
+                  Choose a title that clearly describes what students will learn
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -117,8 +98,17 @@ export function LessonForm({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} />
+                  <Textarea 
+                    {...field} 
+                    placeholder="Describe what your lesson covers and what students will learn..."
+                    className="resize-none"
+                    rows={4}
+                    disabled={isSubmitting}
+                  />
                 </FormControl>
+                <FormDescription>
+                  Provide a detailed description of your lesson content and learning outcomes
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -129,118 +119,112 @@ export function LessonForm({
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price</FormLabel>
+                <FormLabel>Price (USD)</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    step="0.01"
-                    {...field}
-                    onChange={e => {
-                      const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                      field.onChange(value);
-                    }}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Set to 0 for free lessons
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Content</FormLabel>
-                <FormControl>
-                  <Textarea {...field} />
-                </FormControl>
-                <FormDescription>
-                  Additional content or notes for the lesson
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="muxAssetId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Video</FormLabel>
-                <FormControl>
-                  <div>
-                    <VideoUploader
-                      endpoint="/api/video/upload"
-                      onUploadStart={() => setIsUploading(true)}
-                      onUploadComplete={(uploadId) => {
-                        // Store the upload ID for now, asset ID will be retrieved later
-                        setIsUploading(false);
-                        field.onChange(uploadId);
-                        console.log("Upload completed with ID:", uploadId);
-                        toast({
-                          title: "Video uploaded",
-                          description: "Your video has been uploaded successfully.",
-                        });
-                      }}
-                      onError={(error) => {
-                        setIsUploading(false);
-                        toast({
-                          title: "Upload failed",
-                          description: error.message,
-                          variant: "destructive",
-                        });
-                      }}
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="999.99"
+                      className="pl-7"
+                      {...field} 
+                      onChange={e => field.onChange(parseFloat(e.target.value))}
+                      disabled={isSubmitting}
                     />
-                    <div className="text-sm text-muted-foreground mt-2">
-                      Upload state: {isUploading ? 'Uploading...' : field.value ? 'Uploaded' : 'Not uploaded'}
-                      {field.value && <span className="ml-2">(Asset ID: {field.value})</span>}
-                    </div>
                   </div>
                 </FormControl>
+                <FormDescription>
+                  Set a fair price for your lesson content (leave at 0 for free)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </div>
 
-          <div className="flex justify-end">
-            <Button 
-              type="submit" 
-              size="lg"
-              disabled={isSubmitting || !form.getValues().muxAssetId}
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting ? "Creating Lesson..." : "Create Lesson"}
-            </Button>
-            <div className="text-sm text-muted-foreground mt-2">
-              {Object.keys(form.formState.errors).length > 0 && (
-                <p className="text-destructive">Please fix the following errors:</p>
-              )}
-              {Object.entries(form.formState.errors).map(([field, error]) => (
-                <p key={field} className="text-destructive">
-                  {error?.message}
-                </p>
-              ))}
+        <Card className="p-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold">Lesson Video</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload your lesson video content
+              </p>
             </div>
-            {/* Debug info */}
-            <pre className="text-xs text-muted-foreground mt-4">
-              Form State: {JSON.stringify({
-                isValid: form.formState.isValid,
-                isDirty: form.formState.isDirty,
-                errors: form.formState.errors,
-                isUploading,
-                isSubmitting,
-                values: form.getValues()
-              }, null, 2)}
-            </pre>
+            
+            <VideoUploader
+              endpoint="/api/video/upload"
+              onUploadComplete={async (assetId) => {
+                try {
+                  setVideoUploaded(true);
+                  form.setValue("muxAssetId", assetId, { 
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true
+                  });
+                  
+                  // Wait for the asset to be ready and get the playback ID
+                  const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(
+                      errorData.error || errorData.details || 
+                      `Failed to get asset status: ${response.status}`
+                    );
+                  }
+                  
+                  const data = await response.json();
+                  console.log("Asset status response:", data);
+                  if (data.playbackId) {
+                    form.setValue("muxPlaybackId", data.playbackId, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                      shouldTouch: true
+                    });
+                    console.log("Asset and Playback IDs set:", {
+                      assetId,
+                      playbackId: data.playbackId
+                    });
+                  } else {
+                    throw new Error('No playback ID received');
+                  }
+                  
+                  console.log("Form values after upload:", form.getValues());
+                  toast({
+                    title: "Video uploaded",
+                    description: "Your video has been uploaded and processed successfully.",
+                  });
+                } catch (error) {
+                  console.error("Error processing video:", error);
+                  toast({
+                    title: "Upload processing error",
+                    description: error instanceof Error ? error.message : "Failed to process video",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              onError={(error) => {
+                toast({
+                  title: "Upload failed",
+                  description: error.message,
+                  variant: "destructive",
+                });
+              }}
+            />
           </div>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            size="lg"
+          >
+            {isSubmitting && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {isSubmitting ? "Creating Lesson..." : "Create Lesson"}
+          </Button>
         </div>
       </form>
     </Form>

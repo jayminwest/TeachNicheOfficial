@@ -33,10 +33,6 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
         return
       }
 
-      setIsVoting(true)
-
-
-    try {
       setIsVoting(true);
       console.log('Calling voteOnRequest with:', { requestId: request.id, type });
       await voteOnRequest(request.id, type);

@@ -34,11 +34,16 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           lessonId,
           price,
         }),
       });
+
+      if (response.status === 401) {
+        throw new Error('Please sign in to purchase this lesson');
+      }
 
       const data = await response.json();
       

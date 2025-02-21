@@ -9,7 +9,9 @@ import { mockAuthContext } from '@/__mocks__/services/auth'
 
 jest.mock('@/auth/AuthContext')
 jest.mock('@/components/ui/use-toast')
-jest.mock('@supabase/auth-helpers-nextjs')
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createClientComponentClient: jest.fn()
+}))
 
 describe('RequestCard', () => {
   const mockRequest = {
@@ -28,7 +30,7 @@ describe('RequestCard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useAuth as jest.Mock).mockReturnValue(mockAuthContext)
-    ;(createClientComponentClient as jest.Mock).mockReturnValue(mockSupabaseClient)
+    ;(createClientComponentClient as jest.Mock).mockImplementation(() => mockSupabaseClient)
   })
 
   it('renders request details correctly', () => {

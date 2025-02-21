@@ -35,12 +35,12 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
     }
     
     setVoteCount(data?.[0]?.count || 0);
-  }
+  }, [supabase, request.id]);
 
   // Update vote count on mount and after votes
   useEffect(() => {
     updateVoteCount();
-  }, [request.id]);
+  }, [updateVoteCount]);
 
   useEffect(() => {
     async function checkVoteStatus() {

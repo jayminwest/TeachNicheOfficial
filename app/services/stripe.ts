@@ -170,7 +170,7 @@ export const verifyStripeWebhook = (
   }
 };
 
-import { TypedSupabaseClient } from '@/lib/types/supabase';
+import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 export const verifyConnectedAccount = async (
   userId: string,

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/app/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { ThumbsUp } from 'lucide-react'
 import { LessonRequest } from '@/lib/schemas/lesson-request'
 import { useAuth } from '@/auth/AuthContext'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from '@/app/components/ui/use-toast'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface RequestCardProps {

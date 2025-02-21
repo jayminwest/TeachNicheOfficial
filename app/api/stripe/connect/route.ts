@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     console.error('Stripe Connect error details:', {
       error: error instanceof Error ? error.message : error,
       stack: error instanceof Error ? error.stack : undefined,
-      stripeError: error instanceof stripe.errors.StripeError ? error.raw : undefined
+      stripeError: error instanceof Error && stripe?.errors && error instanceof stripe.errors.StripeError ? error.raw : undefined
     });
     return NextResponse.json(
       { 

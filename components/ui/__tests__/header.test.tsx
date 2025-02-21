@@ -4,16 +4,22 @@ import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
 import { createMockSupabaseClient } from '@/__mocks__/services/supabase'
 
-// Mock the supabase client
-jest.mock('@/lib/supabase', () => {
-  const mockSupabaseClient = createMockSupabaseClient()
-  return {
-    supabase: mockSupabaseClient
-  }
-})
-
 // Import Header after mocks are set up
 import { Header } from '@/components/ui/header'
+
+// Mock the supabase client
+const mockSupabaseClient = createMockSupabaseClient();
+jest.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      signOut: jest.fn().mockResolvedValue({}),
+      getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: jest.fn().mockReturnValue({ 
+        data: { subscription: { unsubscribe: jest.fn() } }
+      })
+    }
+  }
+}))
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({

@@ -56,9 +56,51 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## 5. Authentication and Authorization (Supabase Auth)
  
- - **Supabase Auth Client:**  Utilize Supabase Auth client for  authentication (login, logout, session management). Keep authentication implementation minimal and rely on Supabase Auth's built-in features as much as possible.
- - **Route Protection:**  Implement route protection using middleware or component-level checks to ensure only authenticated s can access protected pages. Keep route protection logic simple and efficient.
- - **Role-Based Access Control (RBAC):** If necessary, implement RBAC using Supabase's Row Level Security (RLS) or application-level checks to control access to specific features or data based on  roles. Implement RBAC only when truly needed and keep the implementation as simple as possible.
+ ### 5.1 User Authentication Implementation
+
+ 1. **Auth Context Setup**
+    - Use the AuthContext provider from '@/app/services/auth/AuthContext'
+    - Access auth state with the useAuth() hook which provides:
+      - user: Current user object or null
+      - loading: Boolean for auth state loading
+
+ 2. **Component Authentication**
+    ```typescript
+    import { useAuth } from "@/app/services/auth/AuthContext";
+    
+    function MyComponent() {
+      const { user, loading } = useAuth();
+      
+      if (loading) return null; // Or loading indicator
+      
+      return user ? (
+        <AuthenticatedContent />
+      ) : (
+        <UnauthenticatedContent />
+      );
+    }
+    ```
+
+ 3. **Sign In/Sign Up Flow**
+    - Use the provided SignInPage and SignUpPage components
+    - Implement with Dialog component for modal presentation
+    - Handle switching between sign in/sign up states
+    
+ 4. **Sign Out**
+    ```typescript
+    await supabase.auth.signOut();
+    window.location.href = '/'; // Redirect after signout
+    ```
+
+ ### 5.2 Route Protection
+ - Use middleware or component-level checks with useAuth()
+ - Redirect unauthenticated users to appropriate pages
+ - Keep protection logic simple and consistent
+
+ ### 5.3 Role-Based Access Control (RBAC)
+ - Implement using Supabase RLS when needed
+ - Use application-level checks based on user roles
+ - Keep role implementation minimal
  
  ## 6. Payment Integration (Stripe Connect)
  

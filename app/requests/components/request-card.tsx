@@ -23,6 +23,11 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 
+  // Update vote count when props change
+  useEffect(() => {
+    setVoteCount(request.vote_count)
+  }, [request.vote_count])
+
   useEffect(() => {
     async function checkVoteStatus() {
       if (!user) return;

@@ -51,7 +51,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
             {lesson.price > 0 && (
               <LessonCheckout 
                 lessonId={lesson.id} 
-                price={lesson.price}
+                price={Math.round(lesson.price * 100)} // Convert dollars to cents
                 searchParams={new URLSearchParams(window.location.search)}
               />
             )}

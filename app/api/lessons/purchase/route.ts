@@ -83,7 +83,7 @@ export async function POST(request: Request) {
             description: lesson.description || undefined,
             images: lesson.thumbnail_url ? [lesson.thumbnail_url] : undefined,
           },
-          unit_amount: lesson.price,
+          unit_amount: Math.round(lesson.price * 100), // Convert dollars to cents
         },
         quantity: 1,
       }],

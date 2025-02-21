@@ -170,10 +170,12 @@ export const verifyStripeWebhook = (
   }
 };
 
+import { TypedSupabaseClient } from '@/lib/types/supabase';
+
 export const verifyConnectedAccount = async (
   userId: string,
   accountId: string,
-  supabaseClient: any // TODO: Replace with proper SupabaseClient type from @supabase/supabase-js
+  supabaseClient: TypedSupabaseClient
 ): Promise<AccountVerificationResult> => {
   try {
     // Get profile

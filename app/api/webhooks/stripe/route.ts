@@ -85,29 +85,33 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
       destination: purchase.lesson.creator.stripe_account_id,
       transfer_group: purchase.stripe_session_id,
       source_transaction: paymentIntent.id
-    })
+    });
 
     // Update purchase status with transfer info
-  const { error: updateError } = await supabase
-    .from('purchases')
-    .update({
-      status: 'completed',
-      purchase_date: new Date().toISOString(),
-      metadata: {
-        stripe_payment_status: paymentIntent.status,
-        payment_completed_at: new Date().toISOString(),
-        transfer_id: transfer.id,
-        ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
-      }
-    })
-    .eq('id', purchase.id)
+    const { error: updateError } = await supabase
+      .from('purchases')
+      .update({
+        status: 'completed',
+        purchase_date: new Date().toISOString(),
+        metadata: {
+          stripe_payment_status: paymentIntent.status,
+          payment_completed_at: new Date().toISOString(),
+          transfer_id: transfer.id,
+          ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
+        }
+      })
+      .eq('id', purchase.id);
 
-  if (updateError) {
-    console.error('Purchase update error:', updateError);
+    if (updateError) {
+      console.error('Purchase update error:', updateError);
+      return;
+    }
+
+    console.log('Purchase completed:', purchase.id);
+  } catch (err) {
+    console.error('Transfer creation error:', err);
     return;
   }
-
-  console.log('Purchase completed:', purchase.id);
 }
 
 async function handleAccount(account: Stripe.Account): Promise<void> {

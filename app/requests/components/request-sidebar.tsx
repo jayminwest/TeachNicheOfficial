@@ -9,8 +9,8 @@ import { cn } from '@/app/lib/utils'
 interface RequestSidebarProps {
   selectedCategory?: string
   onSelectCategory: (category?: string) => void
-  sortBy: 'popular' | 'newest' | 'trending'
-  onSortChange: (sort: 'popular' | 'newest' | 'trending') => void
+  sortBy: 'popular' | 'newest'
+  onSortChange: (sort: 'popular' | 'newest') => void
   isOpen: boolean
   onClose: () => void
 }
@@ -59,16 +59,6 @@ export function RequestSidebar({
               }}
             >
               Newest First
-            </Button>
-            <Button
-              variant={sortBy === 'trending' ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => {
-                onSortChange('trending')
-                onClose()
-              }}
-            >
-              Trending
             </Button>
           </div>
         </div>

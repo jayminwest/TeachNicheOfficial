@@ -8,7 +8,7 @@ import { Menu } from 'lucide-react'
 
 export default function RequestsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>()
-  const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'trending'>('popular')
+  const [sortBy, setSortBy] = useState<'popular' | 'newest'>('popular')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (

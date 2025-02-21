@@ -47,7 +47,7 @@ export function RequestDialog() {
           New Request
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] relative">
+      <DialogContent className="sm:max-w-[425px] fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
         <DialogHeader>
           <DialogTitle>Create New Lesson Request</DialogTitle>
         </DialogHeader>
@@ -115,8 +115,9 @@ export function RequestDialog() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent 
-                      className="max-h-[200px] overflow-y-auto relative"
-                      position="item-aligned"
+                      className="max-h-[200px] overflow-y-auto"
+                      position="popper"
+                      sideOffset={0}
                     >
                       {LESSON_CATEGORIES.map((category) => (
                         <SelectItem 

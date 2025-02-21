@@ -36,8 +36,6 @@ export function StripeConnectButton({
 
       const { session } = result.data;
 
-      console.log('Initiating Stripe Connect...', { userId: user.id });
-      // Add locale detection
       const userLocale = navigator.language || 'en';
       
       const response = await fetch('/api/stripe/connect', {
@@ -60,7 +58,7 @@ export function StripeConnectButton({
         if (data.error?.code === 'country_not_supported') {
           throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${data.supported_countries.join(', ')}`);
         }
-        throw new Error(data.error || 'Failed to connect with Stripe');
+        throw new Error(data.error?.message || 'Failed to connect with Stripe');
       }
 
       if (!data.url) {

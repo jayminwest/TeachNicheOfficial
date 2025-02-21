@@ -159,7 +159,9 @@ describe('StripeConnectButton', () => {
     });
 
     // Wait for loading state
-    await screen.findByText(/connecting/i);
+    await act(async () => {
+      await screen.findByText(/connecting/i);
+    });
     const loadingButton = screen.getByRole('button');
     expect(loadingButton).toHaveTextContent(/connecting/i);
     expect(loadingButton).toHaveAttribute('aria-busy', 'true');
@@ -200,6 +202,12 @@ describe('StripeConnectButton', () => {
       error: null
     });
 
+    // Mock fetch to avoid actual API calls
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: { message: 'No active session' } })
+    });
+
     renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
     
     const button = screen.getByRole('button');
@@ -221,7 +229,13 @@ describe('StripeConnectButton', () => {
     // Mock session error
     jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({
       data: { session: null },
-      error: new Error('Session error')
+      error: new Error('Failed to get session')
+    });
+
+    // Mock fetch to avoid actual API calls
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: { message: 'Failed to get session' } })
     });
 
     renderWithStripe(<StripeConnectButton stripeAccountId={null} />);
@@ -243,7 +257,8 @@ describe('StripeConnectButton', () => {
     const mockSession = {
       access_token: 'test-token',
       refresh_token: 'test-refresh-token',
-      expires_in: 3600
+      expires_in: 3600,
+      user: mockUser
     };
     
     jest.spyOn(supabase.auth, 'getSession').mockResolvedValue({

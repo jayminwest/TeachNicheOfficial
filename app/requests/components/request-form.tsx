@@ -56,7 +56,7 @@ export function RequestForm() {
         .insert({
           ...data,
           user_id: user.id,
-          status: 'pending',
+          status: 'open', // Changed from 'pending' to 'open'
           vote_count: 0
         })
         .select()

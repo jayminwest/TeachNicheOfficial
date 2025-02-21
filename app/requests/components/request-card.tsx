@@ -33,10 +33,18 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       }
 
       setIsVoting(true);
-      const result = await voteOnRequest(request.id, type);
-      
-      if (result.error) {
-        throw new Error(result.error.message);
+      const { data: result, error } = await supabase
+        .from('lesson_request_votes')
+        .insert({
+          request_id: request.id,
+          user_id: user.id,
+          vote_type: type
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
       }
       
       toast({

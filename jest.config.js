@@ -10,7 +10,7 @@ const customJestConfig = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(lucide-react|@lucide)/)'
+    'node_modules/(?!(lucide-react|@lucide|jose|@supabase|@auth)/)'
   ],
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   collectCoverageFrom: [

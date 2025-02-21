@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
+import { mockSupabaseClient } from '@/__mocks__/services/supabase'
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({
@@ -13,10 +14,11 @@ jest.mock('lucide-react', () => ({
 
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: jest.fn(() => ({
-    user: null,
-    loading: false
-  }))
+  useAuth: jest.fn()
+}))
+
+jest.mock('@/lib/supabase', () => ({
+  supabase: mockSupabaseClient
 }))
 
 // Mock next/navigation
@@ -37,24 +39,6 @@ jest.mock('next/link', () => ({
   )
 }))
 
-// Navigation items for testing
-const navigationItems = [
-  {
-    title: "Resources",
-    description: "Teaching resources and guides",
-    items: [
-      {
-        title: "Getting Started",
-        href: "/resources/getting-started"
-      }
-    ]
-  },
-  {
-    title: "About",
-    href: "/about",
-    description: "",
-  }
-]
 
 // Mock components
 jest.mock('@/components/ui/theme-toggle', () => ({
@@ -108,25 +92,40 @@ describe('Header', () => {
     Element.prototype.scrollIntoView = mockScrollIntoView;
     // Reset all mocks
     jest.clearAllMocks();
+    // Reset useAuth mock before each test
+    (useAuth as jest.Mock).mockImplementation(() => ({
+      user: null,
+      loading: false,
+      signIn: jest.fn(),
+      signOut: jest.fn()
+    }));
   });
 
   describe('rendering', () => {
     it('renders without crashing', () => {
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: false
+      });
       render(<Header />)
       expect(screen.getByText('Teach Niche')).toBeInTheDocument()
     })
 
     it('renders navigation items', () => {
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: false
+      });
       render(<Header />)
       expect(screen.getByText('Home')).toBeInTheDocument()
       expect(screen.getByText('About')).toBeInTheDocument()
     })
 
     it('shows sign in and waitlist buttons when user is not authenticated', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
       
       render(<Header />)
       // Get the first Sign In button (the one in the header)
@@ -135,11 +134,13 @@ describe('Header', () => {
     })
 
     it('shows profile and sign out buttons when user is authenticated', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
-        user: { id: '123', email: 'test@example.com' },
-        loading: false
-      }))
-      
+      (useAuth as jest.Mock).mockReturnValue({
+        user: { id: 'test-id', email: 'test@example.com' },
+        loading: false,
+        signIn: jest.fn(),
+        signOut: jest.fn()
+      });
+        
       render(<Header />)
       expect(screen.getByText('Profile')).toBeInTheDocument()
       expect(screen.getByText('Sign Out')).toBeInTheDocument()
@@ -160,10 +161,10 @@ describe('Header', () => {
     })
 
     it('handles authentication loading state appropriately', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: true
-      }))
+      })
       render(<Header />)
       
       // When loading, neither auth nor unauth buttons should be present
@@ -176,10 +177,10 @@ describe('Header', () => {
 
   describe('interactions', () => {
     it('toggles mobile menu when menu button is clicked', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
 
       render(<Header />)
       const menuButton = screen.getByText('Menu Icon').parentElement
@@ -195,12 +196,14 @@ describe('Header', () => {
     })
 
     it('handles sign out click', async () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
-        user: { id: '123', email: 'test@example.com' },
-        loading: false
-      }))
+      (useAuth as jest.Mock).mockReturnValue({
+        user: { id: 'test-id', email: 'test@example.com' },
+        loading: false,
+        signIn: jest.fn(),
+        signOut: jest.fn()
+      });
       
-      const { supabase } = require('@/lib/supabase')
+      const { supabase } = await import('@/lib/supabase')
       render(<Header />)
       
       const signOutButton = screen.getByText('Sign Out')
@@ -210,10 +213,10 @@ describe('Header', () => {
     })
 
     it('scrolls to email signup when waitlist button is clicked on home page', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
 
       // Mock querySelector
       const mockElement = { scrollIntoView: mockScrollIntoView }
@@ -227,12 +230,12 @@ describe('Header', () => {
     })
 
     it('redirects to home page email signup when waitlist button is clicked on other pages', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
 
-      const { usePathname } = require('next/navigation')
+      const { usePathname } = await import('next/navigation')
       ;(usePathname as jest.Mock).mockImplementation(() => '/about')
       
       render(<Header />)

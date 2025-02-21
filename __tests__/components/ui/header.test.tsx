@@ -3,6 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
+import { mockUser, mockAuthContext, mockUseAuth } from '@/__mocks__/services/auth'
+import { mockSupabaseClient } from '@/__mocks__/services/supabase'
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({
@@ -13,7 +15,7 @@ jest.mock('lucide-react', () => ({
 
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: () => mockUseAuth()
+  useAuth: jest.fn()
 }))
 
 jest.mock('@/lib/supabase', () => ({
@@ -124,7 +126,7 @@ describe('Header', () => {
     })
 
     it('shows sign in and waitlist buttons when user is not authenticated', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
       }))
@@ -136,10 +138,10 @@ describe('Header', () => {
     })
 
     it('shows profile and sign out buttons when user is authenticated', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
-        user: { id: '123', email: 'test@example.com' },
+      (useAuth as jest.Mock).mockReturnValue({
+        user: mockUser,
         loading: false
-      }))
+      })
       
       render(<Header />)
       expect(screen.getByText('Profile')).toBeInTheDocument()
@@ -161,10 +163,10 @@ describe('Header', () => {
     })
 
     it('handles authentication loading state appropriately', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: true
-      }))
+      })
       render(<Header />)
       
       // When loading, neither auth nor unauth buttons should be present
@@ -177,10 +179,10 @@ describe('Header', () => {
 
   describe('interactions', () => {
     it('toggles mobile menu when menu button is clicked', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
 
       render(<Header />)
       const menuButton = screen.getByText('Menu Icon').parentElement

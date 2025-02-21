@@ -2,10 +2,8 @@ import React from 'react';
 import { screen, act } from '@testing-library/react';
 import { StripeConnectButton } from '@/components/ui/stripe-connect-button';
 import { renderWithStripe } from '../../test-utils';
-import { mockStripeClient } from '../../../__mocks__/services/stripe';
-import { mockUseAuth } from '../../../__mocks__/services/auth';
+import { mockUseAuth, mockUser } from '../../../__mocks__/services/auth';
 import { mockSupabaseClient } from '../../../__mocks__/services/supabase';
-import { supabase } from '@/lib/supabase';
 
 // Store original window.location
 const originalLocation = window.location;
@@ -21,12 +19,15 @@ jest.mock('@/components/ui/use-toast', () => ({
   })
 }));
 
-// Mock auth context with the imported mock
+// Mock auth context
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: () => mockUseAuth
+  useAuth: () => ({
+    user: mockUser,
+    loading: false
+  })
 }));
 
-// Mock supabase with the imported mock
+// Mock supabase
 jest.mock('@/lib/supabase', () => ({
   supabase: mockSupabaseClient
 }));

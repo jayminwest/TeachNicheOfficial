@@ -1,15 +1,19 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { Header } from '@/components/ui/header'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/auth/AuthContext'
 import { createMockSupabaseClient } from '@/__mocks__/services/supabase'
 
 // Mock the supabase client
-const mockSupabaseClient = createMockSupabaseClient()
-jest.mock('@/lib/supabase', () => ({
-  supabase: mockSupabaseClient
-}))
+jest.mock('@/lib/supabase', () => {
+  const mockSupabaseClient = createMockSupabaseClient()
+  return {
+    supabase: mockSupabaseClient
+  }
+})
+
+// Import Header after mocks are set up
+import { Header } from '@/components/ui/header'
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({

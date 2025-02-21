@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/app/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/app/components/ui/dialog";
 import { StarIcon } from "@radix-ui/react-icons";
+import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
 
 interface LessonPreviewDialogProps {
   lesson: {
@@ -52,15 +53,24 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
           {lesson.description}
         </DialogDescription>
 
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-lg font-medium">
-            {lesson.price === 0 ? (
-              <span className="text-green-600">Free</span>
-            ) : (
-              <span>${lesson.price.toFixed(2)}</span>
+        <DialogFooter className="mt-6">
+          <div className="w-full flex items-center justify-between">
+            <div className="text-lg font-medium">
+              {lesson.price === 0 ? (
+                <span className="text-green-600">Free</span>
+              ) : (
+                <span>${lesson.price.toFixed(2)}</span>
+              )}
+            </div>
+            {lesson.price > 0 && (
+              <LessonCheckout 
+                lessonId={lesson.id} 
+                price={lesson.price}
+                searchParams={new URLSearchParams(window.location.search)}
+              />
             )}
           </div>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

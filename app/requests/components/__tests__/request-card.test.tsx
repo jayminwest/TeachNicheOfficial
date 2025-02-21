@@ -4,12 +4,10 @@ import { RequestCard } from '@/app/requests/components/request-card'
 import { useAuth } from '@/auth/AuthContext'
 import { toast } from '@/components/ui/use-toast'
 import { voteOnRequest } from '@/lib/supabase/requests'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 jest.mock('@/auth/AuthContext')
 jest.mock('@/components/ui/use-toast')
 jest.mock('@/lib/supabase/requests')
-jest.mock('@supabase/auth-helpers-nextjs')
 
 describe('RequestCard', () => {
   const mockRequest = {

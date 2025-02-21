@@ -1,8 +1,26 @@
+import '@testing-library/jest-dom'
+import { TextEncoder, TextDecoder } from 'util'
+
 // Set up test environment variables
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test-supabase-url.com'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 
-require('@testing-library/jest-dom')
+// Add TextEncoder/TextDecoder to global
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
+
+// Mock Supabase client
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createClientComponentClient: () => ({
+    auth: {
+      getSession: jest.fn().mockResolvedValue({ 
+        data: { 
+          session: { user: { id: 'test-user-id' } } 
+        } 
+      })
+    }
+  })
+}))
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({

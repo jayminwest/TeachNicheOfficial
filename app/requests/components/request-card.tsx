@@ -120,11 +120,11 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       
       await updateVoteCount();
       onVote();
-    } catch (error: Error | unknown) {
+    } catch (error) {
       console.error('Vote failed:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to submit vote. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit vote. Please try again.",
         variant: "destructive"
       })
     } finally {

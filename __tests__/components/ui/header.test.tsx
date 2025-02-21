@@ -129,7 +129,7 @@ describe('Header', () => {
       (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
       
       render(<Header />)
       // Get the first Sign In button (the one in the header)
@@ -198,10 +198,10 @@ describe('Header', () => {
     })
 
     it('handles sign out click', async () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
-        user: { id: '123', email: 'test@example.com' },
+      (useAuth as jest.Mock).mockReturnValue({
+        user: mockUser,
         loading: false
-      }))
+      })
       
       const { supabase } = require('@/lib/supabase')
       render(<Header />)
@@ -213,10 +213,10 @@ describe('Header', () => {
     })
 
     it('scrolls to email signup when waitlist button is clicked on home page', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
 
       // Mock querySelector
       const mockElement = { scrollIntoView: mockScrollIntoView }
@@ -230,10 +230,10 @@ describe('Header', () => {
     })
 
     it('redirects to home page email signup when waitlist button is clicked on other pages', () => {
-      (useAuth as jest.Mock).mockImplementation(() => ({
+      (useAuth as jest.Mock).mockReturnValue({
         user: null,
         loading: false
-      }))
+      })
 
       const { usePathname } = require('next/navigation')
       ;(usePathname as jest.Mock).mockImplementation(() => '/about')

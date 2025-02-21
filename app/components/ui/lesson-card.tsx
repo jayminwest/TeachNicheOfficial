@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
 
 interface LessonCardProps {

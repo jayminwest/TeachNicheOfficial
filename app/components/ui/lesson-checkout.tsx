@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 

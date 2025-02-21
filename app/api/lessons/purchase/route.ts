@@ -124,10 +124,14 @@ export async function POST(request: Request) {
       }
     })
 
+    // Generate UUID for purchase record
+    const purchaseId = crypto.randomUUID()
+
     // Record pending purchase
     const { error: purchaseError } = await supabase
       .from('purchases')
       .insert({
+        id: purchaseId,
         user_id: session.user.id,
         lesson_id: lessonId,
         creator_id: lesson.creator_id,

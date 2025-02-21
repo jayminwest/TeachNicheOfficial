@@ -69,7 +69,12 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
 
   if (!response.ok) {
     const error = await response.json()
-    throw new Error(error.message || 'Failed to submit vote')
+    console.error('Vote request failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      error
+    });
+    throw new Error(error.error || error.message || 'Failed to submit vote')
   }
 
   const result = await response.json()

@@ -7,13 +7,21 @@ export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('API session check:', session?.user?.id);
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    console.log('API session check:', { userId: session?.user?.id, error: sessionError });
 
-    if (!session) {
-      console.log('API aborting - no session');
+    if (sessionError) {
+      console.log('API aborting - session error:', sessionError);
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Session error: ' + sessionError.message },
+        { status: 401 }
+      )
+    }
+
+    if (!session?.user?.id) {
+      console.log('API aborting - no valid session');
+      return NextResponse.json(
+        { error: 'No valid session found' },
         { status: 401 }
       )
     }

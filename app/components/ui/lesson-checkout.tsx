@@ -26,15 +26,16 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setError(null);
       setIsLoading(true);
 
-      // Create checkout session and redirect
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to initialize');
-      }
-
+      // Check auth status first
       if (!user) {
         setError('Please sign in to purchase this lesson');
         return;
+      }
+
+      // Initialize Stripe
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
       }
 
       const response = await fetch('/api/lessons/purchase', {

@@ -6,14 +6,22 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
+    // Initialize Supabase client with proper cookie handling
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient<Database>({ 
+      cookies: () => cookieStore 
+    })
     
-    // Get session with proper cookie handling
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession()
+    // Get session and handle auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      console.error('Auth error:', authError || 'No authenticated user')
+      return NextResponse.json(
+        { error: 'Please sign in to continue' },
+        { status: 401 }
+      )
+    }
     
     if (sessionError || !session?.user) {
       console.error('Auth error:', sessionError || 'No session')

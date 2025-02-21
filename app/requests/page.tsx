@@ -1,12 +1,7 @@
-import { Suspense } from 'react'
+'use client'
+
 import { RequestDialog } from './components/request-dialog'
 import { RequestGrid } from './components/request-grid'
-import { Loader2 } from 'lucide-react'
-
-export const metadata = {
-  title: 'Lesson Requests - Teach Niche',
-  description: 'Request and vote on new lessons you would like to see on Teach Niche',
-}
 
 export default function RequestsPage() {
   return (
@@ -18,18 +13,14 @@ export default function RequestsPage() {
             Vote on existing requests or create your own to help shape our content
           </p>
         </div>
-        <RequestDialog onRequestCreated={() => {}} />
+        <RequestDialog />
       </div>
-      
-      <Suspense 
-        fallback={
-          <div className="flex justify-center items-center min-h-[200px]">
-            <Loader2 className="w-8 h-8 animate-spin" />
-          </div>
-        }
-      >
-        <RequestGrid />
-      </Suspense>
+      <RequestGrid />
     </div>
   )
+}
+
+export const metadata = {
+  title: 'Lesson Requests - Teach Niche',
+  description: 'Request and vote on new lessons you would like to see on Teach Niche',
 }

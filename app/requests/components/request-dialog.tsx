@@ -11,11 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { lessonRequestSchema, type LessonRequestFormData } from "@/app/lib/schemas/lesson-request"
 import { PlusCircle } from 'lucide-react'
 
-interface RequestDialogProps {
-  onRequestCreated: () => void
-}
-
-export function RequestDialog({ onRequestCreated }: RequestDialogProps) {
+export function RequestDialog() {
   const [open, setOpen] = useState(false)
   
   const form = useForm<LessonRequestFormData>({
@@ -32,9 +28,11 @@ export function RequestDialog({ onRequestCreated }: RequestDialogProps) {
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
       // TODO: Add your Supabase create request call here
+      // TODO: Add your Supabase create request call here
       setOpen(false)
       form.reset()
-      onRequestCreated()
+      // Trigger a page refresh or update
+      window.location.reload()
     } catch (error) {
       console.error('Failed to create request:', error)
     }

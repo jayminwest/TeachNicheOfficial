@@ -133,36 +133,75 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{request.title}</CardTitle>
-          <div className="text-sm text-muted-foreground" suppressHydrationWarning>
-            {new Date(request.created_at).toLocaleDateString()}
+      <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-xl font-bold line-clamp-2 hover:line-clamp-none transition-all">
+              {request.title}
+            </CardTitle>
+            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+              request.status === 'completed' ? 'bg-green-100 text-green-800' :
+              request.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+              'bg-orange-100 text-orange-800'
+            }`}>
+              {request.status.replace('_', ' ')}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+            <span suppressHydrationWarning>
+              {new Date(request.created_at).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </span>
+            {request.instagram_handle && (
+              <a 
+                href={`https://instagram.com/${request.instagram_handle.replace('@', '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-600 transition-colors"
+              >
+                {request.instagram_handle}
+              </a>
+            )}
           </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-2">{request.description}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 bg-primary/10 rounded-full">
+        <CardContent className="pb-3">
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-3 group-hover:line-clamp-none transition-all">
+            {request.description}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">
               {request.category}
             </span>
+            {request.tags?.map(tag => (
+              <span key={tag} className="text-xs px-3 py-1 bg-secondary/20 text-secondary-foreground rounded-full">
+                {tag}
+              </span>
+            ))}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleVote}
-              disabled={isVoting}
-              aria-label="thumbs up"
-            >
-              <ThumbsUp className={`w-4 h-4 mr-1 ${hasVoted ? 'fill-current text-primary' : ''}`} />
-              <span>{voteCount}</span>
-            </Button>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            Status: {request.status}
+        <CardFooter className="pt-3 flex justify-between items-center border-t">
+          <Button
+            variant={hasVoted ? "default" : "outline"}
+            size="sm"
+            onClick={handleVote}
+            disabled={isVoting}
+            className="transition-all duration-200 hover:scale-105"
+          >
+            <ThumbsUp className={`w-4 h-4 mr-2 transition-transform group-hover:scale-110 ${
+              hasVoted ? 'fill-current text-primary' : ''
+            }`} />
+            <span className="font-medium">{voteCount}</span>
+            <span className="ml-1 text-xs text-muted-foreground">
+              {voteCount === 1 ? 'vote' : 'votes'}
+            </span>
+          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              ID: {request.id.slice(0, 8)}
+            </span>
           </div>
         </CardFooter>
       </Card>

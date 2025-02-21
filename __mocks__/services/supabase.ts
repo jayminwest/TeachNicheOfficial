@@ -4,7 +4,10 @@ export const mockSupabaseClient = {
   auth: {
     signInWithOAuth: jest.fn(),
     signOut: jest.fn(),
-    getSession: jest.fn(),
+    getSession: jest.fn().mockResolvedValue({
+      data: { session: null },
+      error: null
+    }),
     onAuthStateChange: jest.fn(),
     getUser: jest.fn(),
   },

@@ -25,14 +25,16 @@ export function StripeConnectButton({
       setIsLoading(true);
       
       // Get the current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
+      const result = await supabase.auth.getSession();
+      if (result.error) {
         throw new Error('Failed to get session');
       }
       
-      if (!session) {
+      if (!result.data?.session) {
         throw new Error('No active session');
       }
+
+      const { session } = result.data;
 
       console.log('Initiating Stripe Connect...', { userId: user.id });
       // Add locale detection
@@ -90,8 +92,8 @@ export function StripeConnectButton({
     return (
       <Button 
         variant="outline" 
-        disabled
-        className="opacity-50 cursor-not-allowed"
+        disabled={true}
+        aria-disabled="true"
       >
         Please sign in to connect Stripe
       </Button>

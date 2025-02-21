@@ -29,9 +29,20 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
 
   useEffect(() => {
     if (!initialRequests) {
-      loadRequests()
+      const load = async () => {
+        try {
+          setIsLoading(true)
+          const data = await getRequests({ category })
+          setRequests(data)
+        } catch (error) {
+          console.error('Failed to load requests:', error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      load()
     }
-  }, [category, initialRequests, loadRequests])
+  }, [category, initialRequests])
 
   if (isLoading) {
     return (

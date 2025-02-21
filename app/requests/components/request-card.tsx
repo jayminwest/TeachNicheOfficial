@@ -23,17 +23,19 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
   // Fetch current vote count from Supabase
   const updateVoteCount = useCallback(async () => {
-    const { count, error } = await supabase
-      .from('lesson_request_votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('request_id', request.id);
-    
-    if (error) {
+    try {
+      const { count, error } = await supabase
+        .from('lesson_request_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('request_id', request.id);
+      
+      if (error) throw error;
+      
+      // Use a function to update state to avoid race conditions
+      setVoteCount(prev => count ?? prev);
+    } catch (error) {
       console.error('Error fetching vote count:', error);
-      return;
     }
-    
-    setVoteCount(count || 0);
   }, [supabase, request.id]);
 
   // Update vote count on mount and after votes

@@ -54,31 +54,21 @@ export function StripeConnectButton({
         }),
       });
       
-      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.error?.code === 'country_not_supported') {
-          throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${errorData.supported_countries.join(', ')}`);
+        if (data.error?.code === 'country_not_supported') {
+          throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${data.supported_countries.join(', ')}`);
         }
-        throw new Error(errorData.error || 'Failed to connect with Stripe');
+        throw new Error(data.error || 'Failed to connect with Stripe');
       }
 
       if (!data.url) {
         throw new Error('No redirect URL received from server');
       }
 
-      console.log('Redirecting to:', data.url);
-      if (!window.location.href.includes('localhost') && !window.location.href.includes('test')) {
-        window.location.href = data.url;
-      } else {
-        // For testing purposes, keep loading state visible
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      window.location.href = data.url;
     } catch (error) {
-      console.error('Failed to initiate Stripe Connect:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -92,8 +82,7 @@ export function StripeConnectButton({
     return (
       <Button 
         variant="outline" 
-        disabled={true}
-        aria-disabled="true"
+        disabled
       >
         Please sign in to connect Stripe
       </Button>
@@ -112,8 +101,7 @@ export function StripeConnectButton({
     <Button 
       onClick={handleConnect} 
       disabled={isLoading}
-      aria-busy={isLoading}
-      role="button"
+      aria-busy={isLoading ? "true" : "false"}
     >
       {isLoading ? 'Connecting...' : 'Connect with Stripe'}
     </Button>

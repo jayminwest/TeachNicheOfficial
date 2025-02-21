@@ -20,10 +20,13 @@ import { Textarea } from '@/app/components/ui/textarea'
 import { lessonRequestSchema, LessonRequestFormData } from '@/app/lib/schemas/lesson-request'
 
 const categories = [
-  'Beginner Fundamentals',
-  'Advanced Techniques',
-  'Competition Skills',
-  'Teaching Methods',
+  'Trick Tutorial',
+  'Beginner Basics',
+  'Advanced Techniques', 
+  'Combo Tutorial',
+  'Theory & Concepts',
+  'Style Development',
+  'Competition Prep',
   'Other'
 ]
 

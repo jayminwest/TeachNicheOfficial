@@ -55,10 +55,16 @@ describe('RequestForm', () => {
 
     await user.type(screen.getByLabelText(/title/i), 'Test Request')
     await user.type(screen.getByLabelText(/description/i), 'Test Description')
-    await user.selectOptions(screen.getByLabelText(/category/i), 'Beginner Fundamentals')
+    await user.selectOptions(screen.getByLabelText(/category/i), 'Beginner Basics')
     
     await user.click(screen.getByRole('button', { name: /submit request/i }))
 
+    // Wait for form submission to complete
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /submit request/i })).not.toHaveTextContent(/submitting/i)
+    })
+
+    // Then check toast was called
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith({
         title: "Success",

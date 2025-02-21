@@ -11,7 +11,7 @@ export default function RequestsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-16">
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div 

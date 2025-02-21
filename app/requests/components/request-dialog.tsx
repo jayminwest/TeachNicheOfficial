@@ -14,7 +14,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
 import { PlusCircle } from 'lucide-react'
-import { toast } from '@/app/components/ui/use-toast'
 
 export function RequestDialog() {
   const [open, setOpen] = useState(false)
@@ -101,7 +100,7 @@ export function RequestDialog() {
                 name="instagram_handle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preferred Teacher's Instagram</FormLabel>
+                    <FormLabel>Preferred Teacher&apos;s Instagram</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="@username" 

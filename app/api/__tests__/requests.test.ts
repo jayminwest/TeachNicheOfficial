@@ -1,5 +1,4 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
 import { POST, GET } from '../requests/route'
 
 // Mock dependencies
@@ -9,7 +8,7 @@ jest.mock('@supabase/auth-helpers-nextjs', () => ({
 
 jest.mock('next/server', () => ({
   NextResponse: {
-    json: (data: any, init?: ResponseInit) => {
+    json: (data: unknown, init?: ResponseInit) => {
       const response = new Response(JSON.stringify(data), init)
       Object.defineProperty(response, 'status', {
         get() {
@@ -29,7 +28,7 @@ jest.mock('next/headers', () => ({
 // Mock Request and Response globals that would be available in Node environment
 global.Request = class Request {
   constructor(input: string | Request, init?: RequestInit) {
-    return new (require('whatwg-fetch').Request)(input, init)
+    return new globalThis.Request(input, init)
   }
 } as typeof Request
 

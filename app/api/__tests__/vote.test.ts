@@ -1,7 +1,7 @@
 // Mock next/server before any other imports
 jest.mock('next/server', () => ({
   NextResponse: {
-    json: (body: any, init?: ResponseInit) => ({
+    json: (body: unknown, init?: ResponseInit) => ({
       status: init?.status || 200,
       json: async () => body
     })
@@ -50,7 +50,7 @@ describe('Vote API Route', () => {
       eq: jest.fn().mockReturnThis(),
       insert: jest.fn().mockResolvedValue({ error: null })
     }),
-    rpc: jest.fn().mockImplementation((name, args) => {
+    rpc: jest.fn().mockImplementation((name) => {
       if (name === 'update_vote_count') {
         return Promise.resolve({ error: null });
       }

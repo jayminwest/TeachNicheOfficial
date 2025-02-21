@@ -1,8 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestDialog } from '../request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { createRequest } from '@/app/lib/supabase/requests'
 
 // Mock dependencies
 jest.mock('@/app/services/auth/AuthContext')

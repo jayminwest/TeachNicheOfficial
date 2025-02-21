@@ -1,13 +1,26 @@
-// Set up Request mock before any imports
-global.Request = jest.fn().mockImplementation((url, init) => ({
+// Mock next/server before any other imports
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (body: any, init?: ResponseInit) => ({
+      status: init?.status || 200,
+      json: async () => body
+    })
+  }
+}));
+
+// Set up test environment
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { POST } from '../requests/vote/route'
+
+// Mock Request globally
+const mockRequest = (url: string, init?: RequestInit) => ({
   url,
   method: init?.method || 'GET',
-  json: async () => JSON.parse(init?.body as string)
-})) as unknown as typeof Request;
+  json: async () => JSON.parse(init?.body as string || '{}')
+});
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import { POST } from '../requests/vote/route'
+// @ts-expect-error - Mocking global Request
+global.Request = jest.fn().mockImplementation(mockRequest);
 
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs')

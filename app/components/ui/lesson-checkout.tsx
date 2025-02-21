@@ -38,12 +38,15 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         throw new Error('Stripe failed to initialize');
       }
 
+      // Get current auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
       const response = await fetch('/api/lessons/purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
         },
-        credentials: 'same-origin',
         body: JSON.stringify({
           lessonId,
           price,

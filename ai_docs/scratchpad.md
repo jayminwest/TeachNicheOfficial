@@ -1,9 +1,14 @@
 # Lesson Purchase Flow Implementation Plan
 
-## Database Enums
+## Critical Files Needed
 
+### 1. Database Migration
+File: supabase/migrations/[timestamp]_create_purchases_table.sql
 ```sql
-CREATE TYPE purchase_status AS ENUM (
+-- Enable PostgreSQL cryptographic functions
+create extension if not exists "pgcrypto";
+
+-- Create purchase status enum
   'pending',
   'processing',
   'completed',

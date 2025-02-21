@@ -86,8 +86,8 @@ describe('Vote API Route', () => {
     const request = new Request('http://localhost/api/requests/vote', {
       method: 'POST',
       body: JSON.stringify({
-        requestId: '123',
-        voteType: 'up'
+        requestId: '123e4567-e89b-12d3-a456-426614174000',
+        voteType: 'upvote'
       })
     })
 

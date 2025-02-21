@@ -1,102 +1,124 @@
-# Stripe Testing Plan
+I'll create a development plan for the lesson requests feature. Based on the project structure and       
+guidelines shown, here's a comprehensive plan:                                                           
 
-## 1. Completed Tests ✓
+ 1 Types and Schemas (app/lib/types.ts):                                                                 
 
-### A. Stripe Connect Button Tests ✓
-All tests implemented in `__tests__/components/ui/stripe-connect-button.test.tsx`:
-- ✓ renders connect button when not connected
-- ✓ renders disabled button when already connected
-- ✓ renders sign in message when user is not authenticated
-- ✓ shows loading state while connecting
-- ✓ handles API errors appropriately
-- ✓ handles missing session appropriately
-- ✓ handles session error appropriately
-- ✓ initiates oauth flow when clicked
-- ✓ updates UI after successful connection
+                                                                                                         
+ // Add interfaces for lesson requests and votes                                                         
+ interface LessonRequest {                                                                               
+   id: string;                                                                                           
+   title: string;                                                                                        
+   description: string;                                                                                  
+   created_at: string;                                                                                   
+   user_id: string;                                                                                      
+   status: 'open' | 'in_progress' | 'completed';                                                         
+   vote_count: number;                                                                                   
+   category: string;                                                                                     
+   tags: string[];                                                                                       
+ }                                                                                                       
+                                                                                                         
+ interface LessonRequestVote {                                                                           
+   id: string;                                                                                           
+   request_id: string;                                                                                   
+   user_id: string;                                                                                      
+   vote_type: 'upvote' | 'downvote';                                                                     
+   created_at: string;                                                                                   
+ }                                                                                                       
+                                                                                                         
 
-### B. Checkout Flow Tests ✓
-All tests implemented in `__tests__/payment/checkout.test.tsx`:
-- ✓ creates checkout session successfully
-- ✓ redirects to Stripe Checkout
-- ✓ handles successful payment completion
-- ✓ handles cancelled payment appropriately
-- ✓ handles invalid price errors
-- ✓ handles network failures
-- ✓ handles session creation failures
+ 2 Form Schema (app/lib/schemas/lesson-request.ts):                                                      
 
-## 2. Remaining Tests
+                                                                                                         
+ import * as z from 'zod'                                                                                
+                                                                                                         
+ export const lessonRequestSchema = z.object({                                                           
+   title: z.string().min(3).max(100),                                                                    
+   description: z.string().min(10).max(1000),                                                            
+   category: z.string(),                                                                                 
+   tags: z.array(z.string()).optional()                                                                  
+ })                                                                                                      
+                                                                                                         
 
-### A. Webhook Testing
-Implementation Status:
-- ✓ Basic webhook endpoint created
-- ✓ Signature verification
-- ✓ Payment success handler
-- ✓ Account update handler
+ 3 Components Structure:                                                                                 
 
-Remaining Tests to Implement:
-```typescript
-describe('Stripe Webhooks', () => {
-  it('verifies webhook signatures')
-  it('processes payment_intent.succeeded events')
-  it('handles account.updated events')
-  it('rejects invalid signatures')
-  it('handles missing signatures')
-  it('updates database on payment success')
-  it('updates creator status on account verification')
-});
-```
+a. app/requests/components/request-form.tsx:                                                             
 
-Testing Steps:
-1. Install Stripe CLI:
-   ```bash
-   brew install stripe/stripe-cli/stripe
-   ```
-2. Login and forward webhooks:
-   ```bash
-   stripe login
-   stripe listen --forward-to localhost:3000/api/webhooks/stripe
-   ```
-3. Save webhook secret:
-   ```
-   STRIPE_WEBHOOK_SECRET=whsec_xxx...
-   ```
-4. Test webhook with CLI:
-   ```bash
-   stripe trigger payment_intent.succeeded
-   stripe trigger account.updated
-   ```
+ • Form component for creating new requests                                                              
+ • Uses the schema above                                                                                 
+ • Handles submission to Supabase                                                                        
 
-### B. Integration Tests
-```typescript
-describe('Payment Integration', () => {
-  it('completes full payment flow')
-  it('handles international payments correctly')
-});
-```
+b. app/requests/components/request-card.tsx:                                                             
 
-### C. Error Scenarios Still to Test
-- Invalid card numbers
-- Insufficient funds
-- 3D Secure authentication failures
-- Currency conversion issues
-- Account verification failures
-- Webhook signature mismatches
+ • Display individual request with voting buttons                                                        
+ • Shows title, description, vote count, etc.                                                            
 
-## 3. Test Environment & CI Setup
-- Add Stripe-related test jobs to CI pipeline
-- Configure test mode keys in CI environment
-- Setup integration tests in staging
+c. app/requests/components/request-grid.tsx:                                                             
 
-## 4. Testing Infrastructure
-✓ Mock Setup (stripe-mocks.ts)
-✓ Test Utilities (test-utils.tsx)
-✓ Environment Variables
+ • Grid layout for displaying request cards                                                              
+ • Handles sorting and filtering                                                                         
 
-## 5. Best Practices to Follow
-- Use Stripe test mode and test cards
-- Mock external Stripe API calls in unit tests
-- Use real API calls in integration tests
-- Test both successful and failure scenarios
-- Verify webhook signature validation
-- Test currency handling and conversions
-- Ensure proper error messages are displayed to users
+d. app/requests/components/request-filters.tsx:                                                          
+
+ • Filter controls for category, status, etc.                                                            
+
+ 4 Main Page (app/requests/page.tsx):                                                                    
+
+ • Server component                                                                                      
+ • Initial data loading                                                                                  
+ • Layout structure                                                                                      
+
+ 5 API Routes:                                                                                           
+
+a. app/api/requests/route.ts:                                                                            
+
+                                                                                                         
+ // POST - Create new request                                                                            
+ // GET - List requests with filters                                                                     
+                                                                                                         
+
+b. app/api/requests/vote/route.ts:                                                                       
+
+                                                                                                         
+ // POST - Handle voting                                                                                 
+ // DELETE - Remove vote                                                                                 
+                                                                                                         
+
+ 6 Database Functions (app/lib/supabase/requests.ts):                                                    
+
+                                                                                                         
+ export async function createRequest(data: LessonRequestFormData) {                                      
+   // Insert into lesson_requests table                                                                  
+ }                                                                                                       
+                                                                                                         
+ export async function getRequests(filters?: RequestFilters) {                                           
+   // Query with filters                                                                                 
+ }                                                                                                       
+                                                                                                         
+ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {               
+   // Handle voting logic                                                                                
+ }                                                                                                       
+                                                                                                         
+
+ 7 Testing (__tests__/requests/):                                                                        
+
+ • Unit tests for components                                                                             
+ • Integration tests for voting flow                                                                     
+ • API route tests                                                                                       
+
+ 8 Required UI Changes:                                                                                  
+
+ • Add "Requests" link to main navigation                                                                
+ • Add request count badges                                                                              
+ • Add sorting/filtering UI components                                                                   
+
+Implementation Order:                                                                                    
+
+ 1 Set up basic page structure and routing                                                               
+ 2 Implement request creation form                                                                       
+ 3 Build request display grid                                                                            
+ 4 Add voting functionality                                                                              
+ 5 Implement filters and sorting                                                                         
+ 6 Add tests                                                                                             
+ 7 Polish UI and interactions                                                                            
+
+Would you like me to provide more detailed implementation for any of these components?

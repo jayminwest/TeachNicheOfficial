@@ -6,7 +6,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 
 // Mock dependencies
-jest.mock('@/components/ui/use-toast')
+jest.mock('@/app/components/ui/use-toast')
 jest.mock('@/auth/AuthContext')
 jest.mock('@/lib/supabase')
 

@@ -6,7 +6,7 @@ import { mockSupabaseClient } from '@/__mocks__/services/supabase'
 import { mockAuthContext } from '@/__mocks__/services/auth'
 
 jest.mock('@/auth/AuthContext')
-jest.mock('@/components/ui/use-toast')
+jest.mock('@/app/components/ui/use-toast')
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createClientComponentClient: jest.fn(() => mockSupabaseClient)
 }))

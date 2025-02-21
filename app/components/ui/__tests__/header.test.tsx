@@ -52,11 +52,11 @@ jest.mock('next/link', () => ({
 
 
 // Mock components
-jest.mock('@/components/ui/theme-toggle', () => ({
+jest.mock('@/app/components/ui/theme-toggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>
 }))
 
-jest.mock('@/components/ui/navigation-menu', () => ({
+jest.mock('@/app/components/ui/navigation-menu', () => ({
   NavigationMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   NavigationMenuList: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   NavigationMenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -67,23 +67,23 @@ jest.mock('@/components/ui/navigation-menu', () => ({
   NavigationMenuLink: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }))
 
-jest.mock('@/components/ui/dialog', () => ({
+jest.mock('@/app/components/ui/dialog', () => ({
   Dialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DialogTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }))
 
-jest.mock('@/components/ui/button', () => ({
+jest.mock('@/app/components/ui/button', () => ({
   Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button onClick={onClick}>{children}</button>
   )
 }))
 
-jest.mock('@/components/ui/sign-in', () => ({
+jest.mock('@/app/components/ui/sign-in', () => ({
   SignInPage: () => <div>Sign In</div>
 }))
 
-jest.mock('@/components/ui/sign-up', () => ({
+jest.mock('@/app/components/ui/sign-up', () => ({
   SignUpPage: () => <div>Sign Up</div>
 }))
 

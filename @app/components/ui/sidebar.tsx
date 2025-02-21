@@ -3,7 +3,7 @@
 import { cn } from "@/app/lib/utils";
 import { ScrollArea } from "./scroll-area";
 import { motion } from "framer-motion";
-import { Badge } from "@/app/components/ui/badge"
+import { Badge } from "./badge"
 import {
   Blocks,
   ChevronsUpDown,
@@ -21,20 +21,20 @@ import {
   UserSearch,
 } from "lucide-react";
 import Image from "next/image";
-import { Avatar, AvatarFallback } from "@/app/components/ui/avatar"
+import { Avatar, AvatarFallback } from "./avatar"
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "./button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
-import { Separator } from "@/app/components/ui/separator";
-import { Skeleton } from "@/app/components/ui/skeleton"
+} from "./dropdown-menu";
+import { Separator } from "./separator";
+import { Skeleton } from "./skeleton"
 
 const sidebarVariants = {
   open: {

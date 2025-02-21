@@ -42,7 +42,7 @@ describe('RequestCard', () => {
     expect(screen.getByText(mockRequest.vote_count.toString())).toBeInTheDocument()
   })
 
-  it('handles upvote when user is logged in', async () => {
+  it('handles vote when user is logged in', async () => {
     const user = userEvent.setup()
     render(<RequestCard request={mockRequest} onVote={mockOnVote} />)
     

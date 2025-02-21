@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { ThumbsUp, ThumbsDown } from 'lucide-react'
+import { ThumbsUp } from 'lucide-react'
 import { LessonRequest } from '@/lib/types'
 import { voteOnRequest } from '@/lib/supabase/requests'
 import { useAuth } from '@/auth/AuthContext'
@@ -80,15 +80,6 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
           >
             <ThumbsUp className="w-4 h-4 mr-1" />
             <span>{request.vote_count}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleVote('downvote')}
-            disabled={isVoting}
-            aria-label="thumbs down"
-          >
-            <ThumbsDown className="w-4 h-4" />
           </Button>
         </div>
         <div className="text-sm text-muted-foreground">

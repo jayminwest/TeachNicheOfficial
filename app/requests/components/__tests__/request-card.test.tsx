@@ -34,7 +34,8 @@ describe('RequestCard', () => {
     
     // Mock initial vote count query
     mockSupabaseClient.from().select = jest.fn().mockReturnValue({
-      count: jest.fn().mockResolvedValue({ count: mockRequest.vote_count })
+      eq: jest.fn().mockReturnThis(),
+      count: jest.fn().mockResolvedValue({ data: { count: mockRequest.vote_count } })
     })
   })
 
@@ -52,6 +53,8 @@ describe('RequestCard', () => {
     
     // Mock initial vote check
     mockSupabaseClient.from().select = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnThis(),
+      count: jest.fn().mockResolvedValue({ data: { count: mockRequest.vote_count } }),
       match: jest.fn().mockReturnValue({
         maybeSingle: jest.fn().mockResolvedValue({ data: null })
       })

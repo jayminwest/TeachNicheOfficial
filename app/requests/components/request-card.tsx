@@ -25,12 +25,13 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
   // Fetch current vote count from Supabase
   const updateVoteCount = async () => {
-    const { count } = await supabase
+    const { data } = await supabase
       .from('lesson_request_votes')
       .select('*', { count: 'exact', head: true })
-      .eq('request_id', request.id);
+      .eq('request_id', request.id)
+      .count();
     
-    setVoteCount(count || 0);
+    setVoteCount(data?.count || 0);
   }
 
   // Update vote count on mount and after votes

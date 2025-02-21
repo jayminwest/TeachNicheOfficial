@@ -1,7 +1,6 @@
 import React from 'react';
 import { screen, act, fireEvent } from '@testing-library/react';
 import { StripeConnectButton } from '../stripe-connect-button';
-import { renderWithStripe } from '../test-utils';
 import { mockUseAuth, mockUser } from '@/__mocks__/services/auth';
 import { mockSupabaseClient } from '@/__mocks__/services/supabase';
 

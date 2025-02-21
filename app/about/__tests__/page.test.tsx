@@ -1,5 +1,5 @@
-import { render } from '@/app/components/ui/test-utils'
-import { axe } from 'axe-core'
+import { render, userEvent } from '../../../components/ui/test-utils'
+import { axe } from 'jest-axe'
 import React from 'react'
 import AboutPage from '../page'
 

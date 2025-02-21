@@ -27,18 +27,37 @@ jest.mock('@/auth/AuthContext', () => ({
   })
 }));
 
-// Create supabase mock object
-const supabase = {
-  ...mockSupabaseClient,
-  auth: {
-    ...mockSupabaseClient.auth,
-    getSession: jest.fn()
-  }
-};
-
 // Mock supabase
 jest.mock('@/lib/supabase', () => ({
-  supabase
+  supabase: {
+    auth: {
+      getSession: jest.fn(),
+      signInWithOAuth: jest.fn(),
+      signOut: jest.fn(),
+      onAuthStateChange: jest.fn(),
+      getUser: jest.fn(),
+    },
+    storage: {
+      from: jest.fn().mockReturnThis(),
+      upload: jest.fn(),
+      download: jest.fn(),
+      getPublicUrl: jest.fn(),
+      list: jest.fn(),
+    },
+    from: jest.fn().mockImplementation(() => ({
+      select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn(),
+      maybeSingle: jest.fn(),
+      limit: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      range: jest.fn().mockReturnThis(),
+    })),
+    schema: jest.fn().mockReturnThis(),
+  }
 }));
 
 describe('StripeConnectButton', () => {

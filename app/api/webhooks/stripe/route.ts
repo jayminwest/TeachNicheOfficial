@@ -14,10 +14,17 @@ import { Database } from '@/types/database'
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   const supabase = createRouteHandlerClient<Database>({ cookies })
   
-  // Get purchase record by payment intent
+  // Get purchase record by payment intent with lesson and creator details
   const { data: purchase, error: fetchError } = await supabase
     .from('purchases')
-    .select('*')
+    .select(`
+      *,
+      lesson:lessons(
+        creator:profiles!lessons_creator_id_fkey(
+          stripe_account_id
+        )
+      )
+    `)
     .eq('payment_intent_id', paymentIntent.id)
     .single()
 
@@ -26,7 +33,20 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     return
   }
 
-  // Update purchase status
+  // Calculate fees for creator earnings
+  const { creatorEarnings } = calculateFees(purchase.amount)
+
+  // Create transfer to creator
+  try {
+    const transfer = await stripe.transfers.create({
+      amount: creatorEarnings,
+      currency: stripeConfig.defaultCurrency,
+      destination: purchase.lesson.creator.stripe_account_id,
+      transfer_group: purchase.stripe_session_id,
+      source_transaction: paymentIntent.id
+    })
+
+    // Update purchase status with transfer info
   const { error: updateError } = await supabase
     .from('purchases')
     .update({
@@ -35,6 +55,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       metadata: {
         stripe_payment_status: paymentIntent.status,
         payment_completed_at: new Date().toISOString(),
+        transfer_id: transfer.id,
         ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
       }
     })

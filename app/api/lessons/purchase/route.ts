@@ -102,14 +102,6 @@ export async function POST(request: Request) {
       }
     })
 
-    // Create a transfer for the creator after payment
-    const transfer = await stripe.transfers.create({
-      amount: creatorEarnings,
-      currency: stripeConfig.defaultCurrency,
-      destination: lesson.creator.stripe_account_id,
-      transfer_group: checkoutSession.id,
-    })
-
     // Generate UUID for purchase record
     const purchaseId = crypto.randomUUID()
 

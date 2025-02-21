@@ -6,7 +6,7 @@ export interface LessonRequest {
   user_id: string;
   status: 'open' | 'in_progress' | 'completed';
   vote_count: number;
-  category?: string;
+  category: string;
   tags?: string[];
 }
 
@@ -16,13 +16,4 @@ export interface LessonRequestVote {
   user_id: string;
   vote_type: 'up' | 'down';
   created_at: string;
-}
-export interface LessonRequest {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: string;
-  created_at: string;
-  vote_count: number;
 }

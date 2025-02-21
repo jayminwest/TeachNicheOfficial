@@ -1,13 +1,4 @@
-import { render, screen } from '@testing-library/react'
-import { RequestCard } from '@/app/requests/components/request-card'
-import { useAuth } from '@/app/services/auth/AuthContext'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-
-// Set up mocks
-jest.mock('@/app/services/auth/AuthContext')
-jest.mock('@/app/components/ui/use-toast')
-
-// Define mock Supabase client
+// Define mock Supabase client before any imports
 const mockSupabaseClient = {
   from: jest.fn().mockReturnThis(),
   select: jest.fn().mockReturnThis(),
@@ -22,10 +13,17 @@ const mockSupabaseClient = {
   head: jest.fn().mockReturnThis()
 }
 
-// Mock Supabase client after imports
+// Set up all mocks before imports
+jest.mock('@/app/services/auth/AuthContext')
+jest.mock('@/app/components/ui/use-toast')
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createClientComponentClient: jest.fn(() => mockSupabaseClient)
 }))
+
+import { render, screen } from '@testing-library/react'
+import { RequestCard } from '@/app/requests/components/request-card'
+import { useAuth } from '@/app/services/auth/AuthContext'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 // Mock auth context
 const mockAuthContext = {

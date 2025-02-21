@@ -1,40 +1,302 @@
 # Lesson Purchase Flow Implementation Plan
 
-## Files Needed for Complete Implementation
-- app/hooks/use-lesson-access.ts (new)
-- app/components/ui/lesson-access-gate.tsx (new)
-- app/api/lessons/purchase/route.ts (new)
-- app/api/webhooks/stripe/route.ts (existing)
-- app/components/ui/video-player.tsx (existing)
-- app/components/ui/lesson-checkout.tsx (existing)
-- app/services/stripe.ts (existing)
-- app/services/auth/AuthContext.tsx (existing)
-- app/lessons/[id]/page.tsx (existing)
-- types/lesson.ts (existing)
+## Type Definitions
+
+```typescript
+interface Purchase {
+  id: string
+  user_id: string
+  lesson_id: string
+  creator_id: string
+  purchase_date: string
+  stripe_session_id: string
+  amount: number
+  platform_fee: number
+  creator_earnings: number
+  payment_intent_id: string
+  fee_percentage: number
+  status: 'pending' | 'completed' | 'failed'
+  metadata?: Record<string, any>
+  created_at: string
+  updated_at: string
+  version: number
+}
+
+interface LessonAccess {
+  hasAccess: boolean
+  purchaseStatus?: 'none' | 'pending' | 'completed'
+  purchaseDate?: string
+}
+
+interface PurchaseApiResponse {
+  checkoutUrl: string
+  sessionId: string
+}
+```
 
 ## Implementation Steps
 
 ### Step 1: Create Access Control Hook
-Files needed:
-- app/hooks/use-lesson-access.ts
+File: app/hooks/use-lesson-access.ts
 
-Implementation Details:
 ```typescript
-// Create hook to check lesson access
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/services/auth/AuthContext'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Database } from '@/types/supabase'
+
 export function useLessonAccess(lessonId: string) {
-  const { user } = useAuth();
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth()
+  const [hasAccess, setHasAccess] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient<Database>()
   
   useEffect(() => {
-    // Check purchases table for valid purchase
-    // Handle free lessons
-    // Cache results
-  }, [lessonId, user]);
-  
-  return { hasAccess, loading };
+    async function checkAccess() {
+      if (!user) {
+        setHasAccess(false)
+        setLoading(false)
+        return
+      }
+
+      try {
+        const { data: purchase } = await supabase
+          .from('purchases')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('lesson_id', lessonId)
+          .eq('status', 'completed')
+          .single()
+
+        setHasAccess(!!purchase)
+      } catch (error) {
+        console.error('Error checking lesson access:', error)
+        setHasAccess(false)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [lessonId, user])
+
+  return { hasAccess, loading }
 }
 ```
+
+### Step 2: Create Access Gate Component
+File: app/components/ui/lesson-access-gate.tsx
+
+```typescript
+import { Loader2 } from 'lucide-react'
+import { useLessonAccess } from '@/hooks/use-lesson-access'
+import { LessonCheckout } from './lesson-checkout'
+
+interface LessonAccessGateProps {
+  lessonId: string
+  children: React.ReactNode
+  fallback?: React.ReactNode
+}
+
+export function LessonAccessGate({ 
+  lessonId,
+  children,
+  fallback 
+}: LessonAccessGateProps) {
+  const { hasAccess, loading } = useLessonAccess(lessonId)
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+  
+  if (!hasAccess) {
+    return fallback || <LessonCheckout lessonId={lessonId} />
+  }
+  
+  return <>{children}</>
+}
+```
+
+### Step 3: Purchase API Route
+File: app/api/lessons/purchase/route.ts
+
+```typescript
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16'
+})
+
+export async function POST(request: Request) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { lessonId } = await request.json()
+
+    // Get lesson details
+    const { data: lesson } = await supabase
+      .from('lessons')
+      .select('*, profiles(stripe_account_id)')
+      .eq('id', lessonId)
+      .single()
+
+    if (!lesson) {
+      return NextResponse.json(
+        { error: 'Lesson not found' },
+        { status: 404 }
+      )
+    }
+
+    // Create Stripe Checkout Session
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [{
+        price: lesson.stripe_price_id,
+        quantity: 1
+      }],
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=cancelled`,
+      payment_intent_data: {
+        application_fee_amount: Math.round(lesson.price * 0.1), // 10% platform fee
+        transfer_data: {
+          destination: lesson.profiles.stripe_account_id,
+        },
+      },
+      metadata: {
+        lessonId,
+        userId: session.user.id,
+        creatorId: lesson.creator_id
+      }
+    })
+
+    // Record pending purchase
+    await supabase.from('purchases').insert({
+      user_id: session.user.id,
+      lesson_id: lessonId,
+      creator_id: lesson.creator_id,
+      stripe_session_id: checkoutSession.id,
+      amount: lesson.price,
+      platform_fee: lesson.price * 0.1,
+      creator_earnings: lesson.price * 0.9,
+      fee_percentage: 10,
+      status: 'pending'
+    })
+
+    return NextResponse.json({
+      checkoutUrl: checkoutSession.url,
+      sessionId: checkoutSession.id
+    })
+  } catch (error) {
+    console.error('Purchase error:', error)
+    return NextResponse.json(
+      { error: 'Failed to create checkout session' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+### Step 4: Update Stripe Webhook Handler
+The webhook handler should:
+
+1. Verify Stripe signature
+2. Handle 'checkout.session.completed' event:
+   - Get purchase record using stripe_session_id
+   - Update status to 'completed'
+   - Set payment_intent_id
+   - Update purchase_date
+   - Record final amounts and fees
+
+### Step 5: Video Player Integration
+Wrap VideoPlayer component with LessonAccessGate:
+
+```typescript
+export function VideoPlayer({ playbackId, lessonId, ...props }) {
+  return (
+    <LessonAccessGate lessonId={lessonId}>
+      <MuxPlayer
+        playbackId={playbackId}
+        {...props}
+      />
+    </LessonAccessGate>
+  )
+}
+```
+
+### Step 6: Testing Strategy
+
+1. Unit Tests:
+```typescript
+describe('useLessonAccess', () => {
+  it('returns false when user is not authenticated')
+  it('returns true for completed purchases')
+  it('returns false for pending purchases')
+  it('returns false when no purchase exists')
+})
+
+describe('LessonAccessGate', () => {
+  it('shows loading state')
+  it('shows purchase UI when no access')
+  it('renders children when has access')
+})
+
+describe('purchase API', () => {
+  it('creates Stripe session')
+  it('records pending purchase')
+  it('handles unauthorized requests')
+})
+```
+
+2. Integration Tests:
+- Complete purchase flow
+- Webhook handling
+- Access state updates
+
+3. Error Cases:
+- Network failures
+- Invalid lesson IDs
+- Stripe errors
+- Database errors
+
+### Step 7: Deployment Checklist
+
+1. Environment Variables:
+```
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_BASE_URL=
+```
+
+2. Database Indexes:
+```sql
+CREATE INDEX idx_purchases_user_lesson ON purchases(user_id, lesson_id, status);
+```
+
+3. Stripe Setup:
+- Configure webhook endpoints
+- Set up product/price mapping
+- Test mode configuration
+
+4. Monitoring:
+- Log purchase attempts
+- Track webhook processing
+- Monitor access checks
 
 Key Changes:
 - Create new hook file

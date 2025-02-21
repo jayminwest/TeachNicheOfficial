@@ -23,10 +23,20 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 
-  // Update vote count when props change
+  // Fetch current vote count from Supabase
+  const updateVoteCount = async () => {
+    const { count } = await supabase
+      .from('lesson_request_votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('request_id', request.id);
+    
+    setVoteCount(count || 0);
+  }
+
+  // Update vote count on mount and after votes
   useEffect(() => {
-    setVoteCount(request.vote_count)
-  }, [request.vote_count])
+    updateVoteCount();
+  }, [request.id]);
 
   useEffect(() => {
     async function checkVoteStatus() {
@@ -104,6 +114,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
         });
       }
       
+      await updateVoteCount();
       onVote();
     } catch (error: any) {
       console.error('Vote failed:', error);

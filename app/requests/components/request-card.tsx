@@ -18,6 +18,7 @@ interface RequestCardProps {
 
 export function RequestCard({ request, onVote }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
+  const [hasVoted, setHasVoted] = useState(false)
   const supabase = createClientComponentClient()
   const { user, loading } = useAuth()
 

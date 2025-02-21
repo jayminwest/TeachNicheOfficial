@@ -147,8 +147,8 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
               {request.status.replace('_', ' ')}
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-            <span suppressHydrationWarning>
+          <div className="flex flex-col gap-1 mt-2">
+            <span className="text-sm text-muted-foreground" suppressHydrationWarning>
               {new Date(request.created_at).toLocaleDateString(undefined, {
                 year: 'numeric',
                 month: 'short',
@@ -160,7 +160,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
                 href={`https://instagram.com/${request.instagram_handle.replace('@', '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-600 transition-colors"
+                className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
               >
                 {request.instagram_handle}
               </a>

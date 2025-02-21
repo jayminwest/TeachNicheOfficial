@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/auth/AuthContext'
 import {
   Form,
   FormControl,
@@ -38,13 +39,33 @@ export function RequestForm() {
     }
   })
 
+  const { user } = useAuth()
+
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
       setIsSubmitting(true)
-      await createRequest(data)
+      
+      if (!user) {
+        throw new Error('You must be logged in to submit a request')
+      }
+
+      await createRequest({
+        ...data,
+        user_id: user.id
+      })
+      
       form.reset()
-    } catch (error) {
+      toast({
+        title: "Success",
+        description: "Your request has been submitted successfully."
+      })
+    } catch (error: any) {
       console.error('Failed to create request:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit request. Please try again.",
+        variant: "destructive"
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -108,7 +129,11 @@ export function RequestForm() {
           )}
         />
 
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting || !user}
+          title={!user ? "Please log in to submit a request" : ""}
+        >
           {isSubmitting ? 'Submitting...' : 'Submit Request'}
         </Button>
       </form>

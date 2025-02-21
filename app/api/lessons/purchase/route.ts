@@ -6,42 +6,23 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    // Initialize Supabase client with proper cookie handling
-    const supabase = createRouteHandlerClient<Database>({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
     
-    // Get both session and user data for double verification
-    const [
-      { data: { session }, error: sessionError },
-      { data: { user }, error: userError }
-    ] = await Promise.all([
-      supabase.auth.getSession(),
-      supabase.auth.getUser()
-    ])
+    const {
+      data: { session },
+      error: authError
+    } = await supabase.auth.getSession()
 
-    if (sessionError || userError || !session?.user || !user) {
-      console.error('Auth error:', {
-        sessionError,
-        userError,
-        hasSession: !!session?.user,
-        hasUser: !!user
-      })
+    if (authError || !session?.user) {
+      console.error('Auth error:', authError)
       return NextResponse.json(
         { error: 'Authentication required. Please sign in again.' },
         { status: 401 }
       )
     }
 
-    // Verify user IDs match
-    if (session.user.id !== user.id) {
-      console.error('User ID mismatch:', {
-        sessionUserId: session.user.id,
-        userId: user.id
-      })
-      return NextResponse.json(
-        { error: 'Invalid authentication state. Please sign in again.' },
-        { status: 401 }
-      )
-    }
+    const user = session.user
 
     const { lessonId } = await request.json()
 

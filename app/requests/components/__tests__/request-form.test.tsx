@@ -68,7 +68,7 @@ describe('RequestForm', () => {
 
   it('handles submission errors', async () => {
     const user = userEvent.setup()
-    const mockError = new Error('Database error')
+    const mockError = { message: 'Database error' }
     
     ;(supabase.from as jest.Mock).mockReturnValue({
       insert: jest.fn().mockReturnValue({
@@ -80,7 +80,12 @@ describe('RequestForm', () => {
 
     render(<RequestForm />)
 
+    // Fill in required fields
     await user.type(screen.getByLabelText(/title/i), 'Test Request')
+    await user.type(screen.getByLabelText(/description/i), 'Test Description that is long enough')
+    await user.selectOptions(screen.getByLabelText(/category/i), 'Beginner Fundamentals')
+    
+    // Submit form
     await user.click(screen.getByRole('button', { name: /submit request/i }))
 
     await waitFor(() => {

@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom';
 import { jest } from '@jest/globals';
+import { TextEncoder, TextDecoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Suppress specific console messages during tests
 const originalConsoleError = console.error;

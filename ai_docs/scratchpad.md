@@ -1,7 +1,7 @@
 # Lesson Requests Feature Implementation Guide
 
 ## Overview
-This document outlines the step-by-step implementation of the lesson requests feature, allowing authenticated users to create and vote on lesson requests.
+This document outlines the step-by-step implementation of the lesson requests feature, allowing authenticated users to create and vote on lesson requests. Create and ask to edit all necessary files.
 
 ## Database Schema
 ```typescript

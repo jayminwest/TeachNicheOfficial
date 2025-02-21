@@ -169,16 +169,31 @@ CREATE TABLE IF NOT EXISTS public.purchases (
   constraint purchases_stripe_session_id_key unique (stripe_session_id)
 );
 
--- Add RLS policies
-create policy "Users can view their own purchases."
-  on purchases for select
-  to authenticated
-  using (auth.uid() = user_id);
+-- Add RLS policies if they don't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'purchases' 
+        AND policyname = 'Users can view their own purchases'
+    ) THEN
+        CREATE POLICY "Users can view their own purchases"
+            ON purchases FOR SELECT
+            TO authenticated
+            USING (auth.uid() = user_id);
+    END IF;
 
-create policy "Creators can view purchases for their lessons."
-  on purchases for select
-  to authenticated
-  using (auth.uid() = creator_id);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'purchases' 
+        AND policyname = 'Creators can view purchases for their lessons'
+    ) THEN
+        CREATE POLICY "Creators can view purchases for their lessons"
+            ON purchases FOR SELECT
+            TO authenticated
+            USING (auth.uid() = creator_id);
+    END IF;
+END $$;
 
 -- Add indexes if they don't exist
 DO $$ 

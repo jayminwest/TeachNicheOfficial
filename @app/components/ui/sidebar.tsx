@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/app/lib/utils";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { ScrollArea } from "./scroll-area";
 import { motion } from "framer-motion";
 import { Badge } from "@/app/components/ui/badge"
 import {

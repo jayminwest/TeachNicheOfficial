@@ -38,19 +38,10 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         throw new Error('Stripe failed to initialize');
       }
 
-      // Get fresh session token
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        setError('Your session has expired. Please sign in again.');
-        return;
-      }
-
       const response = await fetch('/api/lessons/purchase', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({

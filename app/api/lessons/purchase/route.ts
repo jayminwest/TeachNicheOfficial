@@ -6,22 +6,11 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    // Get the bearer token from Authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Missing or invalid authorization token' },
-        { status: 401 }
-      );
-    }
-    const token = authHeader.split(' ')[1];
-
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient<Database>({
       cookies: () => cookieStore
     })
 
-    // Verify the token and get session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError) {

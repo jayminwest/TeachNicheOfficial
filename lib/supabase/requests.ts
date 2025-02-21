@@ -63,6 +63,7 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Add this to send cookies
     body: JSON.stringify({ requestId, voteType }),
   })
 

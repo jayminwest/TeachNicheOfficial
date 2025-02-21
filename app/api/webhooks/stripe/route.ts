@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent) => {
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   const supabase = createRouteHandlerClient<Database>({ cookies });
   
   // Get purchase record by payment intent with lesson and creator details
@@ -68,9 +68,9 @@ const handlePaymentIntentSucceeded = async (paymentIntent: Stripe.PaymentIntent)
   }
 
   console.log('Purchase completed:', purchase.id);
-};
+}
 
-const handleAccountUpdated = async (account: Stripe.Account) => {
+async function handleAccountUpdated(account: Stripe.Account) {
   const supabase = createRouteHandlerClient<Database>({ cookies });
   
   // Update creator's profile with account status
@@ -88,7 +88,7 @@ const handleAccountUpdated = async (account: Stripe.Account) => {
   }
 
   console.log('Creator account status updated:', account.id);
-};
+}
 
 export async function POST(request: Request) {
   const body = await request.text();

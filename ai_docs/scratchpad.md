@@ -5,23 +5,35 @@
 ### 1. Database Migration
 File: supabase/migrations/[timestamp]_create_purchases_table.sql
 ```sql
+-- Check if purchase_status enum exists
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'purchase_status') THEN
+        CREATE TYPE purchase_status AS ENUM (
+            'pending',
+            'processing',
+            'completed',
+            'failed',
+            'refunded'
+        );
+    END IF;
+END $$;
+
+-- Check if lesson_status enum exists
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'lesson_status') THEN
+        CREATE TYPE lesson_status AS ENUM (
+            'draft',
+            'published',
+            'archived',
+            'deleted'
+        );
+    END IF;
+END $$;
+
 -- Enable PostgreSQL cryptographic functions
-create extension if not exists "pgcrypto";
-
--- Create purchase status enum
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-  'refunded'
-);
-
-CREATE TYPE lesson_status AS ENUM (
-  'draft',
-  'published',
-  'archived',
-  'deleted'
-);
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ```
 
 ## Type Definitions
@@ -135,8 +147,8 @@ File: app/hooks/use-lesson-access.ts
 -- Enable RLS
 alter table purchases enable row level security;
 
--- Create purchases table
-create table public.purchases (
+-- Create purchases table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.purchases (
   id uuid default gen_random_uuid() primary key,
   user_id uuid not null references auth.users(id),
   lesson_id uuid not null references public.lessons(id),

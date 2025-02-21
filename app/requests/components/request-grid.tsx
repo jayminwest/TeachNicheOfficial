@@ -36,7 +36,7 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <Loader2 className="w-8 h-8 animate-spin" />
+        <Loader2 data-testid="loading-spinner" className="w-8 h-8 animate-spin" />
       </div>
     )
   }

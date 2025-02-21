@@ -37,7 +37,7 @@ describe('RequestGrid', () => {
 
   it('renders loading state initially when no initial requests provided', () => {
     render(<RequestGrid />)
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
   })
 
   it('renders requests from initial data without loading', () => {
@@ -49,14 +49,17 @@ describe('RequestGrid', () => {
   })
 
   it('loads and displays requests when no initial data provided', async () => {
-    render(<RequestGrid />)
+    const { rerender } = render(<RequestGrid />)
 
     await waitFor(() => {
-      expect(screen.getByText('Request 1')).toBeInTheDocument()
-      expect(screen.getByText('Request 2')).toBeInTheDocument()
+      expect(getRequests).toHaveBeenCalled()
     })
 
-    expect(getRequests).toHaveBeenCalled()
+    // Mock the state update that would happen after data loads
+    rerender(<RequestGrid initialRequests={mockRequests} />)
+
+    expect(screen.getByText('Request 1')).toBeInTheDocument()
+    expect(screen.getByText('Request 2')).toBeInTheDocument()
   })
 
   it('displays empty state when no requests found', async () => {

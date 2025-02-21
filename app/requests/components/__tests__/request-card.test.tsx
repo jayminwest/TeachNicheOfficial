@@ -1,17 +1,15 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestCard } from '@/app/requests/components/request-card'
 import { useAuth } from '@/auth/AuthContext'
 import { toast } from '@/components/ui/use-toast'
-import { voteOnRequest } from '@/lib/supabase/requests'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { mockSupabaseClient } from '@/__mocks__/services/supabase'
+import { mockAuthContext } from '@/__mocks__/services/auth'
 
 jest.mock('@/auth/AuthContext')
 jest.mock('@/components/ui/use-toast')
-jest.mock('@/lib/supabase/requests')
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createClientComponentClient: jest.fn()
-}))
+jest.mock('@supabase/auth-helpers-nextjs')
 
 describe('RequestCard', () => {
   const mockRequest = {
@@ -26,11 +24,11 @@ describe('RequestCard', () => {
   }
 
   const mockOnVote = jest.fn()
-  const mockUser = { id: 'test-user-id' }
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(useAuth as jest.Mock).mockReturnValue({ user: mockUser, loading: false })
+    ;(useAuth as jest.Mock).mockReturnValue(mockAuthContext)
+    ;(createClientComponentClient as jest.Mock).mockReturnValue(mockSupabaseClient)
   })
 
   it('renders request details correctly', () => {
@@ -43,27 +41,35 @@ describe('RequestCard', () => {
   })
 
   it('handles vote toggle when user is logged in', async () => {
-    const mockSupabase = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValueOnce({ data: null })
-        .mockResolvedValueOnce({ data: { id: '1' } }),
-      insert: jest.fn().mockResolvedValue({ error: null }),
-      delete: jest.fn().mockResolvedValue({ error: null })
-    };
-    (createClientComponentClient as jest.Mock).mockReturnValue(mockSupabase);
-    
     const user = userEvent.setup()
+    
+    // Mock initial vote check
+    mockSupabaseClient.from().select().match = jest.fn().mockReturnValue({
+      maybeSingle: jest.fn().mockResolvedValue({ data: null })
+    })
+    
     render(<RequestCard request={mockRequest} onVote={mockOnVote} />)
     
     // First click - add vote
     await user.click(screen.getByRole('button', { name: /thumbs up/i }))
 
     await waitFor(() => {
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('lesson_request_votes')
+      expect(mockSupabaseClient.from().insert).toHaveBeenCalledWith({
+        request_id: mockRequest.id,
+        user_id: mockAuthContext.user.id,
+        vote_type: 'up'
+      })
       expect(toast).toHaveBeenCalledWith({
         title: "Success",
         description: "Vote added",
+      })
+    })
+
+    // Mock vote exists for second click
+    mockSupabaseClient.from().select().match = jest.fn().mockReturnValue({
+      maybeSingle: jest.fn().mockResolvedValue({ 
+        data: { id: '1', request_id: mockRequest.id, user_id: mockAuthContext.user.id }
       })
     })
 
@@ -71,6 +77,7 @@ describe('RequestCard', () => {
     await user.click(screen.getByRole('button', { name: /thumbs up/i }))
 
     await waitFor(() => {
+      expect(mockSupabaseClient.from().delete).toHaveBeenCalled()
       expect(toast).toHaveBeenCalledWith({
         title: "Success",
         description: "Vote removed",
@@ -80,7 +87,7 @@ describe('RequestCard', () => {
   })
 
   it('shows error toast when voting without auth', async () => {
-    (useAuth as jest.Mock).mockReturnValue({ user: null, loading: false })
+    (useAuth as jest.Mock).mockReturnValue({ ...mockAuthContext, user: null })
     const user = userEvent.setup()
     
     render(<RequestCard request={mockRequest} onVote={mockOnVote} />)
@@ -94,10 +101,11 @@ describe('RequestCard', () => {
     })
   })
 
-  it('handles vote errors gracefully', async () => {
+  it('handles database errors gracefully', async () => {
     const user = userEvent.setup()
-    const mockError = new Error('Vote failed')
-    ;(voteOnRequest as jest.Mock).mockRejectedValue(mockError)
+    mockSupabaseClient.from().insert = jest.fn().mockResolvedValue({ 
+      error: { message: 'Database error' } 
+    })
 
     render(<RequestCard request={mockRequest} onVote={mockOnVote} />)
     
@@ -106,7 +114,7 @@ describe('RequestCard', () => {
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith({
         title: "Error",
-        description: expect.any(String),
+        description: "Database error",
         variant: "destructive"
       })
     })

@@ -77,30 +77,32 @@ export function RequestSidebar({
         <div>
           <h3 className="font-semibold mb-3">Categories</h3>
           <div className="space-y-1">
-          <Button
-            variant={!selectedCategory ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => {
-              onSelectCategory(undefined)
-              onClose()
-            }}
-          >
-            All Requests
-          </Button>
-          {LESSON_CATEGORIES.map((category) => (
             <Button
-              key={category}
-              variant={selectedCategory === category ? "secondary" : "ghost"}
+              variant={!selectedCategory ? "secondary" : "ghost"}
               className="w-full justify-start"
               onClick={() => {
-                onSelectCategory(category)
+                onSelectCategory(undefined)
                 onClose()
               }}
             >
-              {category}
+              All Requests
             </Button>
-          ))}
+            {LESSON_CATEGORIES.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "secondary" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => {
+                  onSelectCategory(category)
+                  onClose()
+                }}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
         </div>
+
         <div className="pt-4 border-t">
           <RequestDialog>
             <Button className="w-full" size="lg">

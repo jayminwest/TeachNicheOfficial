@@ -6,5 +6,5 @@ export interface Lesson {
   thumbnailUrl: string;
   averageRating: number;
   totalRatings: number;
-  created_at?: string;
+  created_at: string;
 }

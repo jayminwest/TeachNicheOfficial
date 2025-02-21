@@ -4,9 +4,10 @@ import { LessonCard } from '@/app/components/ui/lesson-card'
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
-  // eslint-disable-next-line @next/next/no-img-element
   default: (props: { src: string; alt: string; fill?: boolean; className?: string }) => (
-    <img src={props.src} alt={props.alt} className={props.className} />
+    <div className={props.className}>
+      <span>Image: {props.alt}</span>
+    </div>
   )
 }))
 

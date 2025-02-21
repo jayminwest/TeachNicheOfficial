@@ -28,7 +28,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
       >
         <div className="relative aspect-video w-full">
           <Image
-            src={lesson.thumbnailUrl}
+            src={lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
             alt={lesson.title}
             fill
             className="object-cover rounded-t-lg"

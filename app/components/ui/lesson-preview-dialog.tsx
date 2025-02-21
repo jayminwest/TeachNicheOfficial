@@ -26,7 +26,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
         
         <div className="relative aspect-video w-full mb-4 overflow-hidden rounded-lg">
           <Image
-            src={lesson.thumbnailUrl}
+            src={lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
             alt={lesson.title}
             fill
             className="object-cover"

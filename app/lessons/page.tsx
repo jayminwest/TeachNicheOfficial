@@ -30,6 +30,7 @@ export default function LessonsPage() {
         const transformedLessons: Lesson[] = (data || []).map(lesson => ({
           ...lesson,
           thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
+          description: lesson.description || '',
           averageRating: lesson.average_rating || 0,
           totalRatings: lesson.total_ratings || 0
         }));

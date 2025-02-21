@@ -16,13 +16,6 @@ export async function createRequest(data: LessonRequestFormData): Promise<Lesson
     .select()
     .single()
     
-  if (voteCheckError && voteCheckError.code !== 'PGRST116') {
-    console.error('Error checking existing vote:', voteCheckError)
-    throw voteCheckError
-  }
-  
-  console.log('Existing vote check:', existingVote ? 'found vote' : 'no existing vote')
-  
   if (error) {
     toast({
       title: "Error creating request",
@@ -63,69 +56,22 @@ export async function getRequests(filters?: {
 }
 
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
-  const supabase = createClientComponentClient()
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
   
-  const { data: { session } } = await supabase.auth.getSession()
-  console.log('Session check:', session?.user?.id ? 'authenticated' : 'not authenticated')
-  
-  if (!session?.user?.id) {
-    throw new Error('Please sign in to vote on requests')
+  const response = await fetch('/api/requests/vote', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ requestId, voteType }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to submit vote')
   }
 
-  const user = session.user
-  
-  // First check for existing vote
-  const { data: existingVote, error: voteCheckError } = await supabase
-    .from('lesson_request_votes')
-    .select()
-    .match({ 
-      request_id: requestId,
-      user_id: user.id 
-    })
-    .single()
-
-  if (existingVote) {
-    if (existingVote.vote_type === voteType) {
-      // Delete existing vote if same type
-      console.log('Deleting existing vote')
-      const { error: deleteError } = await supabase
-        .from('lesson_request_votes')
-        .delete()
-        .match({ id: existingVote.id })
-      if (deleteError) throw deleteError
-    } else {
-      // Update vote type if different
-      console.log('Updating existing vote')
-      const { error: updateError } = await supabase
-        .from('lesson_request_votes')
-        .update({ vote_type: voteType })
-        .match({ id: existingVote.id })
-      if (updateError) throw updateError
-    }
-  } else {
-    // Insert new vote
-    console.log('Inserting new vote')
-    const { error: insertError } = await supabase
-      .from('lesson_request_votes')
-      .insert([{ 
-        request_id: requestId,
-        user_id: user.id,
-        vote_type: voteType,
-        created_at: new Date().toISOString()
-      }])
-    if (insertError) throw insertError
-  }
-
-  // Update vote count
-  console.log('Updating vote count')
-  const { data: voteCountResult, error: updateError } = await supabase
-    .rpc('update_vote_count', { request_id: requestId })
-  
-  if (updateError) {
-    console.error('Error updating vote count:', updateError)
-    throw updateError
-  }
-  
-  console.log('Vote count updated successfully:', voteCountResult)
+  const result = await response.json()
+  console.log('Vote response:', result)
+  return result
 }

@@ -1,4 +1,4 @@
-import { LessonCard } from "@/components/ui/lesson-card";
+import { LessonCard } from "@/app/components/ui/lesson-card";
 
 interface Lesson {
   id: string;

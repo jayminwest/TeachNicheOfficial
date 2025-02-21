@@ -6,6 +6,20 @@ import { POST, GET } from '../requests/route'
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createRouteHandlerClient: jest.fn()
 }))
+
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (data: any, init?: ResponseInit) => {
+      const response = new Response(JSON.stringify(data), init)
+      Object.defineProperty(response, 'status', {
+        get() {
+          return init?.status || 200
+        }
+      })
+      return response
+    }
+  }
+}))
 jest.mock('next/headers', () => ({
   cookies: () => ({
     getAll: () => []
@@ -54,12 +68,12 @@ describe('Requests API Routes', () => {
         body: JSON.stringify({
           title: 'Test Request',
           description: 'Test Description',
-          category: 'Beginner Fundamentals'
+          category: 'Beginner Basics'
         })
       })
 
       const response = await POST(request)
-      expect(response).toBeInstanceOf(NextResponse)
+      expect(response).toBeInstanceOf(Response)
       expect(response.status).toBe(200)
     })
   })
@@ -69,7 +83,7 @@ describe('Requests API Routes', () => {
       const request = new Request('http://localhost/api/requests')
       
       const response = await GET(request)
-      expect(response).toBeInstanceOf(NextResponse)
+      expect(response).toBeInstanceOf(Response)
       expect(response.status).toBe(200)
     })
   })

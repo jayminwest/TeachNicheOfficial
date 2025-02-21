@@ -23,8 +23,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      if (!user) {
         toast({
           title: "Authentication required",
           description: "Please sign in to vote on requests",
@@ -35,8 +34,18 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
 
       setIsVoting(true);
       console.log('Calling voteOnRequest with:', { requestId: request.id, type });
-      await voteOnRequest(request.id, type);
-      console.log('Vote successful');
+      const result = await voteOnRequest(request.id, type);
+      console.log('Vote result:', result);
+      
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Your vote has been recorded",
+      });
+      
       onVote();
     } catch (error: any) {
       console.error('Vote failed:', error);

@@ -50,6 +50,10 @@ describe('RequestCard', () => {
 
     await waitFor(() => {
       expect(voteOnRequest).toHaveBeenCalledWith(mockRequest.id, 'upvote')
+      expect(toast).toHaveBeenCalledWith({
+        title: "Success",
+        description: "Your vote has been recorded",
+      })
       expect(mockOnVote).toHaveBeenCalled()
     })
   })

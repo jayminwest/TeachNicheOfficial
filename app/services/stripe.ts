@@ -93,11 +93,21 @@ export const stripeErrorMessages: Record<StripeErrorCode, string> = {
   callback_failed: 'Connection process failed'
 };
 
-// Initialize Stripe client
-export const stripe = new Stripe(stripeConfig.secretKey, {
-  apiVersion: stripeConfig.apiVersion,
-  typescript: true,
-});
+// Initialize Stripe client (server-side only)
+export const stripe = typeof window === 'undefined' 
+  ? new Stripe(stripeConfig.secretKey, {
+      apiVersion: stripeConfig.apiVersion,
+      typescript: true,
+    })
+  : null;
+
+// Helper to ensure stripe instance exists (server-side only)
+const getStripe = () => {
+  if (!stripe) {
+    throw new Error('Stripe can only be accessed on the server side');
+  }
+  return stripe;
+};
 
 // Helper functions
 export const calculateFees = (amount: number) => {
@@ -113,7 +123,7 @@ export const calculateFees = (amount: number) => {
 
 // Helper functions and utilities
 export const getAccountStatus = async (accountId: string): Promise<StripeAccountStatus> => {
-  const account = await stripe.accounts.retrieve(accountId);
+  const account = await getStripe().accounts.retrieve(accountId);
   
   return {
     isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
@@ -123,7 +133,7 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
 };
 
 export const createConnectSession = async (options: ConnectSessionOptions) => {
-  const session = await stripe.accountLinks.create({
+  const session = await getStripe().accountLinks.create({
     account: options.accountId,
     refresh_url: options.refreshUrl,
     return_url: options.returnUrl,
@@ -139,7 +149,7 @@ export const verifyStripeWebhook = (
   endpointSecret: string = stripeConfig.webhookSecret
 ) => {
   try {
-    return stripe.webhooks.constructEvent(
+    return getStripe().webhooks.constructEvent(
       payload,
       signature,
       endpointSecret

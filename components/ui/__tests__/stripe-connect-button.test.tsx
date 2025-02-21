@@ -11,9 +11,12 @@ jest.mock('@/auth/AuthContext', () => ({
 }));
 
 // Mock the supabase client
-jest.mock('@/lib/supabase', () => ({
-  supabase: mockSupabaseClient
-}));
+jest.mock('@/lib/supabase', () => {
+  const { mockSupabaseClient } = require('@/__mocks__/services/supabase');
+  return {
+    supabase: mockSupabaseClient
+  };
+});
 
 // Mock the useToast hook
 jest.mock('@/components/ui/use-toast', () => ({

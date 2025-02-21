@@ -6,8 +6,8 @@ export interface LessonRequest {
   user_id: string;
   status: 'open' | 'in_progress' | 'completed';
   vote_count: number;
-  category: string | null;
-  tags: string[] | null;
+  category?: string;
+  tags?: string[];
 }
 
 export interface LessonRequestVote {

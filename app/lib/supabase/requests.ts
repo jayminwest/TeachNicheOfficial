@@ -6,7 +6,12 @@ export async function createRequest(data: LessonRequestFormData) {
   const supabase = createClientComponentClient()
   const { data: request, error } = await supabase
     .from('lesson_requests')
-    .insert([data])
+    .insert([{
+      ...data,
+      status: 'open',
+      vote_count: 0,
+      created_at: new Date().toISOString()
+    }])
     .select()
     .single()
   
@@ -56,11 +61,13 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
   }
 
   // Insert new vote
-  const { error: insertError } = await supabase
+  const { data, error: insertError } = await supabase
     .from('lesson_request_votes')
     .insert([{ 
       request_id: requestId,
-      vote_type: voteType
+      user_id: supabase.auth.user()?.id,
+      vote_type: voteType,
+      created_at: new Date().toISOString()
     }])
   
   if (insertError) throw insertError
@@ -70,4 +77,6 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
     .rpc('update_vote_count', { request_id: requestId })
   
   if (updateError) throw updateError
+  
+  return data as LessonRequestVote[]
 }

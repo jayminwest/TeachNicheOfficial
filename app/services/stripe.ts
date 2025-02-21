@@ -133,14 +133,22 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
 };
 
 export const createConnectSession = async (options: ConnectSessionOptions) => {
-  const session = await getStripe().accountLinks.create({
-    account: options.accountId,
-    refresh_url: options.refreshUrl,
-    return_url: options.returnUrl,
-    type: options.type,
-  });
-  
-  return session;
+  try {
+    const session = await getStripe().accountLinks.create({
+      account: options.accountId,
+      refresh_url: options.refreshUrl,
+      return_url: options.returnUrl,
+      type: options.type,
+    });
+    
+    return session;
+  } catch (error) {
+    console.error('Stripe Connect session creation failed:', error);
+    throw new StripeError(
+      'callback_failed',
+      error instanceof Error ? error.message : 'Failed to create Connect session'
+    );
+  }
 };
 
 export const verifyStripeWebhook = (
@@ -167,28 +175,44 @@ export const verifyConnectedAccount = async (
   accountId: string,
   supabaseClient: any
 ): Promise<AccountVerificationResult> => {
-  // Get profile
-  const { data: profile } = await supabaseClient
-    .from('profiles')
-    .select('stripe_account_id')
-    .eq('id', userId)
-    .single();
+  try {
+    // Get profile
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', userId)
+      .single();
 
-  if (!profile?.stripe_account_id) {
-    throw new StripeError('missing_account', 'No Stripe account found');
+    if (profileError) {
+      console.error('Profile fetch failed:', profileError);
+      throw new StripeError('profile_verification_failed', 'Failed to fetch profile');
+    }
+
+    if (!profile?.stripe_account_id) {
+      throw new StripeError('missing_account', 'No Stripe account found');
+    }
+
+    if (profile.stripe_account_id !== accountId) {
+      throw new StripeError('account_mismatch', 'Account verification failed');
+    }
+
+    const status = await getAccountStatus(accountId);
+
+    return {
+      verified: true,
+      accountId,
+      status
+    };
+  } catch (error) {
+    if (error instanceof StripeError) {
+      throw error;
+    }
+    console.error('Account verification failed:', error);
+    throw new StripeError(
+      'profile_verification_failed',
+      error instanceof Error ? error.message : 'Account verification failed'
+    );
   }
-
-  if (profile.stripe_account_id !== accountId) {
-    throw new StripeError('account_mismatch', 'Account verification failed');
-  }
-
-  const status = await getAccountStatus(accountId);
-
-  return {
-    verified: true,
-    accountId,
-    status
-  };
 };
 
 // Export constants for backward compatibility

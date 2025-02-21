@@ -21,22 +21,19 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const { user, loading } = useAuth()
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
-    console.log('handleVote called:', { type, loading, userId: user?.id });
-    
-    if (loading) {
-      console.log('Aborting - auth loading');
-      return;
-    }
-    
-    if (!user?.id) {
-      console.log('Aborting - no user');
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to vote on requests",
-        variant: "destructive"
-      })
-      return
-    }
+    try {
+      if (loading) return;
+      
+      if (!user?.id) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to vote on requests",
+          variant: "destructive"
+        })
+        return
+      }
+
+      setIsVoting(true)
 
 
     try {

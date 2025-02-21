@@ -8,12 +8,20 @@ export const runtime = 'edge'
 export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
+    // Get auth token from request header
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Missing or invalid authorization header' },
+        { status: 401 }
+      )
+    }
+
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Get session with full error handling
     const sessionResponse = await supabase.auth.getSession()
-    console.log('API full session response:', sessionResponse);
     
     if (sessionResponse.error) {
       console.log('API aborting - session error:', sessionResponse.error);

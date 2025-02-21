@@ -13,10 +13,11 @@ jest.mock('lucide-react', () => ({
 
 // Mock the dependencies
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: jest.fn(() => ({
-    user: null,
-    loading: false
-  }))
+  useAuth: () => mockUseAuth()
+}))
+
+jest.mock('@/lib/supabase', () => ({
+  supabase: mockSupabaseClient
 }))
 
 // Mock next/navigation

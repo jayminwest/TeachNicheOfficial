@@ -1,9 +1,11 @@
+// Mock global Request and Response
+global.Request = class Request {
+
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import { POST } from '../requests/vote/route'
 
-// Mock global Request and Response
-global.Request = class Request {
+class MockRequest {
   url: string
   method: string
   body: string

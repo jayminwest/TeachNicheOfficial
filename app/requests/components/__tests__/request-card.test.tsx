@@ -3,7 +3,6 @@ import { RequestCard } from '@/app/requests/components/request-card'
 import { useAuth } from '@/auth/AuthContext'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { mockSupabaseClient } from '@/__mocks__/services/supabase'
-import { cn } from '@/app/lib/utils'
 import { mockAuthContext } from '@/__mocks__/services/auth'
 
 jest.mock('@/auth/AuthContext')

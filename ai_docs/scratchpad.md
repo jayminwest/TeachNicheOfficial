@@ -180,10 +180,30 @@ create policy "Creators can view purchases for their lessons."
   to authenticated
   using (auth.uid() = creator_id);
 
--- Add indexes
-create index idx_purchases_user_lesson on purchases(user_id, lesson_id);
-create index idx_purchases_creator on purchases(creator_id);
-create index idx_purchases_stripe_session on purchases(stripe_session_id);
+-- Add indexes if they don't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE indexname = 'idx_purchases_user_lesson'
+    ) THEN
+        CREATE INDEX idx_purchases_user_lesson ON purchases(user_id, lesson_id);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE indexname = 'idx_purchases_creator'
+    ) THEN
+        CREATE INDEX idx_purchases_creator ON purchases(creator_id);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes 
+        WHERE indexname = 'idx_purchases_stripe_session'
+    ) THEN
+        CREATE INDEX idx_purchases_stripe_session ON purchases(stripe_session_id);
+    END IF;
+END $$;
 
 -- Add triggers
 create trigger handle_updated_at before update

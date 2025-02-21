@@ -1,8 +1,9 @@
 import React from 'react';
-import { screen, act, fireEvent } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import { StripeConnectButton } from '../stripe-connect-button';
-import { mockUseAuth, mockUser } from '@/__mocks__/services/auth';
-import { mockSupabaseClient } from '@/__mocks__/services/supabase';
+import { mockUseAuth, createMockUser, resetAuthMocks } from '@/__mocks__/services/auth';
+import { mockSupabaseClient, createMockSession, resetSupabaseMocks } from '@/__mocks__/services/supabase';
+import { createMockError } from '@/__mocks__/utils/mock-helpers';
 
 // Store original window.location
 const originalLocation = window.location;
@@ -20,10 +21,7 @@ jest.mock('@/components/ui/use-toast', () => ({
 
 // Mock auth context
 jest.mock('@/auth/AuthContext', () => ({
-  useAuth: () => ({
-    user: mockUser,
-    loading: false
-  })
+  useAuth: () => mockUseAuth()
 }));
 
 describe('StripeConnectButton', () => {
@@ -41,6 +39,8 @@ describe('StripeConnectButton', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetAuthMocks();
+    resetSupabaseMocks();
   });
 
   it('renders connect button when not connected', () => {
@@ -78,18 +78,7 @@ describe('StripeConnectButton', () => {
   });
 
   it('shows loading state while connecting', async () => {
-    // Mock responses
-    const mockSession = {
-      access_token: 'test-token',
-      refresh_token: 'test-refresh-token',
-      expires_in: 3600,
-      token_type: 'bearer',
-      user: {
-        id: 'test-user-id',
-        email: 'test@example.com'
-      }
-    };
-    
+    const mockSession = createMockSession();
     jest.spyOn(mockSupabaseClient.auth, 'getSession').mockResolvedValue({
       data: { session: mockSession },
       error: null
@@ -122,7 +111,7 @@ describe('StripeConnectButton', () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       json: () => Promise.resolve({ 
-        error: 'Failed to connect with Stripe'
+        error: createMockError('Failed to connect with Stripe')
       })
     });
 

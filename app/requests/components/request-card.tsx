@@ -104,7 +104,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
           .insert({
             request_id: request.id,
             user_id: user.id,
-            vote_type: 'up'
+            vote_type: 'up' as const
           });
 
         if (insertError) throw insertError;

@@ -14,6 +14,6 @@ export interface LessonRequestVote {
   id: string;
   request_id: string;
   user_id: string;
-  vote_type: 'upvote' | 'downvote';
+  vote_type: 'up' | 'down';
   created_at: string;
 }

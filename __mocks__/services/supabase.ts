@@ -64,6 +64,12 @@ const mockQueryBuilder = {
       data: [{ id: 1, created_at: '2023-01-01T00:00:00.000Z' }],
       error: null
     })
+  ),
+  count: jest.fn().mockImplementation(() => 
+    Promise.resolve({
+      data: [{ count: 5 }],
+      error: null
+    })
   )
 };
 

@@ -1,12 +1,18 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { Metadata } from "next"
 
-type Props = {
+export const metadata: Metadata = {
+  title: "Coming Soon",
+  description: "This page is under construction. Check back at launch!",
+}
+
+interface PageProps {
   params: { slug: string }
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default function ComingSoonPage({ searchParams }: Props) {
+export default function ComingSoonPage({ searchParams }: PageProps) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-2xl text-center">

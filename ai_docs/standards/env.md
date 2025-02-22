@@ -185,10 +185,12 @@ function checkEnvironment() {
 
 ### Error Tracking
 ```typescript
-function logEnvironmentError(error: Error) {
+function logEnvironmentError(error: Error, context?: Record<string, unknown>) {
   logger.error('Environment error:', {
     error: error.message,
-    timestamp: new Date().toISOString(),
+    code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+    context,
+    timestamp: new Date().toISOString()
   })
 }
 ```

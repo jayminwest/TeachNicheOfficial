@@ -232,11 +232,12 @@ function trackPerformanceMetric(
 
 ### Error Tracking
 ```typescript
-function trackPerformanceError(error: Error, context: object) {
+function trackPerformanceError(error: Error, context?: Record<string, unknown>) {
   logger.error('Performance error:', {
     error: error.message,
+    code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
     stack: error.stack,
-    ...context,
+    context,
     timestamp: new Date().toISOString()
   })
 }

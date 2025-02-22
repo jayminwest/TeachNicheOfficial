@@ -258,11 +258,13 @@ create index lessons_user_id_idx on lessons(user_id);
 
 ### Error Tracking
 ```typescript
-function logDatabaseError(error: Error, context: object) {
+function logDatabaseError(error: Error, context?: Record<string, unknown>) {
   logger.error('Database error:', {
     error: error.message,
+    code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
     stack: error.stack,
-    ...context
+    context,
+    timestamp: new Date().toISOString()
   })
 }
 ```

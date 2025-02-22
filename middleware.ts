@@ -3,7 +3,14 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Define paths that should be restricted to authenticated users
-const RESTRICTED_PATHS: string[] = []
+const RESTRICTED_PATHS: string[] = [
+  '/lessons/create',
+  '/profile/settings',
+  '/dashboard/analytics',
+  '/api/checkout',
+  '/api/stripe',
+  '/api/video'
+]
 
 // Define paths that are work-in-progress and should be blocked for everyone
 const WIP_PATHS = [

@@ -87,27 +87,36 @@ const { user, loading } = useAuth();
 if (!user) return <SignInPage />;
 ```
  
- ## 6. Payment Integration (Stripe Connect)
+## 5. External Services
+
+### 5.1 Stripe Connect (v2025-01-27.acacia)
+For detailed payment integration guidelines, see [ai_docs/standards/payments.md](ai_docs/standards/payments.md)
+
+Key principles:
+- Use pre-built Stripe components
+- Handle webhooks in Edge Functions
+- Implement proper error handling
+- Enable creator payouts
+
+### 5.2 Mux Video
+For detailed video handling guidelines, see [ai_docs/standards/video.md](ai_docs/standards/video.md)
+
+Key principles:
+- Follow SDK best practices
+- Handle upload/playback errors
+- Implement proper analytics
  
- - **Stripe API:**  Use the Stripe API for payment processing. Handle Stripe interactions securely, especially on the server-side (Edge Functions). Keep Stripe integration as straightforward as possible, leveraging Stripe's pre-built components and APIs. Version '2025-01-27.acacia'.
- - **Checkout Sessions:**  Implement Stripe Checkout Sessions for a streamlined payment experience. Use the simplest checkout flow that meets the requirements.
- - **Webhook Handling:**  Set up Stripe webhook handlers in Edge Functions to securely process payment confirmations and updates. Keep webhook handlers concise and focused on essential tasks.
- - **Error Handling:**  Implement proper error handling for payment failures and edge cases. Keep error handling simple and -friendly.
- - Stipe connect capabilities with creators able to recieive payouts easily
- 
- ## 7. Video Handling (Vimeo)
- 
- - Mux API for video uploading, streaming and analytics
- - Follow Mux SDK best practices for video handling
- - Implement proper error handling for upload/playback failures
  
  
- 
- ## 8. Environment Variables and Secrets
- 
- - **`.env` for local development:**  Store local development environment variables in `.env`. Keep the number of environment variables to a minimum.
- - **Environment Variables in Vercel:**  Configure environment variables in Vercel for production and staging environments.
- - **`.env.template`:**  Provide a `.env.template` file with placeholder variables for developers to easily set up their local environment. Keep the `.env.template` minimal and only include essential variables.
+## 6. Environment & Deployment
+
+### 6.1 Environment Variables
+For detailed environment configuration guidelines, see [ai_docs/standards/env.md](ai_docs/standards/env.md)
+
+Key principles:
+- Use .env for local development
+- Configure in Vercel for production
+- Provide .env.template
  
  ## 9. Testing Standards
 

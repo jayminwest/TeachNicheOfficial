@@ -1,40 +1,67 @@
-# How to Use the Adaptive Development System
+# Using the Adaptive Development System
 
 ## Overview
 
-This guide explains how to use our AI-driven development system effectively. The system adapts its requirements and checks based on the type and complexity of changes being made.
+This guide walks you through using our AI-driven development system. The system adapts its requirements and checks based on your change's type and complexity.
 
-## Quick Start
+## Quick Start Guide
 
-1. Determine Change Configuration
-```typescript
-const config: WorkflowConfig = {
-  changeType: 'feature', // feature, fix, docs, refactor
-  complexity: 'medium',  // simple, medium, complex
-  urgency: 'normal',    // normal, urgent
-  scope: {
-    affects: ['ui'],
-    testingRequired: ['unit', 'integration']
-  }
-};
-```
-
-2. Create Branch
+### 1. Start with Planning
 ```bash
-# For features
-git checkout -b feature/my-feature dev
-
-# For fixes
-git checkout -b fix/issue-123 dev
-
-# For docs
-git checkout -b docs/component-api dev
+# Create a new feature plan
+cp ai_docs/planning.md planning/your-feature.md
 ```
 
-3. Follow Workflow
-- Check requirements in workflows/{type}.md
-- Run quality checks from checks/
-- Use AI prompts from prompts/
+Open your new planning document and:
+- Define core requirements
+- Assess technical scope
+- Plan architecture
+- Define testing strategy
+
+### 2. Configure Your Change
+After planning, create your change configuration:
+
+```typescript
+// In your planning document:
+const changeConfig = {
+  // Type of change
+  changeType: 'feature',  // feature, fix, docs, refactor
+  
+  // Assessed complexity from planning
+  complexity: 'medium',   // simple, medium, complex
+  
+  // Time sensitivity
+  urgency: 'normal',     // normal, urgent
+  
+  // Areas affected and testing needs
+  scope: {
+    // System areas this touches
+    affects: ['ui', 'api'],
+    
+    // Required test types
+    testingRequired: ['unit', 'integration', 'e2e']
+  }
+}
+```
+
+This configuration determines:
+- Quality gate requirements
+- Testing depth needed
+- AI assistance level
+- Review process rigor
+
+### 3. Start Development
+```bash
+# Create your branch (based on change type)
+git checkout -b feature/your-feature dev   # For features
+git checkout -b fix/issue-123 dev          # For fixes
+git checkout -b docs/api-docs dev          # For docs
+
+# Get relevant workflow requirements
+cat ai_docs/workflows/feature.md           # For features
+cat ai_docs/workflows/fix.md               # For fixes
+cat ai_docs/workflows/docs.md              # For docs
+```
 
 ## Change Types
 

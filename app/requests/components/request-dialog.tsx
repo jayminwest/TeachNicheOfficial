@@ -73,13 +73,13 @@ export function RequestDialog({ children }: RequestDialogProps) {
             {children}
           </div>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-background p-6 shadow-lg relative z-[100]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Lesson Request</DialogTitle>
           </DialogHeader>
-          <div className="mt-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -168,12 +168,9 @@ export function RequestDialog({ children }: RequestDialogProps) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Submit Request
-              </Button>
-              </form>
-            </Form>
-          </div>
+              <Button type="submit">Submit Request</Button>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
       <AuthDialog 

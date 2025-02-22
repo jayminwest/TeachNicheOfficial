@@ -127,7 +127,7 @@ describe('RequestsPage', () => {
     await waitFor(() => {
       const dialog = screen.getByRole('dialog')
       expect(dialog).toBeInTheDocument()
-      expect(screen.getByText(/sign in/i)).toBeInTheDocument()
+      expect(screen.getByText(/sign in to teach niche/i)).toBeInTheDocument()
     })
   })
 

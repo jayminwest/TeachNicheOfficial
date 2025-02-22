@@ -49,18 +49,29 @@ export function RequestDialog({ children }: RequestDialogProps) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <button
-            type="button"
+          <div
             onClick={(e) => {
               if (!user) {
                 e.preventDefault()
                 setShowAuth(true)
               }
             }}
-            aria-label="New Request"
+            className="inline-block w-full"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                if (!user) {
+                  setShowAuth(true)
+                } else {
+                  setOpen(true)
+                }
+              }
+            }}
           >
             {children}
-          </button>
+          </div>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

@@ -102,11 +102,12 @@ export function RequestDialog({ children }: RequestDialogProps) {
                 name="instagram_handle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preferred Teacher&apos;s Instagram</FormLabel>
+                    <FormLabel>Preferred Teacher&apos;s Instagram (Optional)</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="@username" 
+                        placeholder="@username (optional)"
                         {...field}
+                        value={field.value || ''}
                       />
                     </FormControl>
                     <FormMessage />

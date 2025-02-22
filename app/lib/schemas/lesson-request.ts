@@ -39,7 +39,11 @@ export const lessonRequestSchema = z.object({
     required_error: "Please select a category",
     invalid_type_error: "Please select a valid category"
   }),
-  instagram_handle: z.string().regex(/^@?[\w](?!.*?\.{2})[\w.]{1,28}[\w]$/, "Invalid Instagram handle").optional(),
+  instagram_handle: z.string()
+    .regex(/^@?[\w](?!.*?\.{2})[\w.]{1,28}[\w]$/, "Invalid Instagram handle")
+    .transform(val => val.startsWith('@') ? val : `@${val}`)
+    .optional()
+    .nullable(),
   tags: z.array(z.string()).optional().default([])
 })
 

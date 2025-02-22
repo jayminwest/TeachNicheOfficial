@@ -81,7 +81,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto py-4">
+          <div className="flex-1 overflow-y-auto pt-2 pb-4 px-1">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField

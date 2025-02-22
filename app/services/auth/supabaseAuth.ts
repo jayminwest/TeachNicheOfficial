@@ -33,13 +33,23 @@ export const signInWithGoogle = async () => {
 
 
 export const signUp = async (email: string, password: string) => {
+  console.log('Attempting signup with email:', email)
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${window.location.origin}`
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      data: {
+        email: email,
+      }
     }
   })
-  if (error) throw error
+  
+  if (error) {
+    console.error('Signup error:', error)
+    throw error
+  }
+  
+  console.log('Signup response:', data)
   return data
 }

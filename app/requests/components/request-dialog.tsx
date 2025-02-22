@@ -59,8 +59,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
+              e.preventDefault() // Prevent default to ensure consistent behavior
               if (!user) {
-                e.preventDefault()
                 setShowAuth(true)
               } else {
                 setOpen(true)

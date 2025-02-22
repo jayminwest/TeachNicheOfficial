@@ -91,6 +91,8 @@ describe('RequestDialog', () => {
     
     // Test Enter key
     await user.keyboard('{Enter}')
-    expect(screen.getByText(/create new lesson request/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/create new lesson request/i)).toBeInTheDocument()
+    })
   })
 })

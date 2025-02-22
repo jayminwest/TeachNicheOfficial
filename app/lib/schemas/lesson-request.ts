@@ -44,7 +44,8 @@ export const lessonRequestSchema = z.object({
     .regex(/^@?[\w](?!.*?\.{2})[\w.]{1,28}[\w]$/, "Invalid Instagram handle")
     .transform(val => val.startsWith('@') ? val : `@${val}`)
     .optional()
-    .nullable(),
+    .nullable()
+    .or(z.literal('')),
   tags: z.array(z.string()).optional().default([])
 })
 

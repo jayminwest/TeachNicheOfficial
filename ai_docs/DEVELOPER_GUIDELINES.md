@@ -1,13 +1,22 @@
- # Teach Niche Developer Guide
- 
- ## Core Philosophy
- 
- Our development approach emphasizes:
- - **Modularity**: Each component and service has a single, well-defined responsibility
- - **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
- - **Type Safety**: Leverage TypeScript for robust, maintainable code
- - **Testing First**: Write tests before implementing features
- 
+# Teach Niche Developer Guide
+
+## Core Philosophy
+
+Our development approach emphasizes:
+- **Modularity**: Each component and service has a single, well-defined responsibility
+- **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
+- **Type Safety**: Leverage TypeScript for robust, maintainable code
+- **Testing First**: Write tests before implementing features
+
+## Quick Reference
+
+This guide provides high-level guidelines. For detailed standards, refer to:
+
+- Component Development: [ai_docs/standards/components.md](ai_docs/standards/components.md)
+- Testing Standards: [ai_docs/standards/testing.md](ai_docs/standards/testing.md)
+- Git Workflow: [ai_docs/standards/git.md](ai_docs/standards/git.md)
+- Security Requirements: [ai_docs/standards/security.md](ai_docs/standards/security.md)
+- API Standards: [ai_docs/standards/api.md](ai_docs/standards/api.md)
 
  
  ## 1. Coding Standards

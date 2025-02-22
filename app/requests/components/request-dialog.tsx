@@ -75,7 +75,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
         </DialogTrigger>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New Lesson Request!</DialogTitle>
+            <DialogTitle>Create New Lesson Request</DialogTitle>
             <DialogDescription>
               Fill out the details for your lesson request below.
             </DialogDescription>

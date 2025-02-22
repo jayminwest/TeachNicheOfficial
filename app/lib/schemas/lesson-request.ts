@@ -27,8 +27,6 @@ export const LESSON_CATEGORIES = [
   'Advanced Techniques',
   'Combo Tutorial',
   'Theory & Concepts',
-  'Equipment Guide',
-  'Maintenance Tips',
   'Style Development',
   'Competition Prep',
   'Other'

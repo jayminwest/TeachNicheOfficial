@@ -60,61 +60,32 @@ Key principles:
 - Document complex components
 - Ensure accessibility (WCAG)
  
- ## 4. Data Fetching and Management (Supabase)
+## 3. Data Management
+
+For detailed data management guidelines including Supabase setup, fetching strategies, and validation requirements, see [ai_docs/standards/data.md](ai_docs/standards/data.md)
+
+Key principles:
+- Initialize Supabase client in dedicated file
+- Choose appropriate fetching strategy (SSR/CSR)
+- Write efficient queries
+- Validate all data with Zod
  
- - **Supabase Client:**  Initialize the Supabase client in a dedicated file (e.g., `src/supabase.ts`) and export it for use throughout the application. Keep Supabase client setup minimal and straightforward.
- - **Server-Side vs. Client-Side Fetching:**  Choose the appropriate data fetching strategy based on the data and performance requirements. Use server-side rendering (SSR) or static site generation (SSG) where possible for better performance and SEO. Client-side fetching (`useEffect`, `swr`, `react-query`) is suitable for dynamic data or -specific data.  Favor simpler data fetching methods when possible.
- - **Database Interactions:**  Use Supabase client methods for database interactions. Write efficient and minimal queries. Avoid fetching unnecessary data.
- - **Data Validation:**  Validate data received from the database and  inputs to prevent errors and security vulnerabilities. Keep validation logic simple and effective.
  
- 
- ## 5. Authentication and Authorization (Supabase Auth)
- 
- ### 5.1 User Authentication Implementation
+## 4. Authentication
 
- 1. **Auth Context Setup**
-    - Use the AuthContext provider from '@/app/services/auth/AuthContext'
-    - Access auth state with the useAuth() hook which provides:
-      - user: Current user object or null
-      - loading: Boolean for auth state loading
+For detailed authentication implementation guidelines including AuthContext setup, route protection, and RBAC, see [ai_docs/standards/auth.md](ai_docs/standards/auth.md)
 
- 2. **Component Authentication**
-    ```typescript
-    import { useAuth } from "@/app/services/auth/AuthContext";
-    
-    function MyComponent() {
-      const { user, loading } = useAuth();
-      
-      if (loading) return null; // Or loading indicator
-      
-      return user ? (
-        <AuthenticatedContent />
-      ) : (
-        <UnauthenticatedContent />
-      );
-    }
-    ```
+Key principles:
+- Use AuthContext provider and useAuth() hook
+- Implement proper route protection
+- Follow RBAC best practices
+- Keep auth logic simple and consistent
 
- 3. **Sign In/Sign Up Flow**
-    - Use the provided SignInPage and SignUpPage components
-    - Implement with Dialog component for modal presentation
-    - Handle switching between sign in/sign up states
-    
- 4. **Sign Out**
-    ```typescript
-    await supabase.auth.signOut();
-    window.location.href = '/'; // Redirect after signout
-    ```
-
- ### 5.2 Route Protection
- - Use middleware or component-level checks with useAuth()
- - Redirect unauthenticated users to appropriate pages
- - Keep protection logic simple and consistent
-
- ### 5.3 Role-Based Access Control (RBAC)
- - Implement using Supabase RLS when needed
- - Use application-level checks based on user roles
- - Keep role implementation minimal
+Example usage:
+```typescript
+const { user, loading } = useAuth();
+if (!user) return <SignInPage />;
+```
  
  ## 6. Payment Integration (Stripe Connect)
  

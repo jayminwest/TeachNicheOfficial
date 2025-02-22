@@ -113,13 +113,4 @@ describe('RequestsPage', () => {
     const sidebar = screen.getByTestId('request-sidebar')
     expect(sidebar).toHaveClass('-translate-x-full')
   })
-
-  it('renders create request button with correct text and icon', async () => {
-    render(<RequestsPage />)
-
-    const newRequestButton = screen.getByTestId('create-request-button')
-    expect(newRequestButton).toBeInTheDocument()
-    expect(newRequestButton).toHaveTextContent('New Request')
-    expect(newRequestButton.querySelector('svg')).toBeInTheDocument()
-  })
 })

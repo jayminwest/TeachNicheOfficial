@@ -73,7 +73,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
             {children}
           </div>
         </DialogTrigger>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Create New Lesson Request</DialogTitle>
             <DialogDescription>
@@ -83,7 +83,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
           
           <div className="flex-1 overflow-y-auto pt-2 pb-4 px-1">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-2">
               <FormField
                 control={form.control}
                 name="title"

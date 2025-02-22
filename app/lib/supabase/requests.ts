@@ -18,6 +18,7 @@ export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Pr
     .from('lesson_requests')
     .insert([{
       ...data,
+      user_id: session.session.user.id,
       status: 'open',
       vote_count: 0,
       created_at: new Date().toISOString()

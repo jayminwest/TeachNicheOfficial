@@ -74,31 +74,9 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
                     onClick={onSwitchToSignUp}
                     className="text-sm"
                   >
-                    Don't have an account? Sign up
+                    Don&apos;t have an account? Sign up
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-            <CardContent>
-              <div className="grid gap-4">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  type="button" 
-                  className="w-full"
-                  onClick={handleGoogleSignIn}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Icons.google className="mr-2 h-4 w-4" />
-                  )}
-                  Sign in with Google
-                </Button>
-                {error && (
-                  <p className="text-sm text-red-500 text-center">{error}</p>
-                )}
               </div>
             </CardContent>
           </Card>

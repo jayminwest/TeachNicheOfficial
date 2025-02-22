@@ -4,10 +4,13 @@
 
 ### Directory Structure
 ```
-__tests__/
-├── unit/
-├── integration/
-└── e2e/
+app/
+├── __tests__/           # App-wide tests
+├── components/
+│   └── ui/
+│       └── __tests__/  # Component tests
+└── features/
+    └── __tests__/      # Feature tests
 ```
 
 ### File Naming

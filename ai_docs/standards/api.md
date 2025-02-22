@@ -2,14 +2,16 @@
 
 ## API Structure
 
-### 1. Route Organization
+### Route Organization
 ```
 app/api/
-├── auth/
-├── lessons/
-├── payments/
-├── users/
-└── webhooks/
+├── checkout/         # Payment/checkout endpoints
+├── lessons/         # Lesson management
+├── mux/            # Video service integration
+├── requests/       # Lesson requests
+├── stripe/         # Payment processing
+├── video/          # Video handling
+└── webhooks/       # External service webhooks
 ```
 
 ### 2. Response Format

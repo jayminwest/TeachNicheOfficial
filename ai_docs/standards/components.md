@@ -2,22 +2,20 @@
 
 ## Component Organization
 
-### Atomic Design Structure
-- Atoms: Basic UI elements (buttons, inputs, etc)
-- Molecules: Simple component combinations
-- Organisms: Complex UI sections
-- Templates: Page layouts
-- Pages: Complete views
+### Project Structure
+```
+app/
+├── components/
+│   └── ui/            # Shared UI components using shadcn/ui
+├── features/          # Feature-specific components
+└── [feature]/        # Route-based components
+```
 
-### File Organization
-```
-components/
-├── atoms/
-├── molecules/
-├── organisms/
-├── templates/
-└── pages/
-```
+### Component Types
+- UI Components: Reusable shadcn/ui based components
+- Feature Components: Business logic components
+- Page Components: Next.js page components
+- Layout Components: Page layout and structure
 
 ## Development Guidelines
 

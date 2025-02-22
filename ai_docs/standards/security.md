@@ -2,12 +2,12 @@
 
 ## Authentication & Authorization
 
-### 1. Supabase Auth
-- Secure session management
-- Protected route implementation
-- Role-based access control
-- JWT token handling
-- Session refresh logic
+### Supabase Auth Implementation
+- AuthContext provider from '@/app/services/auth/AuthContext'
+- Protected routes via middleware
+- Role-based access via Supabase RLS
+- Session management with useAuth() hook
+- Secure token handling and refresh
 
 ### 2. API Security
 - Input validation with Zod

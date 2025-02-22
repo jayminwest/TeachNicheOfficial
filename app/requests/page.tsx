@@ -4,7 +4,7 @@ import { RequestGrid } from './components/request-grid'
 import { RequestSidebar } from './components/request-sidebar'
 import { Button } from '@/app/components/ui/button'
 import { useState } from 'react'
-import { Menu } from 'lucide-react'
+import { Menu, Plus } from 'lucide-react'
 
 export default function RequestsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>()

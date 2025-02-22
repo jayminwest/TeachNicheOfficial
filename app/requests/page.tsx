@@ -58,7 +58,7 @@ export default function RequestsPage() {
                 </p>
                 <Button 
                   data-testid="new-request-button"
-                  variant="primary"
+                  variant="default"
                   size="lg"
                   className="mt-4"
                   onClick={() => {

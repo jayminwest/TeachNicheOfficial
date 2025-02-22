@@ -118,107 +118,27 @@ Key principles:
 - Configure in Vercel for production
 - Provide .env.template
  
- ## 9. Testing Standards
+## 7. Testing
 
- ### 9.1 Test Organization
- - Place test files in a `__tests__` directory next to the source files (e.g., `app/requests/__tests__/request-form.test.tsx` for `app/requests/request-form.tsx`)
- - Name test files with `.test.tsx` or `.test.ts` suffix
- - One test file per source file
- - All mocks are centralized in the `__mocks__` directory at the project root
-   - Organized by service/feature (e.g., `__mocks__/services/auth.ts`)
-   - Provides consistent mock data and interfaces across all tests
- - Every new function/component/feature MUST include at least one basic test case at creation time
-   - Tests should verify core functionality before code review
-   - Additional test cases can be added later
-   - No PR will be accepted without accompanying tests
+For detailed testing guidelines including organization, utilities, structure, and best practices, see [ai_docs/standards/testing.md](ai_docs/standards/testing.md)
 
- ### 9.2 Testing Utilities
- We provide standard testing utilities to ensure consistency:
+Key principles:
+- Place tests in `__tests__` directories
+- Use provided testing utilities
+- Follow standard test structure
+- Maintain 80% coverage minimum
+- Include accessibility testing
+- Run tests in CI pipeline
 
- - **test-utils.tsx**: Custom render function with provider wrappers
-   - Use `render()` for basic component testing
-   - Use `{ withAuth: true }` option when testing authenticated components
-   - Customize provider props as needed
-
- - **setup/test-helpers.tsx**: Common testing patterns
-   - Use `setup()` to get configured userEvent instance
-   - Use `findByTextWithMarkup()` for complex text matching
-   - Use `waitForLoadingToFinish()` for async operations
-
- - **setup/mocks.ts**: Standard mock objects
-   - Use `createMockUser()` for consistent user data
-   - Use `mockSupabaseClient` for Supabase operations
-
- ### 9.3 Test Structure
- Follow this pattern for component tests:
- ```typescript
- describe('ComponentName', () => {
-   describe('rendering', () => {
-     it('renders without crashing')
-     it('renders expected elements')
-   })
-
-   describe('interactions', () => {
-     it('handles user interactions')
-   })
-
-   describe('props', () => {
-     it('handles all required props')
-   })
- })
- ```
-
- ### 9.4 Testing Priorities
- 1. **Critical Path Tests**
-    - Authentication flows
-    - Payment processes
-    - Form submissions
-    - Core user journeys
-
- 2. **Component Tests**
-    - Props validation
-    - Rendering states
-    - User interactions
-    - Accessibility requirements
-
- 3. **Hook Tests**
-    - Initial state
-    - State updates
-    - Side effects
-    - Error handling
-
- ### 9.5 Best Practices
- - Use Testing Library queries in this order:
-   1. getByRole
-   2. getByLabelText
-   3. getByPlaceholderText
-   4. getByText
-   5. getByTestId (last resort)
-
- - Write user-centric tests that mirror actual usage
- - Test component behavior, not implementation
- - Use `userEvent` over `fireEvent`
- - Mock external dependencies consistently
- - Reset mocks between tests
-
- ### 9.6 Coverage Requirements
- - Minimum 80% coverage for:
-   - Statements
-   - Branches
-   - Functions
-   - Lines
- - 100% coverage for critical paths
- - Generate coverage reports in CI
-
- ### 9.7 Performance & Accessibility
- - Test component render performance
- - Include accessibility checks in component tests
- - Use axe-core for automated accessibility testing
-
- ### 9.8 Continuous Integration
- - All tests must pass before merge
- - Coverage reports generated on every PR
- - Performance benchmarks tracked over time
+Example test structure:
+```typescript
+describe('ComponentName', () => {
+  it('renders and behaves as expected', () => {
+    render(<Component />);
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+});
+```
  
  ## 10. Security
  

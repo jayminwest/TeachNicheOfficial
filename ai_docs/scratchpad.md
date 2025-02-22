@@ -44,6 +44,7 @@ This document outlines different AI prompting configurations based on git branch
 - Documentation completeness checks
 - API documentation verification
 - Example code validation
+- Writing documentation MADE FOR aider
 
 ### perf/*
 - Performance optimization focus

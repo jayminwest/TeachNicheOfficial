@@ -72,6 +72,108 @@ export async function getRequests(filters?: {
   return data as LessonRequest[]
 }
 
+export async function updateRequest(id: string, data: Omit<LessonRequestFormData, 'id'>): Promise<LessonRequest> {
+  const supabase = createClientComponentClient()
+  
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.user) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to update a lesson request",
+      variant: "destructive"
+    })
+    throw new Error('Authentication required')
+  }
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from('lesson_requests')
+    .select()
+    .eq('id', id)
+    .single()
+
+  if (!existing || existing.user_id !== session.session.user.id) {
+    toast({
+      title: "Unauthorized",
+      description: "You can only edit your own requests",
+      variant: "destructive"
+    })
+    throw new Error('Unauthorized')
+  }
+
+  const { data: request, error } = await supabase
+    .from('lesson_requests')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single()
+    
+  if (error) {
+    toast({
+      title: "Error updating request",
+      description: error.message,
+      variant: "destructive"
+    })
+    throw error
+  }
+  
+  toast({
+    title: "Request updated",
+    description: "Your lesson request has been updated successfully."
+  })
+  
+  return request as LessonRequest
+}
+
+export async function deleteRequest(id: string): Promise<void> {
+  const supabase = createClientComponentClient()
+  
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.user) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to delete a lesson request",
+      variant: "destructive"
+    })
+    throw new Error('Authentication required')
+  }
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from('lesson_requests')
+    .select()
+    .eq('id', id)
+    .single()
+
+  if (!existing || existing.user_id !== session.session.user.id) {
+    toast({
+      title: "Unauthorized",
+      description: "You can only delete your own requests",
+      variant: "destructive"
+    })
+    throw new Error('Unauthorized')
+  }
+
+  const { error } = await supabase
+    .from('lesson_requests')
+    .delete()
+    .eq('id', id)
+    
+  if (error) {
+    toast({
+      title: "Error deleting request",
+      description: error.message,
+      variant: "destructive"
+    })
+    throw error
+  }
+  
+  toast({
+    title: "Request deleted",
+    description: "Your lesson request has been deleted successfully."
+  })
+}
+
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
   

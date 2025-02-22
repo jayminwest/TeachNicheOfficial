@@ -39,22 +39,26 @@ For detailed coding standards, see [ai_docs/standards/code.md](ai_docs/standards
 
 For detailed style guide, see [ai_docs/standards/style.md](ai_docs/standards/style.md)
  
- ### 1.3. React Specific Guidelines
+### 1.3. React Guidelines
+- Use functional components with hooks
+- Keep components modular and focused
+- Use built-in state management when possible
+- Define prop types with TypeScript
+- Use Tailwind CSS for styling
+- Extract complex logic to custom hooks
+
+For detailed React guidelines, see [ai_docs/standards/react.md](ai_docs/standards/react.md)
  
- - **Functional Components:** Prefer functional components with hooks over class components for their inherent simplicity and readability.
- - **Component Reusability and Modularity:**  Design components to be highly reusable and composable, but also **modular**. Break down complex components into smaller, focused sub-components. Each component should have a single, well-defined responsibility.
- - **State Management:**  Use React's built-in `useState` and `useContext` hooks for local and global state management respectively. Favor simple state management solutions. Consider libraries like Zustand or Recoil only if absolutely necessary for complex state management needs, and always start with the simplest approach.
- - **Prop Types:**  Define prop types for all React components using TypeScript interfaces or types to ensure type safety and clear component interfaces. Keep prop interfaces minimal and only include necessary props.
- - **Avoid Inline Styles:**  Use CSS modules or Tailwind CSS classes for styling components to maintain separation of concerns and improve maintainability.
- - **Minimize Component Logic:** Keep component logic focused on rendering UI. Extract complex logic into custom hooks or utility functions to maintain component simplicity.
- 
- ## 3. Component Development
- 
- - **Atomic Design Principles (with Minimalism):** Consider using Atomic Design principles (Atoms, Molecules, Organisms, Templates, Pages) to structure components for better organization and reusability. However, apply these principles with minimalism in mind. Avoid creating unnecessary layers of abstraction if a simpler component structure suffices.
- - **Shadcn UI Usage:**  Prioritize using Shadcn UI components to reduce development effort and maintain design consistency. Customize only when necessary and keep customizations minimal. Avoid creating custom components if an existing Shadcn UI component can be adapted with minimal effort.
- - **Component Modularity:**  Strive for highly modular components. Break down complex UI elements into smaller, independent, and reusable components. This promotes maintainability and reduces code duplication.
- - **Component Documentation:**  For complex or reusable components, add comments explaining their purpose, props, and usage. Keep documentation concise and focused on essential information.
- - **Accessibility (A11y):**  Ensure all components are accessible by following WCAG guidelines. Use semantic HTML, ARIA attributes where necessary, and test with screen readers. Accessibility is a core principle, but implement it efficiently and avoid adding unnecessary complexity.
+## 2. Component Development
+
+For detailed component development guidelines including Atomic Design principles, Shadcn UI usage, accessibility requirements, and documentation standards, see [ai_docs/standards/components.md](ai_docs/standards/components.md)
+
+Key principles:
+- Use Atomic Design with minimalism
+- Prefer Shadcn UI components
+- Keep components small and focused
+- Document complex components
+- Ensure accessibility (WCAG)
  
  ## 4. Data Fetching and Management (Supabase)
  

@@ -187,16 +187,17 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
             ))}
           </div>
         </CardContent>
-        <CardFooter className="pt-3 flex justify-between items-center border-t">
+        <CardFooter className="pt-3 flex justify-between items-center border-t gap-4">
           <div className="flex gap-2 items-center">
             {currentUserId === request.user_id && (
               <RequestDialog request={request} mode="edit">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="transition-all duration-200 hover:scale-105"
+                  className="transition-all duration-200 hover:scale-105 flex items-center gap-2"
                 >
                   <Edit2 className="w-4 h-4" />
+                  <span>Edit</span>
                 </Button>
               </RequestDialog>
             )}

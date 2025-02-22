@@ -5,14 +5,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/app/components/ui/card'
-import { Input } from '@/app/components/ui/input'
-import { Label } from '@/app/components/ui/label'
 import { Icons } from '@/app/components/ui/icons'
-import { signUp, signInWithGoogle } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 
 interface SignUpPageProps {
@@ -20,40 +17,10 @@ interface SignUpPageProps {
 }
 
 function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { loading, user } = useAuth()
-
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setSuccessMessage(null)
-
-    try {
-      const data = await signUp(email, password)
-      
-      if (data.user && !data.user.confirmed_at) {
-        setSuccessMessage('Please check your email for confirmation link')
-        setEmail('')
-        setPassword('')
-        return
-      }
-
-      router.push('/')
-    } catch (err) {
-      console.error('Signup error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to sign up')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -79,84 +46,34 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
       ) : (
         <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
           <Card className="w-full max-w-[400px]">
-            <form onSubmit={handleSubmit}>
-        <CardHeader className="space-y-1">
-          <CardTitle>Join Teach Niche</CardTitle>
-          <CardDescription>
-            Create an account to get started with Teach Niche
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-1 gap-4">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              type="button" 
-              className="h-7"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              <Icons.google className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-          </div>
-          
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or continue with</span>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
-          </div>
-        </CardContent>
-        
-        <CardFooter className="flex flex-col space-y-4">
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
-          {successMessage && (
-            <p className="text-sm text-green-500">{successMessage}</p>
-          )}
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "Loading..." : "Continue"}
-          </Button>
-          <Button 
-            variant="link" 
-            size="sm" 
-            className="w-full"
-            onClick={onSwitchToSignIn}
-          >
-            Already have an account? Sign in
-          </Button>
-        </CardFooter>
-            </form>
+            <CardHeader className="space-y-1">
+              <CardTitle>Join Teach Niche</CardTitle>
+              <CardDescription>
+                Create an account to get started with Teach Niche
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <Button 
+                  size="lg"
+                  variant="outline" 
+                  type="button" 
+                  className="w-full"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Icons.google className="mr-2 h-4 w-4" />
+                  )}
+                  Sign up with Google
+                </Button>
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
+              </div>
+            </CardContent>
           </Card>
         </div>
       )}

@@ -267,6 +267,4 @@ Key principles:
  - Zero-downtime deployments
  - Automated rollbacks on failure
  
- 
- 
  By adhering to these guidelines, with a strong focus on **modularity and minimalism**, we can ensure a consistent, maintainable, and high-quality codebase for the Teach Niche project.  These guidelines are living documents and should be updated as the project evolves and new best practices emerge, always keeping modularity and minimalism in mind.````

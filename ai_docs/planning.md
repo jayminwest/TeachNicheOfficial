@@ -26,7 +26,12 @@ interface ComplexityAssessment {
     auth: boolean;
     payment: boolean;
   };
-  estimate: string;
+  effort: 'minimal lift' | 'moderate lift' | 'significant lift';
+  scope: {
+    size: 'focused' | 'broad' | 'system-wide';     // How many areas this touches
+    impact: 'additive' | 'modifying' | 'breaking';  // How it affects existing code
+    risk: 'low' | 'medium' | 'high';               // Potential for issues
+  };
 }
 ```
 
@@ -137,7 +142,12 @@ const featurePlan = {
       auth: true,
       payment: false
     },
-    estimate: "3 days"
+    effort: "moderate lift",
+    scope: {
+      size: "focused",      // Single feature area
+      impact: "additive",   // Adds new functionality
+      risk: "low"          // Well-understood integration
+    }
   },
   components: [
     {

@@ -7,7 +7,6 @@ This document outlines different AI prompting configurations based on git branch
 ### main
 - Strict code review focus
   - Type safety verification across component interfaces
-  - Check for any usage of 'any' types
   - Verify proper error handling and user feedback
   - Ensure all props are properly typed
 - Security and stability checks
@@ -144,23 +143,6 @@ This document outlines different AI prompting configurations based on git branch
   - Include clear code references
   - Maintain consistent structure
   - Provide context for AI analysis
-
-### perf/*
-- Performance optimization focus
-  - Review component rendering
-  - Check bundle size impact
-  - Analyze data fetching
-  - Verify image optimization
-- Resource usage analysis
-  - Monitor memory usage
-  - Check CPU utilization
-  - Review network requests
-  - Analyze bundle size
-- Bottleneck identification
-  - Profile component rendering
-  - Check database queries
-  - Review API response times
-  - Analyze client-side operations
 
 ### test/*
 - Test coverage analysis

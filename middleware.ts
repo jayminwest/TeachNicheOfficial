@@ -6,7 +6,13 @@ import type { NextRequest } from 'next/server'
 const RESTRICTED_PATHS = [
   '/lessons',
   '/profile', 
-  '/dashboard'
+  '/dashboard',
+  '/api/lessons',
+  '/api/profile',
+  '/api/dashboard',
+  '/api/checkout',
+  '/api/stripe',
+  '/api/video'
 ]
 
 // Define paths that are work-in-progress and should be blocked for everyone
@@ -21,7 +27,9 @@ const PUBLIC_PATHS = [
   '/',
   '/about',
   '/legal',
-  '/requests'
+  '/requests',
+  '/api/requests', // Keep requests API accessible
+  '/coming-soon'
 ]
 
 export async function middleware(req: NextRequest) {

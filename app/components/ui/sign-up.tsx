@@ -47,7 +47,6 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
         <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
           <Card className="w-full max-w-[400px]">
             <CardHeader className="space-y-1">
-              <CardTitle>Join Teach Niche</CardTitle>
               <CardDescription>
                 Create an account to get started with Teach Niche
               </CardDescription>

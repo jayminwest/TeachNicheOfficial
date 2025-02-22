@@ -47,7 +47,6 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
           <Card className="w-full max-w-[400px]">
             <CardHeader className="space-y-1">
-              <CardTitle>Sign in to Teach Niche</CardTitle>
               <CardDescription>Welcome back! Please sign in to continue</CardDescription>
             </CardHeader>
             <CardContent>

@@ -20,7 +20,7 @@ interface RequestDialogProps {
 export function RequestDialog({ children }: RequestDialogProps) {
   const [open, setOpen] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
-  const { user } = useAuth()
+  const { user } = useAuth() // Keep this since we'll need it for the DialogTrigger
   
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),

@@ -15,19 +15,28 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
 interface RequestDialogProps {
   children: React.ReactNode
+  request?: LessonRequest
+  mode?: 'create' | 'edit'
 }
 
-export function RequestDialog({ children }: RequestDialogProps) {
+export function RequestDialog({ children, request, mode = 'create' }: RequestDialogProps) {
   const [open, setOpen] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const { user } = useAuth() // Keep this since we'll need it for the DialogTrigger
   
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),
-    defaultValues: {
+    defaultValues: request ? {
+      id: request.id,
+      title: request.title,
+      description: request.description,
+      category: request.category,
+      instagram_handle: request.instagram_handle || '',
+      tags: request.tags || []
+    } : {
       title: '',
       description: '',
-      category: 'Trick Tutorial', // Set a default category
+      category: 'Trick Tutorial',
       instagram_handle: '',
       tags: []
     }
@@ -35,10 +44,13 @@ export function RequestDialog({ children }: RequestDialogProps) {
 
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
-      await createRequest(data)
+      if (mode === 'edit' && request) {
+        await updateRequest(request.id, data)
+      } else {
+        await createRequest(data)
+      }
       setOpen(false)
       form.reset()
-      // Trigger a page refresh or update
       window.location.reload()
     } catch (error) {
       console.error('Failed to create request:', error)
@@ -74,7 +86,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
         </DialogTrigger>
         <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Create New Lesson Request</DialogTitle>
+            <DialogTitle>{mode === 'edit' ? 'Edit Lesson Request' : 'Create New Lesson Request'}</DialogTitle>
             <DialogDescription>
               Fill out the details for your lesson request below.
             </DialogDescription>
@@ -164,7 +176,30 @@ export function RequestDialog({ children }: RequestDialogProps) {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Submit Request</Button>
+              <div className="flex justify-between">
+                {mode === 'edit' && request && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to delete this request?')) {
+                        try {
+                          await deleteRequest(request.id)
+                          setOpen(false)
+                          window.location.reload()
+                        } catch (error) {
+                          console.error('Failed to delete request:', error)
+                        }
+                      }
+                    }}
+                  >
+                    Delete Request
+                  </Button>
+                )}
+                <Button type="submit" className={mode === 'edit' ? 'ml-auto' : ''}>
+                  {mode === 'edit' ? 'Save Changes' : 'Submit Request'}
+                </Button>
+              </div>
               </form>
             </Form>
           </div>

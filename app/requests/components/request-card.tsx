@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
-import { ThumbsUp } from 'lucide-react'
+import { ThumbsUp, Edit2 } from 'lucide-react'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
@@ -13,9 +13,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 interface RequestCardProps {
   request: LessonRequest
   onVote: () => void
+  currentUserId?: string
 }
 
-export function RequestCard({ request, onVote }: RequestCardProps) {
+export function RequestCard({ request, onVote, currentUserId }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
   const [hasVoted, setHasVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(request.vote_count)
@@ -186,13 +187,25 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
           </div>
         </CardContent>
         <CardFooter className="pt-3 flex justify-between items-center border-t">
-          <Button
-            variant={hasVoted ? "default" : "outline"}
-            size="sm"
-            onClick={handleVote}
-            disabled={isVoting}
-            className="transition-all duration-200 hover:scale-105"
-          >
+          <div className="flex gap-2 items-center">
+            {currentUserId === request.user_id && (
+              <RequestDialog request={request} mode="edit">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="transition-all duration-200 hover:scale-105"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+              </RequestDialog>
+            )}
+            <Button
+              variant={hasVoted ? "default" : "outline"}
+              size="sm"
+              onClick={handleVote}
+              disabled={isVoting}
+              className="transition-all duration-200 hover:scale-105"
+            >
             <ThumbsUp className={`w-4 h-4 mr-2 transition-transform group-hover:scale-110 ${
               hasVoted ? 'fill-current text-black' : 'stroke-white stroke-[1.5]'
             }`} />
@@ -200,7 +213,8 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
             <span className="ml-1 text-xs text-muted-foreground">
               {voteCount === 1 ? 'vote' : 'votes'}
             </span>
-          </Button>
+            </Button>
+          </div>
         </CardFooter>
       </Card>
       <AuthDialog 

@@ -117,7 +117,7 @@ describe('RequestsPage', () => {
   it('renders create request button with correct text and icon', async () => {
     render(<RequestsPage />)
 
-    const newRequestButton = screen.getByRole('button', { name: /new request/i })
+    const newRequestButton = screen.getByTestId('create-request-button')
     expect(newRequestButton).toBeInTheDocument()
     expect(newRequestButton).toHaveTextContent('New Request')
     expect(newRequestButton.querySelector('svg')).toBeInTheDocument()

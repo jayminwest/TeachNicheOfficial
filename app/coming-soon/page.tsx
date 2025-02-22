@@ -7,11 +7,7 @@ export const metadata: Metadata = {
   description: "This page is under construction. Check back at launch!",
 }
 
-export default function ComingSoonPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
+export default function ComingSoonPage() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-2xl text-center">
@@ -21,11 +17,6 @@ export default function ComingSoonPage({
         <p className="mt-6 text-lg leading-8 text-muted-foreground">
           This page is still under construction. Check back at launch!
         </p>
-        {searchParams.from && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Requested path: {searchParams.from}
-          </p>
-        )}
         <div className="mt-10">
           <Link
             href="/"

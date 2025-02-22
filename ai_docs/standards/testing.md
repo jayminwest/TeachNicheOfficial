@@ -85,7 +85,7 @@ describe('Component', () => {
 import { createMocks } from 'node-mocks-http';
 
 describe('API', () => {
-  it('handles requests correctly', async () => {
+  it('handles successful requests', async () => {
     const { req, res } = createMocks({
       method: 'POST',
       body: { data: 'test' }
@@ -93,6 +93,23 @@ describe('API', () => {
     
     await handler(req, res);
     expect(res._getStatusCode()).toBe(200);
+  });
+
+  it('handles errors appropriately', async () => {
+    const { req, res } = createMocks({
+      method: 'POST',
+      body: { data: 'invalid' }
+    });
+    
+    await handler(req, res);
+    
+    expect(res._getStatusCode()).toBe(400);
+    expect(JSON.parse(res._getData())).toEqual({
+      error: {
+        code: expect.any(String),
+        message: expect.any(String)
+      }
+    });
   });
 });
 ```

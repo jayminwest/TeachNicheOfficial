@@ -58,8 +58,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
             }
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault() // Prevent default to ensure consistent behavior
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
               if (!user) {
                 setShowAuth(true)
               } else {
@@ -67,6 +67,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
               }
             }
           }}
+          role="button"
+          tabIndex={0}
         >
           {children}
         </DialogTrigger>

@@ -92,8 +92,9 @@ describe('RequestDialog', () => {
     // Test Enter key
     await user.keyboard('{Enter}')
     
-    // Use findByText with a longer timeout since dialog animation takes time
-    const dialogTitle = await screen.findByText(/create new lesson request/i, {}, { timeout: 2000 })
-    expect(dialogTitle).toBeInTheDocument()
+    // Check if dialog state changed
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(dialog).toHaveTextContent(/create new lesson request/i)
   })
 })

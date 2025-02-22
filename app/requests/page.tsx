@@ -7,8 +7,6 @@ import { useState } from 'react'
 import { Menu, Plus } from 'lucide-react'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { RequestDialog } from './components/request-dialog'
-import { useAuth } from '@/app/services/auth/AuthContext'
-
 export default function RequestsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>()
   const [sortBy, setSortBy] = useState<'popular' | 'newest'>('popular')

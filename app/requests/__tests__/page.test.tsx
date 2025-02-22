@@ -120,7 +120,7 @@ describe('RequestsPage', () => {
     render(<RequestsPage />)
 
     // Click new request button
-    const newRequestButton = screen.getByRole('button', { name: /new request/i })
+    const newRequestButton = screen.getByTestId('new-request-button')
     await user.click(newRequestButton)
 
     // Wait for auth dialog to appear and check for sign in/up text
@@ -141,7 +141,7 @@ describe('RequestsPage', () => {
     render(<RequestsPage />)
 
     // Click new request button
-    const newRequestButton = screen.getByRole('button', { name: /new request/i })
+    const newRequestButton = screen.getByTestId('new-request-button')
     await user.click(newRequestButton)
 
     // Wait for request dialog to appear

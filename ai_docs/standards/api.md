@@ -63,12 +63,14 @@ export default async function handler(
 ```typescript
 function handleApiError(
   error: unknown,
-  res: NextApiResponse
+  res: NextApiResponse,
+  context?: Record<string, unknown>
 ) {
   logger.error('API error:', {
     error: error instanceof Error ? error.message : 'Unknown error',
     code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
-    context: { path: req.url }
+    context,
+    timestamp: new Date().toISOString()
   });
 
   if (error instanceof ValidationError) {
@@ -84,7 +86,8 @@ function handleApiError(
   return res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
-      message: 'An unexpected error occurred'
+      message: 'An unexpected error occurred',
+      requestId: generateRequestId()
     }
   });
 }

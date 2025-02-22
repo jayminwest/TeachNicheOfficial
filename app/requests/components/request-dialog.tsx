@@ -77,8 +77,9 @@ export function RequestDialog({ children }: RequestDialogProps) {
           <DialogHeader>
             <DialogTitle>Create New Lesson Request</DialogTitle>
           </DialogHeader>
+          <div className="mt-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="title"
@@ -86,7 +87,11 @@ export function RequestDialog({ children }: RequestDialogProps) {
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter lesson title..." {...field} />
+                      <Input 
+                        placeholder="Enter lesson title..." 
+                        {...field}
+                        className="w-full bg-background border"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -101,7 +106,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
                     <FormControl>
                       <Textarea 
                         placeholder="Describe what you'd like to learn..." 
-                        {...field} 
+                        {...field}
+                        className="w-full min-h-[100px] bg-background border" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -119,6 +125,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
                         placeholder="@username (optional)"
                         {...field}
                         value={field.value || ''}
+                        className="w-full bg-background border"
                       />
                     </FormControl>
                     <FormMessage />

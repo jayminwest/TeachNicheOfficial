@@ -140,33 +140,34 @@ describe('ComponentName', () => {
 });
 ```
  
- ## 10. Security
+## 8. Security & Error Handling
+
+For detailed security guidelines and error handling strategies, see [ai_docs/standards/security.md](ai_docs/standards/security.md)
+
+Key principles:
+- Validate all inputs with Zod
+- Protect API routes with auth middleware
+- Use Error Boundaries for UI errors
+- Implement structured error logging
+
+## 9. Performance
+
+For detailed performance optimization guidelines, see [ai_docs/standards/performance.md](ai_docs/standards/performance.md)
+
+Key principles:
+- Use route-based code splitting
+- Optimize images with Next/Image
+- Monitor Core Web Vitals
+- Run bundle analysis in CI
  
- - Input validation using zod schemas
- - XSS prevention via React's built-in escaping
- - CSRF protection via Next.js defaults
- - API routes protected with proper auth middleware
- - Secure session handling via Supabase Auth
- 
- ## 11. Error Handling & Monitoring
- 
- - Use React Error Boundaries for UI errors
- - Consistent API error responses
- - Client-side error tracking via error monitoring service
- - Structured logging in production
- 
- ## 12. Performance
- 
- - Route-based code splitting
- - Image optimization via Next/Image
- - Bundle analysis in CI pipeline
- - Core Web Vitals monitoring
- 
- ## 13. Documentation
- 
- - **Code Comments:**  Write clear and concise comments in the code to explain complex logic and functionality.  Prioritize self-documenting code and minimize the need for comments.
- - **README.md:**  Maintain a comprehensive `README.md` file in the project root with project description, setup instructions, and other relevant information. Keep `README.md` concise and focused on essential information.
- - **`ai_docs/` directory:**  Use the `ai_docs/` directory for project planning documents, architecture diagrams, and other project-related documentation. Keep documentation in `ai_docs/` minimal and focused on high-level information.
+## 10. Documentation
+
+For detailed documentation standards, see [ai_docs/standards/docs.md](ai_docs/standards/docs.md)
+
+Key principles:
+- Write clear, minimal code comments
+- Maintain comprehensive README.md
+- Keep ai_docs/ focused and up-to-date
  
  
  ## Architecture

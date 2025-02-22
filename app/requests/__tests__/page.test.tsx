@@ -114,16 +114,12 @@ describe('RequestsPage', () => {
     expect(sidebar).toHaveClass('-translate-x-full')
   })
 
-  it('opens request dialog when create button is clicked', async () => {
-    const user = userEvent.setup()
+  it('renders create request button with correct text and icon', async () => {
     render(<RequestsPage />)
 
-    // Click new request button
     const newRequestButton = screen.getByTestId('create-request-button')
-    await user.click(newRequestButton)
-
-    // Verify button text and icon are present
-    expect(screen.getByText('New Request')).toBeInTheDocument()
-    expect(screen.getByTestId('create-request-button').querySelector('svg')).toBeInTheDocument()
+    expect(newRequestButton).toBeInTheDocument()
+    expect(newRequestButton).toHaveTextContent('New Request')
+    expect(newRequestButton.querySelector('svg')).toBeInTheDocument()
   })
 })

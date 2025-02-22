@@ -73,7 +73,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
             {children}
           </div>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-background p-6 shadow-lg relative z-[100]">
           <DialogHeader>
             <DialogTitle>Create New Lesson Request</DialogTitle>
           </DialogHeader>
@@ -137,12 +137,12 @@ export function RequestDialog({ children }: RequestDialogProps) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full bg-background">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent 
-                        className="max-h-[200px] overflow-y-auto relative z-[9999]"
+                        className="bg-background border shadow-md"
                         position="popper"
                         sideOffset={5}
                       >

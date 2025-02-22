@@ -19,24 +19,25 @@ This guide provides high-level guidelines. For detailed standards, refer to:
 - API Standards: [ai_docs/standards/api.md](ai_docs/standards/api.md)
 
  
- ## 1. Coding Standards
+## 1. Coding Standards
+
+### 1.1. Language and Frameworks
+- **TypeScript:** All code must be written in TypeScript for type safety
+- **React:** Use functional components and hooks
+- **Next.js:** Follow app router conventions
+- **Shadcn UI:** Use for consistent UI components
+
+For detailed coding standards, see [ai_docs/standards/code.md](ai_docs/standards/code.md)
  
- ### 1.1. Language and Frameworks
- 
- - **TypeScript:**  All code must be written in TypeScript for type safety and improved code maintainability.
- - **React:**  Use React for building UI components. Follow React best practices, focusing on functional components and hooks for simpler state management.
- - **Next.js:**  Utilize Next.js framework conventions for routing, data fetching, and API routes. Embrace Next.js's features for efficient and minimal code.
- - **Shadcn UI:**  Leverage Shadcn UI components for a consistent and modern UI. Customize components judiciously, prioritizing minimalism and avoiding unnecessary complexity.
- 
- ### 1.2. Code Style
- 
- - **ESLint and Prettier:**  The project should be configured with ESLint and Prettier to enforce code style and formatting, ensuring clean and consistent code with minimal stylistic variations.
- - **Clean Code Principles:**  Write clean, readable, and well-documented code. Follow SOLID principles where applicable, but prioritize simplicity and avoid over-engineering.
- - **Comments:**  Add comments to explain complex logic, non-obvious code sections, and exported functions/components. Use Google style documentation, but strive for code that is self-explanatory and minimizes the need for extensive comments.
- - **Variable and Function Naming:**  Use descriptive and meaningful names for variables and functions. Follow camelCase convention. Keep names concise and to the point.
- - **Avoid Magic Numbers:**  Use constants for numerical values with specific meanings.
- - **Minimalism in Code:** Aim for the simplest solution that solves the problem. Avoid unnecessary abstractions or overly complex patterns when a simpler approach suffices.  **Keep it simple, and avoid "gold plating".**
- - DO NOT USE "any" types
+### 1.2. Code Style
+- Use ESLint and Prettier for consistent formatting
+- Follow clean code principles but prioritize simplicity
+- Write self-documenting code with minimal comments
+- Use descriptive names in camelCase
+- Avoid magic numbers with constants
+- Never use "any" types
+
+For detailed style guide, see [ai_docs/standards/style.md](ai_docs/standards/style.md)
  
  ### 1.3. React Specific Guidelines
  

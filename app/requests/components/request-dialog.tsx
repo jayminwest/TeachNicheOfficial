@@ -31,7 +31,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
       id: request.id,
       title: request.title,
       description: request.description,
-      category: request.category,
+      category: request.category as typeof LESSON_CATEGORIES[number],
       instagram_handle: request.instagram_handle || '',
       tags: request.tags || []
     } : {

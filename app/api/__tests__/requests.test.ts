@@ -56,6 +56,7 @@ describe('Requests API Routes', () => {
         data: { id: '123', title: 'Test Request' },
         error: null 
       }),
+      eq: jest.fn().mockReturnThis(),
       order: jest.fn().mockResolvedValue({
         data: [{ id: '123', title: 'Test Request' }],
         error: null

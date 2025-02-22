@@ -31,7 +31,13 @@ export async function POST(request: Request) {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json(
+        { error: 'Failed to create request' },
+        { status: 400 }
+      )
+    }
 
     return NextResponse.json(data)
   } catch (error) {

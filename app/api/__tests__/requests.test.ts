@@ -36,6 +36,10 @@ class MockRequest {
     this.method = init?.method || 'GET';
     this.body = init?.body as string;
   }
+
+  async json() {
+    return JSON.parse(this.body || '{}');
+  }
 }
 
 global.Request = MockRequest as unknown as typeof Request;

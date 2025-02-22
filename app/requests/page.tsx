@@ -66,7 +66,6 @@ export default function RequestsPage() {
 
                 <RequestDialog>
                   <Button 
-                    data-testid="new-request-button"
                     variant="default"
                     size="lg"
                     className="mt-4"

@@ -56,7 +56,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
                 setShowAuth(true)
               }
             }}
-            className="w-full"
+            className="w-full" 
+            data-testid="new-request-button"
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()

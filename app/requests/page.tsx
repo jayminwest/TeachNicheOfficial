@@ -69,6 +69,7 @@ export default function RequestsPage() {
                     variant="default"
                     size="lg"
                     className="mt-4"
+                    data-testid="new-request-button"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     New Request

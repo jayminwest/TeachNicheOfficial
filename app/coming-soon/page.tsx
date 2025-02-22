@@ -7,12 +7,11 @@ export const metadata: Metadata = {
   description: "This page is under construction. Check back at launch!",
 }
 
-interface PageProps {
-  params: { slug: string }
+export default function ComingSoonPage({
+  searchParams,
+}: {
   searchParams: { [key: string]: string | string[] | undefined }
-}
-
-export default function ComingSoonPage({ searchParams }: PageProps) {
+}) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-2xl text-center">

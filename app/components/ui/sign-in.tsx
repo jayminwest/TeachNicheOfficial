@@ -6,7 +6,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from './card'
 import { Icons } from './icons'
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
@@ -49,6 +48,37 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
             <CardHeader className="space-y-1">
               <CardDescription>Welcome back! Please sign in to continue</CardDescription>
             </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-4">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  type="button" 
+                  className="w-full"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Icons.google className="mr-2 h-4 w-4" />
+                  )}
+                  Sign in with Google
+                </Button>
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
+                <div className="text-center">
+                  <Button
+                    variant="link"
+                    onClick={onSwitchToSignUp}
+                    className="text-sm"
+                  >
+                    Don't have an account? Sign up
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
             <CardContent>
               <div className="grid gap-4">
                 <Button 

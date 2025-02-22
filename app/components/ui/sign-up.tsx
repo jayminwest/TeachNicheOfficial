@@ -6,7 +6,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/app/components/ui/card'
 import { Icons } from '@/app/components/ui/icons'
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
@@ -51,6 +50,37 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
                 Create an account to get started with Teach Niche
               </CardDescription>
             </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-4">
+                <Button 
+                  size="lg"
+                  variant="outline" 
+                  type="button" 
+                  className="w-full"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Icons.google className="mr-2 h-4 w-4" />
+                  )}
+                  Sign up with Google
+                </Button>
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
+                <div className="text-center">
+                  <Button
+                    variant="link"
+                    onClick={onSwitchToSignIn}
+                    className="text-sm"
+                  >
+                    Already have an account? Sign in
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
             <CardContent>
               <div className="grid gap-4">
                 <Button 

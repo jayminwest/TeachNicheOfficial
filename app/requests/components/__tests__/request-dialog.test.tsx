@@ -56,16 +56,7 @@ describe('RequestDialog', () => {
 
   it('handles form submission successfully', async () => {
     const user = userEvent.setup()
-    let form: any
-    render(
-      <RequestDialog>
-        {mockChildren}
-        {(f) => {
-          form = f
-          return null
-        }}
-      </RequestDialog>
-    )
+    render(<RequestDialog>{mockChildren}</RequestDialog>)
     
     // Open dialog
     await user.click(screen.getByTestId('new-request-button')) 
@@ -75,8 +66,9 @@ describe('RequestDialog', () => {
     await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
     await user.type(screen.getByPlaceholderText(/@username/i), '@testuser')
     
-    // Select category by directly setting the form value
-    await form.setValue('category', 'Trick Tutorial')
+    // Select category using the select component
+    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('option', { name: 'Trick Tutorial' }))
     
     // Submit form
     await user.click(screen.getByRole('button', { name: /submit request/i }))

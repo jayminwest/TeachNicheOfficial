@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
 interface RequestDialogProps {
-  children: React.ReactNode | ((form: any) => React.ReactNode)
+  children: React.ReactNode
 }
 
 export function RequestDialog({ children }: RequestDialogProps) {

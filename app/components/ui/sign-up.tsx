@@ -27,21 +27,31 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
   const router = useRouter()
   const { loading, user } = useAuth()
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
-      await signUp(email, password)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign up')
-      setIsLoading(false)
-      return
-    }
+      const data = await signUp(email, password)
+      
+      if (data.user && !data.user.confirmed_at) {
+        setSuccessMessage('Please check your email for confirmation link')
+        setEmail('')
+        setPassword('')
+        return
+      }
 
-    // Successful signup
-    router.push('/') // or wherever you want to redirect
+      router.push('/')
+    } catch (err) {
+      console.error('Signup error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to sign up')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
 
@@ -68,8 +78,8 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
         <>{router.push('/')}</>
       ) : (
         <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
-      <form onSubmit={handleSubmit}>
-        <Card className="w-full max-w-[400px]">
+          <Card className="w-full max-w-[400px]">
+            <form onSubmit={handleSubmit}>
         <CardHeader className="space-y-1">
           <CardTitle>Join Teach Niche</CardTitle>
           <CardDescription>
@@ -127,6 +137,9 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
           {error && (
             <p className="text-sm text-red-500">{error}</p>
           )}
+          {successMessage && (
+            <p className="text-sm text-green-500">{successMessage}</p>
+          )}
           <Button 
             type="submit" 
             className="w-full"
@@ -143,8 +156,8 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
             Already have an account? Sign in
           </Button>
         </CardFooter>
-      </Card>
-      </form>
+            </form>
+          </Card>
         </div>
       )}
     </>

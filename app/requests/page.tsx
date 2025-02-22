@@ -6,7 +6,7 @@ import { Button } from '@/app/components/ui/button'
 import { useState } from 'react'
 import { Menu, Plus } from 'lucide-react'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog'
+import { RequestDialog } from './components/request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
 
 export default function RequestsPage() {
@@ -56,22 +56,6 @@ export default function RequestsPage() {
                 <p className="text-muted-foreground mt-2">
                   Browse and vote on lesson requests or create your own
                 </p>
-                <Button 
-                  data-testid="new-request-button"
-                  variant="default"
-                  size="lg"
-                  className="mt-4"
-                  onClick={() => {
-                    if (user) {
-                      setShowRequestDialog(true)
-                    } else {
-                      setShowAuthDialog(true)
-                    }
-                  }}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Request
-                </Button>
 
                 {/* Auth Dialog */}
                 <AuthDialog
@@ -80,15 +64,17 @@ export default function RequestsPage() {
                   defaultView="sign-in"
                 />
 
-                {/* Request Dialog */}
-                <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Lesson Request</DialogTitle>
-                    </DialogHeader>
-                    {/* Request form will go here */}
-                  </DialogContent>
-                </Dialog>
+                <RequestDialog>
+                  <Button 
+                    data-testid="new-request-button"
+                    variant="default"
+                    size="lg"
+                    className="mt-4"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Request
+                  </Button>
+                </RequestDialog>
               </div>
             </div>
             <RequestGrid 

@@ -14,8 +14,7 @@ export default function RequestsPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'newest'>('popular')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
-  const [showRequestDialog, setShowRequestDialog] = useState(false)
-  const { user } = useAuth()
+  const { useAuth } = useAuth() // Keep the import but remove unused variables
 
   return (
     <div className="min-h-screen pt-16">

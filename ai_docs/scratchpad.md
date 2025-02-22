@@ -1,162 +1,211 @@
-# Branch-Specific AI Prompting
+# Adaptive AI Development System
 
-This document outlines different AI prompting configurations based on git branch names, aligned with the project's core philosophy of modularity, minimalism, type safety, and testing first.
+This document outlines an intelligent, flexible system for AI-assisted development that adapts to different types of changes while maintaining consistent quality standards.
 
-## Production Branches
+## Core System Configuration
 
-### main
-- Strict code review focus
-  - Type safety verification across component interfaces
-  - Verify proper error handling and user feedback
-  - Ensure all props are properly typed
-- Security and stability checks
-  - Review authentication flows
-  - Verify Supabase RLS policies
-  - Check for proper input validation using zod schemas
-  - Audit API route protection
-- Production readiness verification
-  - Confirm all environment variables are properly configured
-  - Verify Stripe integration completeness
-  - Check Mux video handling robustness
-  - Review accessibility compliance
-- Documentation completeness checks
-  - Verify JSDoc comments on exported functions
-  - Ensure README updates for new features
-  - Check for updated environment variable documentation
-  - Confirm API documentation accuracy
+```typescript
+interface WorkflowConfig {
+  changeType: 'feature' | 'fix' | 'docs' | 'refactor';
+  complexity: 'simple' | 'medium' | 'complex';
+  urgency: 'normal' | 'urgent';
+  scope: {
+    affects: ('ui' | 'api' | 'db' | 'auth' | 'payment')[];
+    testingRequired: ('unit' | 'integration' | 'e2e' | 'performance')[];
+  };
+}
+```
 
-### staging
-- Integration testing focus
-  - Verify component integration tests
-  - Check end-to-end user flows
-  - Test cross-feature interactions
-  - Validate data flow between services
-- Environment-specific configurations
-  - Review environment variable setup
-  - Check service configuration differences
-  - Verify proper API endpoint usage
-  - Confirm proper auth configuration
-- Deployment readiness checks
-  - Verify build process
-  - Check bundle size optimization
-  - Review performance metrics
-  - Confirm zero-downtime deployment capability
+## Branch-Based Workflow Paths
 
-## Development Branches
+### Production Path (main)
+- Quality Gates:
+  - Type safety verification
+  - Security audit completion
+  - Production readiness checks
+  - Documentation completeness
+- Adaptive Checks Based On:
+  ```typescript
+  const productionChecks = {
+    simple: ['typescript', 'security-basic', 'docs-review'],
+    medium: ['typescript', 'security-full', 'docs-complete', 'performance'],
+    complex: ['typescript', 'security-audit', 'docs-comprehensive', 'load-testing']
+  }
+  ```
 
-### dev
-- Code quality and testing focus
-  - Enforce 80% minimum test coverage
-  - Check for proper component test organization
-  - Verify testing best practices implementation
-  - Review mock usage consistency
-- Integration considerations
-  - Review component composition
-  - Check service integration patterns
-  - Verify state management approaches
-  - Validate API integration patterns
-- Performance optimization suggestions
-  - Review React component optimization
-  - Check for unnecessary re-renders
-  - Verify proper data fetching strategies
-  - Review image optimization usage
+### Integration Path (staging)
+- Testing Focus:
+  - Integration verification
+  - Environment validation
+  - Performance benchmarks
+- Adaptive Testing:
+  ```yaml
+  testing-matrix:
+    simple:
+      - basic-integration
+      - smoke-tests
+    medium:
+      - full-integration
+      - performance-basic
+    complex:
+      - comprehensive-integration
+      - performance-full
+      - stress-testing
+  ```
 
-### feat/*
-- Feature-specific guidance
-  - Align with atomic design principles
-  - Verify feature modularity
-  - Check feature-specific test coverage
-  - Review feature documentation
-- Implementation suggestions
-  - Recommend appropriate Shadcn UI components
-  - Suggest optimal state management approaches
-  - Propose efficient data fetching strategies
-  - Guide proper error handling implementation
-- Component reuse opportunities
-  - Identify reusable component patterns
-  - Suggest shared hook opportunities
-  - Review utility function potential
-  - Check for duplicate functionality
-- Testing strategy recommendations
-  - Suggest critical test cases
-  - Guide integration test setup
-  - Recommend edge case coverage
-  - Propose accessibility testing approach
+### Development Path (dev)
+- Code Quality:
+  - Test coverage requirements
+  - Integration patterns
+  - Performance baselines
+- Adaptive Standards:
+  ```typescript
+  const devStandards = {
+    simple: { coverage: 70, perfBudget: 'relaxed' },
+    medium: { coverage: 80, perfBudget: 'standard' },
+    complex: { coverage: 90, perfBudget: 'strict' }
+  }
+  ```
 
-### fix/*
-- Bug analysis assistance
-  - Review error patterns
-  - Check related components
-  - Analyze data flow
-  - Verify error boundaries
-- Regression testing suggestions
-  - Identify affected features
-  - Suggest test cases
-  - Review edge cases
-  - Check cross-browser compatibility
-- Root cause analysis
-  - Examine error patterns
-  - Review component lifecycle
-  - Check state management
-  - Verify data validation
-- Similar bug pattern detection
-  - Identify similar components
-  - Review related functionality
-  - Check for pattern repetition
-  - Suggest preventive measures
+## Feature-Specific Workflows
 
-### refactor/*
-- Code improvement suggestions
-  - Identify complexity reduction opportunities
-  - Suggest component splitting
-  - Review prop drilling solutions
-  - Recommend performance improvements
-- Architecture optimization
-  - Review component hierarchy
-  - Check service organization
-  - Verify state management patterns
-  - Analyze data flow patterns
-- Technical debt identification
-  - Flag repeated code patterns
-  - Identify outdated practices
-  - Review deprecated usage
-  - Check for optimization opportunities
+### Feature Development (feature/*)
+```typescript
+interface FeatureWorkflow {
+  requirements: {
+    atomic: boolean;    // Atomic design principles
+    modular: boolean;   // Component modularity
+    reusable: boolean;  // Reusability focus
+  };
+  testing: {
+    unit: boolean;
+    integration: boolean;
+    e2e: boolean;
+  };
+  documentation: {
+    component: boolean;
+    api: boolean;
+    usage: boolean;
+  };
+}
 
-### docs/*
-- Documentation completeness checks
-  - Verify component documentation
-  - Check API documentation
-  - Review setup instructions
-  - Confirm environment variable documentation
-- API documentation verification
-  - Check endpoint documentation
-  - Verify response types
-  - Review error documentation
-  - Confirm authentication details
-- Example code validation
-  - Review code snippets
-  - Check example accuracy
-  - Verify setup instructions
-  - Validate configuration examples
-- Writing documentation MADE FOR aider
-  - Focus on AI-readable formatting
-  - Include clear code references
-  - Maintain consistent structure
-  - Provide context for AI analysis
+// Complexity-based configuration
+const featureConfig = {
+  simple: {
+    requirements: { atomic: false, modular: true, reusable: false },
+    testing: { unit: true, integration: false, e2e: false },
+    documentation: { component: true, api: false, usage: true }
+  },
+  complex: {
+    requirements: { atomic: true, modular: true, reusable: true },
+    testing: { unit: true, integration: true, e2e: true },
+    documentation: { component: true, api: true, usage: true }
+  }
+};
+```
 
-### test/*
-- Test coverage analysis
-  - Review coverage metrics
-  - Identify coverage gaps
-  - Check critical path testing
-  - Verify edge case coverage
-- Test case suggestions
-  - Recommend component tests
-  - Suggest integration tests
-  - Propose edge cases
-  - Guide accessibility testing
-- Edge case identification
-  - Review error conditions
-  - Check boundary cases
-  - Analyze user interactions
-  - Verify data validation
+### Bug Fixes (fix/*)
+```typescript
+interface BugfixWorkflow {
+  analysis: {
+    patterns: boolean;
+    regression: boolean;
+    security: boolean;
+  };
+  testing: {
+    reproduction: boolean;
+    regression: boolean;
+    integration: boolean;
+  };
+  documentation: {
+    changelog: boolean;
+    regression: boolean;
+  };
+}
+```
+
+### Documentation (docs/*)
+```typescript
+interface DocsWorkflow {
+  scope: {
+    component?: boolean;
+    api?: boolean;
+    setup?: boolean;
+  };
+  validation: {
+    examples: boolean;
+    links: boolean;
+    formatting: boolean;
+  };
+  aiReadiness: {
+    structure: boolean;
+    context: boolean;
+    references: boolean;
+  };
+}
+```
+
+## AI Guidance System
+
+```typescript
+interface AIGuidance {
+  focusAreas: string[];
+  requiredChecks: string[];
+  suggestedPrompts: string[];
+  automationLevel: 'full' | 'assisted' | 'manual';
+}
+
+function getAIGuidance(config: WorkflowConfig): AIGuidance {
+  return {
+    focusAreas: determineFocusAreas(config),
+    requiredChecks: getRequiredChecks(config),
+    suggestedPrompts: generatePrompts(config),
+    automationLevel: determineAutomationLevel(config)
+  };
+}
+```
+
+## Testing Matrix
+
+```yaml
+testing:
+  unit:
+    simple: ["critical-paths"]
+    medium: ["critical-paths", "edge-cases"]
+    complex: ["critical-paths", "edge-cases", "stress-tests"]
+  
+  integration:
+    simple: ["happy-path"]
+    medium: ["happy-path", "error-cases"]
+    complex: ["happy-path", "error-cases", "performance"]
+  
+  e2e:
+    simple: ["core-journey"]
+    medium: ["core-journey", "alternate-paths"]
+    complex: ["core-journey", "alternate-paths", "edge-cases"]
+```
+
+## Smart Routing System
+
+```typescript
+function determineWorkflowPath(config: WorkflowConfig) {
+  if (config.urgency === 'urgent' && config.changeType === 'fix') {
+    return ['hotfix', 'main'];  // Emergency path
+  }
+  
+  if (config.complexity === 'simple' && config.scope.affects.includes('ui')) {
+    return ['feature', 'dev', 'main'];  // Skip staging for simple UI
+  }
+  
+  return ['feature', 'dev', 'staging', 'main'];  // Full path
+}
+```
+
+This adaptive system provides:
+- Consistent quality standards
+- Flexible workflows based on change type
+- Efficient resource utilization
+- Clear progression paths
+- Automated decision points
+
+The system can be extended or modified while maintaining its core structure and quality standards.

@@ -57,6 +57,16 @@ export function RequestDialog({ children }: RequestDialogProps) {
               setShowAuth(true)
             }
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              if (!user) {
+                e.preventDefault()
+                setShowAuth(true)
+              } else {
+                setOpen(true)
+              }
+            }
+          }}
         >
           {children}
         </DialogTrigger>

@@ -24,7 +24,6 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
   const [showAuth, setShowAuth] = useState(false)
   const supabase = createClientComponentClient()
   const { user } = useAuth();
-  const currentUserId = user?.id;
 
   // Fetch current vote count from Supabase
   const updateVoteCount = useCallback(async () => {

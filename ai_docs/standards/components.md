@@ -6,9 +6,12 @@
 ```
 app/
 ├── components/
-│   └── ui/            # Shared UI components using shadcn/ui
-├── features/          # Feature-specific components
+│   ├── ui/           # Shared UI components using shadcn/ui
+│   └── __tests__/    # Component tests
+├── features/         # Feature-specific components
+│   └── __tests__/    # Feature-specific tests
 └── [feature]/        # Route-based components
+    └── __tests__/    # Route-specific tests
 ```
 
 ### Component Types

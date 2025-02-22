@@ -18,17 +18,31 @@ app/api/
 ```typescript
 interface ApiResponse<T> {
   data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: unknown;
-  };
-  meta?: {
-    page?: number;
-    limit?: number;
-    total?: number;
-  };
+  error?: ApiError;
+  meta?: ApiMeta;
 }
+
+interface ApiError {
+  code: ApiErrorCode;
+  message: string;
+  details?: unknown;
+  requestId?: string;
+}
+
+interface ApiMeta {
+  page?: number;
+  limit?: number;
+  total?: number;
+  timestamp: string;
+}
+
+type ApiErrorCode = 
+  | 'VALIDATION_ERROR'
+  | 'AUTHENTICATION_ERROR'
+  | 'AUTHORIZATION_ERROR'
+  | 'NOT_FOUND'
+  | 'RATE_LIMIT_ERROR'
+  | 'INTERNAL_ERROR';
 ```
 
 ## Implementation Guidelines

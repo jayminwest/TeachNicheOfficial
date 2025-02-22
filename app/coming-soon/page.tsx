@@ -13,7 +13,7 @@ export default async function ComingSoonPage({
           Coming Soon
         </h1>
         <p className="mt-6 text-lg leading-8 text-muted-foreground">
-          This feature is currently under development. We're working hard to bring you an amazing experience.
+          This page is still under construction. Check back at launch!
         </p>
         {searchParams.from && (
           <p className="mt-2 text-sm text-muted-foreground">

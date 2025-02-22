@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest } from '@/app/lib/supabase/requests'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/app/components/ui/dialog"
 import { Button } from "@/app/components/ui/button"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form"
 import { Input } from "@/app/components/ui/input"
@@ -73,13 +73,16 @@ export function RequestDialog({ children }: RequestDialogProps) {
             {children}
           </div>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Create New Lesson Request</DialogTitle>
+            <DialogDescription>
+              Fill out the details for your lesson request below.
+            </DialogDescription>
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -87,11 +90,7 @@ export function RequestDialog({ children }: RequestDialogProps) {
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Enter lesson title..." 
-                        {...field}
-                        className="w-full bg-background border"
-                      />
+                      <Input placeholder="Enter lesson title..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -107,7 +106,6 @@ export function RequestDialog({ children }: RequestDialogProps) {
                       <Textarea 
                         placeholder="Describe what you'd like to learn..." 
                         {...field}
-                        className="w-full min-h-[100px] bg-background border" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -125,7 +123,6 @@ export function RequestDialog({ children }: RequestDialogProps) {
                         placeholder="@username (optional)"
                         {...field}
                         value={field.value || ''}
-                        className="w-full bg-background border"
                       />
                     </FormControl>
                     <FormMessage />
@@ -144,12 +141,11 @@ export function RequestDialog({ children }: RequestDialogProps) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full bg-background">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent 
-                        className="bg-background border shadow-md"
+                      <SelectContent
                         position="popper"
                         sideOffset={5}
                       >

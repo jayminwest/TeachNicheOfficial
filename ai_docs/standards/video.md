@@ -148,9 +148,11 @@ function trackVideoMetrics(metrics: VideoMetrics) {
 
 ### Upload Errors
 ```typescript
-async function handleUploadError(error: Error) {
+async function handleUploadError(error: Error, context?: Record<string, unknown>) {
   logger.error('Video upload failed:', {
     error: error.message,
+    code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+    context,
     timestamp: new Date().toISOString()
   })
   
@@ -161,9 +163,11 @@ async function handleUploadError(error: Error) {
 
 ### Playback Errors
 ```typescript
-function handlePlaybackError(error: Error) {
+function handlePlaybackError(error: Error, context?: Record<string, unknown>) {
   logger.error('Video playback failed:', {
     error: error.message,
+    code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+    context,
     timestamp: new Date().toISOString()
   })
   

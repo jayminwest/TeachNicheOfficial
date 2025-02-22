@@ -78,8 +78,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
             <DialogTitle>Create New Lesson Request</DialogTitle>
           </DialogHeader>
           <div className="mt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="title"
@@ -171,8 +171,9 @@ export function RequestDialog({ children }: RequestDialogProps) {
               <Button type="submit" className="w-full">
                 Submit Request
               </Button>
-            </form>
-          </Form>
+              </form>
+            </Form>
+          </div>
         </DialogContent>
       </Dialog>
       <AuthDialog 

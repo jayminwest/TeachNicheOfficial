@@ -4,6 +4,16 @@ import { toast } from '@/app/components/ui/use-toast'
 
 export async function createRequest(data: LessonRequestFormData): Promise<LessonRequest> {
   const supabase = createClientComponentClient()
+  
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.user) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to create a lesson request",
+      variant: "destructive"
+    })
+    throw new Error('Authentication required')
+  }
   const { data: request, error } = await supabase
     .from('lesson_requests')
     .insert([{
@@ -35,12 +45,12 @@ export async function createRequest(data: LessonRequestFormData): Promise<Lesson
 export async function getRequests(filters?: {
   category?: string,
   status?: string,
-  sortBy?: string
+  sortBy?: 'popular' | 'newest'
 }) {
   const supabase = createClientComponentClient()
   let query = supabase
     .from('lesson_requests')
-    .select('*')
+    .select('*, lesson_request_votes(count)')
   
   if (filters?.category) {
     query = query.eq('category', filters.category)
@@ -49,7 +59,15 @@ export async function getRequests(filters?: {
     query = query.eq('status', filters.status)
   }
   
-  const { data, error } = await query.order('created_at', { ascending: false })
+  // Apply sorting
+  if (filters?.sortBy === 'popular') {
+    query = query.order('vote_count', { ascending: false })
+  } else {
+    // Default to newest
+    query = query.order('created_at', { ascending: false })
+  }
+  
+  const { data, error } = await query
   if (error) throw error
   return data as LessonRequest[]
 }

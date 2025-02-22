@@ -9,40 +9,30 @@ import { Loader2 } from 'lucide-react'
 interface RequestGridProps {
   initialRequests?: LessonRequest[]
   category?: string
+  sortBy: 'popular' | 'newest'
 }
 
-export function RequestGrid({ initialRequests, category }: RequestGridProps) {
+export function RequestGrid({ initialRequests, category, sortBy }: RequestGridProps) {
   const [requests, setRequests] = useState<LessonRequest[]>(initialRequests || [])
   const [isLoading, setIsLoading] = useState(!initialRequests)
 
   const loadRequests = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await getRequests({ category })
+      const data = await getRequests({ category, sortBy })
       setRequests(data)
     } catch (error) {
       console.error('Failed to load requests:', error)
     } finally {
       setIsLoading(false)
     }
-  }, [category])
+  }, [category, sortBy])
 
   useEffect(() => {
     if (!initialRequests) {
-      const load = async () => {
-        try {
-          setIsLoading(true)
-          const data = await getRequests({ category })
-          setRequests(data)
-        } catch (error) {
-          console.error('Failed to load requests:', error)
-        } finally {
-          setIsLoading(false)
-        }
-      }
-      load()
+      loadRequests();
     }
-  }, [category, initialRequests])
+  }, [category, sortBy, initialRequests, loadRequests])
 
   if (isLoading) {
     return (
@@ -61,7 +51,7 @@ export function RequestGrid({ initialRequests, category }: RequestGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 p-4">
       {requests.map(request => (
         <RequestCard 
           key={request.id} 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/app/components/ui/button'
+import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { ThumbsUp } from 'lucide-react'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
@@ -18,6 +19,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const [isVoting, setIsVoting] = useState(false)
   const [hasVoted, setHasVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(request.vote_count)
+  const [showAuth, setShowAuth] = useState(false)
   const supabase = createClientComponentClient()
   const { user } = useAuth()
 
@@ -50,8 +52,9 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
       const { data } = await supabase
         .from('lesson_request_votes')
         .select()
-        .match({ request_id: request.id, user_id: user.id })
-        .maybeSingle();
+        .eq('request_id', request.id)
+        .eq('user_id', user.id)
+        .single();
       
       setHasVoted(!!data);
     }
@@ -62,11 +65,7 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   const handleVote = async () => {
     try {
       if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to vote on requests",
-          variant: "destructive"
-        })
+        setShowAuth(true)
         return
       }
 
@@ -134,38 +133,81 @@ export function RequestCard({ request, onVote }: RequestCardProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">{request.title}</CardTitle>
-        <div className="text-sm text-muted-foreground" suppressHydrationWarning>
-          {new Date(request.created_at).toLocaleDateString()}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-2">{request.description}</p>
-        <div className="flex items-center gap-2">
-          <span className="text-xs px-2 py-1 bg-primary/10 rounded-full">
-            {request.category}
-          </span>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="flex items-center gap-4">
+    <>
+      <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-xl font-bold line-clamp-2 hover:line-clamp-none transition-all">
+              {request.title}
+            </CardTitle>
+            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+              request.status === 'completed' ? 'bg-green-100 text-green-800' :
+              request.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+              'bg-orange-100 text-orange-800'
+            }`}>
+              {request.status.replace('_', ' ')}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 mt-2">
+            <span className="text-sm text-muted-foreground" suppressHydrationWarning>
+              {new Date(request.created_at).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </span>
+            <span className="text-sm h-[20px]"> {/* Fixed height placeholder */}
+              {request.instagram_handle && (
+                <a 
+                  href={`https://instagram.com/${request.instagram_handle.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  {request.instagram_handle}
+                </a>
+              )}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="pb-3">
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-3 group-hover:line-clamp-none transition-all">
+            {request.description}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">
+              {request.category}
+            </span>
+            {request.tags?.map(tag => (
+              <span key={tag} className="text-xs px-3 py-1 bg-secondary/20 text-secondary-foreground rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </CardContent>
+        <CardFooter className="pt-3 flex justify-between items-center border-t">
           <Button
-            variant="ghost"
+            variant={hasVoted ? "default" : "outline"}
             size="sm"
             onClick={handleVote}
             disabled={isVoting}
-            aria-label="thumbs up"
+            className="transition-all duration-200 hover:scale-105"
           >
-            <ThumbsUp className={`w-4 h-4 mr-1 ${hasVoted ? 'fill-current text-primary' : ''}`} />
-            <span>{voteCount}</span>
+            <ThumbsUp className={`w-4 h-4 mr-2 transition-transform group-hover:scale-110 ${
+              hasVoted ? 'fill-current text-black' : 'stroke-white stroke-[1.5]'
+            }`} />
+            <span className="font-medium">{voteCount}</span>
+            <span className="ml-1 text-xs text-muted-foreground">
+              {voteCount === 1 ? 'vote' : 'votes'}
+            </span>
           </Button>
-        </div>
-        <div className="text-sm text-muted-foreground">
-          Status: {request.status}
-        </div>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+      <AuthDialog 
+        open={showAuth} 
+        onOpenChange={setShowAuth}
+        defaultView="sign-up"
+      />
+    </>
   )
 }

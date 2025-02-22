@@ -66,9 +66,13 @@ describe('RequestDialog', () => {
     await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
     await user.type(screen.getByPlaceholderText(/@username/i), '@testuser')
     
-    // Select category
-    await user.click(screen.getByRole('combobox'))
-    await user.click(screen.getByText('Trick Tutorial'))
+    // Select category - using more specific selectors
+    const selectTrigger = screen.getByRole('combobox')
+    await user.click(selectTrigger)
+    
+    // Wait for the select content to be visible and click the option
+    const option = screen.getByRole('option', { name: 'Trick Tutorial' })
+    await user.click(option)
     
     // Submit form
     await user.click(screen.getByRole('button', { name: /submit request/i }))

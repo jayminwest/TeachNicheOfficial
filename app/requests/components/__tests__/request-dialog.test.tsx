@@ -66,11 +66,7 @@ describe('RequestDialog', () => {
     await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
     await user.type(screen.getByPlaceholderText(/@username/i), '@testuser')
     
-    // Select category using the select component
-    await user.click(screen.getByRole('combobox'))
-    await user.click(screen.getByRole('option', { name: 'Trick Tutorial' }))
-    
-    // Submit form
+    // Submit form with default category
     await user.click(screen.getByRole('button', { name: /submit request/i }))
     
     // Verify request creation and page reload

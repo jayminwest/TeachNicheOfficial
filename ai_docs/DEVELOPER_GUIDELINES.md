@@ -8,7 +8,7 @@
  - **Type Safety**: Leverage TypeScript for robust, maintainable code
  - **Testing First**: Write tests before implementing features
  
-https://github.com/muxinc/mux-node-sdk/blob/master/api.md
+
  
  ## 1. Coding Standards
  
@@ -120,7 +120,7 @@ https://github.com/muxinc/mux-node-sdk/blob/master/api.md
  
  ## 8. Environment Variables and Secrets
  
- - **`.env.local` for local development:**  Store local development environment variables in `.env.local`. Keep the number of environment variables to a minimum.
+ - **`.env` for local development:**  Store local development environment variables in `.env`. Keep the number of environment variables to a minimum.
  - **Environment Variables in Vercel:**  Configure environment variables in Vercel for production and staging environments.
  - **`.env.template`:**  Provide a `.env.template` file with placeholder variables for developers to easily set up their local environment. Keep the `.env.template` minimal and only include essential variables.
  

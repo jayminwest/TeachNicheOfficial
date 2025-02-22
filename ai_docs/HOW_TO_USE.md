@@ -167,9 +167,11 @@ npm run build:production
 
 ## Common Workflows
 
+For detailed Git workflows and standards, see [Git Standards](standards/git.md).
+
 ### New Feature
 ```bash
-# 1. Create feature branch
+# 1. Create feature branch (see git.md for naming conventions)
 git checkout -b feature/new-component dev
 
 # 2. Review requirements
@@ -190,7 +192,7 @@ gh pr create
 
 ### Bug Fix
 ```bash
-# 1. Create fix branch
+# 1. Create fix branch (see git.md for naming conventions)
 git checkout -b fix/issue-123 dev
 
 # 2. Review requirements
@@ -258,7 +260,7 @@ gh pr create
 ## Support
 
 - Review ai_docs/ directory
-- Check workflow documentation
+- Check workflow documentation and git standards
 - Use AI assistance
 - Update documentation
 

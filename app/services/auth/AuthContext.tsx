@@ -7,7 +7,6 @@ import { supabase } from '@/app/services/supabase'
 interface AuthContextType {
   user: User | null
   loading: boolean
-  error?: Error
   isAuthenticated: boolean
 }
 
@@ -20,7 +19,6 @@ export const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error>()
   const isAuthenticated = !!user
 
   useEffect(() => {
@@ -43,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   )

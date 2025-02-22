@@ -1,12 +1,10 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-import { SearchParams } from "next/navigation"
-
 export default function ComingSoonPage({
   searchParams,
 }: {
-  searchParams: SearchParams
+  searchParams: { [key: string]: string | undefined }
 }) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">

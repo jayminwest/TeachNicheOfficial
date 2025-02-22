@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-export default function ComingSoonPage({
+export default async function ComingSoonPage({
   searchParams,
 }: {
   searchParams: { from?: string }

@@ -50,6 +50,15 @@ export default function RequestsPage() {
                 <p className="text-muted-foreground mt-2">
                   Browse and vote on lesson requests or create your own
                 </p>
+                <Button 
+                  data-testid="new-request-button"
+                  variant="primary"
+                  size="lg"
+                  className="mt-4"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Request
+                </Button>
               </div>
             </div>
             <RequestGrid 

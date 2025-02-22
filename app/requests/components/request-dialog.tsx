@@ -48,12 +48,16 @@ export function RequestDialog({ children }: RequestDialogProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild onClick={(e) => {
-          if (!user) {
-            e.preventDefault()
-            setShowAuth(true)
-          }
-        }}>
+        <DialogTrigger 
+          asChild 
+          data-testid="new-request-button"
+          onClick={(e) => {
+            if (!user) {
+              e.preventDefault()
+              setShowAuth(true)
+            }
+          }}
+        >
           {children}
         </DialogTrigger>
         <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-hidden">

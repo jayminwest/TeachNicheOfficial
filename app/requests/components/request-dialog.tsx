@@ -49,16 +49,14 @@ export function RequestDialog({ children }: RequestDialogProps) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <div
+          <Button
             onClick={(e) => {
               if (!user) {
                 e.preventDefault()
                 setShowAuth(true)
               }
             }}
-            className="inline-block w-full"
-            role="button"
-            tabIndex={0}
+            className="w-full"
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
@@ -70,8 +68,8 @@ export function RequestDialog({ children }: RequestDialogProps) {
               }
             }}
           >
-            {children}
-          </div>
+            New Request
+          </Button>
         </DialogTrigger>
         <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-hidden">
           <DialogHeader>

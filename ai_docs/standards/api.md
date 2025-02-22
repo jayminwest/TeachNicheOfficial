@@ -65,6 +65,12 @@ function handleApiError(
   error: unknown,
   res: NextApiResponse
 ) {
+  logger.error('API error:', {
+    error: error instanceof Error ? error.message : 'Unknown error',
+    code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+    context: { path: req.url }
+  });
+
   if (error instanceof ValidationError) {
     return res.status(400).json({
       error: {
@@ -75,12 +81,10 @@ function handleApiError(
     });
   }
   
-  // Log error and return safe response
-  logger.error('API error', { error });
   return res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
-      message: 'Internal server error'
+      message: 'An unexpected error occurred'
     }
   });
 }

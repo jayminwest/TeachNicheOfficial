@@ -48,10 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 ### Usage
 ```typescript
 function ProtectedComponent() {
-  const { user, loading } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
 
   if (loading) return <LoadingSpinner />
-  if (!user) return <SignInPrompt />
+  if (!isAuthenticated) return <SignInPrompt />
 
   return <ProtectedContent />
 }

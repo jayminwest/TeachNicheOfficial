@@ -27,7 +27,7 @@ app/
 
 ### 2. Props Interface
 ```typescript
-interface ComponentProps {
+interface ExampleComponentProps {
   // Required props first
   required: string;
   

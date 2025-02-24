@@ -52,9 +52,10 @@ describe('MarkdownEditor', () => {
       </ThemeProvider>
     )
 
-    const editor = screen.getByTestId('md-editor')
-    expect(editor).toHaveClass('!cursor-not-allowed')
-    expect(editor.querySelector('.w-md-editor-toolbar')).not.toBeInTheDocument()
+    const editorWrapper = screen.getByTestId('md-editor-wrapper')
+    expect(editorWrapper).toHaveClass('!cursor-not-allowed')
+    const toolbar = screen.queryByRole('toolbar')
+    expect(toolbar).not.toBeInTheDocument()
   })
 
   it('calls onChange when content changes', async () => {

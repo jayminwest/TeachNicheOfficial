@@ -21,8 +21,9 @@ export function MarkdownEditor({
   
   return (
     <div 
-      className={cn("w-full", className)} 
+      className={cn("w-full", disabled && "!cursor-not-allowed", className)} 
       data-color-mode={theme === 'dark' ? 'dark' : 'light'}
+      data-testid="md-editor-wrapper"
     >
       <MDEditor
         value={value}
@@ -47,7 +48,7 @@ export function MarkdownEditor({
           "[&_button]:!text-muted-foreground",
           "[&_button:hover]:!bg-accent",
           "[&_button:hover]:!text-accent-foreground",
-          disabled && "!cursor-not-allowed !opacity-50"
+          disabled && "!opacity-50"
         )}
       />
     </div>

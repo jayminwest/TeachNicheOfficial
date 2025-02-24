@@ -27,7 +27,6 @@ export function MarkdownEditor({
       <MDEditor
         value={value}
         onChange={onChange}
-        preview="edit"
         previewOptions={{
           rehypePlugins: [],
         }}

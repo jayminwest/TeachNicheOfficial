@@ -109,33 +109,37 @@ describe('ProfileForm', () => {
   });
 
   it('handles form submission errors', async () => {
-    // Mock console.error to throw an error during form submission
+    // Save the original console.error
     const originalConsoleError = console.error;
-    console.error = jest.fn().mockImplementation(() => {
-      throw new Error('Mocked error');
-    });
     
-    render(<ProfileForm />);
-    
-    // Fill in required fields
-    const nameInput = screen.getByLabelText(/name/i);
-    await userEvent.type(nameInput, 'Test User');
-    
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /update profile/i });
-    fireEvent.click(submitButton);
-    
-    // Check if error toast is shown
-    await waitFor(() => {
-      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      }));
-    });
-    
-    // Restore console.error
-    console.error = originalConsoleError;
+    try {
+      // Mock console.error to throw an error during form submission
+      console.error = jest.fn().mockImplementation(() => {
+        throw new Error('Mocked error');
+      });
+      
+      render(<ProfileForm />);
+      
+      // Fill in required fields
+      const nameInput = screen.getByLabelText(/name/i);
+      await userEvent.type(nameInput, 'Test User');
+      
+      // Submit the form
+      const submitButton = screen.getByRole('button', { name: /update profile/i });
+      fireEvent.click(submitButton);
+      
+      // Check if error toast is shown
+      await waitFor(() => {
+        expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive"
+        }));
+      });
+    } finally {
+      // Restore console.error - IMPORTANT: This ensures it's restored even if the test fails
+      console.error = originalConsoleError;
+    }
   });
 
   it('enforces maximum bio length', async () => {
@@ -163,21 +167,32 @@ describe('ProfileForm', () => {
   });
 
   it('allows submission with minimum valid data', async () => {
-    render(<ProfileForm />);
+    // Save the original console.error
+    const originalConsoleError = console.error;
     
-    // Only fill in the required name field with minimum length
-    const nameInput = screen.getByLabelText(/name/i);
-    await userEvent.type(nameInput, 'Jo');
-    
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /update profile/i });
-    fireEvent.click(submitButton);
-    
-    // Form should submit successfully
-    await waitFor(() => {
-      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
-        title: "Profile updated"
-      }));
-    });
+    try {
+      // Just silence console.error without throwing
+      console.error = jest.fn();
+      
+      render(<ProfileForm />);
+      
+      // Only fill in the required name field with minimum length
+      const nameInput = screen.getByLabelText(/name/i);
+      await userEvent.type(nameInput, 'Jo');
+      
+      // Submit the form
+      const submitButton = screen.getByRole('button', { name: /update profile/i });
+      fireEvent.click(submitButton);
+      
+      // Form should submit successfully
+      await waitFor(() => {
+        expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+          title: "Profile updated"
+        }));
+      });
+    } finally {
+      // Restore console.error
+      console.error = originalConsoleError;
+    }
   });
 });

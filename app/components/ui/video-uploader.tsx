@@ -68,7 +68,6 @@ export function VideoUploader({
     const response = await fetch('/api/mux/upload', {
       method: 'POST'
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error details available');
@@ -82,7 +81,7 @@ export function VideoUploader({
       throw new Error('Invalid upload response');
     }
     return data;
-  }, [endpoint]);
+  }, []);
 
   // Fetch endpoint URL when component mounts if it's a function
   useEffect(() => {

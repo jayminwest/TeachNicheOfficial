@@ -46,14 +46,13 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
       if (mode === 'edit' && request) {
-        const updateData = {
+        await updateRequest(request.id, {
           title: data.title,
           description: data.description,
           category: data.category,
           instagram_handle: data.instagram_handle || '',
           tags: data.tags || []
-        }
-        await updateRequest(request.id, updateData)
+        })
       } else {
         await createRequest(data)
       }

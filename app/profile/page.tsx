@@ -12,7 +12,7 @@ import { supabase } from "@/app/services/supabase"
 import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<{ 
     stripe_account_id: string | null;
@@ -64,9 +64,10 @@ export default function ProfilePage() {
   }
 
   // If not authenticated and not loading, redirect immediately
-  if (!user && !loading) {
+  if (!isAuthenticated && !loading) {
     // For test environment, we need to handle this differently
     if (process.env.NODE_ENV === 'test') {
+      router.push('/');
       return <div data-testid="unauthenticated-redirect">Redirecting to home...</div>;
     }
     

@@ -79,17 +79,17 @@ describe('ProfilePage', () => {
 
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
-      renderWithAuth(<ProfilePage />, { 
+      const { container } = renderWithAuth(<ProfilePage />, { 
         user: null,
         loading: false, // Not loading
         isAuthenticated: false
       })
       
-      // Check for the redirect element in test mode
-      expect(screen.getByTestId('unauthenticated-redirect')).toBeInTheDocument();
-      
       // Verify the router.push was called
       expect(mockPush).toHaveBeenCalledWith('/')
+      
+      // Check for the redirect element in test mode
+      expect(screen.getByTestId('unauthenticated-redirect')).toBeInTheDocument();
     })
 
     it('renders profile page for authenticated users', async () => {

@@ -160,7 +160,8 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                       <SelectContent
                         position="popper"
                         sideOffset={5}
-                        className="w-[var(--radix-select-trigger-width)] max-h-[300px]"
+                        className="w-[var(--radix-select-trigger-width)] max-h-[300px] touch-manipulation"
+                        onCloseAutoFocus={(e) => e.preventDefault()}
                       >
                         {LESSON_CATEGORIES.map((category) => (
                           <SelectItem 

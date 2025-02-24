@@ -4,6 +4,11 @@ import { axe } from 'jest-axe'
 import ProfilePage from '../page'
 import { renderWithAuth } from '@/app/__tests__/test-utils'
 
+// Clear all mocks before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 // Define mockRedirect first before using it
 const mockRedirect = jest.fn()
 const mockPush = jest.fn()
@@ -14,7 +19,7 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
-  redirect: jest.fn(),
+  redirect: mockRedirect,
 }))
 
 // Mock Supabase client
@@ -64,9 +69,17 @@ describe('ProfilePage', () => {
     })
 
     it('redirects unauthenticated users', async () => {
-      renderWithAuth(<ProfilePage />, { 
+      // Force a re-render with unauthenticated state
+      const { rerender } = renderWithAuth(<ProfilePage />, { 
         user: null,
-        loading: false,
+        loading: true, // Start with loading
+        isAuthenticated: false
+      })
+      
+      // Then update to not loading to trigger the effect
+      rerender(<ProfilePage />, {
+        user: null,
+        loading: false, // Now not loading
         isAuthenticated: false
       })
       

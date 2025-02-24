@@ -161,6 +161,11 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
       new_asset_settings: {
         playback_policy: isFree ? ['public'] : ['signed'],
         encoding_tier: 'baseline',
+        // Add support for HEIC/HEIF input formats
+        input_settings: {
+          normalize_input: true, // Helps handle various input formats
+          preferred_input_format: 'mp4'
+        }
       },
       cors_origin: corsOrigin,
     });

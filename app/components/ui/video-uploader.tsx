@@ -33,7 +33,7 @@ export function VideoUploader({
   onError,
   onUploadStart,
   maxSizeMB = 500,
-  acceptedTypes = ['video/mp4', 'video/quicktime'],
+  acceptedTypes = ['video/mp4', 'video/quicktime', 'video/heic', 'video/heif'],
   className,
   pausable = false,
   noDrop = false,
@@ -52,11 +52,24 @@ export function VideoUploader({
   }, [onError]);
 
   const validateFile = (file: File) => {
+    console.log('Validating file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+
     if (file.size > maxSizeMB * 1024 * 1024) {
       throw new Error(`File size must be less than ${maxSizeMB}MB`);
     }
-    if (!acceptedTypes.includes(file.type)) {
-      throw new Error(`File type must be one of: ${acceptedTypes.join(', ')}`);
+
+    // Check both MIME type and file extension
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const isValidType = acceptedTypes.includes(file.type) || 
+                       (fileExtension && ['heic', 'heif'].includes(fileExtension));
+
+    if (!isValidType) {
+      throw new Error(`File type must be one of: ${acceptedTypes.join(', ')} or HEIC/HEIF format`);
     }
   };
 

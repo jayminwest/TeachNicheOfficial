@@ -19,6 +19,11 @@
 - [ ] Check shadcn/ui component usage
 - [ ] Test all custom hooks
 - [ ] Verify proper memoization usage
+- [ ] Verify all components follow Atomic Design principles
+- [ ] Check accessibility testing with screen readers
+- [ ] Run tests in CI pipeline
+- [ ] Verify component co-location standards
+- [ ] Check feature-based organization structure
 
 ### Authentication & Security
 - [ ] Test all auth flows:
@@ -93,6 +98,10 @@
 - [ ] Check logging configuration
 - [ ] Set up error tracking
 - [ ] Configure monitoring alerts
+- [ ] Verify preview deployments for PRs
+- [ ] Test zero-downtime deployment
+- [ ] Check automated rollback functionality
+- [ ] Verify environment variable management in Vercel
 
 ### Performance
 - [ ] Run performance tests
@@ -122,6 +131,11 @@
 - [ ] Check loading states
 - [ ] Verify success notifications
 - [ ] Review UI consistency
+- [ ] Test Edge Function performance
+- [ ] Verify Core Web Vitals monitoring setup
+- [ ] Check route-based code splitting
+- [ ] Test creator dashboard features
+- [ ] Verify lesson request system
 
 ### Analytics & Monitoring
 - [ ] Set up error tracking
@@ -139,6 +153,17 @@
 - [ ] Update FAQs
 - [ ] Verify contact information
 - [ ] Review legal documents
+- [ ] Verify ai_docs/ is up to date
+- [ ] Check README.md completeness
+- [ ] Review component documentation
+- [ ] Verify code comments follow minimalist standard
+
+### Feature Organization
+- [ ] Verify feature directory structure
+- [ ] Check component co-location
+- [ ] Verify test co-location in __tests__ directories
+- [ ] Review API route grouping
+- [ ] Check service integration organization
 
 ### Backup & Recovery
 - [ ] Test backup procedures

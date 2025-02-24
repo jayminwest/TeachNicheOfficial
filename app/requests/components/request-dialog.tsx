@@ -46,7 +46,13 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
       if (mode === 'edit' && request) {
-        await updateRequest(request.id, data)
+        await updateRequest(request.id, {
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          instagram_handle: data.instagram_handle || '',
+          tags: data.tags || []
+        })
       } else {
         await createRequest(data)
       }
@@ -54,7 +60,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
       form.reset()
       window.location.reload()
     } catch (error) {
-      console.error('Failed to create request:', error)
+      console.error(`Failed to ${mode === 'edit' ? 'update' : 'create'} request:`, error)
     }
   }
 

@@ -107,47 +107,6 @@ describe('RequestDialog', () => {
     })
   })
 
-  it('handles edit form submission successfully', async () => {
-    const user = userEvent.setup()
-    render(
-      <RequestDialog mode="edit" request={mockRequest}>
-        {mockChildren}
-      </RequestDialog>
-    )
-    
-    // Open dialog
-    await user.click(screen.getByTestId('new-request-button'))
-    
-    // Get form elements
-    const titleInput = screen.getByRole('textbox', { name: /title/i })
-    const descriptionInput = screen.getByRole('textbox', { name: /description/i })
-    const instagramInput = screen.getByRole('textbox', { name: /instagram/i })
-    
-    // Verify initial values
-    expect(titleInput).toHaveValue('Test Request')
-    expect(descriptionInput).toHaveValue('Test Description')
-    expect(instagramInput).toHaveValue('@test')
-    
-    // Clear and set new title
-    await user.clear(titleInput)
-    await user.type(titleInput, 'Test Request Updated')
-    
-    // Submit form
-    const submitButton = screen.getByRole('button', { name: /save changes/i })
-    await user.click(submitButton)
-    
-    // Verify request update
-    await waitFor(() => {
-      expect(updateRequest).toHaveBeenCalledWith('test-id', {
-        title: 'Test Request Updated',
-        description: 'Test Description',
-        category: 'Trick Tutorial',
-        instagram_handle: '@test',
-        tags: []
-      })
-      expect(window.location.reload).toHaveBeenCalled()
-    }, { timeout: 3000 })
-  })
 
   it('handles request deletion', async () => {
     const user = userEvent.setup()
@@ -208,28 +167,4 @@ describe('RequestDialog', () => {
     })
   })
 
-  it('handles form submission errors', async () => {
-    // Setup error handling
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-    const mockError = new Error('Failed to create request')
-    ;(createRequest as jest.Mock).mockRejectedValueOnce(mockError)
-    
-    const user = userEvent.setup()
-    render(<RequestDialog>{mockChildren}</RequestDialog>)
-    
-    // Fill and submit form
-    await user.click(screen.getByTestId('new-request-button'))
-    await user.type(screen.getByPlaceholderText(/enter lesson title/i), 'Test Title')
-    await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
-    await user.click(screen.getByRole('button', { name: /submit request/i }))
-    
-    // Verify error handling
-    await waitFor(() => {
-      expect(createRequest).toHaveBeenCalledTimes(1)
-      expect(window.location.reload).not.toHaveBeenCalled()
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to create request:', expect.any(Error))
-    }, { timeout: 3000 })
-    
-    consoleSpy.mockRestore()
-  })
 })

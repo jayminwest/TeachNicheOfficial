@@ -9,7 +9,7 @@ import MuxUploader from "@mux/mux-uploader-react";
 
 
 interface VideoUploaderProps {
-  endpoint: string | (() => Promise<string>);
+  endpoint?: string;
   onUploadComplete: (assetId: string) => void;
   onError: (error: Error) => void;
   onUploadStart?: () => void;
@@ -65,7 +65,7 @@ export function VideoUploader({
 
   // First step: Get the Mux upload URL from our API
   const getUploadUrl = useCallback(async (): Promise<{url: string; assetId: string}> => {
-    const response = await fetch(typeof endpoint === 'string' ? endpoint : await endpoint(), {
+    const response = await fetch('/api/mux/upload', {
       method: 'POST'
     });
     

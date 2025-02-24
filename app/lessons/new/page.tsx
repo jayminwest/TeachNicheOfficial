@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/app/services/supabase";
 import { waitForAssetReady } from "@/app/services/mux";
+import { VideoUploader } from "@/app/components/ui/video-uploader";
 
 export default function NewLessonPage() {
   const router = useRouter();

@@ -25,6 +25,24 @@
 - [ ] Verify component co-location standards
 - [ ] Check feature-based organization structure
 
+### Current Test Coverage Status
+- Overall coverage: 24.72% (target: >80%)
+- Critical areas needing tests:
+  - Authentication components (sign-in.tsx: 0%, sign-up.tsx: 50%)
+  - Video components (video-player.tsx: 0%, video-status.tsx: 0%, video-uploader.tsx: 0%)
+  - Auth services (AuthContext.tsx: 6.45%, supabaseAuth.ts: 18.51%)
+  - API routes (most at 0% coverage)
+  - UI components (many below 50%)
+  - Hooks (useCategories.ts: 71.42%, useLessonAccess.ts: 0%)
+- Priority files to test:
+  - app/components/ui/video-status.tsx
+  - app/components/ui/video-player.tsx
+  - app/components/ui/sign-in.tsx
+  - app/components/ui/sign-up.tsx
+  - app/services/auth/AuthContext.tsx
+  - app/api/* routes
+  - app/hooks/useLessonAccess.ts
+
 ### Authentication & Security
 - [ ] Test all auth flows:
   - [ ] Sign up with email

@@ -19,8 +19,8 @@ export async function GET(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from('request_votes')  // Updated table name
-      .select('id, request_id, user_id, vote_type, created_at')  // Explicit column selection
+      .from('lesson_request_votes')
+      .select('id, request_id, user_id, vote_type, created_at')
       .eq('request_id', requestId)
       .eq('user_id', userId)
       .single()
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     // First check if vote already exists
     const { data: existingVote } = await supabase
-      .from('request_votes')
+      .from('lesson_request_votes')
       .select('*')
       .eq('request_id', validatedData.requestId)
       .eq('user_id', session.user.id)
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
     // Create new vote
     const { data, error } = await supabase
-      .from('request_votes')
+      .from('lesson_request_votes')
       .insert([{
         request_id: validatedData.requestId,
         user_id: session.user.id,

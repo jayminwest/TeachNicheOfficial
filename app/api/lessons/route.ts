@@ -5,33 +5,43 @@ import { getCurrentUser, hasPermission } from '@/app/services/auth';
 // Export the handler functions for testing
 export async function getLessons(req: any, res: any) {
   try {
-    const url = new URL(req.url || 'http://localhost?');
+    const url = new URL(req.url || `http://localhost?${new URLSearchParams(req.query || {})}`);
     const searchParams = url.searchParams;
     const limit = parseInt(searchParams.get('limit') || '10');
     const category = searchParams.get('category');
     const sort = searchParams.get('sort') || 'newest';
     
     const supabase = createClient();
-    let query = supabase.from('lessons').select('*');
     
+    // Start with the base query
+    const baseQuery = supabase.from('lessons');
+    
+    // Select all fields
+    const selectQuery = baseQuery.select('*');
+    
+    // Apply category filter if provided
+    let filteredQuery = selectQuery;
     if (category) {
-      query = query.eq('category', category);
+      filteredQuery = selectQuery.eq('category', category);
     }
     
     // Apply sorting
+    let sortedQuery = filteredQuery;
     if (sort === 'newest') {
-      query = query.order('created_at', { ascending: false });
+      sortedQuery = filteredQuery.order('created_at', { ascending: false });
     } else if (sort === 'oldest') {
-      query = query.order('created_at', { ascending: true });
+      sortedQuery = filteredQuery.order('created_at', { ascending: true });
     } else if (sort === 'price_low') {
-      query = query.order('price', { ascending: true });
+      sortedQuery = filteredQuery.order('price', { ascending: true });
     } else if (sort === 'price_high') {
-      query = query.order('price', { ascending: false });
+      sortedQuery = filteredQuery.order('price', { ascending: false });
     }
     
-    query = query.limit(limit);
+    // Apply limit
+    const limitedQuery = sortedQuery.limit(limit);
     
-    const { data: lessons, error } = await query;
+    // Execute the query
+    const { data: lessons, error } = await limitedQuery;
     
     if (error) {
       res.statusCode = 500;
@@ -96,11 +106,10 @@ export async function createLesson(req: any, res: any) {
     };
 
     const supabase = createClient();
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .insert(lessonData)
-      .select()
-      .single();
+    const baseQuery = supabase.from('lessons');
+    const insertQuery = baseQuery.insert(lessonData);
+    const selectQuery = insertQuery.select();
+    const { data: lesson, error } = await selectQuery.single();
 
     if (error) {
       res.statusCode = 500;
@@ -157,12 +166,11 @@ export async function updateLesson(req: any, res: any) {
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     
     const supabase = createClient();
-    const { data: updatedLesson, error } = await supabase
-      .from('lessons')
-      .update(data)
-      .match({ id })
-      .select()
-      .single();
+    const baseQuery = supabase.from('lessons');
+    const matchQuery = baseQuery.match({ id });
+    const updateQuery = matchQuery.update(data);
+    const selectQuery = updateQuery.select();
+    const { data: updatedLesson, error } = await selectQuery.single();
 
     if (error) {
       res.statusCode = 500;
@@ -204,11 +212,10 @@ export async function deleteLesson(req: any, res: any) {
     const supabase = createClient();
     
     // Check if lesson exists
-    const { data: lesson } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const baseQuery = supabase.from('lessons');
+    const selectQuery = baseQuery.select('*');
+    const eqQuery = selectQuery.eq('id', id);
+    const { data: lesson } = await eqQuery.single();
 
     if (!lesson) {
       res.statusCode = 404;
@@ -226,10 +233,9 @@ export async function deleteLesson(req: any, res: any) {
       return;
     }
 
-    const { error } = await supabase
-      .from('lessons')
-      .delete()
-      .match({ id });
+    const deleteQuery = supabase.from('lessons');
+    const matchQuery = deleteQuery.match({ id });
+    const { error } = await matchQuery.delete();
 
     if (error) {
       res.statusCode = 500;
@@ -295,11 +301,10 @@ export async function POST(request: Request) {
     };
 
     const supabase = createClient();
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .insert(lessonData)
-      .select()
-      .single();
+    const baseQuery = supabase.from('lessons');
+    const insertQuery = baseQuery.insert(lessonData);
+    const selectQuery = insertQuery.select();
+    const { data: lesson, error } = await selectQuery.single();
 
     if (error) {
       return NextResponse.json(
@@ -332,26 +337,31 @@ export async function GET(request: Request) {
   
   try {
     const supabase = createClient();
-    let query = supabase.from('lessons').select('*');
+    const baseQuery = supabase.from('lessons');
+    const selectQuery = baseQuery.select('*');
     
+    let filteredQuery = selectQuery;
     if (category) {
-      query = query.eq('category', category);
+      filteredQuery = selectQuery.eq('category', category);
     }
     
     // Apply sorting
+    let sortedQuery = filteredQuery;
     if (sort === 'newest') {
-      query = query.order('created_at', { ascending: false });
+      sortedQuery = filteredQuery.order('created_at', { ascending: false });
     } else if (sort === 'oldest') {
-      query = query.order('created_at', { ascending: true });
+      sortedQuery = filteredQuery.order('created_at', { ascending: true });
     } else if (sort === 'price_low') {
-      query = query.order('price', { ascending: true });
+      sortedQuery = filteredQuery.order('price', { ascending: true });
     } else if (sort === 'price_high') {
-      query = query.order('price', { ascending: false });
+      sortedQuery = filteredQuery.order('price', { ascending: false });
     }
     
-    query = query.limit(limit);
+    // Apply limit
+    const limitedQuery = sortedQuery.limit(limit);
     
-    const { data: lessons, error } = await query;
+    // Execute the query
+    const { data: lessons, error } = await limitedQuery;
     
     if (error) {
       return NextResponse.json(

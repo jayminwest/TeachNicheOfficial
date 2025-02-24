@@ -85,7 +85,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
         >
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{mode === 'edit' ? 'Edit Lesson Request' : 'Create New Lesson Request'}</DialogTitle>
             <DialogDescription>
@@ -93,8 +93,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto pt-2 pb-4 px-1">
-            <Form {...form}>
+          <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-2">
               <FormField
                 control={form.control}
@@ -146,7 +145,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="relative">
                     <FormLabel>Category</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
@@ -154,19 +153,20 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent
                         position="popper"
                         sideOffset={5}
+                        className="w-[var(--radix-select-trigger-width)] max-h-[300px]"
                       >
                         {LESSON_CATEGORIES.map((category) => (
                           <SelectItem 
                             key={category} 
                             value={category}
-                            className="cursor-pointer"
+                            className="cursor-pointer touch-manipulation"
                           >
                             {category}
                           </SelectItem>

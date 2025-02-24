@@ -4,7 +4,7 @@ import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 
 // Mock the Mux service
 jest.mock('../../../../app/services/mux', () => ({
-  createUploadUrl: jest.fn().mockImplementation((config?: MockConfig) => {
+  createUpload: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       throw new Error(config.errorMessage || 'Mux error');
     }
@@ -106,7 +106,7 @@ describe('Mux API', () => {
       const { req, res } = createMockRequestResponse('POST');
 
       // Mock Mux to throw an error
-      require('../../../../app/services/mux').createUploadUrl.mockImplementationOnce(() => {
+      require('../../../../app/services/mux').createUpload.mockImplementationOnce(() => {
         throw new Error('Mux service error');
       });
 
@@ -122,7 +122,8 @@ describe('Mux API', () => {
         type: 'video.asset.created',
         data: {
           id: 'asset-123',
-          playback_ids: [{ id: 'playback-123' }]
+          playback_ids: [{ id: 'playback-123' }],
+          upload_id: 'upload-123'
         }
       });
 
@@ -138,7 +139,10 @@ describe('Mux API', () => {
         type: 'video.asset.ready',
         data: {
           id: 'asset-123',
-          playback_ids: [{ id: 'playback-123' }]
+          playback_ids: [{ id: 'playback-123' }],
+          duration: 120,
+          width: 1920,
+          height: 1080
         }
       });
 

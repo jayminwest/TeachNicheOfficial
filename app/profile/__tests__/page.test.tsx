@@ -9,9 +9,9 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// Define mockRedirect first before using it
-const mockRedirect = jest.fn()
+// Define mocks before using them
 const mockPush = jest.fn()
+const mockRedirect = jest.fn()
 
 // Mock the router
 jest.mock('next/navigation', () => ({

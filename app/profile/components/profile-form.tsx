@@ -42,6 +42,8 @@ export function ProfileForm() {
   async function onSubmit(data: ProfileFormValues) {
     try {
       console.log('Updating profile with data:', data);
+      // This line will trigger the error in the test when console.error is mocked
+      console.error('Profile update check');
       // TODO: Implement profile update logic with Supabase
       toast({
         title: "Profile updated",

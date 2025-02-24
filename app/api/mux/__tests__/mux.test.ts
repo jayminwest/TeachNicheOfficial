@@ -23,7 +23,7 @@ jest.mock('../../../../app/services/mux', () => ({
 }));
 
 // Mock the database client
-jest.mock('../../../../app/lib/supabase/client', () => ({
+jest.mock('../../../lib/supabase/client', () => ({
   createClient: jest.fn().mockReturnValue({
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
@@ -36,7 +36,7 @@ jest.mock('../../../../app/lib/supabase/client', () => ({
 }));
 
 // Mock auth
-jest.mock('../../../../app/services/auth', () => ({
+jest.mock('../../../services/auth', () => ({
   getCurrentUser: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       return Promise.resolve(null);
@@ -74,7 +74,7 @@ describe('Mux API', () => {
       });
 
       // Mock auth to fail
-      require('../../../../app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
+      require('../../../services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
       await createUploadUrl(req, res);
 

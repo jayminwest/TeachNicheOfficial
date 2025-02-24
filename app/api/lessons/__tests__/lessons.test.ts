@@ -39,7 +39,7 @@ describe('Lessons API', () => {
     jest.clearAllMocks();
     
     // Reset mock database responses
-    const mockSupabase = require('../../../lib/supabase/client').createClient();
+    const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
     mockSupabase.data = { lessons: [] };
     mockSupabase.error = null;
   });
@@ -51,7 +51,7 @@ describe('Lessons API', () => {
         { id: 'lesson-2', title: 'Test Lesson 2', user_id: 'user-123' }
       ];
       
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.data = mockLessons;
       
       const { req, res } = createMocks({
@@ -75,7 +75,7 @@ describe('Lessons API', () => {
         }
       });
 
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.data = [];
       
       await getLessons(req, res);
@@ -88,7 +88,7 @@ describe('Lessons API', () => {
     });
 
     it('handles database errors gracefully', async () => {
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.error = { message: 'Database error' };
       
       const { req, res } = createMocks({
@@ -115,7 +115,7 @@ describe('Lessons API', () => {
         category: 'programming'
       };
       
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.data = { id: 'new-lesson-id', ...newLesson, user_id: 'user-123' };
       
       const { req, res } = createMocks({
@@ -162,7 +162,7 @@ describe('Lessons API', () => {
       });
 
       // Mock auth to fail
-      require('../../../services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
+      jest.mocked(import('../../../services/auth')).getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
       await createLesson(req, res);
 
@@ -177,7 +177,7 @@ describe('Lessons API', () => {
         description: 'Updated description'
       };
       
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.data = { id: 'lesson-123', ...lessonUpdate, user_id: 'user-123' };
       
       const { req, res } = createMocks({
@@ -202,7 +202,7 @@ describe('Lessons API', () => {
       });
 
       // Mock permission check to fail
-      require('../../../services/auth').hasPermission.mockImplementationOnce(() => false);
+      jest.mocked(import('../../../services/auth')).hasPermission.mockImplementationOnce(() => false);
 
       await updateLesson(req, res);
 
@@ -212,7 +212,7 @@ describe('Lessons API', () => {
 
   describe('DELETE /api/lessons/:id', () => {
     it('deletes a lesson successfully', async () => {
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.data = { id: 'lesson-123' };
       
       const { req, res } = createMocks({
@@ -229,7 +229,7 @@ describe('Lessons API', () => {
     });
 
     it('returns 404 for non-existent lessons', async () => {
-      const mockSupabase = require('../../../lib/supabase/client').createClient();
+      const mockSupabase = jest.mocked(import('../../../lib/supabase/client')).createClient();
       mockSupabase.data = null;
       
       const { req, res } = createMocks({

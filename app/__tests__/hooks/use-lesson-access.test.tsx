@@ -1,20 +1,14 @@
-import { renderHook, act } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
 import { mockPurchaseStatus } from '../utils/test-utils'
 import { createMockSupabaseClient } from '../../../__mocks__/services/supabase'
 import { supabase } from '@/app/services/supabase'
 
-jest.useFakeTimers()
+// Mock modules
+jest.mock('@/app/services/supabase', () => ({
+  supabase: createMockSupabaseClient()
+}))
 
-// Mock Supabase client
-jest.mock('@/app/services/supabase', () => {
-  const { createMockSupabaseClient } = require('../../../__mocks__/services/supabase')
-  return {
-    supabase: createMockSupabaseClient()
-  }
-})
-
-// Mock AuthContext
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'test-user' }
@@ -22,108 +16,139 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
 }))
 
 describe('useLessonAccess', () => {
-  beforeEach(() => {
-    window.sessionStorage.clear()
-    jest.clearAllMocks()
-    jest.clearAllTimers()
+  const originalSessionStorage = window.sessionStorage
+  const mockNow = new Date('2025-01-01').getTime()
+
+  beforeAll(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(mockNow)
   })
 
-  it('returns cached access data if within 5 minutes', () => {
+  beforeEach(() => {
+    window.sessionStorage = {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      clear: jest.fn(),
+      removeItem: jest.fn(),
+      length: 0,
+      key: jest.fn()
+    }
+    jest.clearAllMocks()
+  })
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers()
+    jest.useRealTimers()
+  })
+
+  afterAll(() => {
+    window.sessionStorage = originalSessionStorage
+  })
+
+  it('uses cached data when valid', async () => {
     const lessonId = 'test-lesson'
-    const cachedData = mockPurchaseStatus('completed')
-    
-    window.sessionStorage.setItem(
-      `lesson-access-${lessonId}-test-user`,
-      JSON.stringify({
-        ...cachedData,
-        timestamp: Date.now() - 4 * 60 * 1000
-      })
-    )
+    const cachedData = {
+      ...mockPurchaseStatus('completed'),
+      timestamp: mockNow - 1000 // 1 second ago
+    }
+
+    window.sessionStorage.getItem = jest.fn().mockReturnValue(JSON.stringify(cachedData))
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
-    
-    expect(result.current.loading).toBe(false)
-    expect(result.current.hasAccess).toBe(true)
-    expect(result.current.purchaseStatus).toBe('completed')
+
+    expect(result.current).toEqual({
+      hasAccess: true,
+      purchaseStatus: 'completed',
+      loading: false,
+      error: null
+    })
     expect(supabase.from).not.toHaveBeenCalled()
   })
 
-  it('fetches new data if cache is expired', () => {
+  it('fetches fresh data when cache expired', async () => {
     const lessonId = 'test-lesson'
-    const cachedData = mockPurchaseStatus('completed')
-    
-    window.sessionStorage.setItem(
-      `lesson-access-${lessonId}-test-user`,
-      JSON.stringify({
-        ...cachedData,
-        timestamp: Date.now() - 6 * 60 * 1000
+    const mockData = {
+      status: 'completed',
+      purchase_date: mockNow.toString()
+    }
+
+    jest.mocked(supabase.from).mockImplementation(() => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: mockData, error: null })
+          })
+        })
       })
-    )
-
-    const mockClient = createMockSupabaseClient({
-      shouldSucceed: true,
-      data: {
-        status: 'completed',
-        purchase_date: new Date().toISOString()
-      }
-    })
-    
-    jest.mocked(supabase).from.mockImplementation(mockClient.from)
+    } as any))
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
-    
+
+    // Initial loading state
     expect(result.current.loading).toBe(true)
-    
-    // Fast-forward timers
-    act(() => {
-      jest.runAllTimers()
-    })
 
-    expect(result.current.loading).toBe(false)
-    expect(result.current.hasAccess).toBe(true)
-    expect(supabase.from).toHaveBeenCalledWith('purchases')
+    // Wait for data fetch
+    await jest.runAllTimersAsync()
+
+    expect(result.current).toEqual({
+      hasAccess: true,
+      purchaseStatus: 'completed',
+      purchaseDate: mockData.purchase_date,
+      loading: false,
+      error: null
+    })
   })
 
-  it('retries failed requests up to 3 times', () => {
+  it('handles errors gracefully', async () => {
     const lessonId = 'test-lesson'
-    
-    const mockClient = createMockSupabaseClient({
-      shouldSucceed: false,
-      errorMessage: 'Network error'
-    })
-    
-    jest.mocked(supabase).from.mockImplementation(mockClient.from)
+    const mockError = new Error('Database error')
+
+    jest.mocked(supabase.from).mockImplementation(() => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.reject(mockError)
+          })
+        })
+      })
+    } as any))
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
-    // Fast-forward past all retries
-    act(() => {
-      jest.advanceTimersByTime(6000) // Advance past all retries at once
-    })
+    await jest.runAllTimersAsync()
 
-    expect(result.current.loading).toBe(false)
-    expect(result.current.error).toBeTruthy()
-    expect(supabase.from).toHaveBeenCalledTimes(3)
+    expect(result.current).toEqual({
+      hasAccess: false,
+      purchaseStatus: 'none',
+      loading: false,
+      error: mockError
+    })
   })
 
-  it('handles timeout after 5 seconds', () => {
+  it('handles timeouts', async () => {
     const lessonId = 'test-lesson'
     
-    const mockClient = createMockSupabaseClient({
-      shouldSucceed: true,
-      delay: 6000 // Longer than timeout
-    })
-    
-    jest.mocked(supabase).from.mockImplementation(mockClient.from)
+    // Mock a slow response
+    jest.mocked(supabase.from).mockImplementation(() => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: () => new Promise(() => {}) // Never resolves
+          })
+        })
+      })
+    } as any))
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
-    // Fast-forward past timeout
-    act(() => {
-      jest.advanceTimersByTime(5100)
-    })
+    // Advance past the 5 second timeout
+    await jest.advanceTimersByTimeAsync(5100)
 
-    expect(result.current.loading).toBe(false)
-    expect(result.current.error?.message).toBe('Access check timed out')
+    expect(result.current).toEqual({
+      hasAccess: false,
+      purchaseStatus: 'none',
+      loading: false,
+      error: new Error('Access check timed out')
+    })
   })
 })

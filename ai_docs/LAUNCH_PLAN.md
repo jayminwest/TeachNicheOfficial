@@ -3,7 +3,7 @@
 ## Pre-Launch Testing (T-5 days)
 
 ### Code Quality & Testing
-- [ ] Run full test suite (`npm test`)
+- [ ] Run full test suite (`npm test && vercel build`)
 - [ ] Verify test coverage is >80%
 - [ ] Run ESLint across all files
 - [ ] Check for any remaining "any" types in TypeScript
@@ -13,23 +13,32 @@
 - [ ] Check for memory leaks in React components
 - [ ] Verify all forms have proper Zod validation
 - [ ] Run bundle analysis
-- [ ] Check Core Web Vitals scores
+- [ ] Check Core Web Vitals (LCP <2.5s, FID <100ms, CLS <0.1)
 - [ ] Review console for warnings/errors
+- [ ] Verify component documentation standards
+- [ ] Check shadcn/ui component usage
+- [ ] Test all custom hooks
+- [ ] Verify proper memoization usage
 
 ### Authentication & Security
 - [ ] Test all auth flows:
-  - [ ] Sign up
-  - [ ] Sign in
-  - [ ] Password reset
+  - [ ] Sign up with email
+  - [ ] Sign in with email
+  - [ ] Password reset flow
   - [ ] Email verification
-  - [ ] OAuth providers
-- [ ] Verify route protection on all protected pages
-- [ ] Check RBAC implementation
+  - [ ] OAuth providers (Google, GitHub)
+  - [ ] Sign out flow
+- [ ] Verify route protection with Supabase middleware
+- [ ] Check RBAC implementation and permissions
 - [ ] Audit API routes for proper auth middleware
-- [ ] Review security headers
+- [ ] Review security headers (CSP configuration)
 - [ ] Test CSRF protection
-- [ ] Verify secure session handling
+- [ ] Verify secure session handling with Supabase
 - [ ] Check rate limiting implementation
+- [ ] Test AuthContext provider
+- [ ] Verify protected routes in app router
+- [ ] Check auth error handling
+- [ ] Test auth state persistence
 
 ### Payment Integration
 - [ ] Test complete Stripe payment flow
@@ -43,7 +52,7 @@
 - [ ] Test subscription management (if applicable)
 
 ### Video Platform
-- [ ] Test video upload flow
+- [ ] Test video upload flow with Mux
 - [ ] Verify video playback across browsers
 - [ ] Check video processing pipeline
 - [ ] Test video access controls
@@ -51,15 +60,28 @@
 - [ ] Check video analytics implementation
 - [ ] Test video player features
 - [ ] Verify thumbnail generation
+- [ ] Check upload size limits
+- [ ] Test pause/resume functionality
+- [ ] Verify video status tracking
+- [ ] Check video error handling
+- [ ] Test video preview functionality
+- [ ] Verify proper cleanup of failed uploads
 
 ### Database & Data
 - [ ] Run database migrations
 - [ ] Verify backup system
 - [ ] Test data recovery procedures
 - [ ] Check database indexes
-- [ ] Verify data validation
+- [ ] Verify Zod schema validation
 - [ ] Test data export functionality
-- [ ] Review database security
+- [ ] Review Supabase RLS policies
+- [ ] Check query optimization
+- [ ] Verify proper error handling
+- [ ] Test real-time subscriptions
+- [ ] Check data transformation layers
+- [ ] Verify repository pattern implementation
+- [ ] Test database connection pooling
+- [ ] Review data access patterns
 
 ## Environment Setup (T-3 days)
 

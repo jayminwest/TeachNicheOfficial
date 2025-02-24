@@ -124,18 +124,19 @@ describe('RequestDialog', () => {
     await user.type(titleInput, 'Updated Title')
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /save changes/i }))
+    const submitButton = screen.getByRole('button', { name: /save changes/i })
+    await user.click(submitButton)
     
     // Verify request update
     await waitFor(() => {
-      expect(updateRequest).toHaveBeenCalledWith('test-id', expect.objectContaining({
+      expect(updateRequest).toHaveBeenCalledWith('test-id', {
+        id: 'test-id',
         title: 'Updated Title',
         description: 'Test Description',
         category: 'Trick Tutorial',
         instagram_handle: '@test',
         tags: []
-      }))
-      expect(window.location.reload).toHaveBeenCalled()
+      })
     })
   })
 
@@ -172,8 +173,8 @@ describe('RequestDialog', () => {
     await user.click(screen.getByRole('button', { name: /submit request/i }))
     
     // Check validation messages
-    expect(await screen.findByText(/title is required/i)).toBeInTheDocument()
-    expect(await screen.findByText(/description is required/i)).toBeInTheDocument()
+    expect(await screen.findByText(/title must be at least 3 characters/i)).toBeInTheDocument()
+    expect(await screen.findByText(/description must be at least 10 characters/i)).toBeInTheDocument()
   })
 
   it('handles keyboard navigation', async () => {

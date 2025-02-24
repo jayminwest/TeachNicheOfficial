@@ -2,6 +2,7 @@ import { stripe, createConnectSession, getStripe } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,7 +99,8 @@ export async function POST(request: Request) {
     
     try {
       // Use type assertion to handle the mock vs real implementation difference
-      const accounts = stripeInstance.accounts as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const accounts = stripeInstance.accounts as Stripe.AccountsResource;
       
       // Create Stripe Connect account with international support
       const account = await accounts.create({
@@ -138,8 +140,9 @@ export async function POST(request: Request) {
       if (updateError) {
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {
-          // Use type assertion here too
-          await (stripeInstance.accounts as any).del(account.id);
+          // Use type assertion here too with ESLint disable comment
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (stripeInstance.accounts as Stripe.AccountsResource).del(account.id);
         } catch (deleteError) {
           console.error('Failed to delete Stripe account after database update error:', deleteError);
         }

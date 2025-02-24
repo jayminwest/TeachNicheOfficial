@@ -52,8 +52,9 @@ describe('MarkdownEditor', () => {
       </ThemeProvider>
     )
 
-    const editor = screen.getByTestId('md-editor').querySelector('textarea')
-    expect(editor).toHaveAttribute('readonly')
+    const editor = screen.getByTestId('md-editor')
+    expect(editor).toHaveClass('!cursor-not-allowed')
+    expect(editor.querySelector('.w-md-editor-toolbar')).not.toBeInTheDocument()
   })
 
   it('calls onChange when content changes', async () => {

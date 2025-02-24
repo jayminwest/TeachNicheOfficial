@@ -32,7 +32,8 @@ export function MarkdownEditor({
         }}
         height={400}
         hideToolbar={disabled}
-        preview={disabled ? "preview" : "edit"}
+        preview={disabled ? "preview" : "live"}
+        enableScroll={!disabled}
         className={cn(
           "!border !border-input !bg-background",
           "wmde-markdown-var [&_.w-md-editor-toolbar]:!bg-background",

@@ -73,7 +73,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
           .select('status, purchase_date')
           .eq('user_id', user.id)
           .eq('lesson_id', lessonId)
-          .single()
+          .maybeSingle()
 
         clearTimeout(timeoutId)
 

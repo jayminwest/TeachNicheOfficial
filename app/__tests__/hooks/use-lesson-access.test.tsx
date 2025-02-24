@@ -1,10 +1,29 @@
 import { renderHook, act } from '@testing-library/react'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
 import { mockPurchaseStatus } from '../utils/test-utils'
+import { supabase } from '@/app/services/supabase'
 
-// Mock the fetch function
-const mockFetch = jest.fn()
-global.fetch = mockFetch
+// Mock Supabase client
+jest.mock('@/app/services/supabase', () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            maybeSingle: jest.fn()
+          }))
+        }))
+      }))
+    }))
+  }
+}))
+
+// Mock AuthContext
+jest.mock('@/app/services/auth/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user' }
+  })
+}))
 
 describe('useLessonAccess', () => {
   beforeEach(() => {
@@ -45,16 +64,23 @@ describe('useLessonAccess', () => {
       })
     )
 
-    mockFetch.mockImplementationOnce(() => 
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({
-          hasAccess: true,
-          purchaseStatus: 'completed',
-          purchaseDate: new Date().toISOString()
+    const mockSupabaseResponse = {
+      data: {
+        status: 'completed',
+        purchase_date: new Date().toISOString()
+      },
+      error: null
+    }
+    
+    jest.spyOn(supabase, 'from').mockImplementation(() => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve(mockSupabaseResponse)
+          })
         })
       })
-    )
+    }))
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
     

@@ -57,7 +57,7 @@ describe('LessonAccessGate', () => {
     
     await waitFor(() => {
       expect(screen.getByText('Purchase Required')).toBeInTheDocument()
-      expect(screen.getByText('$9.99')).toBeInTheDocument()
+      expect(screen.getByText(/Purchase Lesson/)).toBeInTheDocument()
     })
   })
 

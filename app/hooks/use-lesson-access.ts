@@ -61,22 +61,32 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         }
       }
 
-      try {
+      // Create an AbortController for the timeout
+      const abortController = new AbortController()
+      const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(() => {
-          if (mounted) {
-            setError(new Error('Access check timed out'))
-            setLoading(false)
-          }
+          abortController.abort()
+          reject(new Error('Access check timed out'))
         }, TIMEOUT_MS)
+      })
 
-        const { data: purchase, error: dbError } = await supabase
-          .from('purchases')
-          .select('status, purchase_date')
-          .eq('user_id', user.id)
-          .eq('lesson_id', lessonId)
-          .maybeSingle()
+      try {
+        const result = await Promise.race([
+          supabase
+            .from('purchases')
+            .select('status, purchase_date')
+            .eq('user_id', user.id)
+            .eq('lesson_id', lessonId)
+            .maybeSingle()
+            .abortSignal(abortController.signal),
+          timeoutPromise
+        ])
 
         clearTimeout(timeoutId)
+
+        if (!mounted) return
+
+        const { data: purchase, error: dbError } = result as any
 
         if (dbError) throw dbError
 
@@ -93,20 +103,18 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         }
         sessionStorage.setItem(cacheKey, JSON.stringify(cacheEntry))
 
-        if (mounted) {
-          setAccess(accessData)
-          setError(null)
-        }
+        setAccess(accessData)
+        setError(null)
       } catch (err) {
+        if (!mounted) return
+
         console.error('Error checking lesson access:', err)
-        if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to check access'))
-          
-          // Retry logic for recoverable errors
-          if (attempts < RETRY_ATTEMPTS && err instanceof Error && !err.message.includes('timeout')) {
-            attempts++
-            retryTimeoutId = setTimeout(checkAccess, 1000 * attempts)
-          }
+        setError(err instanceof Error ? err : new Error('Failed to check access'))
+        
+        // Only retry on non-timeout errors
+        if (attempts < RETRY_ATTEMPTS && err instanceof Error && !err.message.includes('timeout')) {
+          attempts++
+          retryTimeoutId = setTimeout(checkAccess, 1000 * attempts)
         }
       } finally {
         if (mounted) {

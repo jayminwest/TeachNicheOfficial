@@ -2,6 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LessonForm } from '../lesson-form'
 
+jest.mock('@uiw/react-md-editor')
+jest.mock('../video-uploader', () => ({
+  VideoUploader: () => <div data-testid="video-uploader">Video Uploader</div>
+}))
+
 describe('LessonForm', () => {
   const mockSubmit = jest.fn()
 
@@ -14,8 +19,9 @@ describe('LessonForm', () => {
 
     expect(screen.getByLabelText(/lesson title/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/lesson content/i)).toBeInTheDocument()
+    expect(screen.getByTestId('md-editor')).toBeInTheDocument()
     expect(screen.getByLabelText(/price/i)).toBeInTheDocument()
+    expect(screen.getByTestId('video-uploader')).toBeInTheDocument()
   })
 
   it('validates required fields', async () => {
@@ -38,7 +44,10 @@ describe('LessonForm', () => {
 
     await userEvent.type(screen.getByLabelText(/lesson title/i), 'Test Lesson')
     await userEvent.type(screen.getByLabelText(/description/i), 'This is a test lesson description that meets the minimum length')
-    await userEvent.type(screen.getByLabelText(/lesson content/i), 'Test content')
+    
+    const mdEditor = screen.getByTestId('md-editor').querySelector('textarea')
+    await userEvent.type(mdEditor!, 'Test content')
+    
     await userEvent.type(screen.getByLabelText(/price/i), '9.99')
 
     const submitButton = screen.getByRole('button', { name: /create lesson/i })
@@ -52,5 +61,12 @@ describe('LessonForm', () => {
         price: 9.99
       }))
     })
+  })
+
+  it('handles submitting state', () => {
+    render(<LessonForm onSubmit={mockSubmit} isSubmitting={true} />)
+    
+    expect(screen.getByText(/creating lesson/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /creating lesson/i })).toBeDisabled()
   })
 })

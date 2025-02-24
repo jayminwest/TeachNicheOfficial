@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MarkdownEditor } from '../markdown-editor'
 import { ThemeProvider } from 'next-themes'
 
+jest.mock('@uiw/react-md-editor')
+
 describe('MarkdownEditor', () => {
   const mockOnChange = jest.fn()
 
@@ -20,7 +22,8 @@ describe('MarkdownEditor', () => {
       </ThemeProvider>
     )
     
-    expect(screen.getByText('Test content')).toBeInTheDocument()
+    const editor = screen.getByTestId('md-editor')
+    expect(editor).toBeInTheDocument()
   })
 
   it('handles disabled state', () => {
@@ -34,7 +37,23 @@ describe('MarkdownEditor', () => {
       </ThemeProvider>
     )
 
-    const editor = screen.getByRole('textbox')
+    const editor = screen.getByTestId('md-editor').querySelector('textarea')
     expect(editor).toHaveAttribute('readonly')
+  })
+
+  it('calls onChange when content changes', async () => {
+    render(
+      <ThemeProvider>
+        <MarkdownEditor
+          value="Test content"
+          onChange={mockOnChange}
+        />
+      </ThemeProvider>
+    )
+
+    const textarea = screen.getByTestId('md-editor').querySelector('textarea')
+    await userEvent.type(textarea!, 'New content')
+    
+    expect(mockOnChange).toHaveBeenCalled()
   })
 })

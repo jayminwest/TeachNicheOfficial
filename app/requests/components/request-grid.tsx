@@ -11,6 +11,7 @@ interface RequestGridProps {
   initialRequests?: LessonRequest[]
   category?: string
   sortBy: 'popular' | 'newest'
+  onError?: (error: Error) => void
 }
 
 export function RequestGrid({ initialRequests, category, sortBy }: RequestGridProps) {
@@ -25,6 +26,7 @@ export function RequestGrid({ initialRequests, category, sortBy }: RequestGridPr
       setRequests(data)
     } catch (error) {
       console.error('Failed to load requests:', error)
+      onError?.(error instanceof Error ? error : new Error('Failed to load requests'))
     } finally {
       setIsLoading(false)
     }

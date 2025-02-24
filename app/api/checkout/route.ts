@@ -14,64 +14,39 @@ try {
   // In tests, we'll use mocks
 }
 
-// Export for testing
-export async function createCheckoutSession(req: Request, res: Response) {
-  try {
-    const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { lessonId, price } = data;
-    
-    // Get the base URL from the request
-    const baseUrl = req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL;
-
-    if (!price || price <= 0) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Invalid price: must be a positive number' }));
-      return;
-    }
-
-    // For tests, we'll use a mock session
-    if (!stripe) {
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ 
-        sessionId: 'test_session_id',
-        url: 'https://test.checkout.url'
-      }));
-      return;
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Lesson Purchase',
-            },
-            unit_amount: price * 100, // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${baseUrl}/lessons/${lessonId}?success=true`,
-      cancel_url: `${baseUrl}/lessons/${lessonId}?canceled=true`,
-      metadata: {
-        lessonId,
-      },
-    });
-
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ sessionId: session.id }));
-  } catch (error) {
-    console.error('Error creating checkout session:', error);
-    res.statusCode = 500;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'Error creating checkout session' }));
+// Helper function for creating checkout sessions (not exported as a route handler)
+async function createCheckoutSession(lessonId: string, price: number, baseUrl: string) {
+  if (!price || price <= 0) {
+    throw new Error('Invalid price: must be a positive number');
   }
+
+  if (!stripe) {
+    throw new Error('Stripe is not properly initialized');
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Lesson Purchase',
+          },
+          unit_amount: price * 100, // Convert to cents
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: `${baseUrl}/lessons/${lessonId}?success=true`,
+    cancel_url: `${baseUrl}/lessons/${lessonId}?canceled=true`,
+    metadata: {
+      lessonId,
+    },
+  });
+
+  return session;
 }
 
 // App Router handler
@@ -80,7 +55,7 @@ export async function POST(request: Request) {
     const { lessonId, price } = await request.json();
     
     // Get the base URL from the request
-    const baseUrl = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL;
+    const baseUrl = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || '';
 
     if (!price || price <= 0) {
       return NextResponse.json(
@@ -96,28 +71,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Lesson Purchase',
-            },
-            unit_amount: price * 100, // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${baseUrl}/lessons/${lessonId}?success=true`,
-      cancel_url: `${baseUrl}/lessons/${lessonId}?canceled=true`,
-      metadata: {
-        lessonId,
-      },
-    });
-
+    const session = await createCheckoutSession(lessonId, price, baseUrl);
     return NextResponse.json({ sessionId: session.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);

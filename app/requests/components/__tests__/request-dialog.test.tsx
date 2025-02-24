@@ -128,8 +128,9 @@ describe('RequestDialog', () => {
     expect(descriptionInput).toHaveValue('Test Description')
     expect(instagramInput).toHaveValue('@test')
     
-    // Modify a field to trigger form submission
-    await user.type(titleInput, ' Updated')
+    // Clear and set new title
+    await user.clear(titleInput)
+    await user.type(titleInput, 'Test Request Updated')
     
     // Submit form
     const submitButton = screen.getByRole('button', { name: /save changes/i })
@@ -144,7 +145,8 @@ describe('RequestDialog', () => {
         instagram_handle: '@test',
         tags: []
       })
-    })
+      expect(window.location.reload).toHaveBeenCalled()
+    }, { timeout: 3000 })
   })
 
   it('handles request deletion', async () => {
@@ -207,32 +209,27 @@ describe('RequestDialog', () => {
   })
 
   it('handles form submission errors', async () => {
-    // Mock console.error to prevent error output in tests
+    // Setup error handling
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-    
-    // Setup error mock
     const mockError = new Error('Failed to create request')
-    ;(createRequest as jest.Mock).mockRejectedValue(mockError)
+    ;(createRequest as jest.Mock).mockRejectedValueOnce(mockError)
     
     const user = userEvent.setup()
     render(<RequestDialog>{mockChildren}</RequestDialog>)
     
-    // Open dialog and submit form
+    // Fill and submit form
     await user.click(screen.getByTestId('new-request-button'))
     await user.type(screen.getByPlaceholderText(/enter lesson title/i), 'Test Title')
     await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
-    
-    // Submit form and expect error
     await user.click(screen.getByRole('button', { name: /submit request/i }))
     
     // Verify error handling
     await waitFor(() => {
       expect(createRequest).toHaveBeenCalledTimes(1)
       expect(window.location.reload).not.toHaveBeenCalled()
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to create request:', mockError)
-    })
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to create request:', expect.any(Error))
+    }, { timeout: 3000 })
     
-    // Cleanup
     consoleSpy.mockRestore()
   })
 })

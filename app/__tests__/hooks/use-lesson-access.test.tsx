@@ -21,13 +21,14 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
 
 describe('useLessonAccess', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
+    jest.useFakeTimers({ advanceTimers: true })
     window.sessionStorage.clear()
     jest.clearAllMocks()
   })
 
   afterEach(() => {
     jest.useRealTimers()
+    jest.clearAllTimers()
   })
 
   it('returns cached access data if within 5 minutes', () => {

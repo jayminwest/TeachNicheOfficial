@@ -1,9 +1,9 @@
 import { createMocks } from 'node-mocks-http';
 import { createUploadUrl, handleAssetCreated, handleAssetReady } from '../route';
-import { MockConfig } from '@/app/__mocks__/utils/mock-helpers';
+import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 
 // Mock the Mux service
-jest.mock('@/app/services/mux', () => ({
+jest.mock('../../../../app/services/mux', () => ({
   createUploadUrl: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       throw new Error(config.errorMessage || 'Mux error');
@@ -23,7 +23,7 @@ jest.mock('@/app/services/mux', () => ({
 }));
 
 // Mock the database client
-jest.mock('@/app/lib/supabase/client', () => ({
+jest.mock('../../../../app/lib/supabase/client', () => ({
   createClient: jest.fn().mockReturnValue({
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
@@ -36,7 +36,7 @@ jest.mock('@/app/lib/supabase/client', () => ({
 }));
 
 // Mock auth
-jest.mock('@/app/services/auth', () => ({
+jest.mock('../../../../app/services/auth', () => ({
   getCurrentUser: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       return Promise.resolve(null);
@@ -74,7 +74,7 @@ describe('Mux API', () => {
       });
 
       // Mock auth to fail
-      require('@/app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
+      require('../../../../app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
       await createUploadUrl(req, res);
 
@@ -87,7 +87,7 @@ describe('Mux API', () => {
       });
 
       // Mock Mux to throw an error
-      require('@/app/services/mux').createUploadUrl.mockImplementationOnce(() => {
+      require('../../../../app/services/mux').createUploadUrl.mockImplementationOnce(() => {
         throw new Error('Mux service error');
       });
 

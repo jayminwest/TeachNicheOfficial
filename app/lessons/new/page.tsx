@@ -191,20 +191,6 @@ export default function NewLessonPage() {
             </p>
           </div>
           <div className="bg-card rounded-lg border shadow-sm p-6 md:p-8">
-            <VideoUploader
-              onUploadComplete={(assetId) => {
-                console.log("Video upload complete:", assetId);
-                // Handle the upload complete
-              }}
-              onError={(error) => {
-                console.error("Video upload error:", error);
-                toast({
-                  title: "Upload Failed",
-                  description: error.message,
-                  variant: "destructive",
-                });
-              }}
-            />
             <LessonForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
         </div>

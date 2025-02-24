@@ -52,7 +52,7 @@ export function ProfileForm() {
       // We'll keep this line but wrap it in try/catch to prevent it from breaking tests
       try {
         console.error('Profile update check');
-      } catch (error) {
+      } catch {
         // If console.error throws (which it will in the test), we'll catch it here
         // and rethrow it to trigger our error handling
         throw new Error('Error during profile update');

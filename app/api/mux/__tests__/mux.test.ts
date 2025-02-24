@@ -59,7 +59,7 @@ jest.mock('next/server', () => {
 });
 
 // Helper function to create mock request/response
-function createMockRequestResponse(method: string, body?: any, url = 'http://localhost/api/mux') {
+function createMockRequestResponse(method: string, body?: unknown, url = 'http://localhost/api/mux') {
   // Create a mock request object with the necessary properties and methods
   const request = {
     method,
@@ -111,7 +111,8 @@ describe('Mux API', () => {
       const { req, res } = createMockRequestResponse('POST');
 
       // Mock auth to fail
-      require('../../../../app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
+      const authModule = jest.requireMock('../../../../app/services/auth');
+      authModule.getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
       await createUploadUrl(req, res);
 
@@ -122,7 +123,8 @@ describe('Mux API', () => {
       const { req, res } = createMockRequestResponse('POST');
 
       // Mock Mux to throw an error
-      require('../../../../app/services/mux').createUpload.mockImplementationOnce(() => {
+      const muxModule = jest.requireMock('../../../../app/services/mux');
+      muxModule.createUpload.mockImplementationOnce(() => {
         throw new Error('Mux service error');
       });
 

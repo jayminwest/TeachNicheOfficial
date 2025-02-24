@@ -191,14 +191,7 @@ export async function updateLesson(req: RequestWithQuery, res: ResponseWithStatu
     const matchQuery = baseQuery.match({ id });
     const updateQuery = matchQuery.update(data);
     const selectQuery = updateQuery.select();
-    const { data: updatedLesson, error: updateError } = await selectQuery.single();
-
-    if (updateError) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Failed to update lesson' }));
-      return;
-    }
+    const { data: updatedLesson } = await selectQuery.single();
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -257,14 +250,7 @@ export async function deleteLesson(req: RequestWithQuery, res: ResponseWithStatu
 
     const deleteQuery = supabase.from('lessons');
     const matchQuery = deleteQuery.match({ id });
-    const { error: deleteError } = await matchQuery.delete();
-
-    if (deleteError) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Failed to delete lesson' }));
-      return;
-    }
+    await matchQuery.delete();
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');

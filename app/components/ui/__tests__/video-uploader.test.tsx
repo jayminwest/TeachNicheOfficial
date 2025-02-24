@@ -5,40 +5,42 @@ import MuxUploader from '@mux/mux-uploader-react';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 // Mock the MuxUploader component
-jest.mock('@mux/mux-uploader-react', () => ({
-  __esModule: true,
-  default: jest.fn(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
-    return (
-      <div data-testid="mux-uploader-mock">
-        {children}
-        <button 
-          data-testid="trigger-upload-start" 
-          onClick={() => onUploadStart({ detail: { file: mockFile } })}
-        >
-          Trigger Upload Start
-        </button>
-        <button 
-          data-testid="trigger-progress" 
-          onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
-        >
-          Trigger Progress
-        </button>
-        <button 
-          data-testid="trigger-success" 
-          onClick={() => onSuccess(new CustomEvent('success'))}
-        >
-          Trigger Success
-        </button>
-        <button 
-          data-testid="trigger-error" 
-          onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
-        >
-          Trigger Error
-        </button>
-      </div>
-    );
-  })
-}));
+jest.mock('@mux/mux-uploader-react', () => {
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+      return (
+        <div data-testid="mux-uploader-mock">
+          {children}
+          <button 
+            data-testid="trigger-upload-start" 
+            onClick={() => onUploadStart({ detail: { file: mockFile } })}
+          >
+            Trigger Upload Start
+          </button>
+          <button 
+            data-testid="trigger-progress" 
+            onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
+          >
+            Trigger Progress
+          </button>
+          <button 
+            data-testid="trigger-success" 
+            onClick={() => onSuccess(new CustomEvent('success'))}
+          >
+            Trigger Success
+          </button>
+          <button 
+            data-testid="trigger-error" 
+            onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
+          >
+            Trigger Error
+          </button>
+        </div>
+      );
+    })
+  };
+});
 
 // Mock fetch API
 global.fetch = jest.fn();
@@ -469,7 +471,7 @@ describe('VideoUploader', () => {
   describe('Edge Cases', () => {
     it('handles retry logic for API failures', async () => {
       // Mock first API call to fail, second to succeed
-      global.fetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')))
+      global.fetch.mockImplementationOnce(()=> Promise.reject(new Error('Network error')))
         .mockImplementationOnce(() => Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })

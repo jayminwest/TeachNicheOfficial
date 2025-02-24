@@ -123,6 +123,8 @@ describe('Header', () => {
       render(<Header />)
       expect(screen.getByText('Home')).toBeInTheDocument()
       expect(screen.getByText('About')).toBeInTheDocument()
+      expect(screen.getByText('Lessons')).toBeInTheDocument()
+      expect(screen.getByText('Requests')).toBeInTheDocument()
     })
 
     it('shows sign in and waitlist buttons when user is not authenticated', () => {

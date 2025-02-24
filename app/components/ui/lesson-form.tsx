@@ -3,6 +3,7 @@
 import { cn } from "@/app/lib/utils";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { MarkdownEditor } from "./markdown-editor";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "./button";
@@ -19,6 +20,9 @@ const lessonFormSchema = z.object({
   description: z.string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
+  content: z.string()
+    .min(1, "Content is required")
+    .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
   price: z.number()
@@ -47,6 +51,7 @@ export function LessonForm({
     defaultValues: initialData || {
       title: "",
       description: "",
+      content: "",
       price: 0,
       muxAssetId: "", // Initialize muxAssetId field
       muxPlaybackId: "", // Initialize muxPlaybackId field
@@ -108,6 +113,27 @@ export function LessonForm({
                 </FormControl>
                 <FormDescription>
                   Provide a detailed description of your lesson content and learning outcomes
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Lesson Content</FormLabel>
+                <FormControl>
+                  <MarkdownEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Write your lesson content using Markdown. You can include headers, lists, code blocks, and more.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

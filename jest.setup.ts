@@ -41,19 +41,22 @@ if (typeof window !== 'undefined') {
 }
 
 // Mock lucide-react icons
-jest.mock('lucide-react', () => ({
-  ...jest.requireActual('lucide-react'),
-  AlertCircle: () => 'AlertCircle',
-  CheckCircle2: () => 'CheckCircle2',
-  Upload: () => 'Upload',
-  Loader2: () => 'Loader2',
-  BookOpen: () => 'BookOpen',
-  DollarSign: () => 'DollarSign',
-  Users: () => 'Users',
-  Shield: () => 'Shield',
-  Leaf: () => 'Leaf',
-  GraduationCap: () => 'GraduationCap'
-}));
+jest.mock('lucide-react', () => {
+  const actual = jest.requireActual('lucide-react') as object;
+  return {
+    ...actual,
+    AlertCircle: () => 'AlertCircle',
+    CheckCircle2: () => 'CheckCircle2',
+    Upload: () => 'Upload',
+    Loader2: () => 'Loader2',
+    BookOpen: () => 'BookOpen',
+    DollarSign: () => 'DollarSign',
+    Users: () => 'Users',
+    Shield: () => 'Shield',
+    Leaf: () => 'Leaf',
+    GraduationCap: () => 'GraduationCap'
+  };
+});
 
 // Mock @mux/mux-player-react
 jest.mock('@mux/mux-player-react', () => ({

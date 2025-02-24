@@ -14,6 +14,7 @@ interface VideoUploaderProps {
   onError: (error: Error) => void;
   onUploadStart?: () => void;
   maxSizeMB?: number;
+  maxResolution?: { width: number; height: number };
   acceptedTypes?: string[];
   className?: string;
   pausable?: boolean;
@@ -32,7 +33,8 @@ export function VideoUploader({
   onUploadComplete, 
   onError,
   onUploadStart,
-  maxSizeMB = 500,
+  maxSizeMB = 2000,
+  maxResolution = { width: 1920, height: 1080 },
   acceptedTypes = ['video/mp4', 'video/quicktime', 'video/heic', 'video/heif'],
   className,
   pausable = false,
@@ -51,7 +53,29 @@ export function VideoUploader({
     onError(error);
   }, [onError]);
 
-  const validateFile = (file: File) => {
+  const getVideoResolution = (file: File): Promise<{width: number; height: number}> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(video.src);
+        resolve({
+          width: video.videoWidth,
+          height: video.videoHeight
+        });
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(video.src);
+        reject(new Error('Failed to load video metadata'));
+      };
+
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const validateFile = async (file: File) => {
     console.log('Validating file:', {
       name: file.name,
       type: file.type,
@@ -70,6 +94,15 @@ export function VideoUploader({
 
     if (!isValidType) {
       throw new Error(`File type must be one of: ${acceptedTypes.join(', ')} or HEIC/HEIF format`);
+    }
+
+    // Check video resolution
+    if (file.type.startsWith('video/')) {
+      const videoResolution = await getVideoResolution(file);
+      if (videoResolution.width > maxResolution.width || 
+          videoResolution.height > maxResolution.height) {
+        throw new Error(`Video resolution must not exceed ${maxResolution.width}x${maxResolution.height} (1080p)`);
+      }
     }
   };
 
@@ -268,7 +301,7 @@ export function VideoUploader({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Accepted formats: {acceptedTypes.join(', ')} (max {maxSizeMB}MB)
+        Accepted formats: {acceptedTypes.join(', ')} (max {maxSizeMB}MB, max resolution 1080p)
       </p>
     </div>
   );

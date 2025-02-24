@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import ProfilePage from '../page'
-import { renderWithAuth } from '@/app/__tests__/test-utils'
+import { renderWithAuth } from '../../../__tests__/test-utils'
 
 // Define mockRedirect first before using it
 const mockRedirect = jest.fn()

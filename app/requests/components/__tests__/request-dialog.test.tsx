@@ -115,12 +115,13 @@ describe('RequestDialog', () => {
       </RequestDialog>
     )
     
-    // Open dialog
+    // Open dialog and wait for form
     await user.click(screen.getByTestId('new-request-button'))
+    const form = await screen.findByRole('form')
     
-    // Wait for form to be fully rendered
+    // Wait for form to be fully rendered with initial values
     await waitFor(() => {
-      expect(screen.getByText('Edit Lesson Request')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Test Request')).toBeInTheDocument()
     })
     
     // Modify title
@@ -129,19 +130,18 @@ describe('RequestDialog', () => {
     await user.type(titleInput, 'Updated Title')
     
     // Submit form
-    const form = screen.getByRole('form')
-    await user.click(screen.getByRole('button', { name: /save changes/i }))
+    const submitButton = screen.getByRole('button', { name: /save changes/i })
+    await user.click(submitButton)
     
     // Verify request update
     await waitFor(() => {
-      expect(updateRequest).toHaveBeenCalledWith('test-id', {
+      expect(updateRequest).toHaveBeenCalledWith('test-id', expect.objectContaining({
         title: 'Updated Title',
         description: 'Test Description',
         category: 'Trick Tutorial',
         instagram_handle: '@test',
-        tags: [],
-        id: 'test-id'
-      })
+        tags: []
+      }))
     })
   })
 

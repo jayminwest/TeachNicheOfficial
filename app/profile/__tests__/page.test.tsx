@@ -4,16 +4,19 @@ import { axe } from 'jest-axe'
 import ProfilePage from '../page'
 import { renderWithAuth } from '@/app/__tests__/test-utils'
 
+// Create mock functions
+const mockPush = jest.fn();
+
 // Clear all mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// Mock the router - use jest.fn() directly in the mock
+// Mock the router - use the mockPush reference
 jest.mock('next/navigation', () => ({
   ...jest.requireActual('next/navigation'),
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockPush,
   }),
   redirect: jest.fn(),
 }))
@@ -52,9 +55,6 @@ expect.extend({
   }
 })
 
-// Import the mocked functions after they've been mocked
-import { useRouter } from 'next/navigation'
-
 describe('ProfilePage', () => {
   describe('rendering', () => {
     it('renders loading state initially', async () => {
@@ -68,9 +68,6 @@ describe('ProfilePage', () => {
     })
 
     it('redirects unauthenticated users', async () => {
-      // Get the mocked router
-      const mockRouter = useRouter()
-      
       // Force a re-render with unauthenticated state
       const { rerender } = renderWithAuth(<ProfilePage />, { 
         user: null,
@@ -87,8 +84,8 @@ describe('ProfilePage', () => {
       
       // Let the effect run
       await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith('/')
-      })
+        expect(mockPush).toHaveBeenCalledWith('/')
+      }, { timeout: 3000 })
     })
 
     it('renders profile page for authenticated users', async () => {

@@ -20,19 +20,21 @@ export default function ProfilePage() {
   } | null>(null);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
+  // Immediate redirect for unauthenticated users
   useEffect(() => {
-    // Don't run the effect if still loading
-    if (loading) return;
+    if (!loading && !user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
+  // Fetch profile data
+  useEffect(() => {
+    // Don't run the effect if still loading or no user
+    if (loading || !user) return;
     
     // Mark initial load as complete
     setInitialLoadComplete(true);
     
-    if (!user) {
-      // Redirect unauthenticated users to home page
-      router.push('/');
-      return;
-    }
-
     async function fetchProfile() {
       if (!user?.id) return;
       
@@ -51,7 +53,7 @@ export default function ProfilePage() {
     }
 
     fetchProfile();
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   // Show loading state before initial auth check completes
   if (loading) {
@@ -63,7 +65,7 @@ export default function ProfilePage() {
   }
 
   // After initial load, if no user and not loading, show unauthenticated state
-  if (!user && initialLoadComplete) {
+  if (!user) {
     // For test environment, render a placeholder instead of redirecting
     return <div data-testid="unauthenticated-placeholder">
       Please sign in to view your profile

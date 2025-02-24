@@ -30,7 +30,7 @@ export function RequestGrid({ initialRequests, category, sortBy, onError }: Requ
     } finally {
       setIsLoading(false)
     }
-  }, [category, sortBy])
+  }, [category, sortBy, onError])
 
   useEffect(() => {
     if (!initialRequests) {

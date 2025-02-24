@@ -9,11 +9,12 @@ import MuxUploader from "@mux/mux-uploader-react";
 
 
 interface VideoUploaderProps {
-  endpoint: string | (() => Promise<string>);
+  endpoint?: string;
   onUploadComplete: (assetId: string) => void;
   onError: (error: Error) => void;
   onUploadStart?: () => void;
   maxSizeMB?: number;
+  maxResolution?: { width: number; height: number };
   acceptedTypes?: string[];
   className?: string;
   pausable?: boolean;
@@ -32,8 +33,9 @@ export function VideoUploader({
   onUploadComplete, 
   onError,
   onUploadStart,
-  maxSizeMB = 500,
-  acceptedTypes = ['video/mp4', 'video/quicktime'],
+  maxSizeMB = 2000,
+  maxResolution = { width: 1920, height: 1080 },
+  acceptedTypes = ['video/mp4', 'video/quicktime', 'video/heic', 'video/heif'],
   className,
   pausable = false,
   noDrop = false,
@@ -51,12 +53,56 @@ export function VideoUploader({
     onError(error);
   }, [onError]);
 
-  const validateFile = (file: File) => {
+  const getVideoResolution = (file: File): Promise<{width: number; height: number}> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(video.src);
+        resolve({
+          width: video.videoWidth,
+          height: video.videoHeight
+        });
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(video.src);
+        reject(new Error('Failed to load video metadata'));
+      };
+
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const validateFile = async (file: File) => {
+    console.log('Validating file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+
     if (file.size > maxSizeMB * 1024 * 1024) {
       throw new Error(`File size must be less than ${maxSizeMB}MB`);
     }
-    if (!acceptedTypes.includes(file.type)) {
-      throw new Error(`File type must be one of: ${acceptedTypes.join(', ')}`);
+
+    // Check both MIME type and file extension
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const isValidType = acceptedTypes.includes(file.type) || 
+                       (fileExtension && ['heic', 'heif'].includes(fileExtension));
+
+    if (!isValidType) {
+      throw new Error(`File type must be one of: ${acceptedTypes.join(', ')} or HEIC/HEIF format`);
+    }
+
+    // Check video resolution
+    if (file.type.startsWith('video/')) {
+      const videoResolution = await getVideoResolution(file);
+      if (videoResolution.width > maxResolution.width || 
+          videoResolution.height > maxResolution.height) {
+        throw new Error(`Video resolution must not exceed ${maxResolution.width}x${maxResolution.height} (1080p)`);
+      }
     }
   };
 
@@ -65,12 +111,15 @@ export function VideoUploader({
 
   // First step: Get the Mux upload URL from our API
   const getUploadUrl = useCallback(async (): Promise<{url: string; assetId: string}> => {
-    const response = await fetch(typeof endpoint === 'string' ? endpoint : await endpoint(), {
+    const response = await fetch('/api/mux/upload', {
       method: 'POST'
     });
     
     if (!response.ok) {
-      throw new Error('Failed to get upload URL');
+      const errorText = await response.text().catch(() => 'No error details available');
+      throw new Error(
+        `Failed to get upload URL (HTTP ${response.status}): ${errorText}`
+      );
     }
 
     const data = await response.json();
@@ -78,19 +127,29 @@ export function VideoUploader({
       throw new Error('Invalid upload response');
     }
     return data;
-  }, [endpoint]);
+  }, []);
 
   // Fetch endpoint URL when component mounts if it's a function
   useEffect(() => {
-    getUploadUrl()
-      .then(({url, assetId}) => {
-        setUploadEndpoint(url);
-        setCurrentAssetId(assetId);
-      })
-      .catch(error => {
-        console.error('Failed to get upload URL:', error);
-        handleError(new Error('Failed to get upload URL'));
-      });
+    const fetchWithRetry = async (retries = 3, delay = 1000) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const {url, assetId} = await getUploadUrl();
+          setUploadEndpoint(url);
+          setCurrentAssetId(assetId);
+          return;
+        } catch (error) {
+          console.error(`Upload URL fetch attempt ${i + 1} failed:`, error);
+          if (i === retries - 1) {
+            handleError(error instanceof Error ? error : new Error('Failed to get upload URL'));
+            return;
+          }
+          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        }
+      }
+    };
+
+    fetchWithRetry();
   }, [endpoint, getUploadUrl, handleError]);
 
   const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {
@@ -147,19 +206,8 @@ export function VideoUploader({
     try {
       setStatus("processing");
       
-      // Get the upload status to get the asset ID
-      const uploadResponse = await fetch(`/api/video/upload-status?uploadId=${currentAssetId}`);
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to get upload status');
-      }
-      
-      const uploadData = await uploadResponse.json();
-      if (!uploadData.asset_id) {
-        throw new Error('No asset ID in upload response');
-      }
-
-      // Wait for the asset to be ready
-      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${uploadData.asset_id}`);
+      // Since we already have the asset ID from the initial upload setup
+      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${currentAssetId}`);
       if (!assetResponse.ok) {
         throw new Error('Failed to get asset status');
       }
@@ -174,14 +222,13 @@ export function VideoUploader({
       }
 
       console.log("Upload and processing completed successfully:", {
-        uploadId: currentAssetId,
-        assetId: uploadData.asset_id,
+        assetId: currentAssetId,
         status: assetData.status,
         playbackId: assetData.playbackId
       });
 
       setStatus("ready");
-      onUploadComplete(uploadData.asset_id);
+      onUploadComplete(currentAssetId);
     } catch (error) {
       console.error("Error getting asset ID from upload:", error);
       handleError(error instanceof Error ? error : new Error('Failed to get asset ID'));
@@ -253,7 +300,7 @@ export function VideoUploader({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Accepted formats: {acceptedTypes.join(', ')} (max {maxSizeMB}MB)
+        Accepted formats: {acceptedTypes.join(', ')} (max {maxSizeMB}MB, max resolution 1080p)
       </p>
     </div>
   );

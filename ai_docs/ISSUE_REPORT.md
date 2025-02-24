@@ -82,6 +82,17 @@ Additional label options in our repository:
 - help wanted (#008672)
 - question (#d876e3)
 
+NAME              DESCRIPTION                                 COLOR  
+bug               Something isn't working                     #d73a4a
+documentation     Improvements or additions to documentation  #0075ca
+duplicate         This issue or pull request already exists   #cfd3d7
+enhancement       New feature or request                      #a2eeef
+good first issue  Good for newcomers                          #7057ff
+help wanted       Extra attention is needed                   #008672
+invalid           This doesn't seem right                     #e4e669
+question          Further information is requested            #d876e3
+wontfix           This will not be worked on                  #ffffff
+
 ## Best Practices
 
 1. **Issue Titles**

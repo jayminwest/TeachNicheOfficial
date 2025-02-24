@@ -45,27 +45,19 @@ export default function NewLessonPage() {
         return;
       }
 
-      // Create playback ID for the asset
-      console.log('Creating playback ID for asset:', data.muxAssetId);
-      
-      // Show processing status
-      toast({
-        title: "Processing Video",
-        description: "Please wait while we process your video...",
-      });
-
-      // Show processing status
+      // Show initial processing status
       const processingToast = toast({
         title: "Processing Video",
         description: "Please wait while we process your video...",
         duration: 60000, // 1 minute
       });
 
+      let result;
       try {
         console.log('Starting video processing for asset:', data.muxAssetId);
         
         // Wait for asset to be ready and get playback ID
-        const result = await waitForAssetReady(data.muxAssetId, {
+        result = await waitForAssetReady(data.muxAssetId, {
           isFree: data.price === 0,
           maxAttempts: 60,  // 10 minutes total
           interval: 10000   // 10 seconds between checks
@@ -85,6 +77,7 @@ export default function NewLessonPage() {
           title: "Video Processing Complete",
           description: "Your video has been processed successfully.",
         });
+
       } catch (error) {
         // Dismiss the processing toast
         processingToast.dismiss();
@@ -100,29 +93,7 @@ export default function NewLessonPage() {
         return;
       }
 
-      // Wait for asset to be ready and get playback ID
-      const result = await waitForAssetReady(data.muxAssetId, {
-        isFree: data.price === 0,
-        maxAttempts: 60,  // 10 minutes total
-        interval: 10000   // 10 seconds between checks
-      });
-      
-      console.log('Video processing completed:', result);
-      
-      if (result.status !== 'ready' || !result.playbackId) {
-        throw new Error('Video processing completed but no playback ID was generated');
-      }
-
-      // Dismiss the processing toast
-      processingToast.dismiss();
-      
-      // Show success toast
-      toast({
-        title: "Video Processing Complete",
-        description: "Your video has been processed successfully.",
-      });
-
-      // Create new object with all form data plus playback ID
+      // Create lesson data object with playback ID
       const lessonData = {
         ...data,
         muxPlaybackId: result.playbackId

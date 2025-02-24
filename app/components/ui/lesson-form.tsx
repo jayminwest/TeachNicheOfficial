@@ -3,6 +3,7 @@
 import { cn } from "@/app/lib/utils";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { MarkdownEditor } from "./markdown-editor";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "./button";
@@ -19,6 +20,9 @@ const lessonFormSchema = z.object({
   description: z.string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
+  content: z.string()
+    .min(1, "Content is required")
+    .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
   price: z.number()
@@ -47,6 +51,7 @@ export function LessonForm({
     defaultValues: initialData || {
       title: "",
       description: "",
+      content: "",
       price: 0,
       muxAssetId: "", // Initialize muxAssetId field
       muxPlaybackId: "", // Initialize muxPlaybackId field
@@ -66,7 +71,7 @@ export function LessonForm({
   return (
     <Form {...form}>
       <form 
-        onSubmit={form.handleSubmit(onSubmit)} 
+        onSubmit={form.handleSubmit((data) => onSubmit(data))}
         className={cn("space-y-8", className)}
       >
         <div className="space-y-6">
@@ -116,13 +121,34 @@ export function LessonForm({
 
           <FormField
             control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Lesson Content</FormLabel>
+                <FormControl>
+                  <MarkdownEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Write your lesson content using Markdown. You can include headers, lists, code blocks, and more.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="price"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Price (USD)</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                  <FormControl>
                     <Input 
                       type="number"
                       step="0.01"
@@ -133,8 +159,8 @@ export function LessonForm({
                       onChange={e => field.onChange(parseFloat(e.target.value))}
                       disabled={isSubmitting}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormDescription>
                   Set a fair price for your lesson content (leave at 0 for free)
                 </FormDescription>
@@ -219,6 +245,7 @@ export function LessonForm({
           <Button 
             type="submit" 
             size="lg"
+            disabled={isSubmitting}
           >
             {isSubmitting && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

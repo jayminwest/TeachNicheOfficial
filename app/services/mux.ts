@@ -160,7 +160,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
     const upload = await Video.uploads.create({
       new_asset_settings: {
         playback_policy: isFree ? ['public'] : ['signed'],
-        encoding_tier: 'baseline',
+        encoding_tier: 'baseline'
       },
       cors_origin: corsOrigin,
     });

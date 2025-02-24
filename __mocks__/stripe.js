@@ -4,7 +4,7 @@ module.exports = function() {
     checkout: {
       sessions: {
         create: jest.fn().mockResolvedValue({
-          id: 'cs_test_123',
+          id: 'test_session_id',
           url: 'https://checkout.stripe.com/test',
           payment_status: 'unpaid',
           customer: 'cus_123',

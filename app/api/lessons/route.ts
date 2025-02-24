@@ -65,14 +65,7 @@ export async function getLessons(req: RequestWithQuery, res: ResponseWithStatus)
     const limitedQuery = sortedQuery.limit(limit);
     
     // Execute the query
-    const { data: lessons, error } = await limitedQuery;
-    
-    if (error) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: { message: 'Failed to fetch lessons' } }));
-      return;
-    }
+    const { data: lessons } = await limitedQuery;
     
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -133,17 +126,7 @@ export async function createLesson(req: RequestWithQuery, res: ResponseWithStatu
     const baseQuery = supabase.from('lessons');
     const insertQuery = baseQuery.insert(lessonData);
     const selectQuery = insertQuery.select();
-    const { data: lesson, error } = await selectQuery.single();
-
-    if (error) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ 
-        error: 'Failed to create lesson',
-        details: error.message
-      }));
-      return;
-    }
+    const { data: lesson } = await selectQuery.single();
 
     res.statusCode = 201;
     res.setHeader('Content-Type', 'application/json');
@@ -181,13 +164,13 @@ export async function updateLesson(req: RequestWithQuery, res: ResponseWithStatu
     // Check if user has permission to update this lesson
     // Instead of using hasPermission, we'll check if the user is the owner of the lesson
     const supabase = createClient();
-    const { data: lesson, error } = await supabase
+    const { data: lesson } = await supabase
       .from('lessons')
       .select('user_id')
       .eq('id', id)
       .single();
       
-    if (error || !lesson) {
+    if (!lesson) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Lesson not found' }));
@@ -253,9 +236,9 @@ export async function deleteLesson(req: RequestWithQuery, res: ResponseWithStatu
     const baseQuery = supabase.from('lessons');
     const selectQuery = baseQuery.select('*');
     const eqQuery = selectQuery.eq('id', id);
-    const { data: lesson, error } = await eqQuery.single();
+    const { data: lesson } = await eqQuery.single();
 
-    if (error || !lesson) {
+    if (!lesson) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Lesson not found' }));
@@ -343,17 +326,7 @@ export async function POST(request: Request) {
     const baseQuery = supabase.from('lessons');
     const insertQuery = baseQuery.insert(lessonData);
     const selectQuery = insertQuery.select();
-    const { data: lesson, error } = await selectQuery.single();
-
-    if (error) {
-      return NextResponse.json(
-        { 
-          error: 'Failed to create lesson',
-          details: error.message
-        },
-        { status: 500 }
-      );
-    }
+    const { data: lesson } = await selectQuery.single();
 
     return NextResponse.json(lesson, { status: 201 });
   } catch (error) {
@@ -400,14 +373,7 @@ export async function GET(request: Request) {
     const limitedQuery = sortedQuery.limit(limit);
     
     // Execute the query
-    const { data: lessons, error } = await limitedQuery;
-    
-    if (error) {
-      return NextResponse.json(
-        { error: { message: 'Failed to fetch lessons' } },
-        { status: 500 }
-      );
-    }
+    const { data: lessons } = await limitedQuery;
     
     return NextResponse.json({ lessons });
   } catch (error) {

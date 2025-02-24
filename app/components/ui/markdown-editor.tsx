@@ -3,7 +3,6 @@
 import MDEditor from "@uiw/react-md-editor";
 import { cn } from "@/app/lib/utils";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
 
 interface MarkdownEditorProps {
   value: string;

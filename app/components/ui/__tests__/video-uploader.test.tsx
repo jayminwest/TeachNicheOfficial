@@ -1,52 +1,55 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { VideoUploader } from '../video-uploader';
-import MuxUploader from '@mux/mux-uploader-react';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import MuxUploader from '@mux/mux-uploader-react';
 
-// Make sure jest is imported before using jest.mock
+// Create a mock file for testing
+const mockFile = new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' });
+
+// Define the mock implementation for MuxUploader
+const mockMuxUploader = jest.fn().mockImplementation(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+  return (
+    <div data-testid="mux-uploader-mock">
+      {children}
+      <button 
+        data-testid="trigger-upload-start" 
+        onClick={() => onUploadStart({ detail: { file: mockFile } })}
+      >
+        Trigger Upload Start
+      </button>
+      <button 
+        data-testid="trigger-progress" 
+        onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
+      >
+        Trigger Progress
+      </button>
+      <button 
+        data-testid="trigger-success" 
+        onClick={() => onSuccess(new CustomEvent('success'))}
+      >
+        Trigger Success
+      </button>
+      <button 
+        data-testid="trigger-error" 
+        onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
+      >
+        Trigger Error
+      </button>
+    </div>
+  );
+});
+
+// Apply the mock after defining it
 jest.mock('@mux/mux-uploader-react', () => {
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
-      return (
-        <div data-testid="mux-uploader-mock">
-          {children}
-          <button 
-            data-testid="trigger-upload-start" 
-            onClick={() => onUploadStart({ detail: { file: mockFile } })}
-          >
-            Trigger Upload Start
-          </button>
-          <button 
-            data-testid="trigger-progress" 
-            onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
-          >
-            Trigger Progress
-          </button>
-          <button 
-            data-testid="trigger-success" 
-            onClick={() => onSuccess(new CustomEvent('success'))}
-          >
-            Trigger Success
-          </button>
-          <button 
-            data-testid="trigger-error" 
-            onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
-          >
-            Trigger Error
-          </button>
-        </div>
-      );
-    })
+    default: mockMuxUploader
   };
 });
 
 // Mock fetch API
 global.fetch = jest.fn();
-
-// Create a mock file for testing
-const mockFile = new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' });
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
 global.URL.createObjectURL = jest.fn(() => 'mock-url');
@@ -467,7 +470,7 @@ describe('VideoUploader', () => {
     });
   });
 
-  // Edge Cases
+  //Edge Cases
   describe('Edge Cases', () =>  {
     it('handles retry logic for API failures', async () => {
       // Mock first API call to fail, second to succeed

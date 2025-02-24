@@ -44,7 +44,7 @@ describe('Checkout API', () => {
       method: 'POST',
       body: {
         lessonId: 'lesson-123',
-        priceId: 'price-123',
+        price: 19.99,  // Changed from priceId to price
         successUrl: 'https://example.com/success',
         cancelUrl: 'https://example.com/cancel'
       }

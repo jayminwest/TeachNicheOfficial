@@ -6,14 +6,15 @@ import { renderWithAuth } from '@/app/__tests__/test-utils'
 
 // Define mockRedirect first before using it
 const mockRedirect = jest.fn()
+const mockPush = jest.fn()
 
 // Mock the router
 jest.mock('next/navigation', () => ({
   ...jest.requireActual('next/navigation'),
   useRouter: () => ({
-    push: mockRedirect,
+    push: mockPush,
   }),
-  redirect: mockRedirect,
+  redirect: jest.fn(),
 }))
 
 // Mock Supabase client
@@ -55,7 +56,7 @@ describe('ProfilePage', () => {
       
       // Let the effect run
       await waitFor(() => {
-        expect(mockRedirect).toHaveBeenCalledWith('/')
+        expect(mockPush).toHaveBeenCalledWith('/')
       })
     })
 

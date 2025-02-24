@@ -2,8 +2,8 @@
 
 import MDEditor from "@uiw/react-md-editor";
 import { cn } from "@/app/lib/utils";
-import rehypeSanitize from "rehype-sanitize";
 import { useTheme } from "next-themes";
+import dynamic from "next/dynamic";
 
 interface MarkdownEditorProps {
   value: string;
@@ -30,7 +30,7 @@ export function MarkdownEditor({
         onChange={onChange}
         preview="edit"
         previewOptions={{
-          rehypePlugins: [[rehypeSanitize]],
+          rehypePlugins: [],
         }}
         height={400}
         hideToolbar={disabled}

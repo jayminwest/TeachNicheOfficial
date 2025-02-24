@@ -1,6 +1,6 @@
 import React from 'react'
 
-const MDEditor = ({ value, onChange, readOnly }: any) => {
+const MDEditor = ({ value, onChange, readOnly, previewOptions }: any) => {
   return (
     <div data-testid="md-editor">
       <textarea

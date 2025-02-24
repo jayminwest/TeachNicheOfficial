@@ -28,7 +28,7 @@ export default function ProfilePage() {
     setInitialLoadComplete(true);
     
     if (!user) {
-      // Handle redirect in a way that works in both browser and test environments
+      // Redirect unauthenticated users to home page
       router.push('/');
       return;
     }
@@ -63,7 +63,7 @@ export default function ProfilePage() {
   }
 
   // After initial load, if no user and not loading, show unauthenticated state
-  if (!user && !loading) {
+  if (!user && initialLoadComplete) {
     // For test environment, render a placeholder instead of redirecting
     return <div data-testid="unauthenticated-placeholder">
       Please sign in to view your profile

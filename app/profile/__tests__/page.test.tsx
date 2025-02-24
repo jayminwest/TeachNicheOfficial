@@ -35,6 +35,22 @@ jest.mock('@/app/services/supabase', () => ({
   },
 }))
 
+// Add jest-axe matcher
+expect.extend({
+  toHaveNoViolations: (received) => {
+    if (received.violations.length === 0) {
+      return {
+        pass: true,
+        message: () => 'Expected accessibility violations but found none',
+      }
+    }
+    return {
+      pass: false,
+      message: () => `Expected no accessibility violations but found ${received.violations.length}`,
+    }
+  }
+})
+
 describe('ProfilePage', () => {
   describe('rendering', () => {
     it('renders loading state initially', async () => {

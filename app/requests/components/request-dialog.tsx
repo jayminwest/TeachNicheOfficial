@@ -14,7 +14,7 @@ import { Textarea } from "@/app/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
+import { lessonRequestSchema, type LessonRequestFormData } from "@/app/lib/schemas/lesson-request"
 interface RequestDialogProps {
   children: React.ReactNode
   request?: LessonRequest
@@ -33,7 +33,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
       id: request.id,
       title: request.title,
       description: request.description,
-      category: request.category as typeof LESSON_CATEGORIES[number],
+      category: request.category,
       instagram_handle: request.instagram_handle || '',
       tags: request.tags || []
     } : {

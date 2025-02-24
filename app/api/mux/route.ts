@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function createUploadUrl(req: NextRequest, res: any) {
+export async function createUploadUrl(req: NextRequest, res: Response) {
   try {
     // Authenticate the user
     const user = await getCurrentUser();
@@ -49,7 +49,7 @@ export async function createUploadUrl(req: NextRequest, res: any) {
   }
 }
 
-export async function handleAssetCreated(req: NextRequest, res: any) {
+export async function handleAssetCreated(req: NextRequest, res: Response) {
   try {
     const body = await req.json();
     
@@ -91,7 +91,7 @@ export async function handleAssetCreated(req: NextRequest, res: any) {
   }
 }
 
-export async function handleAssetReady(req: NextRequest, res: any) {
+export async function handleAssetReady(req: NextRequest, res: Response) {
   try {
     const body = await req.json();
     

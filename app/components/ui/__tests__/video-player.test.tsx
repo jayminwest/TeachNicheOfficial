@@ -1,7 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { VideoPlayer } from '../video-player';
-import { LessonAccessGate } from '../lesson-access-gate';
-import MuxPlayer from '@mux/mux-player-react';
 
 // Mock the dependencies
 jest.mock('@mux/mux-player-react', () => {

@@ -15,7 +15,7 @@ try {
 }
 
 // Export for testing
-export async function createCheckoutSession(req: any, res: any) {
+export async function createCheckoutSession(req: Request, res: Response) {
   try {
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { lessonId, price } = data;

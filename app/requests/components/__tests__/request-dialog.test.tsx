@@ -135,14 +135,14 @@ describe('RequestDialog', () => {
     
     // Verify request update
     await waitFor(() => {
-      expect(updateRequest).toHaveBeenCalledWith('test-id', expect.objectContaining({
+      expect(updateRequest).toHaveBeenCalledWith('test-id', {
         title: 'Updated Title',
         description: 'Test Description',
         category: 'Trick Tutorial',
         instagram_handle: '@test',
         tags: []
-      }))
-    })
+      })
+    }, { timeout: 2000 })
   })
 
   it('handles request deletion', async () => {

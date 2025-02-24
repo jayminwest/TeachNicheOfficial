@@ -4,8 +4,15 @@ import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ 
+      cookies: async () => {
+        const cookieStore = cookies()
+        const tokenCookie = cookieStore.get('sb-qvxtrhiyzawrtdlehtga-auth-token')
+        return new Map([
+          ['sb-qvxtrhiyzawrtdlehtga-auth-token', tokenCookie]
+        ])
+      }
+    })
     
     const { data: categories, error } = await supabase
       .from('categories')

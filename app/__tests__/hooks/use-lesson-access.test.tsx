@@ -1,21 +1,12 @@
 import { renderHook, act } from '@testing-library/react'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
 import { mockPurchaseStatus } from '../utils/test-utils'
+import { createMockSupabaseClient } from '../../../__mocks__/services/supabase'
 import { supabase } from '@/app/services/supabase'
 
 // Mock Supabase client
 jest.mock('@/app/services/supabase', () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            maybeSingle: jest.fn()
-          }))
-        }))
-      }))
-    }))
-  }
+  supabase: createMockSupabaseClient()
 }))
 
 // Mock AuthContext
@@ -29,7 +20,7 @@ describe('useLessonAccess', () => {
   beforeEach(() => {
     // Clear session storage before each test
     window.sessionStorage.clear()
-    mockFetch.mockClear()
+    jest.clearAllMocks()
   })
 
   it('should return cached access data if within 5 minutes', async () => {
@@ -37,7 +28,7 @@ describe('useLessonAccess', () => {
     const cachedData = mockPurchaseStatus('completed')
     
     window.sessionStorage.setItem(
-      `lesson-access-${lessonId}`,
+      `lesson-access-${lessonId}-test-user`,
       JSON.stringify({
         ...cachedData,
         timestamp: Date.now() - 4 * 60 * 1000 // 4 minutes ago
@@ -49,7 +40,7 @@ describe('useLessonAccess', () => {
     expect(result.current.loading).toBe(false)
     expect(result.current.hasAccess).toBe(true)
     expect(result.current.purchaseStatus).toBe('completed')
-    expect(mockFetch).not.toHaveBeenCalled()
+    expect(supabase.from).not.toHaveBeenCalled()
   })
 
   it('should fetch new data if cache is expired', async () => {
@@ -57,30 +48,22 @@ describe('useLessonAccess', () => {
     const cachedData = mockPurchaseStatus('completed')
     
     window.sessionStorage.setItem(
-      `lesson-access-${lessonId}`,
+      `lesson-access-${lessonId}-test-user`,
       JSON.stringify({
         ...cachedData,
         timestamp: Date.now() - 6 * 60 * 1000 // 6 minutes ago
       })
     )
 
-    const mockSupabaseResponse = {
+    const mockClient = createMockSupabaseClient({
+      shouldSucceed: true,
       data: {
         status: 'completed',
         purchase_date: new Date().toISOString()
-      },
-      error: null
-    }
+      }
+    })
     
-    jest.spyOn(supabase, 'from').mockImplementation(() => ({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            maybeSingle: () => Promise.resolve(mockSupabaseResponse)
-          })
-        })
-      })
-    }))
+    jest.mocked(supabase).from.mockImplementation(mockClient.from)
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
     
@@ -94,49 +77,50 @@ describe('useLessonAccess', () => {
 
     expect(result.current.loading).toBe(false)
     expect(result.current.hasAccess).toBe(true)
-    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(supabase.from).toHaveBeenCalledWith('purchases')
   })
 
   it('should retry failed requests up to 3 times', async () => {
     const lessonId = 'test-lesson'
     
-    mockFetch
-      .mockImplementationOnce(() => Promise.reject(new Error('Network error')))
-      .mockImplementationOnce(() => Promise.reject(new Error('Network error')))
-      .mockImplementationOnce(() => 
-        Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockPurchaseStatus('completed'))
-        })
-      )
+    const mockClient = createMockSupabaseClient({
+      shouldSucceed: false,
+      errorMessage: 'Network error',
+      delay: 100
+    })
+    
+    jest.mocked(supabase).from.mockImplementation(mockClient.from)
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
     // Wait for retries to complete
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 500))
     })
 
     expect(result.current.loading).toBe(false)
-    expect(result.current.hasAccess).toBe(true)
-    expect(mockFetch).toHaveBeenCalledTimes(3)
+    expect(result.current.error).toBeTruthy()
+    expect(supabase.from).toHaveBeenCalledTimes(3)
   })
 
   it('should handle timeout after 5 seconds', async () => {
     const lessonId = 'test-lesson'
     
-    mockFetch.mockImplementationOnce(() => 
-      new Promise(resolve => setTimeout(resolve, 1100))
-    )
+    const mockClient = createMockSupabaseClient({
+      shouldSucceed: true,
+      delay: 6000 // Longer than timeout
+    })
+    
+    jest.mocked(supabase).from.mockImplementation(mockClient.from)
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
     // Wait for timeout
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 1200))
+      await new Promise(resolve => setTimeout(resolve, 5500))
     })
 
     expect(result.current.loading).toBe(false)
-    expect(result.current.error).toBeTruthy()
-  }, 2000) // Set explicit timeout
+    expect(result.current.error?.message).toBe('Access check timed out')
+  }, 7000) // Set explicit timeout longer than test duration
 })

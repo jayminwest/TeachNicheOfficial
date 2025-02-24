@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
 import { getCurrentUser } from '@/app/services/auth';
+import { v4 as uuidv4 } from 'uuid';
 
 interface LessonData {
   title: string;
@@ -48,12 +49,13 @@ export async function POST(request: Request) {
 
     // Create lesson in Supabase
     const lessonData = {
+      id: uuidv4(), // Generate a UUID for the id field
       title,
       description,
       price: price || 0,
       content,
       status,
-      creator_id: user.id, // Changed from user_id to creator_id to match the database schema
+      creator_id: user.id,
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId

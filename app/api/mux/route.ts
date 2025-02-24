@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase/client';
 import * as muxService from '@/app/services/mux';
 import { getCurrentUser } from '@/app/services/auth';
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     // Authenticate the user
     const user = await getCurrentUser();

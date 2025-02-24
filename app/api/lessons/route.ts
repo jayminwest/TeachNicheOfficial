@@ -309,10 +309,11 @@ export async function POST(request: Request) {
     };
 
     const supabase = createClient();
-    const baseQuery = supabase.from('lessons');
-    const insertQuery = baseQuery.insert(lessonData);
-    const selectQuery = insertQuery.select();
-    const { data: lesson } = await selectQuery.single();
+    const { data: lesson } = await supabase
+      .from('lessons')
+      .insert(lessonData)
+      .select()
+      .single();
 
     return NextResponse.json(lesson, { status: 201 });
   } catch (error) {
@@ -335,31 +336,31 @@ export async function GET(request: Request) {
   
   try {
     const supabase = createClient();
-    const baseQuery = supabase.from('lessons');
-    const selectQuery = baseQuery.select('*');
     
-    let filteredQuery = selectQuery;
+    let query = supabase
+      .from('lessons')
+      .select('*');
+    
     if (category) {
-      filteredQuery = selectQuery.eq('category', category);
+      query = query.eq('category', category);
     }
     
     // Apply sorting
-    let sortedQuery = filteredQuery;
     if (sort === 'newest') {
-      sortedQuery = filteredQuery.order('created_at', { ascending: false });
+      query = query.order('created_at', { ascending: false });
     } else if (sort === 'oldest') {
-      sortedQuery = filteredQuery.order('created_at', { ascending: true });
+      query = query.order('created_at', { ascending: true });
     } else if (sort === 'price_low') {
-      sortedQuery = filteredQuery.order('price', { ascending: true });
+      query = query.order('price', { ascending: true });
     } else if (sort === 'price_high') {
-      sortedQuery = filteredQuery.order('price', { ascending: false });
+      query = query.order('price', { ascending: false });
     }
     
     // Apply limit
-    const limitedQuery = sortedQuery.limit(limit);
+    query = query.limit(limit);
     
     // Execute the query
-    const { data: lessons } = await limitedQuery;
+    const { data: lessons } = await query;
     
     return NextResponse.json({ lessons });
   } catch (error) {

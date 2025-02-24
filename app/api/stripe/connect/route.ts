@@ -96,55 +96,57 @@ export async function POST(request: Request) {
     // Get the Stripe instance
     const stripeInstance = getStripe();
     
-    // Check if accounts.create exists before calling it
-    if (!stripeInstance.accounts || typeof stripeInstance.accounts.create !== 'function') {
-      throw new Error('Stripe accounts API not available');
-    }
-    
-    // Create Stripe Connect account with international support
-    const account = await stripeInstance.accounts.create({
-      type: 'standard',
-      email: user.email,
-      metadata: {
-        user_id: user.id
-      },
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true }
-      },
-      settings: {
-        payouts: {
-          schedule: {
-            interval: 'manual'
+    try {
+      // Create Stripe Connect account with international support
+      const account = await stripeInstance.accounts.create({
+        type: 'standard',
+        email: user.email,
+        metadata: {
+          user_id: user.id
+        },
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true }
+        },
+        settings: {
+          payouts: {
+            schedule: {
+              interval: 'manual'
+            }
           }
         }
+      });
+
+      // Create account link using our utility
+      const accountLink = await createConnectSession({
+        accountId: account.id,
+        refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
+        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
+        type: 'account_onboarding'
+      });
+
+      // Store the Stripe account ID in Supabase
+      const supabase = createRouteHandlerClient({ cookies });
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ stripe_account_id: account.id })
+        .eq('id', user.id);
+
+      if (updateError) {
+        // If we fail to update the database, delete the Stripe account to maintain consistency
+        try {
+          await stripeInstance.accounts.del(account.id);
+        } catch (deleteError) {
+          console.error('Failed to delete Stripe account after database update error:', deleteError);
+        }
+        throw new Error('Failed to update profile with Stripe account');
       }
-    });
 
-    // Create account link using our utility
-    const accountLink = await createConnectSession({
-      accountId: account.id,
-      refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
-      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
-      type: 'account_onboarding'
-    });
-
-    // Store the Stripe account ID in Supabase
-    const supabase = createRouteHandlerClient({ cookies });
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ stripe_account_id: account.id })
-      .eq('id', user.id);
-
-    if (updateError) {
-      // If we fail to update the database, delete the Stripe account to maintain consistency
-      if (stripeInstance.accounts && typeof stripeInstance.accounts.del === 'function') {
-        await stripeInstance.accounts.del(account.id);
-      }
-      throw new Error('Failed to update profile with Stripe account');
+      return NextResponse.json({ url: accountLink.url });
+    } catch (stripeError) {
+      console.error('Stripe API error:', stripeError);
+      throw new Error(`Stripe API error: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`);
     }
-
-    return NextResponse.json({ url: accountLink.url });
   } catch (error) {
     console.error('Stripe Connect error details:', {
       error: error instanceof Error ? error.message : error,

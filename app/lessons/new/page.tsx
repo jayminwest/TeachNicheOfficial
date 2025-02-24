@@ -78,11 +78,6 @@ export default function NewLessonPage() {
           description: "Your video has been processed successfully.",
         });
 
-        // Create new object with all form data plus playback ID
-        const lessonData = {
-          ...data,
-          muxPlaybackId: result.playbackId
-        };
       } catch (error) {
         // Dismiss the processing toast
         processingToast.dismiss();
@@ -97,6 +92,12 @@ export default function NewLessonPage() {
         setIsSubmitting(false);
         return;
       }
+
+      // Create lesson data object with playback ID
+      const lessonData = {
+        ...data,
+        muxPlaybackId: result.playbackId
+      };
 
       // Verify session is still valid
       if (!session.data.session) {

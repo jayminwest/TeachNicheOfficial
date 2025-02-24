@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { VideoUploader } from '../video-uploader';
 import MuxUploader from '@mux/mux-uploader-react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 // Mock the MuxUploader component
-vi.mock('@mux/mux-uploader-react', () => ({
+jest.mock('@mux/mux-uploader-react', () => ({
   __esModule: true,
-  default: vi.fn(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+  default: jest.fn(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
     return (
       <div data-testid="mux-uploader-mock">
         {children}
@@ -41,14 +41,14 @@ vi.mock('@mux/mux-uploader-react', () => ({
 }));
 
 // Mock fetch API
-global.fetch = vi.fn();
+global.fetch = jest.fn();
 
 // Create a mock file for testing
 const mockFile = new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' });
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
-global.URL.createObjectURL = vi.fn(() => 'mock-url');
-global.URL.revokeObjectURL = vi.fn();
+global.URL.createObjectURL = jest.fn(() => 'mock-url');
+global.URL.revokeObjectURL = jest.fn();
 
 // Mock document.createElement for video element
 const mockVideoElement = {
@@ -60,7 +60,7 @@ const mockVideoElement = {
   onerror: null,
 };
 
-document.createElement = vi.fn((tagName) => {
+document.createElement = jest.fn((tagName) => {
   if (tagName === 'video') {
     return mockVideoElement;
   }
@@ -68,12 +68,12 @@ document.createElement = vi.fn((tagName) => {
 });
 
 describe('VideoUploader', () => {
-  const onUploadComplete = vi.fn();
-  const onError = vi.fn();
-  const onUploadStart = vi.fn();
+  const onUploadComplete = jest.fn();
+  const onError = jest.fn();
+  const onUploadStart = jest.fn();
   
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     
     // Mock successful fetch for upload URL
     global.fetch.mockImplementation((url) => {
@@ -96,7 +96,7 @@ describe('VideoUploader', () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
   });
 
   // Component Rendering Tests
@@ -347,7 +347,7 @@ describe('VideoUploader', () => {
       const largeMockFile = new File(['x'.repeat(3000 * 1024 * 1024)], 'large-video.mp4', { type: 'video/mp4' });
       
       // Update the mock to use the large file
-      vi.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+      jest.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
         return (
           <div data-testid="mux-uploader-mock">
             {children}
@@ -391,7 +391,7 @@ describe('VideoUploader', () => {
       const invalidTypeFile = new File(['dummy content'], 'document.pdf', { type: 'application/pdf' });
       
       // Update the mock to use the invalid file
-      vi.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+      jest.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
         return (
           <div data-testid="mux-uploader-mock">
             {children}
@@ -493,7 +493,7 @@ describe('VideoUploader', () => {
 
     it('handles case when no file is selected', async () => {
       // Update the mock to trigger upload start with no file
-      vi.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart }) => {
+      jest.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart }) => {
         return (
           <div data-testid="mux-uploader-mock">
             {children}

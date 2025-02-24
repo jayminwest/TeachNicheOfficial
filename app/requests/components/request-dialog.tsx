@@ -94,7 +94,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
           </DialogHeader>
           
           <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-2">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-2" role="form">
               <FormField
                 control={form.control}
                 name="title"

@@ -29,6 +29,7 @@ describe('useLessonAccess', () => {
     
     expect(result.current.loading).toBe(false)
     expect(result.current.hasAccess).toBe(true)
+    expect(result.current.purchaseStatus).toBe('completed')
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
@@ -47,7 +48,11 @@ describe('useLessonAccess', () => {
     mockFetch.mockImplementationOnce(() => 
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve(mockPurchaseStatus('completed'))
+        json: () => Promise.resolve({
+          hasAccess: true,
+          purchaseStatus: 'completed',
+          purchaseDate: new Date().toISOString()
+        })
       })
     )
 
@@ -95,17 +100,17 @@ describe('useLessonAccess', () => {
     const lessonId = 'test-lesson'
     
     mockFetch.mockImplementationOnce(() => 
-      new Promise(resolve => setTimeout(resolve, 6000))
+      new Promise(resolve => setTimeout(resolve, 1100))
     )
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
     // Wait for timeout
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 5100))
+      await new Promise(resolve => setTimeout(resolve, 1200))
     })
 
     expect(result.current.loading).toBe(false)
     expect(result.current.error).toBeTruthy()
-  })
+  }, 2000) // Set explicit timeout
 })

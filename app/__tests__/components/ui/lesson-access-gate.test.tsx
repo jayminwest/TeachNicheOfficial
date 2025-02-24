@@ -22,11 +22,12 @@ describe('LessonAccessGate', () => {
     mockUseLessonAccess.mockReturnValue({
       loading: true,
       hasAccess: false,
-      error: null
+      error: null,
+      purchaseStatus: 'none'
     })
 
     render(<LessonAccessGate {...defaultProps} />)
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
   })
 
   it('should render children when access is granted', async () => {
@@ -55,7 +56,7 @@ describe('LessonAccessGate', () => {
     render(<LessonAccessGate {...defaultProps} />)
     
     await waitFor(() => {
-      expect(screen.getByText(/Purchase/i)).toBeInTheDocument()
+      expect(screen.getByText('Purchase Required')).toBeInTheDocument()
       expect(screen.getByText('$9.99')).toBeInTheDocument()
     })
   })
@@ -70,7 +71,7 @@ describe('LessonAccessGate', () => {
     render(<LessonAccessGate {...defaultProps} />)
     
     await waitFor(() => {
-      expect(screen.getByText(/error occurred/i)).toBeInTheDocument()
+      expect(screen.getByText('Access check failed')).toBeInTheDocument()
     })
   })
 })

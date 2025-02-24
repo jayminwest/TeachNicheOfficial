@@ -142,8 +142,8 @@ describe('useLessonAccess', () => {
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
-    // Advance past the 5 second timeout
-    await jest.advanceTimersByTimeAsync(5100)
+    // Advance to the 5 second timeout
+    await jest.advanceTimersByTimeAsync(5000)
 
     expect(result.current).toEqual({
       hasAccess: false,

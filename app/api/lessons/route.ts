@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       price: price || 0,
       content,
       status,
-      user_id: user.id,
+      creator_id: user.id, // Changed from user_id to creator_id to match the database schema
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId
@@ -149,7 +149,7 @@ export async function PUT(request: Request) {
     const supabase = createClient();
     const { data: lesson } = await supabase
       .from('lessons')
-      .select('user_id')
+      .select('creator_id') // Changed from user_id to creator_id
       .eq('id', id)
       .single();
       
@@ -160,7 +160,7 @@ export async function PUT(request: Request) {
       );
     }
     
-    const hasAccess = lesson.user_id === user.id;
+    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'You do not have permission to update this lesson' },
@@ -224,7 +224,7 @@ export async function DELETE(request: Request) {
     }
 
     // Check if user has permission to delete this lesson
-    const hasAccess = lesson.user_id === user.id;
+    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'You do not have permission to delete this lesson' },

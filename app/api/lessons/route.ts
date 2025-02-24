@@ -1,9 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
-import { getCurrentUser, hasPermission } from '@/app/services/auth';
+import { getCurrentUser } from '@/app/services/auth';
+
+// Define proper types instead of any
+interface RequestWithQuery {
+  url?: string;
+  query?: Record<string, string>;
+  body?: string | Record<string, unknown>;
+}
+
+interface ResponseWithStatus {
+  statusCode: number;
+  setHeader: (name: string, value: string) => void;
+  end: (body: string) => void;
+}
 
 // Export the handler functions for testing
-export async function getLessons(req: any, res: any) {
+export async function getLessons(req: RequestWithQuery, res: ResponseWithStatus) {
   try {
     const url = new URL(req.url || `http://localhost?${new URLSearchParams(req.query || {})}`);
     const searchParams = url.searchParams;
@@ -41,9 +54,9 @@ export async function getLessons(req: any, res: any) {
     const limitedQuery = sortedQuery.limit(limit);
     
     // Execute the query
-    const { data: lessons, error } = await limitedQuery;
+    const { data: lessons, error: queryError } = await limitedQuery;
     
-    if (error) {
+    if (queryError) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: { message: 'Failed to fetch lessons' } }));
@@ -60,7 +73,7 @@ export async function getLessons(req: any, res: any) {
   }
 }
 
-export async function createLesson(req: any, res: any) {
+export async function createLesson(req: RequestWithQuery, res: ResponseWithStatus) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -82,7 +95,7 @@ export async function createLesson(req: any, res: any) {
       content = '',
       status = 'published',
       category
-    } = data;
+    } = data as Record<string, any>;
 
     // Validate required fields
     if (!title || !description) {
@@ -134,7 +147,7 @@ export async function createLesson(req: any, res: any) {
   }
 }
 
-export async function updateLesson(req: any, res: any) {
+export async function updateLesson(req: RequestWithQuery, res: ResponseWithStatus) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -155,7 +168,22 @@ export async function updateLesson(req: any, res: any) {
     }
 
     // Check if user has permission to update this lesson
-    const hasAccess = await hasPermission();
+    // Instead of using hasPermission, we'll check if the user is the owner of the lesson
+    const supabase = createClient();
+    const { data: lesson, error: lessonError } = await supabase
+      .from('lessons')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+      
+    if (lessonError || !lesson) {
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Lesson not found' }));
+      return;
+    }
+    
+    const hasAccess = lesson.user_id === user.id;
     if (!hasAccess) {
       res.statusCode = 403;
       res.setHeader('Content-Type', 'application/json');
@@ -165,14 +193,13 @@ export async function updateLesson(req: any, res: any) {
 
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     
-    const supabase = createClient();
     const baseQuery = supabase.from('lessons');
     const matchQuery = baseQuery.match({ id });
     const updateQuery = matchQuery.update(data);
     const selectQuery = updateQuery.select();
-    const { data: updatedLesson, error } = await selectQuery.single();
+    const { data: updatedLesson, error: updateError } = await selectQuery.single();
 
-    if (error) {
+    if (updateError) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Failed to update lesson' }));
@@ -189,7 +216,7 @@ export async function updateLesson(req: any, res: any) {
   }
 }
 
-export async function deleteLesson(req: any, res: any) {
+export async function deleteLesson(req: RequestWithQuery, res: ResponseWithStatus) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -215,9 +242,9 @@ export async function deleteLesson(req: any, res: any) {
     const baseQuery = supabase.from('lessons');
     const selectQuery = baseQuery.select('*');
     const eqQuery = selectQuery.eq('id', id);
-    const { data: lesson } = await eqQuery.single();
+    const { data: lesson, error: lessonError } = await eqQuery.single();
 
-    if (!lesson) {
+    if (lessonError || !lesson) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Lesson not found' }));
@@ -225,7 +252,8 @@ export async function deleteLesson(req: any, res: any) {
     }
 
     // Check if user has permission to delete this lesson
-    const hasAccess = await hasPermission();
+    // Instead of using hasPermission, we'll check if the user is the owner of the lesson
+    const hasAccess = lesson.user_id === user.id;
     if (!hasAccess) {
       res.statusCode = 403;
       res.setHeader('Content-Type', 'application/json');
@@ -235,9 +263,9 @@ export async function deleteLesson(req: any, res: any) {
 
     const deleteQuery = supabase.from('lessons');
     const matchQuery = deleteQuery.match({ id });
-    const { error } = await matchQuery.delete();
+    const { error: deleteError } = await matchQuery.delete();
 
-    if (error) {
+    if (deleteError) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Failed to delete lesson' }));
@@ -361,9 +389,9 @@ export async function GET(request: Request) {
     const limitedQuery = sortedQuery.limit(limit);
     
     // Execute the query
-    const { data: lessons, error } = await limitedQuery;
+    const { data: lessons, error: queryError } = await limitedQuery;
     
-    if (error) {
+    if (queryError) {
       return NextResponse.json(
         { error: { message: 'Failed to fetch lessons' } },
         { status: 500 }

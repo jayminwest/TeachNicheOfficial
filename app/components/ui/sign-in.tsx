@@ -36,7 +36,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       {loading ? (
         <div className="flex min-h-[inherit] w-full items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+            <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
             <p>Loading...</p>
           </div>
         </div>
@@ -59,7 +59,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    <Icons.spinner data-testid="spinner-icon" className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Icons.google className="mr-2 h-4 w-4" />
                   )}

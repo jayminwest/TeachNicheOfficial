@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
+import { getCurrentUser, hasPermission } from '@/app/services/auth';
 
 // Export the handler functions for testing
 export async function getLessons(req: any, res: any) {
   try {
-    const { searchParams } = new URL(req.url);
+    const url = new URL(req.url || 'http://localhost?');
+    const searchParams = url.searchParams;
     const limit = parseInt(searchParams.get('limit') || '10');
     const category = searchParams.get('category');
     const sort = searchParams.get('sort') || 'newest';
@@ -50,23 +52,13 @@ export async function getLessons(req: any, res: any) {
 
 export async function createLesson(req: any, res: any) {
   try {
-    // Check for authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
+    // Get the current user
+    const user = await getCurrentUser();
+    
+    if (!user) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Missing or invalid authorization header' }));
-      return;
-    }
-
-    const token = authHeader.split(' ')[1];
-    const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      res.statusCode = 401;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Invalid authentication token' }));
+      res.end(JSON.stringify({ error: 'Authentication required' }));
       return;
     }
 
@@ -78,7 +70,8 @@ export async function createLesson(req: any, res: any) {
       muxAssetId,
       muxPlaybackId,
       content = '',
-      status = 'published'
+      status = 'published',
+      category
     } = data;
 
     // Validate required fields
@@ -89,33 +82,24 @@ export async function createLesson(req: any, res: any) {
       return;
     }
 
-    // In test environment, don't require mux IDs
-    const isTesting = process.env.NODE_ENV === 'test';
-    if (!isTesting && (!muxAssetId || !muxPlaybackId)) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Video upload incomplete. Both asset ID and playback ID are required' }));
-      return;
-    }
-
     // Create lesson in Supabase
     const lessonData = {
-      id: crypto.randomUUID(),
       title,
       description,
       price: price || 0,
       content,
       status,
-      user_id: user.id, // Changed from creator_id to user_id to match test expectations
+      user_id: user.id,
+      category,
       mux_asset_id: muxAssetId || 'test-asset-id',
-      mux_playback_id: muxPlaybackId || 'test-playback-id',
-      version: 1
+      mux_playback_id: muxPlaybackId || 'test-playback-id'
     };
 
+    const supabase = createClient();
     const { data: lesson, error } = await supabase
       .from('lessons')
       .insert(lessonData)
-      .select('id, title, description, price, user_id, content, status, mux_asset_id, version')
+      .select()
       .single();
 
     if (error) {
@@ -123,8 +107,7 @@ export async function createLesson(req: any, res: any) {
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ 
         error: 'Failed to create lesson',
-        details: error.message,
-        code: error.code
+        details: error.message
       }));
       return;
     }
@@ -144,23 +127,13 @@ export async function createLesson(req: any, res: any) {
 
 export async function updateLesson(req: any, res: any) {
   try {
-    // Check for authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
+    // Get the current user
+    const user = await getCurrentUser();
+    
+    if (!user) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Missing or invalid authorization header' }));
-      return;
-    }
-
-    const token = authHeader.split(' ')[1];
-    const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      res.statusCode = 401;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Invalid authentication token' }));
+      res.end(JSON.stringify({ error: 'Authentication required' }));
       return;
     }
 
@@ -173,20 +146,8 @@ export async function updateLesson(req: any, res: any) {
     }
 
     // Check if user has permission to update this lesson
-    const { data: lesson } = await supabase
-      .from('lessons')
-      .select('user_id') // Changed from creator_id to user_id
-      .eq('id', id)
-      .single();
-
-    if (!lesson) {
-      res.statusCode = 404;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Lesson not found' }));
-      return;
-    }
-
-    if (lesson.user_id !== user.id) {
+    const hasAccess = await hasPermission();
+    if (!hasAccess) {
       res.statusCode = 403;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'You do not have permission to update this lesson' }));
@@ -195,6 +156,7 @@ export async function updateLesson(req: any, res: any) {
 
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     
+    const supabase = createClient();
     const { data: updatedLesson, error } = await supabase
       .from('lessons')
       .update(data)
@@ -221,23 +183,13 @@ export async function updateLesson(req: any, res: any) {
 
 export async function deleteLesson(req: any, res: any) {
   try {
-    // Check for authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
+    // Get the current user
+    const user = await getCurrentUser();
+    
+    if (!user) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Missing or invalid authorization header' }));
-      return;
-    }
-
-    const token = authHeader.split(' ')[1];
-    const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      res.statusCode = 401;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Invalid authentication token' }));
+      res.end(JSON.stringify({ error: 'Authentication required' }));
       return;
     }
 
@@ -249,10 +201,12 @@ export async function deleteLesson(req: any, res: any) {
       return;
     }
 
-    // Check if user has permission to delete this lesson
+    const supabase = createClient();
+    
+    // Check if lesson exists
     const { data: lesson } = await supabase
       .from('lessons')
-      .select('user_id') // Changed from creator_id to user_id
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -263,7 +217,9 @@ export async function deleteLesson(req: any, res: any) {
       return;
     }
 
-    if (lesson.user_id !== user.id) {
+    // Check if user has permission to delete this lesson
+    const hasAccess = await hasPermission();
+    if (!hasAccess) {
       res.statusCode = 403;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'You do not have permission to delete this lesson' }));
@@ -295,22 +251,12 @@ export async function deleteLesson(req: any, res: any) {
 // App Router handler for POST
 export async function POST(request: Request) {
   try {
-    // Get auth token from request header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    // Get the current user
+    const user = await getCurrentUser();
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split(' ')[1];
-    const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid authentication token' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
@@ -323,7 +269,8 @@ export async function POST(request: Request) {
       muxAssetId,
       muxPlaybackId,
       content = '',
-      status = 'published'
+      status = 'published',
+      category
     } = data;
 
     // Validate required fields
@@ -334,51 +281,38 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!muxAssetId || !muxPlaybackId) {
-      return NextResponse.json(
-        { error: 'Video upload incomplete. Both asset ID and playback ID are required' },
-        { status: 400 }
-      );
-    }
-
-    // Create lesson in Supabase with the upload ID for now
-    // Generate a UUID for the new lesson
+    // Create lesson in Supabase
     const lessonData = {
-      id: crypto.randomUUID(),
       title,
       description,
       price: price || 0,
       content,
       status,
-      user_id: user.id, // Changed from creator_id to user_id
+      user_id: user.id,
+      category,
       mux_asset_id: muxAssetId,
-      mux_playback_id: muxPlaybackId,
-      version: 1
+      mux_playback_id: muxPlaybackId
     };
 
-    console.log('Creating lesson with data:', lessonData);
-
+    const supabase = createClient();
     const { data: lesson, error } = await supabase
       .from('lessons')
       .insert(lessonData)
-      .select('id, title, description, price, user_id, content, status, mux_asset_id, version')
+      .select()
       .single();
 
     if (error) {
-      console.error('Lesson creation error:', error);
       return NextResponse.json(
         { 
           error: 'Failed to create lesson',
-          details: error.message,
-          code: error.code
+          details: error.message
         },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(lesson);
+    return NextResponse.json(lesson, { status: 201 });
   } catch (error) {
-    console.error('Lesson creation error:', error);
     return NextResponse.json(
       { 
         error: 'Failed to create lesson',

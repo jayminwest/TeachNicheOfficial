@@ -203,7 +203,6 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
               </div>
               </form>
             </Form>
-          </div>
         </DialogContent>
       </Dialog>
       <AuthDialog 

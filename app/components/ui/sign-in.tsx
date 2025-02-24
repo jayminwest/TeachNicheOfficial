@@ -72,6 +72,11 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
                   <Button
                     variant="link"
                     onClick={onSwitchToSignUp}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onSwitchToSignUp();
+                      }
+                    }}
                     className="text-sm"
                   >
                     Don&apos;t have an account? Sign up

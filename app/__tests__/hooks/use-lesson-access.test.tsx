@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
 import { mockPurchaseStatus } from '../utils/test-utils'
-import { createMockSupabaseClient } from '../../../__mocks__/services/supabase'
 import { supabase } from '@/app/services/supabase'
 
 // Mock modules
 jest.mock('@/app/services/supabase', () => ({
-  supabase: createMockSupabaseClient()
+  supabase: {
+    from: jest.fn()
+  }
 }))
 
 jest.mock('@/app/services/auth/AuthContext', () => ({

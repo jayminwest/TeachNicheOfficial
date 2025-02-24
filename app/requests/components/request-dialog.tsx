@@ -85,7 +85,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
         >
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{mode === 'edit' ? 'Edit Lesson Request' : 'Create New Lesson Request'}</DialogTitle>
             <DialogDescription>

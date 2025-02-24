@@ -38,7 +38,7 @@ describe('useLessonAccess', () => {
   })
 
   afterEach(() => {
-    jest.runOnlyPendingTimers()
+    jest.clearAllTimers()
     jest.useRealTimers()
   })
 
@@ -88,8 +88,8 @@ describe('useLessonAccess', () => {
     // Initial loading state
     expect(result.current.loading).toBe(true)
 
-    // Wait for data fetch
-    await jest.runAllTimersAsync()
+    // Wait for next tick to process promises
+    await Promise.resolve()
 
     expect(result.current).toEqual({
       hasAccess: true,
@@ -116,7 +116,7 @@ describe('useLessonAccess', () => {
 
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
-    await jest.runAllTimersAsync()
+    await Promise.resolve()
 
     expect(result.current).toEqual({
       hasAccess: false,

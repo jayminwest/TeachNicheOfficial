@@ -83,7 +83,23 @@ export function RequestSidebar({
               All Requests
             </Button>
             {categoriesLoading ? (
-              <div className="p-2 text-center text-muted-foreground">Loading...</div>
+              {categoriesLoading ? (
+                <div className="p-2 text-center text-muted-foreground">Loading...</div>
+              ) : (
+                categories.map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.name ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      onSelectCategory(category.name)
+                      onClose()
+                    }}
+                  >
+                    {category.name}
+                  </Button>
+                ))
+              )}
             ) : (
               categories.map((category) => (
                 <Button

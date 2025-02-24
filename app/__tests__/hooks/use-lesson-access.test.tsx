@@ -1,8 +1,10 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
 import { mockPurchaseStatus } from '../utils/test-utils'
 import { createMockSupabaseClient } from '../../../__mocks__/services/supabase'
 import { supabase } from '@/app/services/supabase'
+
+jest.useFakeTimers()
 
 // Mock Supabase client
 jest.mock('@/app/services/supabase', () => {
@@ -21,13 +23,8 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
 
 describe('useLessonAccess', () => {
   beforeEach(() => {
-    jest.useFakeTimers({ advanceTimers: true })
     window.sessionStorage.clear()
     jest.clearAllMocks()
-  })
-
-  afterEach(() => {
-    jest.useRealTimers()
     jest.clearAllTimers()
   })
 
@@ -78,7 +75,9 @@ describe('useLessonAccess', () => {
     expect(result.current.loading).toBe(true)
     
     // Fast-forward timers
-    jest.runAllTimers()
+    act(() => {
+      jest.runAllTimers()
+    })
 
     expect(result.current.loading).toBe(false)
     expect(result.current.hasAccess).toBe(true)
@@ -98,9 +97,9 @@ describe('useLessonAccess', () => {
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
     // Fast-forward past all retries
-    jest.advanceTimersByTime(1000) // First retry
-    jest.advanceTimersByTime(2000) // Second retry
-    jest.advanceTimersByTime(3000) // Third retry
+    act(() => {
+      jest.advanceTimersByTime(6000) // Advance past all retries at once
+    })
 
     expect(result.current.loading).toBe(false)
     expect(result.current.error).toBeTruthy()
@@ -120,7 +119,9 @@ describe('useLessonAccess', () => {
     const { result } = renderHook(() => useLessonAccess(lessonId))
 
     // Fast-forward past timeout
-    jest.advanceTimersByTime(5100)
+    act(() => {
+      jest.advanceTimersByTime(5100)
+    })
 
     expect(result.current.loading).toBe(false)
     expect(result.current.error?.message).toBe('Access check timed out')

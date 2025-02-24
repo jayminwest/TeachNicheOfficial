@@ -173,19 +173,8 @@ export function VideoUploader({
     try {
       setStatus("processing");
       
-      // Get the upload status to get the asset ID
-      const uploadResponse = await fetch(`/api/video/upload-status?uploadId=${currentAssetId}`);
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to get upload status');
-      }
-      
-      const uploadData = await uploadResponse.json();
-      if (!uploadData.asset_id) {
-        throw new Error('No asset ID in upload response');
-      }
-
-      // Wait for the asset to be ready
-      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${uploadData.asset_id}`);
+      // Since we already have the asset ID from the initial upload setup
+      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${currentAssetId}`);
       if (!assetResponse.ok) {
         throw new Error('Failed to get asset status');
       }

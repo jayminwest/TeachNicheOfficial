@@ -101,27 +101,6 @@ export default function NewLessonPage() {
         return;
       }
 
-      // Wait for asset to be ready and get playback ID
-      const result = await waitForAssetReady(data.muxAssetId, {
-        isFree: data.price === 0,
-        maxAttempts: 60,  // 10 minutes total
-        interval: 10000   // 10 seconds between checks
-      });
-      
-      console.log('Video processing completed:', result);
-      
-      if (result.status !== 'ready' || !result.playbackId) {
-        throw new Error('Video processing completed but no playback ID was generated');
-      }
-
-      // Dismiss the processing toast
-      processingToast.dismiss();
-      
-      // Show success toast
-      toast({
-        title: "Video Processing Complete",
-        description: "Your video has been processed successfully.",
-      });
 
       // Create new object with all form data plus playback ID
       const lessonData = {

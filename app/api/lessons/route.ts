@@ -176,7 +176,7 @@ export async function PUT(request: Request) {
       .single();
 
     return NextResponse.json(updatedLesson);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

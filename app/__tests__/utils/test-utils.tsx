@@ -35,7 +35,7 @@ export function render(ui: React.ReactElement, options = {}) {
 }
 
 // Mock file creation helper
-export function createMockFile(name = 'test.mp4', type = 'video/mp4', size = 1024 * 1024) {
+export function createMockFile(name = 'test.mp4', type = 'video/mp4') {
   return new File(['mock file content'], name, { type });
 }
 

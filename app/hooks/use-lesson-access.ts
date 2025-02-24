@@ -87,7 +87,10 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
 
         if (!mounted) return
 
-        const { data: purchase, error: dbError } = result as any
+        const { data: purchase, error: dbError } = result as { 
+          data: { status: PurchaseStatus; purchase_date: string } | null;
+          error: Error | null;
+        }
 
         if (dbError) throw dbError
 

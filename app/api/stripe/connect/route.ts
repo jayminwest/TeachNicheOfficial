@@ -93,8 +93,16 @@ export async function POST(request: Request) {
 
     console.log('Creating Stripe Connect account for:', { userId: user.id, email: user.email });
     
+    // Get the Stripe instance
+    const stripeInstance = getStripe();
+    
+    // Check if accounts.create exists before calling it
+    if (!stripeInstance.accounts || typeof stripeInstance.accounts.create !== 'function') {
+      throw new Error('Stripe accounts API not available');
+    }
+    
     // Create Stripe Connect account with international support
-    const account = await getStripe().accounts.create({
+    const account = await stripeInstance.accounts.create({
       type: 'standard',
       email: user.email,
       metadata: {
@@ -130,7 +138,9 @@ export async function POST(request: Request) {
 
     if (updateError) {
       // If we fail to update the database, delete the Stripe account to maintain consistency
-      await getStripe().accounts.del(account.id);
+      if (stripeInstance.accounts && typeof stripeInstance.accounts.del === 'function') {
+        await stripeInstance.accounts.del(account.id);
+      }
       throw new Error('Failed to update profile with Stripe account');
     }
 

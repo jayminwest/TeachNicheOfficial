@@ -70,7 +70,7 @@ export async function getLessons(req: RequestWithQuery, res: ResponseWithStatus)
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ lessons }));
-  } catch (error) {
+  } catch (_error) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: { message: 'Internal server error' } }));
@@ -196,7 +196,7 @@ export async function updateLesson(req: RequestWithQuery, res: ResponseWithStatu
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(updatedLesson));
-  } catch (error) {
+  } catch (_error) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: 'Internal server error' }));
@@ -255,7 +255,7 @@ export async function deleteLesson(req: RequestWithQuery, res: ResponseWithStatu
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ success: true }));
-  } catch (error) {
+  } catch (_error) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: 'Internal server error' }));
@@ -363,7 +363,7 @@ export async function GET(request: Request) {
     const { data: lessons } = await query;
     
     return NextResponse.json({ lessons });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: { message: 'Internal server error' } },
       { status: 500 }

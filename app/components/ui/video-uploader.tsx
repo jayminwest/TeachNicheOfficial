@@ -222,14 +222,13 @@ export function VideoUploader({
       }
 
       console.log("Upload and processing completed successfully:", {
-        uploadId: currentAssetId,
-        assetId: uploadData.asset_id,
+        assetId: currentAssetId,
         status: assetData.status,
         playbackId: assetData.playbackId
       });
 
       setStatus("ready");
-      onUploadComplete(uploadData.asset_id);
+      onUploadComplete(currentAssetId);
     } catch (error) {
       console.error("Error getting asset ID from upload:", error);
       handleError(error instanceof Error ? error : new Error('Failed to get asset ID'));

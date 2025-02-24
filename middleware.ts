@@ -6,26 +6,10 @@ import type { NextRequest } from 'next/server'
 const RESTRICTED_PATHS: string[] = [
   '/lessons/create',
   '/profile/settings',
-  '/dashboard/analytics',
+  '/dashboard/analytics', 
   '/api/checkout',
   '/api/stripe',
   '/api/video'
-]
-
-// Define paths that are work-in-progress and should be blocked for everyone
-const WIP_PATHS = [
-  '/lessons',
-  '/profile', 
-  '/dashboard',
-  '/api/lessons',
-  '/api/profile',
-  '/api/dashboard',
-  '/api/checkout',
-  '/api/stripe',
-  '/api/video',
-  '/dashboard/analytics',
-  '/lessons/create',
-  '/profile/settings'
 ]
 
 // Define public paths that should always be accessible
@@ -34,8 +18,7 @@ const PUBLIC_PATHS = [
   '/about',
   '/legal',
   '/requests',
-  '/api/requests', // Keep requests API accessible
-  '/coming-soon'
+  '/api/requests' // Keep requests API accessible
 ]
 
 export async function middleware(req: NextRequest) {
@@ -45,15 +28,7 @@ export async function middleware(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const path = req.nextUrl.pathname
 
-  // First check if path is WIP - block regardless of auth
-  if (WIP_PATHS.some(wipPath => path.startsWith(wipPath))) {
-    // Redirect to a "coming soon" page or show an error
-    const redirectUrl = new URL('/coming-soon', req.url)
-    redirectUrl.searchParams.set('from', path)
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  // Then check auth restrictions
+  // Check auth restrictions
   const isRestrictedPath = RESTRICTED_PATHS.some(restrictedPath => 
     path.startsWith(restrictedPath)
   )

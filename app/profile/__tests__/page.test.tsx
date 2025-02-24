@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import ProfilePage from '../page'
@@ -79,7 +79,7 @@ describe('ProfilePage', () => {
 
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
-      const { container } = renderWithAuth(<ProfilePage />, { 
+      renderWithAuth(<ProfilePage />, { 
         user: null,
         loading: false, // Not loading
         isAuthenticated: false

@@ -17,7 +17,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<{ 
     stripe_account_id: string | null;
   } | null>(null);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [, setInitialLoadComplete] = useState(false);
 
   // Immediate redirect for unauthenticated users
   useEffect(() => {

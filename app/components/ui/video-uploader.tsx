@@ -70,7 +70,10 @@ export function VideoUploader({
     });
     
     if (!response.ok) {
-      throw new Error('Failed to get upload URL');
+      const errorText = await response.text().catch(() => 'No error details available');
+      throw new Error(
+        `Failed to get upload URL (HTTP ${response.status}): ${errorText}`
+      );
     }
 
     const data = await response.json();
@@ -82,15 +85,25 @@ export function VideoUploader({
 
   // Fetch endpoint URL when component mounts if it's a function
   useEffect(() => {
-    getUploadUrl()
-      .then(({url, assetId}) => {
-        setUploadEndpoint(url);
-        setCurrentAssetId(assetId);
-      })
-      .catch(error => {
-        console.error('Failed to get upload URL:', error);
-        handleError(new Error('Failed to get upload URL'));
-      });
+    const fetchWithRetry = async (retries = 3, delay = 1000) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const {url, assetId} = await getUploadUrl();
+          setUploadEndpoint(url);
+          setCurrentAssetId(assetId);
+          return;
+        } catch (error) {
+          console.error(`Upload URL fetch attempt ${i + 1} failed:`, error);
+          if (i === retries - 1) {
+            handleError(error instanceof Error ? error : new Error('Failed to get upload URL'));
+            return;
+          }
+          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        }
+      }
+    };
+
+    fetchWithRetry();
   }, [endpoint, getUploadUrl, handleError]);
 
   const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {

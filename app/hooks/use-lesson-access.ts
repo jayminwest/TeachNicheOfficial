@@ -33,7 +33,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     let timeoutId: NodeJS.Timeout
     let retryTimeoutId: NodeJS.Timeout
     let mounted = true
-    let abortController: AbortController
+    let abortController = new AbortController()
 
     async function checkAccess(): Promise<void> {
       if (!user) {
@@ -62,8 +62,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         }
       }
 
-      // Create an AbortController for the timeout
-      const abortController = new AbortController()
+      // Create a timeout promise
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => {
           abortController.abort()

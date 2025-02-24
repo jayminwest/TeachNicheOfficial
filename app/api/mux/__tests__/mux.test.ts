@@ -1,4 +1,4 @@
-import { createMocks } from 'node-mocks-http';
+import { NextRequest, NextResponse } from 'next/server';
 import { createUploadUrl, handleAssetCreated, handleAssetReady } from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 
@@ -48,6 +48,31 @@ jest.mock('../../../../app/services/auth', () => ({
   })
 }));
 
+// Helper function to create mock request/response
+function createMockRequestResponse(method: string, body?: any, url = 'http://localhost/api/mux') {
+  const request = new NextRequest(url, {
+    method,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  
+  const responseInit = {
+    headers: new Headers(),
+    status: 200,
+  };
+  
+  const response = {
+    json: jest.fn().mockImplementation((data) => NextResponse.json(data, responseInit)),
+    status: jest.fn().mockImplementation((statusCode) => {
+      responseInit.status = statusCode;
+      return response;
+    }),
+    _getStatusCode: () => responseInit.status,
+    _getData: () => response.json.mock.calls[0][0],
+  };
+  
+  return { req: request, res: response };
+}
+
 describe('Mux API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,23 +80,19 @@ describe('Mux API', () => {
 
   describe('POST /api/mux', () => {
     it('creates upload URL successfully', async () => {
-      const { req, res } = createMocks({
-        method: 'POST'
-      });
+      const { req, res } = createMockRequestResponse('POST');
 
       await createUploadUrl(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      expect(JSON.parse(res._getData())).toEqual({
+      expect(res._getData()).toEqual({
         uploadId: 'upload-123',
         uploadUrl: 'https://mux.com/upload/123'
       });
     });
 
     it('handles authentication errors', async () => {
-      const { req, res } = createMocks({
-        method: 'POST'
-      });
+      const { req, res } = createMockRequestResponse('POST');
 
       // Mock auth to fail
       require('../../../../app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
@@ -82,9 +103,7 @@ describe('Mux API', () => {
     });
 
     it('handles Mux service errors', async () => {
-      const { req, res } = createMocks({
-        method: 'POST'
-      });
+      const { req, res } = createMockRequestResponse('POST');
 
       // Mock Mux to throw an error
       require('../../../../app/services/mux').createUploadUrl.mockImplementationOnce(() => {
@@ -99,14 +118,11 @@ describe('Mux API', () => {
 
   describe('POST /api/mux/asset-created', () => {
     it('handles asset created webhook', async () => {
-      const { req, res } = createMocks({
-        method: 'POST',
-        body: {
-          type: 'video.asset.created',
-          data: {
-            id: 'asset-123',
-            playback_ids: [{ id: 'playback-123' }]
-          }
+      const { req, res } = createMockRequestResponse('POST', {
+        type: 'video.asset.created',
+        data: {
+          id: 'asset-123',
+          playback_ids: [{ id: 'playback-123' }]
         }
       });
 
@@ -118,14 +134,11 @@ describe('Mux API', () => {
 
   describe('POST /api/mux/asset-ready', () => {
     it('handles asset ready webhook', async () => {
-      const { req, res } = createMocks({
-        method: 'POST',
-        body: {
-          type: 'video.asset.ready',
-          data: {
-            id: 'asset-123',
-            playback_ids: [{ id: 'playback-123' }]
-          }
+      const { req, res } = createMockRequestResponse('POST', {
+        type: 'video.asset.ready',
+        data: {
+          id: 'asset-123',
+          playback_ids: [{ id: 'playback-123' }]
         }
       });
 

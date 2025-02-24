@@ -50,8 +50,3 @@ export async function POST(request: Request) {
     );
   }
 }
-import { NextResponse } from 'next/server';
-
-export async function POST(request: Request) {
-  return NextResponse.json({ message: "Checkout endpoint coming soon" }, { status: 501 });
-}

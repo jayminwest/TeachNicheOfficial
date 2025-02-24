@@ -97,8 +97,11 @@ export async function POST(request: Request) {
     const stripeInstance = getStripe();
     
     try {
+      // Use type assertion to handle the mock vs real implementation difference
+      const accounts = stripeInstance.accounts as any;
+      
       // Create Stripe Connect account with international support
-      const account = await stripeInstance.accounts.create({
+      const account = await accounts.create({
         type: 'standard',
         email: user.email,
         metadata: {
@@ -135,7 +138,8 @@ export async function POST(request: Request) {
       if (updateError) {
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {
-          await stripeInstance.accounts.del(account.id);
+          // Use type assertion here too
+          await (stripeInstance.accounts as any).del(account.id);
         } catch (deleteError) {
           console.error('Failed to delete Stripe account after database update error:', deleteError);
         }

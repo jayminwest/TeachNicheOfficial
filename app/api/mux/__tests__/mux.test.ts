@@ -50,14 +50,20 @@ jest.mock('../../../../app/services/auth', () => ({
 
 // Helper function to create mock request/response
 function createMockRequestResponse(method: string, body?: any, url = 'http://localhost/api/mux') {
-  // Create a NextRequest directly instead of using NextRequest.from
-  const request = new NextRequest(url, {
+  // Create a standard Request first
+  const init: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+    }
+  };
+  
+  if (body) {
+    init.body = JSON.stringify(body);
+  }
+  
+  // Create a NextRequest using the Request constructor
+  const request = new NextRequest(new Request(url, init));
   
   const responseInit = {
     headers: new Headers(),

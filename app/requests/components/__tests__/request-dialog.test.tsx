@@ -2,13 +2,25 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestDialog } from '../request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { createRequest } from '@/app/lib/supabase/requests'
+import { createRequest, updateRequest, deleteRequest } from '@/app/lib/supabase/requests'
 
 // Mock dependencies
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/lib/supabase/requests')
 
 const mockChildren = <div>Trigger Content</div>
+const mockRequest = {
+  id: 'test-id',
+  title: 'Test Request',
+  description: 'Test Description',
+  category: 'Trick Tutorial',
+  instagram_handle: '@test',
+  tags: [],
+  created_at: '2024-01-01',
+  user_id: 'test-user',
+  status: 'open',
+  vote_count: 0
+}
 
 describe('RequestDialog', () => {
   beforeEach(() => {
@@ -18,18 +30,31 @@ describe('RequestDialog', () => {
     ;(useAuth as jest.Mock).mockReturnValue({ 
       user: { id: 'test-user' }
     })
-    // Mock createRequest
+    // Mock request functions
     ;(createRequest as jest.Mock).mockResolvedValue({ id: 'test-request' })
+    ;(updateRequest as jest.Mock).mockResolvedValue({ id: 'test-request' })
+    ;(deleteRequest as jest.Mock).mockResolvedValue(true)
     // Mock window.location.reload
     const mockReload = jest.fn()
     Object.defineProperty(window, 'location', {
       value: { reload: mockReload },
       writable: true
     })
+    // Mock window.confirm
+    window.confirm = jest.fn(() => true)
   })
 
-  it('renders the trigger button', () => {
+  it('renders create mode correctly', () => {
     render(<RequestDialog>{mockChildren}</RequestDialog>)
+    expect(screen.getByTestId('new-request-button')).toBeInTheDocument()
+  })
+
+  it('renders edit mode correctly', () => {
+    render(
+      <RequestDialog mode="edit" request={mockRequest}>
+        {mockChildren}
+      </RequestDialog>
+    )
     expect(screen.getByTestId('new-request-button')).toBeInTheDocument()
   })
 
@@ -82,6 +107,75 @@ describe('RequestDialog', () => {
     })
   })
 
+  it('handles edit form submission successfully', async () => {
+    const user = userEvent.setup()
+    render(
+      <RequestDialog mode="edit" request={mockRequest}>
+        {mockChildren}
+      </RequestDialog>
+    )
+    
+    // Open dialog
+    await user.click(screen.getByTestId('new-request-button'))
+    
+    // Modify title
+    const titleInput = screen.getByPlaceholderText(/enter lesson title/i)
+    await user.clear(titleInput)
+    await user.type(titleInput, 'Updated Title')
+    
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /save changes/i }))
+    
+    // Verify request update
+    await waitFor(() => {
+      expect(updateRequest).toHaveBeenCalledWith('test-id', expect.objectContaining({
+        title: 'Updated Title',
+        description: 'Test Description',
+        category: 'Trick Tutorial',
+        instagram_handle: '@test',
+        tags: []
+      }))
+      expect(window.location.reload).toHaveBeenCalled()
+    })
+  })
+
+  it('handles request deletion', async () => {
+    const user = userEvent.setup()
+    render(
+      <RequestDialog mode="edit" request={mockRequest}>
+        {mockChildren}
+      </RequestDialog>
+    )
+    
+    // Open dialog
+    await user.click(screen.getByTestId('new-request-button'))
+    
+    // Click delete button
+    await user.click(screen.getByRole('button', { name: /delete request/i }))
+    
+    // Verify deletion flow
+    expect(window.confirm).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(deleteRequest).toHaveBeenCalledWith('test-id')
+      expect(window.location.reload).toHaveBeenCalled()
+    })
+  })
+
+  it('validates required fields', async () => {
+    const user = userEvent.setup()
+    render(<RequestDialog>{mockChildren}</RequestDialog>)
+    
+    // Open dialog
+    await user.click(screen.getByTestId('new-request-button'))
+    
+    // Submit empty form
+    await user.click(screen.getByRole('button', { name: /submit request/i }))
+    
+    // Check validation messages
+    expect(await screen.findByText(/title is required/i)).toBeInTheDocument()
+    expect(await screen.findByText(/description is required/i)).toBeInTheDocument()
+  })
+
   it('handles keyboard navigation', async () => {
     const user = userEvent.setup()
     render(<RequestDialog>{mockChildren}</RequestDialog>)
@@ -92,9 +186,35 @@ describe('RequestDialog', () => {
     // Test Enter key
     await user.keyboard('{Enter}')
     
-    // Check if dialog state changed
+    // Check if dialog opened
     const dialog = await screen.findByRole('dialog')
     expect(dialog).toBeInTheDocument()
     expect(dialog).toHaveTextContent(/create new lesson request/i)
+    
+    // Test Escape key closes dialog
+    await user.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+  })
+
+  it('handles form submission errors', async () => {
+    const mockError = new Error('Failed to create request')
+    ;(createRequest as jest.Mock).mockRejectedValue(mockError)
+    
+    const user = userEvent.setup()
+    render(<RequestDialog>{mockChildren}</RequestDialog>)
+    
+    // Open dialog and submit form
+    await user.click(screen.getByTestId('new-request-button'))
+    await user.type(screen.getByPlaceholderText(/enter lesson title/i), 'Test Title')
+    await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
+    await user.click(screen.getByRole('button', { name: /submit request/i }))
+    
+    // Verify error handling
+    await waitFor(() => {
+      expect(createRequest).toHaveBeenCalled()
+      expect(window.location.reload).not.toHaveBeenCalled()
+    })
   })
 })

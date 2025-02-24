@@ -25,6 +25,7 @@ export default function ProfilePage() {
       // Handle redirect in a way that works in both browser and test environments
       if (process.env.NODE_ENV === 'test') {
         console.log('Would redirect to home in non-test environment');
+        router.push('/');
       } else {
         try {
           router.push('/');
@@ -56,6 +57,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [user, loading, router]);
 
+  // Show loading state regardless of test environment
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">

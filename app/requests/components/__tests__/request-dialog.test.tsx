@@ -128,17 +128,22 @@ describe('RequestDialog', () => {
     expect(descriptionInput).toHaveValue('Test Description')
     expect(instagramInput).toHaveValue('@test')
     
+    // Modify a field to trigger form submission
+    await user.type(titleInput, ' Updated')
+    
     // Submit form
     const submitButton = screen.getByRole('button', { name: /save changes/i })
     await user.click(submitButton)
     
     // Verify request update
-    expect(updateRequest).toHaveBeenCalledWith('test-id', {
-      title: 'Test Request',
-      description: 'Test Description',
-      category: 'Trick Tutorial',
-      instagram_handle: '@test',
-      tags: []
+    await waitFor(() => {
+      expect(updateRequest).toHaveBeenCalledWith('test-id', {
+        title: 'Test Request Updated',
+        description: 'Test Description',
+        category: 'Trick Tutorial',
+        instagram_handle: '@test',
+        tags: []
+      })
     })
   })
 
@@ -202,6 +207,10 @@ describe('RequestDialog', () => {
   })
 
   it('handles form submission errors', async () => {
+    // Mock console.error to prevent error output in tests
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    
+    // Setup error mock
     const mockError = new Error('Failed to create request')
     ;(createRequest as jest.Mock).mockRejectedValue(mockError)
     
@@ -212,12 +221,18 @@ describe('RequestDialog', () => {
     await user.click(screen.getByTestId('new-request-button'))
     await user.type(screen.getByPlaceholderText(/enter lesson title/i), 'Test Title')
     await user.type(screen.getByPlaceholderText(/describe what you'd like to learn/i), 'Test Description')
+    
+    // Submit form and expect error
     await user.click(screen.getByRole('button', { name: /submit request/i }))
     
     // Verify error handling
     await waitFor(() => {
-      expect(createRequest).toHaveBeenCalled()
+      expect(createRequest).toHaveBeenCalledTimes(1)
       expect(window.location.reload).not.toHaveBeenCalled()
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to create request:', mockError)
     })
+    
+    // Cleanup
+    consoleSpy.mockRestore()
   })
 })

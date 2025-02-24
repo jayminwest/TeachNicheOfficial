@@ -115,23 +115,30 @@ describe('RequestDialog', () => {
       </RequestDialog>
     )
     
-    // Open dialog and wait for form
+    // Open dialog
     await user.click(screen.getByTestId('new-request-button'))
-    const form = await screen.findByRole('form')
     
-    // Submit form with existing values
+    // Get form elements
+    const titleInput = screen.getByRole('textbox', { name: /title/i })
+    const descriptionInput = screen.getByRole('textbox', { name: /description/i })
+    const instagramInput = screen.getByRole('textbox', { name: /instagram/i })
+    
+    // Verify initial values
+    expect(titleInput).toHaveValue('Test Request')
+    expect(descriptionInput).toHaveValue('Test Description')
+    expect(instagramInput).toHaveValue('@test')
+    
+    // Submit form
     const submitButton = screen.getByRole('button', { name: /save changes/i })
     await user.click(submitButton)
     
-    // Verify request update with original values
-    await waitFor(() => {
-      expect(updateRequest).toHaveBeenCalledWith('test-id', {
-        title: 'Test Request',
-        description: 'Test Description', 
-        category: 'Trick Tutorial',
-        instagram_handle: '@test',
-        tags: []
-      })
+    // Verify request update
+    expect(updateRequest).toHaveBeenCalledWith('test-id', {
+      title: 'Test Request',
+      description: 'Test Description',
+      category: 'Trick Tutorial',
+      instagram_handle: '@test',
+      tags: []
     })
   })
 

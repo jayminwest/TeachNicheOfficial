@@ -1,11 +1,15 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { LessonAccessGate } from '@/app/components/ui/lesson-access-gate'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
-import { mockPurchaseStatus } from '../../utils/test-utils'
 
 // Mock the useLessonAccess hook
 jest.mock('@/app/hooks/use-lesson-access')
 const mockUseLessonAccess = useLessonAccess as jest.MockedFunction<typeof useLessonAccess>
+
+// Mock the LessonCheckout component since we don't need to test its internals
+jest.mock('@/app/components/ui/lesson-checkout', () => ({
+  LessonCheckout: () => <div>Purchase Lesson</div>
+}))
 
 describe('LessonAccessGate', () => {
   const defaultProps = {
@@ -15,10 +19,10 @@ describe('LessonAccessGate', () => {
   }
 
   beforeEach(() => {
-    mockUseLessonAccess.mockClear()
+    jest.clearAllMocks()
   })
 
-  it('should show loading state', () => {
+  it('shows loading spinner initially', () => {
     mockUseLessonAccess.mockReturnValue({
       loading: true,
       hasAccess: false,
@@ -30,48 +34,41 @@ describe('LessonAccessGate', () => {
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
   })
 
-  it('should render children when access is granted', async () => {
+  it('shows content when access is granted', () => {
     mockUseLessonAccess.mockReturnValue({
       loading: false,
       hasAccess: true,
       error: null,
-      ...mockPurchaseStatus('completed')
+      purchaseStatus: 'completed'
     })
 
     render(<LessonAccessGate {...defaultProps} />)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Protected Content')).toBeInTheDocument()
-    })
+    expect(screen.getByText('Protected Content')).toBeInTheDocument()
   })
 
-  it('should show purchase option when access is denied', async () => {
+  it('shows purchase UI when access is denied', () => {
     mockUseLessonAccess.mockReturnValue({
       loading: false,
       hasAccess: false,
       error: null,
-      ...mockPurchaseStatus('none')
+      purchaseStatus: 'none'
     })
 
     render(<LessonAccessGate {...defaultProps} />)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Purchase Required')).toBeInTheDocument()
-      expect(screen.getByText(/Purchase Lesson/)).toBeInTheDocument()
-    })
+    expect(screen.getByText('Purchase Required')).toBeInTheDocument()
+    expect(screen.getByText('Purchase Lesson')).toBeInTheDocument()
   })
 
-  it('should handle errors gracefully', async () => {
+  it('shows error message on failure', () => {
+    const errorMessage = 'Access check failed'
     mockUseLessonAccess.mockReturnValue({
       loading: false,
       hasAccess: false,
-      error: new Error('Access check failed')
+      error: new Error(errorMessage),
+      purchaseStatus: 'none'
     })
 
     render(<LessonAccessGate {...defaultProps} />)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Access check failed')).toBeInTheDocument()
-    })
+    expect(screen.getByText(errorMessage)).toBeInTheDocument()
   })
 })

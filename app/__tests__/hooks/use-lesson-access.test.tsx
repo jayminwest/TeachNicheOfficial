@@ -5,9 +5,12 @@ import { createMockSupabaseClient } from '../../../__mocks__/services/supabase'
 import { supabase } from '@/app/services/supabase'
 
 // Mock Supabase client
-jest.mock('@/app/services/supabase', () => ({
-  supabase: createMockSupabaseClient()
-}))
+jest.mock('@/app/services/supabase', () => {
+  const { createMockSupabaseClient } = require('../../../__mocks__/services/supabase')
+  return {
+    supabase: createMockSupabaseClient()
+  }
+})
 
 // Mock AuthContext
 jest.mock('@/app/services/auth/AuthContext', () => ({

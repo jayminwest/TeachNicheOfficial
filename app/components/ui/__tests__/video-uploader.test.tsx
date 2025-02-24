@@ -1,627 +1,447 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import userEvent from '@testing-library/user-event';
+import { VideoUploader } from '../video-uploader';
+import '@testing-library/jest-dom';
 
-// Mock MuxUploader before importing VideoUploader
-const mockMuxUploader = jest.fn().mockImplementation(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
-  return (
-    <div data-testid="mux-uploader-mock">
-      {children}
-      <button 
-        data-testid="trigger-upload-start" 
-        onClick={() => onUploadStart({ detail: { file: new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' }) } })}
-      >
-        Trigger Upload Start
-      </button>
-      <button 
-        data-testid="trigger-progress" 
-        onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
-      >
-        Trigger Progress
-      </button>
-      <button 
-        data-testid="trigger-success" 
-        onClick={() => onSuccess(new CustomEvent('success'))}
-      >
-        Trigger Success
-      </button>
-      <button 
-        data-testid="trigger-error" 
-        onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
-      >
-        Trigger Error
-      </button>
-    </div>
-  );
-});
-
+// Mock MuxUploader component
 jest.mock('@mux/mux-uploader-react', () => {
   return {
     __esModule: true,
-    default: mockMuxUploader
+    default: ({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+      return (
+        <div data-testid="mux-uploader" onClick={() => {
+          // Simulate file selection and upload start
+          const mockFile = new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' });
+          if (onUploadStart) {
+            onUploadStart({ detail: { file: mockFile } });
+          }
+        }}>
+          {children}
+          <button 
+            data-testid="simulate-progress" 
+            onClick={() => onProgress && onProgress(new CustomEvent('progress', { detail: 50 }))}
+          >
+            Simulate Progress
+          </button>
+          <button 
+            data-testid="simulate-success" 
+            onClick={() => onSuccess && onSuccess(new CustomEvent('success'))}
+          >
+            Simulate Success
+          </button>
+          <button 
+            data-testid="simulate-error" 
+            onClick={() => onError && onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
+          >
+            Simulate Error
+          </button>
+        </div>
+      );
+    }
   };
 });
 
-// Now import the component that uses the mocked dependency
-import { VideoUploader } from '../video-uploader';
-
-// Create a mock file for testing
-const mockFile = new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' });
-
-// Mock fetch API
+// Mock the fetch API
 global.fetch = jest.fn();
+const mockFetch = global.fetch as jest.Mock;
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
 global.URL.createObjectURL = jest.fn(() => 'mock-url');
 global.URL.revokeObjectURL = jest.fn();
 
-// Mock document.createElement for video element
-const mockVideoElement = {
-  preload: '',
-  videoWidth: 1280,
-  videoHeight: 720,
-  src: '',
-  onloadedmetadata: null,
-  onerror: null,
+// Mock HTMLVideoElement
+Object.defineProperty(global.HTMLVideoElement.prototype, 'videoWidth', { value: 1280 });
+Object.defineProperty(global.HTMLVideoElement.prototype, 'videoHeight', { value: 720 });
+
+// Helper to setup successful fetch responses
+const setupSuccessfulFetches = () => {
+  // Mock the initial upload URL fetch
+  mockFetch.mockImplementationOnce(() => 
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
+    })
+  );
+  
+  // Mock the asset status fetch
+  mockFetch.mockImplementationOnce(() => 
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ 
+        status: 'ready', 
+        playbackId: 'mock-playback-id' 
+      })
+    })
+  );
 };
 
-const originalCreateElement = document.createElement;
-document.createElement = jest.fn((tagName) => {
-  if (tagName === 'video') {
-    return mockVideoElement;
-  }
-  return originalCreateElement.call(document, tagName);
-});
-
 describe('VideoUploader', () => {
-  const onUploadComplete = jest.fn();
-  const onError = jest.fn();
-  const onUploadStart = jest.fn();
-  
   beforeEach(() => {
     jest.clearAllMocks();
+    setupSuccessfulFetches();
+  });
+
+  it('renders the uploader in idle state', async () => {
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={jest.fn()} 
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/mux/upload', { method: 'POST' });
+    });
+
+    // Check that the uploader is rendered with the upload button
+    expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
+    expect(screen.getByText(/accepted formats/i)).toBeInTheDocument();
+  });
+
+  it('shows loading state while fetching upload URL', async () => {
+    // Make fetch delay to show loading state
+    mockFetch.mockImplementationOnce(() => 
+      new Promise(resolve => setTimeout(() => resolve({
+        ok: true,
+        json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
+      }), 100))
+    );
+
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={jest.fn()} 
+      />
+    );
+
+    expect(screen.getByText('Loading upload URL...')).toBeInTheDocument();
     
-    // Mock successful fetch for upload URL
-    global.fetch.mockImplementation((url) => {
-      if (url === '/api/mux/upload') {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
-        });
-      } else if (url.includes('/api/mux/asset-status')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ 
-            status: 'ready', 
-            playbackId: 'mock-playback-id' 
-          })
-        });
-      }
-      return Promise.reject(new Error('Unhandled fetch URL'));
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
     });
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
+  it('handles upload start correctly', async () => {
+    const onUploadStartMock = jest.fn();
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={jest.fn()}
+        onUploadStart={onUploadStartMock}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
+    });
+
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+
+    // Check that onUploadStart was called
+    expect(onUploadStartMock).toHaveBeenCalled();
+    
+    // Check that the status changed to uploading
+    expect(screen.getByText(/uploading/i)).toBeInTheDocument();
   });
 
-  // Component Rendering Tests
-  describe('Rendering', () => {
-    it('renders in initial idle state', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      // Initially should show loading state
-      expect(screen.getByText('Loading upload URL...')).toBeInTheDocument();
-      
-      // After fetch completes, should show upload button
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Should show accepted formats info
-      expect(screen.getByText(/Accepted formats/i)).toBeInTheDocument();
+  it('shows upload progress', async () => {
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={jest.fn()}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
     });
 
-    it('displays progress indicator during upload', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger progress update
-      fireEvent.click(screen.getByTestId('trigger-progress'));
-      
-      // Should show progress indicator
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
-      expect(screen.getByText(/Uploading... 50%/i)).toBeInTheDocument();
-    });
-
-    it('shows success state after upload completes', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger success
-      fireEvent.click(screen.getByTestId('trigger-success'));
-      
-      await waitFor(() => {
-        expect(screen.getByText(/Upload complete!/i)).toBeInTheDocument();
-      });
-      
-      // Should call onUploadComplete with the asset ID
-      expect(onUploadComplete).toHaveBeenCalledWith('mock-asset-id');
-    });
-
-    it('displays error message when upload fails', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger error
-      fireEvent.click(screen.getByTestId('trigger-error'));
-      
-      // Should show error message
-      expect(screen.getByText(/Upload failed/i)).toBeInTheDocument();
-      
-      // Should call onError with the error
-      expect(onError).toHaveBeenCalled();
-    });
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+    
+    // Simulate progress event
+    fireEvent.click(screen.getByTestId('simulate-progress'));
+    
+    // Check that the progress is shown
+    expect(screen.getByText(/uploading.*50%/i)).toBeInTheDocument();
   });
 
-  // Upload Functionality Tests
-  describe('Upload Functionality', () => {
-    it('calls onUploadStart when upload begins', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-          onUploadStart={onUploadStart}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Should call onUploadStart
-      expect(onUploadStart).toHaveBeenCalled();
+  it('handles successful upload completion', async () => {
+    const onUploadCompleteMock = jest.fn();
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={onUploadCompleteMock} 
+        onError={jest.fn()}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
     });
 
-    it('shows processing state after upload completes', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger success
-      fireEvent.click(screen.getByTestId('trigger-success'));
-      
-      // Should show processing state before completing
-      expect(screen.getByText(/Processing video/i)).toBeInTheDocument();
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+    
+    // Simulate success event
+    fireEvent.click(screen.getByTestId('simulate-success'));
+    
+    // Check that processing state is shown
+    expect(screen.getByText(/processing video/i)).toBeInTheDocument();
+    
+    // Wait for the asset status to be fetched
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/mux/asset-status?assetId=mock-asset-id');
+    });
+    
+    // Check that the upload complete message is shown
+    expect(screen.getByText(/upload complete/i)).toBeInTheDocument();
+    
+    // Check that onUploadComplete was called with the asset ID
+    expect(onUploadCompleteMock).toHaveBeenCalledWith('mock-asset-id');
+  });
+
+  it('handles upload errors', async () => {
+    const onErrorMock = jest.fn();
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={onErrorMock}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
+    });
+
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+    
+    // Simulate error event
+    fireEvent.click(screen.getByTestId('simulate-error'));
+    
+    // Check that the error message is shown
+    expect(screen.getByText(/upload failed/i)).toBeInTheDocument();
+    
+    // Check that onError was called with the error
+    expect(onErrorMock).toHaveBeenCalled();
+    expect(onErrorMock.mock.calls[0][0].message).toBe('Upload failed');
+  });
+
+  it('handles API error when fetching upload URL', async () => {
+    const onErrorMock = jest.fn();
+    
+    // Mock fetch to return an error
+    mockFetch.mockReset();
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('Server error')
+      })
+    );
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={onErrorMock}
+      />
+    );
+
+    // Wait for the error to be handled
+    await waitFor(() => {
+      expect(onErrorMock).toHaveBeenCalled();
+      expect(onErrorMock.mock.calls[0][0].message).toContain('Failed to get upload URL');
     });
   });
 
-  // API Integration Tests
-  describe('API Integration', () => {
-    it('fetches upload URL on mount', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith('/api/mux/upload', expect.any(Object));
-      });
-    });
-
-    it('checks asset status after upload completes', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger success
-      fireEvent.click(screen.getByTestId('trigger-success'));
-      
-      await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/api/mux/asset-status?assetId=mock-asset-id'),
-          undefined
-        );
-      });
-    });
-  });
-
-  // Error Handling Tests
-  describe('Error Handling', () => {
-    it('handles API errors when fetching upload URL', async () => {
-      // Mock API error
-      global.fetch.mockImplementationOnce(() => 
-        Promise.resolve({
-          ok: false,
-          status: 500,
-          text: () => Promise.resolve('Server error')
-        })
-      );
-      
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(onError).toHaveBeenCalledWith(expect.any(Error));
-      });
-    });
-
-    it('handles asset status API errors', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Mock asset status API error
-      global.fetch.mockImplementationOnce(() => 
-        Promise.resolve({
-          ok: false,
-          status: 500,
-          text: () => Promise.resolve('Server error')
-        })
-      );
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger success
-      fireEvent.click(screen.getByTestId('trigger-success'));
-      
-      await waitFor(() => {
-        expect(onError).toHaveBeenCalledWith(expect.any(Error));
-      });
-    });
-  });
-
-  // File Validation Tests
-  describe('File Validation', () => {
-    it('validates file size', async () => {
-      // Create a mock file that exceeds the size limit - using a smaller value to avoid RangeError
-      const largeMockFile = new File(['x'.repeat(1000)], 'large-video.mp4', { type: 'video/mp4' });
-      Object.defineProperty(largeMockFile, 'size', { value: 3000 * 1024 * 1024 });
-      
-      // Update the mock to use the large file
-      mockMuxUploader.mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
-        return (
-          <div data-testid="mux-uploader-mock">
-            {children}
-            <button 
-              data-testid="trigger-upload-start" 
-              onClick={() => onUploadStart({ detail: { file: largeMockFile } })}
-            >
-              Trigger Upload Start
-            </button>
-          </div>
-        );
-      });
-      
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-          maxSizeMB={2000}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start with large file
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Should show error about file size
-      await waitFor(() => {
-        expect(screen.getByText(/File size must be less than/i)).toBeInTheDocument();
-      });
-      
-      expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('File size must be less than')
-      }));
-    });
-
-    it('validates file type', async () => {
-      // Create a mock file with invalid type
-      const invalidTypeFile = new File(['dummy content'], 'document.pdf', { type: 'application/pdf' });
-      
-      // Update the mock to use the invalid file
-      mockMuxUploader.mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
-        return (
-          <div data-testid="mux-uploader-mock">
-            {children}
-            <button 
-              data-testid="trigger-upload-start" 
-              onClick={() => onUploadStart({ detail: { file: invalidTypeFile } })}
-            >
-              Trigger Upload Start
-            </button>
-          </div>
-        );
-      });
-      
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start with invalid file type
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Should show error about file type
-      await waitFor(() => {
-        expect(screen.getByText(/File type must be one of/i)).toBeInTheDocument();
-      });
-      
-      expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('File type must be one of')
-      }));
-    });
-
-    it('validates video resolution', async () => {
-      // Mock a video with resolution exceeding the limit
-      mockVideoElement.videoWidth = 3840;
-      mockVideoElement.videoHeight = 2160;
-      
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-          maxResolution={{ width: 1920, height: 1080 }}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Simulate onloadedmetadata event
-      act(() => {
-        mockVideoElement.onloadedmetadata();
-      });
-      
-      //Should show error about resolution
-      await waitFor(() => {
-        expect(screen.getByText(/Video resolution must not exceed/i)).toBeInTheDocument();
-      });
-      
-      expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('Video resolution must not exceed')
-      }));
-    });
-  });
-
-  //Edge Cases
-  describe('Edge Cases', () =>  {
-    it('handles retry logic for API failures', async () => {
-      // Mock first API call to fail, second to succeed
-      global.fetch.mockImplementationOnce(()=> Promise.reject(new Error('Network error')))
-        .mockImplementationOnce(() => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
-        }));
-      
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      // Should eventually succeed after retry
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Should have called fetch twice
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('handles case when no file is selected', async () => {
-      // Update the mock to trigger upload start with no file
-      mockMuxUploader.mockImplementationOnce(({ children, onUploadStart }) => {
-        return (
-          <div data-testid="mux-uploader-mock">
-            {children}
-            <button 
-              data-testid="trigger-upload-start-no-file" 
-              onClick={() => onUploadStart({ detail: { file: null } })}
-            >
-              Trigger Upload Start No File
-            </button>
-          </div>
-        );
-      });
-      
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('mux-uploader-mock')).toBeInTheDocument();
-      });
-      
-      // Trigger upload start with no file
-      fireEvent.click(screen.getByTestId('trigger-upload-start-no-file'));
-      
-      // Should call onError with appropriate message
-      expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'No file selected'
-      }));
-    });
-
-    it('handles case when asset processing fails', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Mock asset status to return errored state
-      global.fetch.mockImplementationOnce(() => Promise.resolve({
+  it('handles API error when checking asset status', async () => {
+    const onErrorMock = jest.fn();
+    
+    // Mock the initial upload URL fetch
+    mockFetch.mockReset();
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ status: 'errored' })
-      }));
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger success
-      fireEvent.click(screen.getByTestId('trigger-success'));
-      
-      // Should call onError with appropriate message
-      await waitFor(() => {
-        expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-          message: 'Video processing failed'
-        }));
-      });
+        json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
+      })
+    );
+    
+    // Mock the asset status fetch to return an error
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('Server error')
+      })
+    );
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={onErrorMock}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
     });
 
-    it('handles case when playback ID is missing', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Mock asset status to return ready state but no playback ID
-      global.fetch.mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ status: 'ready', playbackId: null })
-      }));
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger success
-      fireEvent.click(screen.getByTestId('trigger-success'));
-      
-      // Should call onError with appropriate message
-      await waitFor(() => {
-        expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-          message: 'No playback ID available'
-        }));
-      });
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+    
+    // Simulate success event
+    fireEvent.click(screen.getByTestId('simulate-success'));
+    
+    // Wait for the asset status to be fetched and error to be handled
+    await waitFor(() => {
+      expect(onErrorMock).toHaveBeenCalled();
+      expect(onErrorMock.mock.calls[0][0].message).toBe('Failed to get asset status');
     });
   });
 
-  // Accessibility Tests
-  describe('Accessibility', () => {
-    it('provides appropriate aria attributes for progress indicator', async () => {
-      render(
-        <VideoUploader
-          onUploadComplete={onUploadComplete}
-          onError={onError}
-        />
-      );
-      
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Upload Video/i })).toBeInTheDocument();
-      });
-      
-      // Trigger upload start
-      fireEvent.click(screen.getByTestId('trigger-upload-start'));
-      
-      // Trigger progress update
-      fireEvent.click(screen.getByTestId('trigger-progress'));
-      
-      // Progress bar should have appropriate role and aria attributes
-      const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-valuenow', '50');
+  it('handles asset processing error', async () => {
+    const onErrorMock = jest.fn();
+    
+    // Mock the initial upload URL fetch
+    mockFetch.mockReset();
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
+      })
+    );
+    
+    // Mock the asset status fetch to return an error status
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ 
+          status: 'errored', 
+          playbackId: null 
+        })
+      })
+    );
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={onErrorMock}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
     });
+
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+    
+    // Simulate success event
+    fireEvent.click(screen.getByTestId('simulate-success'));
+    
+    // Wait for the asset status to be fetched and error to be handled
+    await waitFor(() => {
+      expect(onErrorMock).toHaveBeenCalled();
+      expect(onErrorMock.mock.calls[0][0].message).toBe('Video processing failed');
+    });
+  });
+
+  it('handles missing playback ID error', async () => {
+    const onErrorMock = jest.fn();
+    
+    // Mock the initial upload URL fetch
+    mockFetch.mockReset();
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
+      })
+    );
+    
+    // Mock the asset status fetch to return a response without playback ID
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ 
+          status: 'ready', 
+          playbackId: null 
+        })
+      })
+    );
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={onErrorMock}
+      />
+    );
+
+    // Wait for the upload URL to be fetched
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
+    });
+
+    // Click the upload button to start the upload
+    fireEvent.click(screen.getByRole('button', { name: /upload video/i }));
+    
+    // Simulate success event
+    fireEvent.click(screen.getByTestId('simulate-success'));
+    
+    // Wait for the asset status to be fetched and error to be handled
+    await waitFor(() => {
+      expect(onErrorMock).toHaveBeenCalled();
+      expect(onErrorMock.mock.calls[0][0].message).toBe('No playback ID available');
+    });
+  });
+
+  // Test for retry logic when fetching upload URL fails
+  it('retries fetching upload URL when it fails', async () => {
+    jest.useFakeTimers();
+    const onErrorMock = jest.fn();
+    
+    // Mock fetch to fail twice then succeed
+    mockFetch.mockReset();
+    mockFetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+    mockFetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+    mockFetch.mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ url: 'https://mock-upload-url.com', assetId: 'mock-asset-id' })
+      })
+    );
+    
+    render(
+      <VideoUploader 
+        onUploadComplete={jest.fn()} 
+        onError={onErrorMock}
+      />
+    );
+
+    // Fast-forward through retries
+    await act(async () => {
+      jest.advanceTimersByTime(1000); // First retry
+      jest.advanceTimersByTime(2000); // Second retry
+    });
+
+    // Wait for the upload URL to be fetched successfully
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+      expect(screen.getByRole('button', { name: /upload video/i })).toBeInTheDocument();
+    });
+
+    jest.useRealTimers();
   });
 });

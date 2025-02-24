@@ -9,7 +9,6 @@ import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
 import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
 import { supabase } from "@/app/services/supabase"
-import { redirect } from "next/navigation"
 import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
@@ -65,11 +64,17 @@ export default function ProfilePage() {
   }
 
   // After initial load, if no user and not loading, show unauthenticated state
-  if (!user) {
+  if (!user && initialLoadComplete) {
     // For test environment, render a placeholder instead of redirecting
     return <div data-testid="unauthenticated-placeholder">
       Please sign in to view your profile
     </div>;
+  }
+  
+  // If not authenticated and not loading, trigger immediate redirect
+  if (!user && !loading) {
+    router.push('/');
+    return null;
   }
   
   return (

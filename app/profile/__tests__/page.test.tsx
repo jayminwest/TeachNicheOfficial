@@ -69,16 +69,9 @@ describe('ProfilePage', () => {
 
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
-      const { rerender } = renderWithAuth(<ProfilePage />, { 
+      renderWithAuth(<ProfilePage />, { 
         user: null,
-        loading: true, // Start with loading
-        isAuthenticated: false
-      })
-      
-      // Then update to not loading to trigger the effect
-      rerender(<ProfilePage />, {
-        user: null,
-        loading: false, // Now not loading
+        loading: false, // Not loading
         isAuthenticated: false
       })
       

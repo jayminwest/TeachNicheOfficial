@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event'
 import RequestsPage from '../page'
 import { getRequests } from '@/app/lib/supabase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
+import { useCategories } from '@/app/hooks/useCategories'
 
 // Mock dependencies
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@/app/services/auth/AuthContext')
+jest.mock('@/app/hooks/useCategories')
 
 describe('RequestsPage', () => {
   const mockRequests = [
@@ -34,10 +36,19 @@ describe('RequestsPage', () => {
     }
   ]
 
+  const mockCategories = [
+    { id: '1', name: 'Beginner Fundamentals', created_at: '', updated_at: '' },
+    { id: '2', name: 'Advanced Techniques', created_at: '', updated_at: '' }
+  ]
+
   beforeEach(() => {
     jest.clearAllMocks()
     ;(getRequests as jest.Mock).mockResolvedValue(mockRequests)
     ;(useAuth as jest.Mock).mockReturnValue({ user: null })
+    ;(useCategories as jest.Mock).mockReturnValue({
+      categories: mockCategories,
+      loading: false
+    })
   })
 
   it('renders the page title and description', () => {
@@ -60,9 +71,10 @@ describe('RequestsPage', () => {
     const user = userEvent.setup()
     render(<RequestsPage />)
 
-    // Wait for sidebar to be rendered and categories to load
+    // Wait for sidebar and categories to be rendered
     await waitFor(() => {
       expect(screen.getByText('Categories')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Beginner Fundamentals' })).toBeInTheDocument()
     })
 
     // Click category filter

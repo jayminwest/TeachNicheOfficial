@@ -34,7 +34,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     let retryTimeoutId: NodeJS.Timeout
     let mounted = true
 
-    async function checkAccess() {
+    async function checkAccess(): Promise<void> {
       if (!user) {
         if (mounted) {
           setAccess({ hasAccess: false, purchaseStatus: 'none' })
@@ -63,7 +63,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
 
       // Create an AbortController for the timeout
       const abortController = new AbortController()
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => {
           abortController.abort()
           reject(new Error('Access check timed out'))

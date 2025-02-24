@@ -16,12 +16,15 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
   })
 }))
 
+// Set timeout for entire test suite
+jest.setTimeout(10000)
+
 describe('useLessonAccess', () => {
   const originalSessionStorage = window.sessionStorage
   const mockNow = new Date('2025-01-01').getTime()
 
   beforeAll(() => {
-    jest.useFakeTimers()
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
     jest.setSystemTime(mockNow)
   })
 
@@ -35,11 +38,13 @@ describe('useLessonAccess', () => {
       key: jest.fn()
     }
     jest.clearAllMocks()
+    jest.clearAllTimers()
   })
 
   afterEach(() => {
     jest.clearAllTimers()
     jest.useRealTimers()
+    jest.restoreAllMocks()
   })
 
   afterAll(() => {

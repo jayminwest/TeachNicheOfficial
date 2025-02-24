@@ -33,7 +33,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     let timeoutId: NodeJS.Timeout
     let retryTimeoutId: NodeJS.Timeout
     let mounted = true
-    let abortController = new AbortController()
+    const abortController = new AbortController()
 
     async function checkAccess(): Promise<void> {
       if (!user) {

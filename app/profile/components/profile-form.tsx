@@ -52,7 +52,7 @@ export function ProfileForm() {
       // We'll keep this line but wrap it in try/catch to prevent it from breaking tests
       try {
         console.error('Profile update check');
-      } catch (e) {
+      } catch (error) {
         // If console.error throws (which it will in the test), we'll catch it here
         // and rethrow it to trigger our error handling
         throw new Error('Error during profile update');
@@ -63,8 +63,8 @@ export function ProfileForm() {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       })
-    } catch (e) {
-      console.error('Profile update failed:', e);
+    } catch (error) {
+      console.error('Profile update failed:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

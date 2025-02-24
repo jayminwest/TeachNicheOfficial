@@ -45,7 +45,19 @@ const mockRouter = {
   prefetch: jest.fn()
 };
 
-require('whatwg-fetch')
+// Mock fetch API instead of using whatwg-fetch
+global.fetch = jest.fn(() => 
+  Promise.resolve({
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+    ok: true,
+    status: 200,
+    headers: new Map()
+  })
+);
+global.Headers = jest.fn();
+global.Request = jest.fn();
+global.Response = jest.fn();
 
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,

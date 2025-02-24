@@ -10,7 +10,7 @@ const customJestConfig = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(lucide-react|@lucide|jose|@supabase|@auth)/)'
+    'node_modules/(?!(whatwg-fetch|lucide-react|@lucide|jose|@supabase|@auth)/)'
   ],
   // Updated to include API tests and different test types
   testMatch: [

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as muxService from '@/app/services/mux';
 import { getCurrentUser } from '@/app/services/auth';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(_request: NextRequest) {
   try {
     // Authenticate the user

@@ -67,7 +67,9 @@ const customJestConfig = {
     '<rootDir>/.next/'
   ],
   // Added testTimeout for API tests that might take longer
-  testTimeout: 10000
+  testTimeout: 10000,
+  // Ensure moduleDirectories includes node_modules for proper resolution
+  moduleDirectories: ['node_modules', '<rootDir>']
 }
 
 module.exports = customJestConfig

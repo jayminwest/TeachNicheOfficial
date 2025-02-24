@@ -1,6 +1,6 @@
 import { createMocks } from 'node-mocks-http';
 import { getLessons, createLesson, updateLesson, deleteLesson } from '../route';
-import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
+import { MockConfig } from '@/app/__mocks__/utils/mock-helpers';
 
 // Mock the database client
 jest.mock('@/app/lib/supabase/client', () => ({
@@ -21,7 +21,7 @@ jest.mock('@/app/lib/supabase/client', () => ({
 }));
 
 // Mock auth
-jest.mock('../../../../app/services/auth', () => ({
+jest.mock('@/app/services/auth', () => ({
   getCurrentUser: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       return Promise.resolve(null);
@@ -162,7 +162,7 @@ describe('Lessons API', () => {
       });
 
       // Mock auth to fail
-      require('../../../../app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
+      require('@/app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
       await createLesson(req, res);
 
@@ -202,7 +202,7 @@ describe('Lessons API', () => {
       });
 
       // Mock permission check to fail
-      require('../../../../app/services/auth').hasPermission.mockImplementationOnce(() => false);
+      require('@/app/services/auth').hasPermission.mockImplementationOnce(() => false);
 
       await updateLesson(req, res);
 

@@ -1,10 +1,10 @@
 import { createMocks } from 'node-mocks-http';
 import { createCheckoutSession } from '../route';
-import { mockStripeCheckoutSession } from '../../../../__mocks__/services/stripe';
-import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
+import { mockStripeCheckoutSession } from '@/app/__mocks__/services/stripe';
+import { MockConfig } from '@/app/__mocks__/utils/mock-helpers';
 
 // Mock the stripe service
-jest.mock('../../../../app/services/stripe', () => ({
+jest.mock('@/app/services/stripe', () => ({
   createCheckoutSession: jest.fn().mockImplementation(
     (options, config) => {
       if (config?.shouldSucceed === false) {
@@ -22,7 +22,7 @@ jest.mock('../../../../app/services/stripe', () => ({
 }));
 
 // Mock auth
-jest.mock('../../../../app/services/auth', () => ({
+jest.mock('@/app/services/auth', () => ({
   getCurrentUser: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       return Promise.resolve(null);

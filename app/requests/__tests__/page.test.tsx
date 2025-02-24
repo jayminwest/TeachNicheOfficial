@@ -60,18 +60,18 @@ describe('RequestsPage', () => {
     const user = userEvent.setup()
     render(<RequestsPage />)
 
-    // Wait for sidebar to be rendered
+    // Wait for sidebar to be rendered and categories to load
     await waitFor(() => {
       expect(screen.getByText('Categories')).toBeInTheDocument()
     })
 
     // Click category filter
-    const categoryButton = screen.getByRole('button', { name: 'Beginner Basics' })
+    const categoryButton = screen.getByRole('button', { name: 'Beginner Fundamentals' })
     await user.click(categoryButton)
 
     // Verify getRequests was called with correct category
     expect(getRequests).toHaveBeenCalledWith(
-      expect.objectContaining({ category: 'Beginner Basics' })
+      expect.objectContaining({ category: 'Beginner Fundamentals' })
     )
   })
 

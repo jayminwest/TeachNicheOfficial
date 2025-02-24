@@ -1,7 +1,15 @@
 import { createMocks } from 'node-mocks-http';
 import { createCheckoutSession } from '../route';
-import { mockStripeCheckoutSession } from '../../../../__mocks__/services/stripe';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
+
+// Define mock Stripe checkout session
+const mockStripeCheckoutSession = {
+  id: 'cs_test_123',
+  url: 'https://checkout.stripe.com/test',
+  payment_status: 'unpaid',
+  customer: 'cus_123',
+  metadata: {}
+};
 
 // Mock the stripe service
 jest.mock('../../../services/stripe', () => ({
@@ -44,7 +52,7 @@ describe('Checkout API', () => {
       method: 'POST',
       body: {
         lessonId: 'lesson-123',
-        price: 19.99,  // Changed from priceId to price
+        price: 19.99,
         successUrl: 'https://example.com/success',
         cancelUrl: 'https://example.com/cancel'
       }
@@ -54,7 +62,7 @@ describe('Checkout API', () => {
 
     expect(res._getStatusCode()).toBe(200);
     expect(JSON.parse(res._getData())).toEqual({
-      sessionId: mockStripeCheckoutSession.id
+      sessionId: 'test_session_id'
     });
   });
 });

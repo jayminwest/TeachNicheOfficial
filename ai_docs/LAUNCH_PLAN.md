@@ -31,7 +31,7 @@
   - [ ] Sign in with email
   - [ ] Password reset flow
   - [ ] Email verification
-  - [ ] OAuth providers (Google, GitHub)
+  - [ ] OAuth providers (Google)
   - [ ] Sign out flow
 - [ ] Verify route protection with Supabase middleware
 - [ ] Check RBAC implementation and permissions
@@ -212,12 +212,6 @@
 2. Revert to previous deployment
 3. Update DNS if needed
 4. Notify users of maintenance
-
-### Critical Contacts
-- DevOps Lead: [Contact Info]
-- Database Admin: [Contact Info]
-- Security Team: [Contact Info]
-- Infrastructure Support: [Contact Info]
 
 ### Service Status Pages
 - Stripe: https://status.stripe.com

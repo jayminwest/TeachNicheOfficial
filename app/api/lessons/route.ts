@@ -15,6 +15,17 @@ interface ResponseWithStatus {
   end: (body: string) => void;
 }
 
+interface LessonData {
+  title: string;
+  description: string;
+  price?: number;
+  muxAssetId?: string;
+  muxPlaybackId?: string;
+  content?: string;
+  status?: string;
+  category?: string;
+}
+
 // Export the handler functions for testing
 export async function getLessons(req: RequestWithQuery, res: ResponseWithStatus) {
   try {
@@ -95,7 +106,7 @@ export async function createLesson(req: RequestWithQuery, res: ResponseWithStatu
       content = '',
       status = 'published',
       category
-    } = data as Record<string, any>;
+    } = data as LessonData;
 
     // Validate required fields
     if (!title || !description) {
@@ -122,14 +133,14 @@ export async function createLesson(req: RequestWithQuery, res: ResponseWithStatu
     const baseQuery = supabase.from('lessons');
     const insertQuery = baseQuery.insert(lessonData);
     const selectQuery = insertQuery.select();
-    const { data: lesson, error } = await selectQuery.single();
+    const { data: lesson, error: insertError } = await selectQuery.single();
 
-    if (error) {
+    if (insertError) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ 
         error: 'Failed to create lesson',
-        details: error.message
+        details: insertError.message
       }));
       return;
     }
@@ -305,7 +316,7 @@ export async function POST(request: Request) {
       content = '',
       status = 'published',
       category
-    } = data;
+    } = data as LessonData;
 
     // Validate required fields
     if (!title || !description) {
@@ -332,13 +343,13 @@ export async function POST(request: Request) {
     const baseQuery = supabase.from('lessons');
     const insertQuery = baseQuery.insert(lessonData);
     const selectQuery = insertQuery.select();
-    const { data: lesson, error } = await selectQuery.single();
+    const { data: lesson, error: insertError } = await selectQuery.single();
 
-    if (error) {
+    if (insertError) {
       return NextResponse.json(
         { 
           error: 'Failed to create lesson',
-          details: error.message
+          details: insertError.message
         },
         { status: 500 }
       );

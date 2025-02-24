@@ -62,7 +62,8 @@ describe('Checkout API', () => {
 
     expect(res._getStatusCode()).toBe(200);
     expect(JSON.parse(res._getData())).toEqual({
-      sessionId: 'test_session_id'
+      sessionId: 'test_session_id',
+      url: 'https://test.checkout.url'
     });
   });
 });

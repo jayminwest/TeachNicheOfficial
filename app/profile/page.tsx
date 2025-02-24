@@ -18,22 +18,18 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<{ 
     stripe_account_id: string | null;
   } | null>(null);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   useEffect(() => {
+    // Don't run the effect if still loading
     if (loading) return;
+    
+    // Mark initial load as complete
+    setInitialLoadComplete(true);
+    
     if (!user) {
       // Handle redirect in a way that works in both browser and test environments
-      if (process.env.NODE_ENV === 'test') {
-        console.log('Would redirect to home in non-test environment');
-        router.push('/');
-      } else {
-        try {
-          router.push('/');
-        } catch (e) {
-          // Fallback if router.push fails
-          window.location.href = '/';
-        }
-      }
+      router.push('/');
       return;
     }
 
@@ -57,8 +53,8 @@ export default function ProfilePage() {
     fetchProfile();
   }, [user, loading, router]);
 
-  // Show loading state regardless of test environment
-  if (loading) {
+  // Show loading state before initial auth check completes
+  if (loading && !initialLoadComplete) {
     return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         Loading...
@@ -66,21 +62,12 @@ export default function ProfilePage() {
     </div>;
   }
 
+  // After initial load, if no user and not loading, show unauthenticated state
   if (!user && !loading) {
     // For test environment, render a placeholder instead of redirecting
-    if (process.env.NODE_ENV === 'test') {
-      return <div data-testid="unauthenticated-placeholder">Please sign in to view your profile</div>;
-    }
-    
-    // In non-test environments, try to redirect
-    try {
-      router.push('/');
-      // Return a placeholder while redirect happens
-      return <div>Redirecting...</div>;
-    } catch (e) {
-      // If redirect fails in this context, show a message
-      return <div>You need to be signed in. <a href="/">Go to homepage</a></div>;
-    }
+    return <div data-testid="unauthenticated-placeholder">
+      Please sign in to view your profile
+    </div>;
   }
   
   return (

@@ -125,4 +125,3 @@ describe('useLessonAccess', () => {
     expect(result.current.error?.message).toBe('Access check timed out')
   })
 })
-})

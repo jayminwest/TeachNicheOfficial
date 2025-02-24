@@ -54,12 +54,14 @@ describe('LessonForm', () => {
     await userEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(mockSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockSubmit).toHaveBeenCalledWith({
         title: 'Test Lesson',
         description: 'This is a test lesson description that meets the minimum length',
         content: 'Test content',
-        price: 9.99
-      }))
+        price: 9.99,
+        muxAssetId: '',
+        muxPlaybackId: ''
+      })
     })
   })
 

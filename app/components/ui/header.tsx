@@ -119,9 +119,6 @@ export function Header() {
                 </div>
                 <div className="hidden lg:flex justify-end w-full gap-2 items-center">
                     <ThemeToggle />
-                    <Link href="/about">
-                        <Button variant="ghost">Learn More</Button>
-                    </Link>
                     {!loading && user ? (
                         <>
                             <Link href="/profile">
@@ -177,9 +174,6 @@ export function Header() {
                                 <div className="flex justify-end">
                                     <ThemeToggle />
                                 </div>
-                                <Link href="/about">
-                                    <Button variant="ghost" className="w-full">Learn More</Button>
-                                </Link>
                                 {!loading && user ? (
                                     <>
                                         <Link href="/profile">

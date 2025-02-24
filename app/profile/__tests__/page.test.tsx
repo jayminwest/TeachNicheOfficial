@@ -7,6 +7,16 @@ import { renderWithAuth } from '@/app/__tests__/test-utils'
 // Create mock functions
 const mockPush = jest.fn();
 
+// Mock process.env.NODE_ENV
+const originalNodeEnv = process.env.NODE_ENV;
+beforeAll(() => {
+  process.env.NODE_ENV = 'test';
+});
+
+afterAll(() => {
+  process.env.NODE_ENV = originalNodeEnv;
+});
+
 // Clear all mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
@@ -75,10 +85,11 @@ describe('ProfilePage', () => {
         isAuthenticated: false
       })
       
-      // Let the effect run
-      await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/')
-      }, { timeout: 3000 })
+      // Check for the redirect element in test mode
+      expect(screen.getByTestId('unauthenticated-redirect')).toBeInTheDocument();
+      
+      // Verify the router.push was called
+      expect(mockPush).toHaveBeenCalledWith('/')
     })
 
     it('renders profile page for authenticated users', async () => {

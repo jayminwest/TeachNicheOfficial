@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { useLessonAccess } from '@/app/hooks/use-lesson-access'
 import { mockPurchaseStatus } from '../utils/test-utils'
 import { supabase } from '@/app/services/supabase'

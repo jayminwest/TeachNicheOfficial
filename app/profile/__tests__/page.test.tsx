@@ -9,17 +9,13 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// Define mocks before using them
-const mockPush = jest.fn()
-const mockRedirect = jest.fn()
-
-// Mock the router
+// Mock the router - use jest.fn() directly in the mock
 jest.mock('next/navigation', () => ({
   ...jest.requireActual('next/navigation'),
   useRouter: () => ({
-    push: mockPush,
+    push: jest.fn(),
   }),
-  redirect: mockRedirect,
+  redirect: jest.fn(),
 }))
 
 // Mock Supabase client
@@ -56,6 +52,9 @@ expect.extend({
   }
 })
 
+// Import the mocked functions after they've been mocked
+import { useRouter } from 'next/navigation'
+
 describe('ProfilePage', () => {
   describe('rendering', () => {
     it('renders loading state initially', async () => {
@@ -69,6 +68,9 @@ describe('ProfilePage', () => {
     })
 
     it('redirects unauthenticated users', async () => {
+      // Get the mocked router
+      const mockRouter = useRouter()
+      
       // Force a re-render with unauthenticated state
       const { rerender } = renderWithAuth(<ProfilePage />, { 
         user: null,
@@ -85,7 +87,7 @@ describe('ProfilePage', () => {
       
       // Let the effect run
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/')
+        expect(mockRouter.push).toHaveBeenCalledWith('/')
       })
     })
 

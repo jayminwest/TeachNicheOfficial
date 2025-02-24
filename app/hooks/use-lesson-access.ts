@@ -78,8 +78,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
             .select('status, purchase_date')
             .eq('user_id', user.id)
             .eq('lesson_id', lessonId)
-            .maybeSingle()
-            .abortSignal(abortController.signal),
+            .maybeSingle(),
           timeoutPromise
         ])
 

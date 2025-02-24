@@ -3,40 +3,42 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 // Mock MuxUploader before importing VideoUploader
+const mockMuxUploader = jest.fn().mockImplementation(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+  return (
+    <div data-testid="mux-uploader-mock">
+      {children}
+      <button 
+        data-testid="trigger-upload-start" 
+        onClick={() => onUploadStart({ detail: { file: new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' }) } })}
+      >
+        Trigger Upload Start
+      </button>
+      <button 
+        data-testid="trigger-progress" 
+        onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
+      >
+        Trigger Progress
+      </button>
+      <button 
+        data-testid="trigger-success" 
+        onClick={() => onSuccess(new CustomEvent('success'))}
+      >
+        Trigger Success
+      </button>
+      <button 
+        data-testid="trigger-error" 
+        onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
+      >
+        Trigger Error
+      </button>
+    </div>
+  );
+});
+
 jest.mock('@mux/mux-uploader-react', () => {
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
-      return (
-        <div data-testid="mux-uploader-mock">
-          {children}
-          <button 
-            data-testid="trigger-upload-start" 
-            onClick={() => onUploadStart({ detail: { file: new File(['dummy content'], 'test-video.mp4', { type: 'video/mp4' }) } })}
-          >
-            Trigger Upload Start
-          </button>
-          <button 
-            data-testid="trigger-progress" 
-            onClick={() => onProgress(new CustomEvent('progress', { detail: 50 }))}
-          >
-            Trigger Progress
-          </button>
-          <button 
-            data-testid="trigger-success" 
-            onClick={() => onSuccess(new CustomEvent('success'))}
-          >
-            Trigger Success
-          </button>
-          <button 
-            data-testid="trigger-error" 
-            onClick={() => onError(new CustomEvent('error', { detail: new Error('Upload failed') }))}
-          >
-            Trigger Error
-          </button>
-        </div>
-      );
-    })
+    default: mockMuxUploader
   };
 });
 
@@ -63,11 +65,12 @@ const mockVideoElement = {
   onerror: null,
 };
 
+const originalCreateElement = document.createElement;
 document.createElement = jest.fn((tagName) => {
   if (tagName === 'video') {
     return mockVideoElement;
   }
-  return document.createElement(tagName);
+  return originalCreateElement.call(document, tagName);
 });
 
 describe('VideoUploader', () => {
@@ -346,11 +349,12 @@ describe('VideoUploader', () => {
   // File Validation Tests
   describe('File Validation', () => {
     it('validates file size', async () => {
-      // Create a mock file that exceeds the size limit
-      const largeMockFile = new File(['x'.repeat(3000 * 1024 * 1024)], 'large-video.mp4', { type: 'video/mp4' });
+      // Create a mock file that exceeds the size limit - using a smaller value to avoid RangeError
+      const largeMockFile = new File(['x'.repeat(1000)], 'large-video.mp4', { type: 'video/mp4' });
+      Object.defineProperty(largeMockFile, 'size', { value: 3000 * 1024 * 1024 });
       
       // Update the mock to use the large file
-      jest.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+      mockMuxUploader.mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
         return (
           <div data-testid="mux-uploader-mock">
             {children}
@@ -394,7 +398,7 @@ describe('VideoUploader', () => {
       const invalidTypeFile = new File(['dummy content'], 'document.pdf', { type: 'application/pdf' });
       
       // Update the mock to use the invalid file
-      jest.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
+      mockMuxUploader.mockImplementationOnce(({ children, onUploadStart, onProgress, onSuccess, onError }) => {
         return (
           <div data-testid="mux-uploader-mock">
             {children}
@@ -457,7 +461,7 @@ describe('VideoUploader', () => {
         mockVideoElement.onloadedmetadata();
       });
       
-      // Should show error about resolution
+      //Should show error about resolution
       await waitFor(() => {
         expect(screen.getByText(/Video resolution must not exceed/i)).toBeInTheDocument();
       });
@@ -471,7 +475,7 @@ describe('VideoUploader', () => {
   //Edge Cases
   describe('Edge Cases', () =>  {
     it('handles retry logic for API failures', async () => {
-      // Mock first API call to fail, second to succee
+      // Mock first API call to fail, second to succeed
       global.fetch.mockImplementationOnce(()=> Promise.reject(new Error('Network error')))
         .mockImplementationOnce(() => Promise.resolve({
           ok: true,
@@ -496,7 +500,7 @@ describe('VideoUploader', () => {
 
     it('handles case when no file is selected', async () => {
       // Update the mock to trigger upload start with no file
-      jest.mocked(MuxUploader).mockImplementationOnce(({ children, onUploadStart }) => {
+      mockMuxUploader.mockImplementationOnce(({ children, onUploadStart }) => {
         return (
           <div data-testid="mux-uploader-mock">
             {children}

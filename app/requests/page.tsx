@@ -4,15 +4,16 @@ import { RequestGrid } from './components/request-grid'
 import { RequestSidebar } from './components/request-sidebar'
 import { Button } from '@/app/components/ui/button'
 import { useState } from 'react'
-import { Menu, Plus } from 'lucide-react'
+import { Menu, Plus, AlertCircle } from 'lucide-react'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { RequestDialog } from './components/request-dialog'
+import { Alert } from '@/app/components/ui/alert'
 export default function RequestsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>()
   const [sortBy, setSortBy] = useState<'popular' | 'newest'>('popular')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
-  // Remove unused useAuth since we don't need it on this page currently
+  const [error, setError] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen pt-16">
@@ -74,9 +75,16 @@ export default function RequestsPage() {
                 </RequestDialog>
               </div>
             </div>
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <span className="ml-2">{error}</span>
+              </Alert>
+            )}
             <RequestGrid 
               category={selectedCategory}
               sortBy={sortBy}
+              onError={(err) => setError(err.message)}
             />
           </div>
         </div>

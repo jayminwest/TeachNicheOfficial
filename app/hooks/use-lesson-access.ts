@@ -31,6 +31,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     const RETRY_ATTEMPTS = 3
     let attempts = 0
     let timeoutId: NodeJS.Timeout
+    let retryTimeoutId: NodeJS.Timeout
     let mounted = true
 
     async function checkAccess() {
@@ -104,7 +105,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
           // Retry logic for recoverable errors
           if (attempts < RETRY_ATTEMPTS && err instanceof Error && !err.message.includes('timeout')) {
             attempts++
-            setTimeout(checkAccess, 1000 * attempts)
+            retryTimeoutId = setTimeout(checkAccess, 1000 * attempts)
           }
         }
       } finally {
@@ -119,6 +120,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     return () => {
       mounted = false
       clearTimeout(timeoutId)
+      clearTimeout(retryTimeoutId)
     }
   }, [lessonId, user])
 

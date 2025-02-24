@@ -4,7 +4,7 @@ import { VideoUploader } from '../video-uploader';
 import MuxUploader from '@mux/mux-uploader-react';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
-// Mock the MuxUploader component
+// Make sure jest is imported before using jest.mock
 jest.mock('@mux/mux-uploader-react', () => {
   return {
     __esModule: true,
@@ -468,7 +468,7 @@ describe('VideoUploader', () => {
   });
 
   // Edge Cases
-  describe('Edge Cases', () => {
+  describe('Edge Cases', () =>  {
     it('handles retry logic for API failures', async () => {
       // Mock first API call to fail, second to succeed
       global.fetch.mockImplementationOnce(()=> Promise.reject(new Error('Network error')))

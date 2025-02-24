@@ -21,22 +21,11 @@ export interface LessonRequestVote {
   created_at: string;
 }
 
-export const LESSON_CATEGORIES = [
-  'Trick Tutorial',
-  'Beginner Basics',
-  'Advanced Techniques',
-  'Combo Tutorial',
-  'Theory & Concepts',
-  'Style Development',
-  'Competition Prep',
-  'Other'
-] as const
-
 export const lessonRequestSchema = z.object({
   id: z.string().uuid().optional(), // Optional for creation, required for updates
   title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title cannot exceed 100 characters"),
   description: z.string().min(10, "Description must be at least 10 characters").max(1000, "Description cannot exceed 1000 characters"),
-  category: z.enum(LESSON_CATEGORIES, {
+  category: z.string({
     required_error: "Please select a category",
     invalid_type_error: "Please select a valid category"
   }),

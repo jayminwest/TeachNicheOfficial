@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useCategories } from '@/app/hooks/useCategories'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest, deleteRequest, updateRequest } from '@/app/lib/supabase/requests'
 import { type LessonRequest } from '@/app/lib/schemas/lesson-request'
@@ -24,6 +25,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const [open, setOpen] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const { user } = useAuth();
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),
@@ -159,10 +161,11 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                       onValueChange={field.onChange} 
                       value={field.value}
                       defaultValue={field.value}
+                      disabled={categoriesLoading}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder={categoriesLoading ? "Loading..." : "Select a category"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent
@@ -171,15 +174,21 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                         className="w-[var(--radix-select-trigger-width)] max-h-[300px] touch-manipulation"
                         onCloseAutoFocus={(e) => e.preventDefault()}
                       >
-                        {LESSON_CATEGORIES.map((category) => (
-                          <SelectItem 
-                            key={category} 
-                            value={category}
-                            className="cursor-pointer touch-manipulation"
-                          >
-                            {category}
-                          </SelectItem>
-                        ))}
+                        {categoriesError ? (
+                          <SelectItem value="error" disabled>Error loading categories</SelectItem>
+                        ) : categoriesLoading ? (
+                          <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        ) : (
+                          categories.map((category) => (
+                            <SelectItem 
+                              key={category.id} 
+                              value={category.name}
+                              className="cursor-pointer touch-manipulation"
+                            >
+                              {category.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

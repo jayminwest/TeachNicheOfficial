@@ -1,7 +1,16 @@
 import { render, screen } from '@testing-library/react'
 import { RequestSidebar } from '../request-sidebar'
+import { useCategories } from '@/app/hooks/useCategories'
+
+// Mock the useCategories hook
+jest.mock('@/app/hooks/useCategories')
 
 describe('RequestSidebar', () => {
+  const mockCategories = [
+    { id: '1', name: 'Beginner Fundamentals', created_at: '', updated_at: '' },
+    { id: '2', name: 'Advanced Techniques', created_at: '', updated_at: '' }
+  ]
+
   const defaultProps = {
     selectedCategory: undefined,
     onSelectCategory: jest.fn(),
@@ -13,6 +22,11 @@ describe('RequestSidebar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    // Mock the categories hook implementation
+    ;(useCategories as jest.Mock).mockReturnValue({
+      categories: mockCategories,
+      loading: false
+    })
   })
 
   it('renders basic sidebar elements', () => {
@@ -32,9 +46,9 @@ describe('RequestSidebar', () => {
   })
 
   it('shows selected category', () => {
-    render(<RequestSidebar {...defaultProps} selectedCategory="Beginner Basics" />)
+    render(<RequestSidebar {...defaultProps} selectedCategory="Beginner Fundamentals" />)
     
-    const categoryButton = screen.getByRole('button', { name: /beginner basics/i })
+    const categoryButton = screen.getByRole('button', { name: /beginner fundamentals/i })
     expect(categoryButton.className).toContain('bg-secondary')
   })
 })

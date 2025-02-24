@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/app/components/ui/button'
-import { LESSON_CATEGORIES } from '@/app/lib/schemas/lesson-request'
+import { useCategories } from '@/app/hooks/useCategories'
 import { RequestDialog } from './request-dialog'
 import { Plus, X } from 'lucide-react'
 import { cn } from '@/app/lib/utils'
@@ -23,6 +23,8 @@ export function RequestSidebar({
   isOpen,
   onClose
 }: RequestSidebarProps) {
+  const { categories, loading: categoriesLoading } = useCategories()
+  
   return (
     <div 
       data-testid="request-sidebar"
@@ -80,19 +82,23 @@ export function RequestSidebar({
             >
               All Requests
             </Button>
-            {LESSON_CATEGORIES.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => {
-                  onSelectCategory(category)
-                  onClose()
-                }}
-              >
-                {category}
-              </Button>
-            ))}
+            {categoriesLoading ? (
+              <div className="p-2 text-center text-muted-foreground">Loading...</div>
+            ) : (
+              categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.name ? "secondary" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => {
+                    onSelectCategory(category.name)
+                    onClose()
+                  }}
+                >
+                  {category.name}
+                </Button>
+              ))
+            )}
           </div>
         </div>
 

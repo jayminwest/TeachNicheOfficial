@@ -22,7 +22,7 @@ export function LessonAccessGate({
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 data-testid="loading-spinner" className="h-8 w-8 animate-spin" />
       </div>
     );
   }

@@ -41,14 +41,60 @@ if (typeof window !== 'undefined') {
 }
 
 // Mock lucide-react icons
-jest.mock('lucide-react', () => ({
-  BookOpen: () => 'BookOpen',
-  DollarSign: () => 'DollarSign',
-  Users: () => 'Users',
-  Shield: () => 'Shield',
-  Leaf: () => 'Leaf',
-  GraduationCap: () => 'GraduationCap'
+jest.mock('lucide-react', () => {
+  const actual = jest.requireActual('lucide-react') as object;
+  return {
+    ...actual,
+    AlertCircle: () => 'AlertCircle',
+    CheckCircle2: () => 'CheckCircle2',
+    Upload: () => 'Upload',
+    Loader2: () => 'Loader2',
+    BookOpen: () => 'BookOpen',
+    DollarSign: () => 'DollarSign',
+    Users: () => 'Users',
+    Shield: () => 'Shield',
+    Leaf: () => 'Leaf',
+    GraduationCap: () => 'GraduationCap'
+  };
+});
+
+// Mock @mux/mux-player-react
+jest.mock('@mux/mux-player-react', () => ({
+  __esModule: true,
+  default: (props: any) => {
+    return `<mux-player ${Object.entries(props)
+      .map(([key, value]) => `${key}="${value}"`)
+      .join(' ')}/>`
+  },
 }));
+
+// Mock @mux/mux-uploader-react
+jest.mock('@mux/mux-uploader-react', () => ({
+  __esModule: true,
+  MuxUploader: (props: any) => {
+    return `<mux-uploader ${Object.entries(props)
+      .map(([key, value]) => `${key}="${value}"`)
+      .join(' ')}/>`
+  },
+}));
+
+// Add sessionStorage mock
+const mockStorage: { [key: string]: string } = {};
+Object.defineProperty(window, 'sessionStorage', {
+  value: {
+    getItem: (key: string) => mockStorage[key] || null,
+    setItem: (key: string, value: string) => {
+      mockStorage[key] = value.toString();
+    },
+    removeItem: (key: string) => {
+      delete mockStorage[key];
+    },
+    clear: () => {
+      Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
+    }
+  },
+  writable: true
+});
 
 // Mock next/font
 jest.mock('next/font/google', () => ({

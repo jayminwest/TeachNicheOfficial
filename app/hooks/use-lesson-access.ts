@@ -31,9 +31,11 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     const RETRY_ATTEMPTS = 3
     let attempts = 0
     let timeoutId: NodeJS.Timeout
+    let retryTimeoutId: NodeJS.Timeout
     let mounted = true
+    const abortController = new AbortController()
 
-    async function checkAccess() {
+    async function checkAccess(): Promise<void> {
       if (!user) {
         if (mounted) {
           setAccess({ hasAccess: false, purchaseStatus: 'none' })
@@ -60,22 +62,33 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         }
       }
 
-      try {
+      // Create a timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => {
-          if (mounted) {
-            setError(new Error('Access check timed out'))
-            setLoading(false)
-          }
+          abortController.abort()
+          reject(new Error('Access check timed out'))
         }, TIMEOUT_MS)
+      })
 
-        const { data: purchase, error: dbError } = await supabase
-          .from('purchases')
-          .select('status, purchase_date')
-          .eq('user_id', user.id)
-          .eq('lesson_id', lessonId)
-          .single()
+      try {
+        const result = await Promise.race([
+          supabase
+            .from('purchases')
+            .select('status, purchase_date')
+            .eq('user_id', user.id)
+            .eq('lesson_id', lessonId)
+            .maybeSingle(),
+          timeoutPromise
+        ])
 
         clearTimeout(timeoutId)
+
+        if (!mounted) return
+
+        const { data: purchase, error: dbError } = result as { 
+          data: { status: PurchaseStatus; purchase_date: string } | null;
+          error: Error | null;
+        }
 
         if (dbError) throw dbError
 
@@ -92,20 +105,18 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         }
         sessionStorage.setItem(cacheKey, JSON.stringify(cacheEntry))
 
-        if (mounted) {
-          setAccess(accessData)
-          setError(null)
-        }
+        setAccess(accessData)
+        setError(null)
       } catch (err) {
+        if (!mounted) return
+
         console.error('Error checking lesson access:', err)
-        if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to check access'))
-          
-          // Retry logic for recoverable errors
-          if (attempts < RETRY_ATTEMPTS && err instanceof Error && !err.message.includes('timeout')) {
-            attempts++
-            setTimeout(checkAccess, 1000 * attempts)
-          }
+        setError(err instanceof Error ? err : new Error('Failed to check access'))
+        
+        // Only retry on non-timeout errors
+        if (attempts < RETRY_ATTEMPTS && err instanceof Error && !err.message.includes('timeout')) {
+          attempts++
+          retryTimeoutId = setTimeout(checkAccess, 1000 * attempts)
         }
       } finally {
         if (mounted) {
@@ -119,6 +130,8 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     return () => {
       mounted = false
       clearTimeout(timeoutId)
+      clearTimeout(retryTimeoutId)
+      abortController?.abort() // Ensure pending requests are aborted
     }
   }, [lessonId, user])
 

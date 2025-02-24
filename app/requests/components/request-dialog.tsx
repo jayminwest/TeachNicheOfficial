@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useCategories } from '@/app/hooks/useCategories'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest, deleteRequest, updateRequest } from '@/app/lib/supabase/requests'
 import { type LessonRequest } from '@/app/lib/schemas/lesson-request'
@@ -13,7 +14,7 @@ import { Textarea } from "@/app/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { lessonRequestSchema, type LessonRequestFormData, LESSON_CATEGORIES } from "@/app/lib/schemas/lesson-request"
+import { lessonRequestSchema, type LessonRequestFormData } from "@/app/lib/schemas/lesson-request"
 interface RequestDialogProps {
   children: React.ReactNode
   request?: LessonRequest
@@ -24,6 +25,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const [open, setOpen] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const { user } = useAuth();
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),
@@ -31,7 +33,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
       id: request.id,
       title: request.title,
       description: request.description,
-      category: request.category as typeof LESSON_CATEGORIES[number],
+      category: request.category,
       instagram_handle: request.instagram_handle || '',
       tags: request.tags || []
     } : {
@@ -46,7 +48,14 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const onSubmit = async (data: LessonRequestFormData) => {
     try {
       if (mode === 'edit' && request) {
-        await updateRequest(request.id, data)
+        const updateData = {
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          instagram_handle: data.instagram_handle || '',
+          tags: data.tags || []
+        }
+        await updateRequest(request.id, updateData)
       } else {
         await createRequest(data)
       }
@@ -54,7 +63,8 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
       form.reset()
       window.location.reload()
     } catch (error) {
-      console.error('Failed to create request:', error)
+      console.error(`Failed to ${mode === 'edit' ? 'update' : 'create'} request:`, error)
+      throw error // Re-throw to trigger form error handling
     }
   }
 
@@ -85,7 +95,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
         >
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-[95vw] w-full sm:max-w-md max-h-[90vh] overflow-hidden">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{mode === 'edit' ? 'Edit Lesson Request' : 'Create New Lesson Request'}</DialogTitle>
             <DialogDescription>
@@ -93,9 +103,8 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto pt-2 pb-4 px-1">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-2">
+          <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-2" role="form">
               <FormField
                 control={form.control}
                 name="title"
@@ -146,31 +155,40 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="relative">
                     <FormLabel>Category</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
                       value={field.value}
                       defaultValue={field.value}
+                      disabled={categoriesLoading}
                     >
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={categoriesLoading ? "Loading..." : "Select a category"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent
                         position="popper"
                         sideOffset={5}
+                        className="w-[var(--radix-select-trigger-width)] max-h-[300px] touch-manipulation"
+                        onCloseAutoFocus={(e) => e.preventDefault()}
                       >
-                        {LESSON_CATEGORIES.map((category) => (
-                          <SelectItem 
-                            key={category} 
-                            value={category}
-                            className="cursor-pointer"
-                          >
-                            {category}
-                          </SelectItem>
-                        ))}
+                        {categoriesError ? (
+                          <SelectItem value="error" disabled>Error loading categories</SelectItem>
+                        ) : categoriesLoading ? (
+                          <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        ) : (
+                          categories.map((category) => (
+                            <SelectItem 
+                              key={category.id} 
+                              value={category.name}
+                              className="cursor-pointer touch-manipulation"
+                            >
+                              {category.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -203,7 +221,6 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
               </div>
               </form>
             </Form>
-          </div>
         </DialogContent>
       </Dialog>
       <AuthDialog 

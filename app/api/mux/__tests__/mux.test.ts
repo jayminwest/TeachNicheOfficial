@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { createUploadUrl, handleAssetCreated, handleAssetReady } from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 
@@ -48,30 +47,37 @@ jest.mock('../../../../app/services/auth', () => ({
   })
 }));
 
+// Mock next/server
+jest.mock('next/server', () => {
+  return {
+    NextResponse: {
+      json: jest.fn().mockImplementation((body, init) => {
+        return { body, init };
+      }),
+    },
+  };
+});
+
 // Helper function to create mock request/response
 function createMockRequestResponse(method: string, body?: any, url = 'http://localhost/api/mux') {
-  // Create a standard Request first
-  const init: RequestInit = {
+  // Create a mock request object with the necessary properties and methods
+  const request = {
     method,
-    headers: {
+    url,
+    headers: new Headers({
       'Content-Type': 'application/json',
-    }
+    }),
+    json: jest.fn().mockImplementation(() => Promise.resolve(body || {})),
   };
   
-  if (body) {
-    init.body = JSON.stringify(body);
-  }
-  
-  // Create a NextRequest using the Request constructor
-  const request = new NextRequest(new Request(url, init));
-  
   const responseInit = {
-    headers: new Headers(),
     status: 200,
   };
   
   const response = {
-    json: jest.fn().mockImplementation((data) => NextResponse.json(data, responseInit)),
+    json: jest.fn().mockImplementation((data) => {
+      return { data, status: responseInit.status };
+    }),
     status: jest.fn().mockImplementation((statusCode) => {
       responseInit.status = statusCode;
       return response;

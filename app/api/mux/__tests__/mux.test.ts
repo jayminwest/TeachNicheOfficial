@@ -36,7 +36,7 @@ jest.mock('../../../lib/supabase/client', () => ({
 }));
 
 // Mock auth
-jest.mock('../../../services/auth', () => ({
+jest.mock('../../../../app/services/auth', () => ({
   getCurrentUser: jest.fn().mockImplementation((config?: MockConfig) => {
     if (config?.shouldSucceed === false) {
       return Promise.resolve(null);
@@ -74,7 +74,7 @@ describe('Mux API', () => {
       });
 
       // Mock auth to fail
-      require('../../../services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
+      require('../../../../app/services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
       await createUploadUrl(req, res);
 

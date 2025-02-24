@@ -6,7 +6,7 @@ module.exports = (path, options) => {
     packageFilter: pkg => {
       // This is important for packages that use ESM
       if (pkg.module || pkg.exports) {
-        pkg.main = pkg.module || pkg.exports['./package.json'].default;
+        pkg.main = pkg.module || (pkg.exports && pkg.exports['./package.json'] && pkg.exports['./package.json'].default);
       }
       return pkg;
     },

@@ -14,7 +14,7 @@ interface RequestGridProps {
   onError?: (error: Error) => void
 }
 
-export function RequestGrid({ initialRequests, category, sortBy }: RequestGridProps) {
+export function RequestGrid({ initialRequests, category, sortBy, onError }: RequestGridProps) {
   const [requests, setRequests] = useState<LessonRequest[]>(initialRequests || [])
   const [isLoading, setIsLoading] = useState(!initialRequests)
   const { user } = useAuth()

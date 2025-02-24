@@ -16,8 +16,8 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
   })
 }))
 
-// Set timeout for entire test suite
-jest.setTimeout(10000)
+// Set strict timeout for entire test suite
+jest.setTimeout(5000)
 
 describe('useLessonAccess', () => {
   const originalSessionStorage = window.sessionStorage
@@ -60,9 +60,14 @@ describe('useLessonAccess', () => {
 
     window.sessionStorage.getItem = jest.fn().mockReturnValue(JSON.stringify(cachedData))
 
-    const { result } = renderHook(() => useLessonAccess(lessonId))
+    let result: any
+    await act(async () => {
+      result = renderHook(() => useLessonAccess(lessonId))
+      // Wait for any pending state updates
+      await Promise.resolve()
+    })
 
-    expect(result.current).toEqual({
+    expect(result.result.current).toEqual({
       hasAccess: true,
       purchaseStatus: 'completed',
       loading: false,

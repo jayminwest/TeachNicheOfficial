@@ -33,6 +33,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     let timeoutId: NodeJS.Timeout
     let retryTimeoutId: NodeJS.Timeout
     let mounted = true
+    let abortController: AbortController
 
     async function checkAccess(): Promise<void> {
       if (!user) {
@@ -129,6 +130,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       mounted = false
       clearTimeout(timeoutId)
       clearTimeout(retryTimeoutId)
+      abortController?.abort() // Ensure pending requests are aborted
     }
   }, [lessonId, user])
 

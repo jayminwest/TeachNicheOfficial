@@ -69,7 +69,9 @@ const customJestConfig = {
   // Added testTimeout for API tests that might take longer
   testTimeout: 10000,
   // Ensure moduleDirectories includes node_modules for proper resolution
-  moduleDirectories: ['node_modules', '<rootDir>']
+  moduleDirectories: ['node_modules', '<rootDir>'],
+  // Add resolver to help with path resolution
+  resolver: '<rootDir>/jest.resolver.js'
 }
 
 module.exports = customJestConfig

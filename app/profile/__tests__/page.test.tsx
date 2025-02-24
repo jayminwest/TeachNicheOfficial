@@ -4,8 +4,10 @@ import { axe } from 'jest-axe'
 import ProfilePage from '../page'
 import { renderWithAuth } from '@/app/__tests__/test-utils'
 
-// Mock the router
+// Define mockRedirect first before using it
 const mockRedirect = jest.fn()
+
+// Mock the router
 jest.mock('next/navigation', () => ({
   ...jest.requireActual('next/navigation'),
   useRouter: () => ({

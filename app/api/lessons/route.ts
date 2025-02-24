@@ -48,6 +48,7 @@ export async function POST(request: Request) {
 
     // Create lesson in Supabase
     const lessonData = {
+      id: crypto.randomUUID(), // Add UUID here
       title,
       description,
       price: price || 0,
@@ -60,11 +61,21 @@ export async function POST(request: Request) {
     };
 
     const supabase = createClient();
-    const { data: lesson } = await supabase
+    const { data: lesson, error } = await supabase
       .from('lessons')
       .insert(lessonData)
       .select()
       .single();
+
+    if (error) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to create lesson',
+          details: error.message
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(lesson, { status: 201 });
   } catch (error) {

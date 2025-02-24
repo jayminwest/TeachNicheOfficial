@@ -71,11 +71,7 @@ export function LessonForm({
   return (
     <Form {...form}>
       <form 
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const result = await form.handleSubmit(onSubmit)(e);
-          return result;
-        }}
+        onSubmit={form.handleSubmit((data) => onSubmit(data))}
         className={cn("space-y-8", className)}
       >
         <div className="space-y-6">

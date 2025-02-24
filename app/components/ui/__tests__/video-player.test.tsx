@@ -27,7 +27,12 @@ jest.mock('@mux/mux-player-react', () => {
 
 jest.mock('../lesson-access-gate', () => ({
   LessonAccessGate: jest.fn(({ children, lessonId, price, className }) => (
-    <div data-testid="lesson-access-gate" data-lesson-id={lessonId} data-price={price} className={className}>
+    <div 
+      data-testid="lesson-access-gate" 
+      data-lesson-id={String(lessonId)} 
+      data-price={String(price)} 
+      className={className}
+    >
       {children}
     </div>
   ))

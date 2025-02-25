@@ -208,19 +208,23 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for a detailed overview of the project 
 
 ## Development Workflow
 
-1. Create a new branch for your feature or fix:
+1. Create a new branch for your feature or fix from dev:
    ```bash
+   # First checkout and update dev
+   git checkout dev
+   git pull
+   
    # For features
-   git checkout -b feature/descriptive-feature-name
+   git checkout -b feature/descriptive-feature-name dev
 
    # For bug fixes
-   git checkout -b fix/descriptive-bug-fix
+   git checkout -b fix/descriptive-bug-fix dev
 
    # For documentation updates
-   git checkout -b docs/what-youre-documenting
+   git checkout -b docs/what-youre-documenting dev
 
    # For refactoring
-   git checkout -b refactor/what-youre-refactoring
+   git checkout -b refactor/what-youre-refactoring dev
    ```
 2. Make your changes, following the coding standards
 3. Write tests for your changes

@@ -38,11 +38,13 @@ Request documentation when:
 
 For complex tasks:
 1. First, understand relevant documentation
-2. Create a dedicated branch for your work:
+2. Create a dedicated branch for your work from dev:
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout dev
+   git pull
+   git checkout -b feature/your-feature-name dev
    # or
-   git checkout -b fix/your-fix-description
+   git checkout -b fix/your-fix-description dev
    ```
 3. Plan changes according to established patterns
 4. Implement following documented standards
@@ -52,9 +54,11 @@ For complex tasks:
 
 When you find outdated or incorrect information:
 1. Identify the specific issue
-2. Create a documentation branch:
+2. Create a documentation branch from dev:
    ```bash
-   git checkout -b docs/update-description
+   git checkout dev
+   git pull
+   git checkout -b docs/update-description dev
    ```
 3. Propose a clear update
 4. Submit through the established documentation update process

@@ -1,5 +1,6 @@
 import * as routeModule from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Mock the Mux service
 jest.mock('../../../../app/services/mux', () => ({
@@ -59,6 +60,9 @@ jest.mock('next/server', () => {
         };
       }),
     },
+    NextRequest: jest.fn().mockImplementation((input) => {
+      return input;
+    }),
   };
 });
 
@@ -67,15 +71,18 @@ jest.mock('next/server', () => {
 // Helper function to create mock request/response
 function createMockRequestResponse(method: string, body?: unknown, url = 'http://localhost/api/mux', headers = {}) {
   // Create a mock request object with the necessary properties and methods
-  const request = {
+  const request = new NextRequest(url, {
     method,
-    url,
-    headers: new Headers({
+    headers: {
       'Content-Type': 'application/json',
       ...headers
-    }),
-    json: jest.fn().mockImplementation(() => Promise.resolve(body || {})),
+    },
+  }) as NextRequest & {
+    json: jest.Mock;
   };
+  
+  // Add the json method to the request
+  request.json = jest.fn().mockImplementation(() => Promise.resolve(body || {}));
   
   const responseInit = {
     status: 200,
@@ -163,9 +170,12 @@ describe('Mux API', () => {
       
       // Mock NextResponse.json for this test
       const mockSuccessData = { success: true };
-      jest.mocked(NextResponse.json).mockReturnValueOnce(
-        NextResponse.json(mockSuccessData, { status: 200 }) as NextResponse
-      );
+      const mockResponse = { 
+        body: mockSuccessData, 
+        status: 200,
+        json: () => mockSuccessData
+      };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
       
       const result = await routeModule.POST(req);
       
@@ -195,9 +205,12 @@ describe('Mux API', () => {
       
       // Mock NextResponse.json for this test
       const mockSuccessData = { success: true };
-      jest.mocked(NextResponse.json).mockReturnValueOnce(
-        NextResponse.json(mockSuccessData, { status: 200 }) as NextResponse
-      );
+      const mockResponse = { 
+        body: mockSuccessData, 
+        status: 200,
+        json: () => mockSuccessData
+      };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
       
       const result = await routeModule.POST(req);
       

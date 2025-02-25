@@ -108,8 +108,8 @@ describe('Checkout API', () => {
       ? await result.json() 
       : result.body || {};
     
-    // Use res.json() to set the response data
-    res.json(responseData);
+    // Set the response data directly to avoid JSON stringification
+    res._getData = jest.fn().mockReturnValue(responseData);
 
     expect(res._getStatusCode()).toBe(200);
     expect(res._getData()).toEqual({

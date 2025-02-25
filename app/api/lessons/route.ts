@@ -9,7 +9,7 @@ interface LessonData {
   muxAssetId?: string;
   muxPlaybackId?: string;
   content?: string;
-  status?: string;
+  status?: 'draft' | 'published' | 'archived';
   category?: string;
 }
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       description,
       price: price || 0,
       content,
-      status,
+      status: status as 'draft' | 'published' | 'archived',
       creator_id: user.id,
       category,
       mux_asset_id: muxAssetId,

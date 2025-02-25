@@ -211,7 +211,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      await createLesson(req);
+      const result = await createLesson(req);
 
       // Verify the mock was called with the right arguments
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
@@ -319,7 +319,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      await updateLesson(req);
+      const result = await updateLesson(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });
@@ -386,7 +386,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      await deleteLesson(req);
+      const result = await deleteLesson(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });

@@ -1,7 +1,7 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  testDir: './',
+  testDir: './tests',
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
   webServer: {
@@ -54,6 +54,8 @@ const config: PlaywrightTestConfig = {
   ],
   // Update snapshots via command line: npx playwright test --update-snapshots
   updateSnapshots: process.env.UPDATE_SNAPSHOTS ? 'all' : 'missing',
+  // Explicitly ignore node_modules and app directories to avoid conflicts with Jest tests
+  testIgnore: ['**/node_modules/**', '**/app/**'],
 };
 
 export default config;

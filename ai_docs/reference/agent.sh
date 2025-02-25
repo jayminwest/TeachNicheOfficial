@@ -9,13 +9,11 @@ if [ -z "$PROMPT" ]; then
   exit 1
 fi
 
-echo "Working with prompt: $PROMPT"
-echo "Loading reference documentation files..."
+# Get the directory of this script
+DIR="$(dirname "$0")"
 
-# Open all files in the reference directory and subdirectories as editable
-for file in $(find "$(dirname "$0")" -name "*.md"); do
-  echo "Loading: $file"
-  echo "/edit $file"
-done
+# Find all markdown files in the directory
+FILES=$(find "$DIR" -name "*.md")
 
-echo "All reference documentation files loaded. Ready to process your prompt: $PROMPT"
+# Launch aider with the files and the prompt
+aider --message "$PROMPT" $FILES

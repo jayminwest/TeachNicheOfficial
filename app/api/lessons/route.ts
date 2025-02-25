@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
-import { getCurrentUser } from '@/app/services/auth';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 interface LessonData {
   title: string;
@@ -16,15 +17,18 @@ interface LessonData {
 // Helper functions (not exported)
 async function createLessonHandler(request: Request) {
   try {
-    // Get the current user
-    const user = await getCurrentUser();
+    // Get the current user using the route handler client
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
+    
+    const user = session.user;
 
     const data = await request.json();
     const { 
@@ -137,15 +141,18 @@ async function getLessonsHandler(request: Request) {
 
 async function updateLessonHandler(request: Request) {
   try {
-    // Get the current user
-    const user = await getCurrentUser();
+    // Get the current user using the route handler client
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
+    
+    const user = session.user;
 
     const data = await request.json();
     const { id, ...updateData } = data;
@@ -200,15 +207,18 @@ async function updateLessonHandler(request: Request) {
 
 async function deleteLessonHandler(request: Request) {
   try {
-    // Get the current user
-    const user = await getCurrentUser();
+    // Get the current user using the route handler client
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
+    
+    const user = session.user;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

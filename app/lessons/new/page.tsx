@@ -114,7 +114,6 @@ export default function NewLessonPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.data.session.access_token}`
         },
         body: JSON.stringify(lessonData),
       });

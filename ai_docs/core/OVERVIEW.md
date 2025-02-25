@@ -1,27 +1,30 @@
-# Project Overview
+# Teach Niche Project Overview
 
 ## Purpose
 
-This document provides a high-level overview of our project, its core philosophy, and guiding principles. It serves as the entry point to our documentation and helps team members understand the project's purpose and direction.
+This document provides a high-level overview of the Teach Niche project, its core philosophy, and guiding principles. It serves as the entry point to our documentation and helps team members understand the project's purpose and direction.
 
 ## Core Philosophy
 
 Our development approach emphasizes:
 
-- **Simplicity**: Keep solutions as simple as possible, but no simpler
-- **Quality**: Build with quality from the start, not as an afterthought
+- **Modularity**: Each component and service has a single, well-defined responsibility
+- **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
+- **Type Safety**: Leverage TypeScript for robust, maintainable code
+- **Testing First**: Write tests before implementing features
 - **Security**: Security is a fundamental consideration in all aspects of development
-- **Modularity**: Each component has a single, well-defined responsibility
 - **Consistency**: Follow established patterns and practices
 - **Documentation**: Comprehensive documentation is essential for maintainability
 
 ## Project Goals
 
-1. Create a robust, secure platform that meets user needs
+1. Create a robust, secure platform that connects kendama enthusiasts with players
 2. Establish a maintainable codebase that can evolve over time
 3. Build with security and privacy as fundamental requirements
 4. Ensure accessibility and inclusivity for all users
 5. Deliver a high-quality user experience
+6. Enable creators to monetize their expertise
+7. Provide interactive learning opportunities
 
 ## Key Stakeholders
 
@@ -30,7 +33,18 @@ Our development approach emphasizes:
 - Security Team: Ensures security standards are met
 - Quality Assurance: Verifies quality standards
 - Operations: Manages deployment and infrastructure
-- End Users: The ultimate consumers of the product
+- Content Creators: Provide educational content
+- End Users: Kendama enthusiasts learning from the platform
+
+## Technology Stack
+
+- **Frontend**: Next.js, React, TypeScript, Shadcn UI
+- **Backend**: Next.js API routes, Edge Functions
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Payments**: Stripe Connect (v2025-01-27.acacia)
+- **Video**: Mux Video
+- **Deployment**: Vercel
 
 ## Documentation Structure
 
@@ -54,11 +68,11 @@ New team members should:
 
 ## Communication Channels
 
-- Project Management: [Tool Name]
-- Code Repository: [Repository Location]
-- Documentation: [Documentation Location]
-- Team Communication: [Communication Platform]
-- Issue Tracking: [Issue Tracker]
+- Project Management: GitHub Projects
+- Code Repository: GitHub
+- Documentation: ai_docs/ directory
+- Team Communication: Slack
+- Issue Tracking: GitHub Issues
 
 ## Version Control
 
@@ -68,7 +82,8 @@ This document is maintained under version control. Significant changes are docum
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | [Date] | [Author] | Initial version |
+| 1.0 | 2025-02-24 | Documentation Team | Initial version |
+| 1.1 | 2025-02-24 | Documentation Team | Updated as part of documentation restructuring |
 
 ---
 

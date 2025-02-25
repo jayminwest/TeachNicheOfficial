@@ -47,7 +47,7 @@ function Hero() {
   }, [titleNumber, titles]);
 
   return (
-    <div className="w-full relative h-[600px]">
+    <div className="w-full relative h-[600px]" data-testid="hero-section">
       <div className="absolute inset-0 z-0 overflow-hidden">
         <Image
           src="/303_group.png"

@@ -12,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  * @param value Any value that might be used in a form input
  * @returns A string representation of the value, or empty string for null/undefined/NaN
  */
-export function safeNumberValue(value: any): string {
+export function safeNumberValue(value: number | string | null | undefined): string {
   if (value === undefined || value === null || Number.isNaN(value)) {
     return ''; // Return empty string instead of NaN
   }

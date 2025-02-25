@@ -108,8 +108,8 @@ describe('Checkout API', () => {
       ? await result.json() 
       : result.body || {};
     
-    // Set the response data directly without using res.json() to avoid stringification
-    res._setData(responseData);
+    // Use res.json() to set the response data
+    res.json(responseData);
 
     expect(res._getStatusCode()).toBe(200);
     expect(res._getData()).toEqual({

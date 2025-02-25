@@ -43,7 +43,7 @@ export function createMockFile(name = 'test.mp4', type = 'video/mp4') {
 export function renderWithAuth(ui: React.ReactElement, { user = null, ...options } = {}) {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider initialUser={user}>
+      <AuthProvider>
         {children}
       </AuthProvider>
     </ThemeProvider>

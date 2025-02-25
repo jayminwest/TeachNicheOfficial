@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // Helper function to log in
-async function login(page) {
+async function login(page: any) {
   await page.goto('/');
   await page.click('[data-testid="sign-in-button"]');
   await page.fill('[data-testid="email-input"]', 'test-buyer@example.com');
@@ -22,7 +22,9 @@ test.describe('Lesson purchase flow', () => {
     
     // Verify lessons are displayed
     await expect(page.locator('[data-testid="lesson-grid"]')).toBeVisible();
-    await expect(page.locator('[data-testid="lesson-card"]')).toHaveCount.atLeast(1);
+    // Check that there's at least one lesson card
+    const lessonCards = await page.locator('[data-testid="lesson-card"]').count();
+    expect(lessonCards).toBeGreaterThan(0);
     
     // Click on a lesson card
     await page.click('[data-testid="lesson-card"]:first-child');

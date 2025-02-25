@@ -199,8 +199,10 @@ export const createMockSupabaseClient = (config: MockConfig = {}) => {
     // Functions for managing subscriptions
     channel: jest.fn().mockReturnValue({
       on: jest.fn().mockReturnThis(),
-      subscribe: jest.fn().mockResolvedValue({ 
-        unsubscribe: jest.fn() 
+      subscribe: jest.fn().mockImplementation(() => {
+        return { 
+          unsubscribe: jest.fn() 
+        };
       })
     })
   };

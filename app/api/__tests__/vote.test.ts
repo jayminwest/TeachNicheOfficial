@@ -19,8 +19,7 @@ const mockRequest = (url: string, init?: RequestInit) => ({
   json: async () => JSON.parse(init?.body as string || '{}')
 });
 
-// @ts-expect-error - Mocking global Request
-global.Request = jest.fn().mockImplementation(mockRequest);
+global.Request = jest.fn().mockImplementation(mockRequest) as unknown as typeof Request;
 
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs', () => ({

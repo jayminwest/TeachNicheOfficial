@@ -142,7 +142,7 @@ describe('Lessons API', () => {
       } as unknown as NextResponse;
       
       // Mock NextResponse.json to return our mock response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse);
+      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
 
       const result = await GET(req);
 
@@ -351,8 +351,8 @@ describe('Lessons API', () => {
       // Mock the success response
       const mockSuccessResponse = {
         status: 200,
-        body: { id: 'lesson-123', ...lessonUpdate, creator_id: 'user-123' },
-        json: () => ({ id: 'lesson-123', ...lessonUpdate, creator_id: 'user-123' })
+        body: { ...lessonUpdate, creator_id: 'user-123' },
+        json: () => ({ ...lessonUpdate, creator_id: 'user-123' })
       };
       
       // Mock NextResponse.json to return our success response

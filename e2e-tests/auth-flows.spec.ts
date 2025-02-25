@@ -168,7 +168,8 @@ test.describe('Authentication flows', () => {
       window.lastNavigationAttempt = null;
       
       // Override window.location.href setter to prevent actual navigation in tests
-      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      const descriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
+      const originalLocationHrefSetter = descriptor?.set;
       Object.defineProperty(window.location, 'href', {
         set: function(url) {
           console.log('Navigation intercepted to:', url);

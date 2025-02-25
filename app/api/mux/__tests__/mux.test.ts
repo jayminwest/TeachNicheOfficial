@@ -63,8 +63,8 @@ jest.mock('next/server', () => {
 });
 
 // Override the route handlers for testing
-const originalCreateUploadUrl = routeModule.createUploadUrl;
-routeModule.createUploadUrl = jest.fn().mockImplementation(async (req) => {
+const originalCreateUploadUrl = (routeModule as any).createUploadUrl;
+(routeModule as any).createUploadUrl = jest.fn().mockImplementation(async (req) => {
   // For authentication error test
   if (req.headers.get('x-test-auth-fail') === 'true') {
     return {
@@ -192,8 +192,8 @@ describe('Mux API', () => {
       });
 
       // Restore original implementation for this test
-      const originalHandleAssetCreated = routeModule.handleAssetCreated;
-      routeModule.handleAssetCreated = jest.fn().mockImplementation(async () => {
+      const originalHandleAssetCreated = (routeModule as any).handleAssetCreated;
+      (routeModule as any).handleAssetCreated = jest.fn().mockImplementation(async () => {
         return {
           status: 200,
           body: { success: true },
@@ -210,7 +210,7 @@ describe('Mux API', () => {
       expect(res._getStatusCode()).toBe(200);
       
       // Restore the original implementation
-      routeModule.handleAssetCreated = originalHandleAssetCreated;
+      (routeModule as any).handleAssetCreated = originalHandleAssetCreated;
     });
   });
 
@@ -228,8 +228,8 @@ describe('Mux API', () => {
       });
 
       // Restore original implementation for this test
-      const originalHandleAssetReady = routeModule.handleAssetReady;
-      routeModule.handleAssetReady = jest.fn().mockImplementation(async () => {
+      const originalHandleAssetReady = (routeModule as any).handleAssetReady;
+      (routeModule as any).handleAssetReady = jest.fn().mockImplementation(async () => {
         return {
           status: 200,
           body: { success: true },
@@ -246,12 +246,12 @@ describe('Mux API', () => {
       expect(res._getStatusCode()).toBe(200);
       
       // Restore the original implementation
-      routeModule.handleAssetReady = originalHandleAssetReady;
+      (routeModule as any).handleAssetReady = originalHandleAssetReady;
     });
   });
   
   // Restore original implementation after all tests
   afterAll(() => {
-    routeModule.createUploadUrl = originalCreateUploadUrl;
+    (routeModule as any).createUploadUrl = originalCreateUploadUrl;
   });
 });

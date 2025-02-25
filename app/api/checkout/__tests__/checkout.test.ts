@@ -24,7 +24,7 @@ jest.mock('../../../services/stripe', () => ({
   StripeError: jest.fn().mockImplementation(function(code, message) {
     const error = new Error(message);
     error.name = 'StripeError';
-    error.code = code;
+    (error as any).code = code;
     return error;
   })
 }));
@@ -72,7 +72,7 @@ describe('Checkout API', () => {
       }
     });
 
-    await routeModule.createCheckoutSession(req, res);
+    await routeModule.POST(req, res);
 
     expect(res._getStatusCode()).toBe(200);
     expect(JSON.parse(res._getData())).toEqual({

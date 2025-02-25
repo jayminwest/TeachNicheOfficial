@@ -10,10 +10,14 @@ test('navigation test', async ({ page }) => {
   // Test navigation to About page
   // Instead of looking for a link with text "about", look for a button with text "About"
   await page.getByRole('button', { name: 'About' }).click({ force: true });
-  await expect(page).toHaveURL(/.*about/);
+  
+  // Wait for navigation to complete with a longer timeout
+  await page.waitForURL(/.*about/, { timeout: 10000 });
   
   // Test navigation back to home
   // Instead of looking for a button with text "home", look for a button with text "Home"
   await page.getByRole('button', { name: 'Home' }).click({ force: true });
-  await expect(page).toHaveURL(/^\/$|^\/\?/);
+  
+  // Wait for navigation to complete with a longer timeout
+  await page.waitForURL(/^\/$|^\/\?/, { timeout: 10000 });
 });

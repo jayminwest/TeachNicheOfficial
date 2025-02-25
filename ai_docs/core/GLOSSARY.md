@@ -42,6 +42,9 @@ The structured storage system that holds all persistent data for the application
 
 ## E
 
+### E2E Testing
+End-to-End testing that verifies complete user journeys through the application, typically using tools like Playwright.
+
 ### Engagement
 Metrics that measure how users interact with content (views, completion rate, etc.).
 
@@ -80,6 +83,9 @@ The transfer of earnings from the platform to a creator.
 ### Platform Fee
 The percentage or fixed amount that the platform charges for each transaction.
 
+### Playwright
+An end-to-end testing framework used to automate browser testing across Chromium, Firefox, and WebKit.
+
 ## R
 
 ### Retention
@@ -97,6 +103,9 @@ A technique where pages are rendered on the server before being sent to the clie
 A recurring payment model where users pay regularly for access to content.
 
 ## T
+
+### TDD (Test-Driven Development)
+A software development approach where tests are written before the code implementation.
 
 ### Transaction
 A financial exchange between users and the platform or between users.

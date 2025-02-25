@@ -246,6 +246,15 @@ npm test -- --testPathPattern=components
 
 # Run tests in watch mode
 npm test -- --watch
+
+# Run end-to-end tests with Playwright
+npx playwright test
+
+# Run specific Playwright test file
+npx playwright test e2e-tests/lesson-purchase.spec.ts
+
+# Run Playwright tests with UI mode
+npx playwright test --ui
 ```
 
 ### Building for Production

@@ -18,10 +18,11 @@ Our development approach emphasizes:
 - **Modularity**: Each component and service has a single, well-defined responsibility
 - **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
 - **Type Safety**: Leverage TypeScript for robust, maintainable code
-- **Testing First**: Write tests before implementing features
+- **Testing First**: Write tests before implementing features, including end-to-end tests
 - **Security**: Security is a fundamental consideration in all aspects of development
 - **Consistency**: Follow established patterns and practices
 - **Documentation**: Comprehensive documentation is essential for maintainability
+- **Complete Test Coverage**: Ensure all user journeys are tested with Playwright
 
 ## Project Goals
 

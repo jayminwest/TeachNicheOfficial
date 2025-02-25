@@ -73,13 +73,23 @@ npm run dev
 ## Common Workflows
 
 ### Creating a New Feature
-1. Create a feature branch from `dev`
+1. Create a feature branch from `dev`:
+   ```bash
+   git checkout dev
+   git pull
+   git checkout -b feature/your-feature-name
+   ```
 2. Implement with tests first
 3. Run quality checks
 4. Create a PR for review
 
 ### Fixing a Bug
-1. Create a fix branch from `dev`
+1. Create a fix branch from `dev`:
+   ```bash
+   git checkout dev
+   git pull
+   git checkout -b fix/bug-description
+   ```
 2. Add regression tests
 3. Implement the fix
 4. Create a PR for review
@@ -198,7 +208,20 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for a detailed overview of the project 
 
 ## Development Workflow
 
-1. Create a new branch for your feature or fix
+1. Create a new branch for your feature or fix:
+   ```bash
+   # For features
+   git checkout -b feature/descriptive-feature-name
+
+   # For bug fixes
+   git checkout -b fix/descriptive-bug-fix
+
+   # For documentation updates
+   git checkout -b docs/what-youre-documenting
+
+   # For refactoring
+   git checkout -b refactor/what-youre-refactoring
+   ```
 2. Make your changes, following the coding standards
 3. Write tests for your changes
 4. Run the test suite to ensure everything passes

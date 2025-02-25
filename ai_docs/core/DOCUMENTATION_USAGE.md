@@ -38,17 +38,27 @@ Request documentation when:
 
 For complex tasks:
 1. First, understand relevant documentation
-2. Plan changes according to established patterns
-3. Implement following documented standards
-4. Update documentation if necessary
+2. Create a dedicated branch for your work:
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/your-fix-description
+   ```
+3. Plan changes according to established patterns
+4. Implement following documented standards
+5. Update documentation if necessary
 
 ## Documentation Maintenance
 
 When you find outdated or incorrect information:
 1. Identify the specific issue
-2. Propose a clear update
-3. Submit through the established documentation update process
-4. Reference any related code changes
+2. Create a documentation branch:
+   ```bash
+   git checkout -b docs/update-description
+   ```
+3. Propose a clear update
+4. Submit through the established documentation update process
+5. Reference any related code changes
 
 ## Effective Documentation Practices
 

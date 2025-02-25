@@ -84,8 +84,8 @@ describe('Lessons API', () => {
   describe('GET /api/lessons', () => {
     it('retrieves lessons successfully', async () => {
       const mockLessons = [
-        { id: 'lesson-1', title: 'Test Lesson 1', user_id: 'user-123' },
-        { id: 'lesson-2', title: 'Test Lesson 2', user_id: 'user-123' }
+        { id: 'lesson-1', title: 'Test Lesson 1', creator_id: 'user-123' },
+        { id: 'lesson-2', title: 'Test Lesson 2', creator_id: 'user-123' }
       ];
       
       const mockSupabase = getMockSupabase();
@@ -265,7 +265,7 @@ describe('Lessons API', () => {
       mockSupabase.match.mockClear();
       mockSupabase.update.mockClear();
       
-      mockSupabase.data = { id: 'lesson-123', user_id: 'user-123' };
+      mockSupabase.data = { id: 'lesson-123', creator_id: 'user-123' };
       
       const { req } = createMocks({
         method: 'PUT',
@@ -278,8 +278,8 @@ describe('Lessons API', () => {
       // Mock the success response
       const mockSuccessResponse = {
         status: 200,
-        body: { id: 'lesson-123', ...lessonUpdate, user_id: 'user-123' },
-        json: () => ({ id: 'lesson-123', ...lessonUpdate, user_id: 'user-123' })
+        body: { id: 'lesson-123', ...lessonUpdate, creator_id: 'user-123' },
+        json: () => ({ id: 'lesson-123', ...lessonUpdate, creator_id: 'user-123' })
       };
       
       // Mock NextResponse.json to return our success response
@@ -311,7 +311,7 @@ describe('Lessons API', () => {
       });
 
       const mockSupabase = getMockSupabase();
-      mockSupabase.data = { id: 'lesson-123', user_id: 'different-user' };
+      mockSupabase.data = { id: 'lesson-123', creator_id: 'different-user' };
 
       // Mock the permission error response
       const mockPermissionErrorResponse = {
@@ -337,7 +337,7 @@ describe('Lessons API', () => {
       mockSupabase.match.mockClear();
       mockSupabase.delete.mockClear();
       
-      mockSupabase.data = { id: 'lesson-123', user_id: 'user-123' };
+      mockSupabase.data = { id: 'lesson-123', creator_id: 'user-123' };
       
       const { req } = createMocks({
         method: 'DELETE',

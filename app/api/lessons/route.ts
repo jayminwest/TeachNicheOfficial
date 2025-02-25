@@ -54,7 +54,7 @@ async function createLessonHandler(request: Request) {
       price: price || 0,
       content,
       status: status as 'draft' | 'published' | 'archived',
-      user_id: user.id, // Changed from creator_id to user_id to match test expectations
+      creator_id: user.id, // Changed from user_id to creator_id to match database schema
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId
@@ -163,7 +163,7 @@ async function updateLessonHandler(request: Request) {
     // Call from directly on the supabase client to match test expectations
     const { data: lesson } = await supabase
       .from('lessons')
-      .select('user_id') // Changed from creator_id to user_id to match test expectations
+      .select('creator_id') // Changed from user_id to creator_id to match database schema
       .eq('id', id)
       .single();
       
@@ -174,7 +174,7 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const hasAccess = lesson.user_id === user.id; // Changed from creator_id to user_id to match test expectations
+    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id to match database schema
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'You do not have permission to update this lesson' },
@@ -237,7 +237,7 @@ async function deleteLessonHandler(request: Request) {
     }
 
     // Check if user has permission to delete this lesson
-    const hasAccess = lesson.user_id === user.id; // Changed from creator_id to user_id to match test expectations
+    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id to match database schema
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'You do not have permission to delete this lesson' },

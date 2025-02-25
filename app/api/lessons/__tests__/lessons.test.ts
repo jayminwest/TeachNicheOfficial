@@ -24,6 +24,21 @@ jest.mock('../../../lib/supabase/client', () => {
   };
 });
 
+// Mock NextResponse
+jest.mock('next/server', () => {
+  return {
+    NextResponse: {
+      json: jest.fn().mockImplementation((body, init) => {
+        return { 
+          status: init?.status || 200,
+          body,
+          json: () => body
+        };
+      }),
+    },
+  };
+});
+
 // Get the mock client for setting up test data
 const getMockSupabase = () => {
   const { createClient } = jest.requireMock('../../../lib/supabase/client');
@@ -69,7 +84,10 @@ describe('Lessons API', () => {
         query: { limit: '10' }
       });
 
-      await getLessons(req, res);
+      // Add a valid URL to the request
+      req.url = 'http://localhost/api/lessons?limit=10';
+
+      await getLessons(req);
 
       expect(res._getStatusCode()).toBe(200);
       expect(JSON.parse(res._getData())).toEqual({ lessons: mockLessons });
@@ -85,10 +103,13 @@ describe('Lessons API', () => {
         }
       });
 
+      // Add a valid URL to the request
+      req.url = 'http://localhost/api/lessons?limit=5&category=programming&sort=newest';
+
       const mockSupabase = getMockSupabase();
       mockSupabase.data = [];
       
-      await getLessons(req, res);
+      await getLessons(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.eq).toHaveBeenCalledWith('category', 'programming');
@@ -105,7 +126,10 @@ describe('Lessons API', () => {
         method: 'GET'
       });
 
-      await getLessons(req, res);
+      // Add a valid URL to the request
+      req.url = 'http://localhost/api/lessons';
+
+      await getLessons(req);
 
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toEqual({
@@ -133,7 +157,11 @@ describe('Lessons API', () => {
         body: newLesson
       });
 
-      await createLesson(req, res);
+      const result = await createLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.insert).toHaveBeenCalledWith(expect.objectContaining({
@@ -154,7 +182,11 @@ describe('Lessons API', () => {
         }
       });
 
-      await createLesson(req, res);
+      const result = await createLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toHaveProperty('error');
@@ -174,7 +206,11 @@ describe('Lessons API', () => {
       // Mock auth to fail
       jest.mocked(jest.requireMock('../../../services/auth').getCurrentUser).mockImplementationOnce(() => Promise.resolve(null));
 
-      await createLesson(req, res);
+      const result = await createLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(res._getStatusCode()).toBe(401);
     });
@@ -196,7 +232,11 @@ describe('Lessons API', () => {
         body: lessonUpdate
       });
 
-      await updateLesson(req, res);
+      const result = await updateLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });
@@ -214,7 +254,11 @@ describe('Lessons API', () => {
       // Mock permission check to fail
       jest.mocked(jest.requireMock('../../../services/auth').hasPermission).mockImplementationOnce(() => false);
 
-      await updateLesson(req, res);
+      const result = await updateLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(res._getStatusCode()).toBe(403);
     });
@@ -230,7 +274,11 @@ describe('Lessons API', () => {
         query: { id: 'lesson-123' }
       });
 
-      await deleteLesson(req, res);
+      const result = await deleteLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });
@@ -247,7 +295,11 @@ describe('Lessons API', () => {
         query: { id: 'non-existent-lesson' }
       });
 
-      await deleteLesson(req, res);
+      const result = await deleteLesson(req);
+      
+      // Handle the NextResponse object
+      res.statusCode = result.status;
+      res._getData = () => JSON.stringify(result.body);
 
       expect(res._getStatusCode()).toBe(404);
     });

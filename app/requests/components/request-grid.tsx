@@ -10,11 +10,11 @@ import { Loader2 } from 'lucide-react'
 interface RequestGridProps {
   initialRequests?: LessonRequest[]
   category?: string
-  sortBy: 'popular' | 'newest'
+  sortBy?: 'popular' | 'newest'
   onError?: (error: Error) => void
 }
 
-export function RequestGrid({ initialRequests, category, sortBy, onError }: RequestGridProps) {
+export function RequestGrid({ initialRequests, category, sortBy = 'popular', onError }: RequestGridProps) {
   const [requests, setRequests] = useState<LessonRequest[]>(initialRequests || [])
   const [isLoading, setIsLoading] = useState(!initialRequests)
   const { user } = useAuth()

@@ -42,9 +42,9 @@ export function renderWithAuth(
     wrapper: ({ children }) => (
       <AuthContext.Provider
         value={{
-          user: authProps.user ?? defaultAuthValues.user,
-          loading: authProps.loading ?? defaultAuthValues.loading,
-          isAuthenticated: authProps.isAuthenticated ?? defaultAuthValues.isAuthenticated
+          user: authProps.user !== undefined ? authProps.user : defaultAuthValues.user,
+          loading: authProps.loading !== undefined ? authProps.loading : defaultAuthValues.loading,
+          isAuthenticated: authProps.isAuthenticated !== undefined ? authProps.isAuthenticated : defaultAuthValues.isAuthenticated
         }}
       >
         {children}

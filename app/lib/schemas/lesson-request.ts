@@ -21,6 +21,11 @@ export function ensureValidStatus(status: string): 'open' | 'in_progress' | 'com
   return 'open'; // Default to 'open' if invalid status
 }
 
+// Type guard to check if a status string is a valid LessonRequest status
+export function isValidStatus(status: string): status is 'open' | 'in_progress' | 'completed' {
+  return status === 'open' || status === 'in_progress' || status === 'completed';
+}
+
 export interface LessonRequestVote {
   id: string;
   request_id: string;

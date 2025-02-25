@@ -21,7 +21,7 @@ npx playwright install --with-deps
 
 # Run E2E tests
 echo "Running E2E tests..."
-npm run test:e2e
+npm run test:e2e -- --update-snapshots
 echo "E2E tests completed"
 
 # Build the app for visual tests

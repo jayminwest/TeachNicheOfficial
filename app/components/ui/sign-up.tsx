@@ -37,6 +37,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
         <div className="flex min-h-[inherit] w-full items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+            <h1 className="sr-only">Loading</h1>
             <p>Loading...</p>
           </div>
         </div>
@@ -61,7 +62,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    <Icons.spinner data-testid="spinner" className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Icons.google className="mr-2 h-4 w-4" />
                   )}
@@ -74,6 +75,11 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
                   <Button
                     variant="link"
                     onClick={onSwitchToSignIn}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onSwitchToSignIn();
+                      }
+                    }}
                     className="text-sm"
                   >
                     Already have an account? Sign in

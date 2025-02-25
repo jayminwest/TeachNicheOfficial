@@ -25,6 +25,8 @@ export function VideoPlayer({
   const [jwt, setJwt] = useState<string>();
 
   useEffect(() => {
+    let isMounted = true;
+    
     if (!isFree) {
       // Get signed JWT from your backend
       fetch('/api/video/sign-playback', {
@@ -32,12 +34,27 @@ export function VideoPlayer({
         body: JSON.stringify({ playbackId })
       })
       .then(res => res.json())
-      .then(data => setJwt(data.token));
+      .then(data => {
+        if (isMounted) {
+          setJwt(data.token);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching playback token:', error);
+      });
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [playbackId, isFree]);
 
   return (
-    <LessonAccessGate lessonId={id!} price={price} className={cn("aspect-video rounded-lg overflow-hidden", className)}>
+    <LessonAccessGate 
+      lessonId={id || 'undefined'} 
+      price={price} 
+      className={cn("aspect-video rounded-lg overflow-hidden", className)}
+    >
       <MuxPlayer
         playbackId={playbackId}
         metadata={{ 

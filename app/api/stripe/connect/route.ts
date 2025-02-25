@@ -99,7 +99,6 @@ export async function POST(request: Request) {
     
     try {
       // Use type assertion to handle the mock vs real implementation difference
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const accounts = stripeInstance.accounts as Stripe.AccountsResource;
       
       // Create Stripe Connect account with international support
@@ -140,8 +139,6 @@ export async function POST(request: Request) {
       if (updateError) {
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {
-          // Use type assertion here too with ESLint disable comment
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (stripeInstance.accounts as Stripe.AccountsResource).del(account.id);
         } catch (deleteError) {
           console.error('Failed to delete Stripe account after database update error:', deleteError);

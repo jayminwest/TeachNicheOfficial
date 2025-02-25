@@ -25,6 +25,53 @@
 - [ ] Verify component co-location standards
 - [ ] Check feature-based organization structure
 
+### Current Test Coverage Status
+- Overall coverage: 24.72% (target: >80%)
+- Coverage breakdown:
+  - Statements: 24.72%
+  - Branches: 19.94%
+  - Functions: 33.62%
+  - Lines: 25.07%
+
+- Critical areas needing tests:
+  - Authentication components (sign-in.tsx: 0%, sign-up.tsx: 50%)
+  - Video components (video-player.tsx: 0%, video-status.tsx: 0%, video-uploader.tsx: 0%)
+  - Auth services (AuthContext.tsx: 6.45%, supabaseAuth.ts: 18.51%)
+  - API routes (most at 0% coverage)
+  - UI components (many below 50%)
+  - Hooks (useCategories.ts: 71.42%, useLessonAccess.ts: 0%)
+
+- Priority files to test (0% coverage):
+  - app/components/ui/video-player.tsx
+  - app/components/ui/video-status.tsx
+  - app/components/ui/video-uploader.tsx
+  - app/components/ui/sign-in.tsx
+  - app/hooks/useLessonAccess.ts
+  - app/services/auth/AuthContext.tsx
+  - app/services/mux.ts
+  - app/api/* routes (checkout, lessons, mux, stripe, webhooks)
+
+- Components with partial coverage to improve:
+  - app/components/ui/lesson-form.tsx (40%)
+  - app/components/ui/request-card.tsx (41.5%)
+  - app/components/ui/header.tsx (48%)
+  - app/components/ui/sign-up.tsx (50%)
+  - app/profile/components/profile-form.tsx (54.54%)
+  - app/services/supabase.ts (60%)
+
+- Well-tested components (100% coverage):
+  - app/components/ui/accordion.tsx
+  - app/components/ui/button.tsx
+  - app/components/ui/card.tsx
+  - app/components/ui/dialog.tsx
+  - app/components/ui/input.tsx
+  - app/components/ui/label.tsx
+  - app/components/ui/lesson-grid.tsx
+  - app/components/ui/switch.tsx
+  - app/components/ui/tabs.tsx
+  - app/components/ui/textarea.tsx
+  - app/profile/components/payment-management.tsx
+
 ### Authentication & Security
 - [ ] Test all auth flows:
   - [ ] Sign up with email

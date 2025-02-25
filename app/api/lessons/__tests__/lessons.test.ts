@@ -53,8 +53,8 @@ jest.mock('next/headers', () => ({
 
 // Get the mock client for setting up test data
 const getMockSupabase = () => {
-  const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');
-  return createRouteHandlerClient();
+  const { createClient } = jest.requireMock('../../../lib/supabase/client');
+  return createClient();
 };
 
 // Mock auth
@@ -209,12 +209,6 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      // Mock the route implementation to actually call from
-      jest.spyOn(mockSupabase, 'from').mockImplementation((table) => {
-        expect(table).toBe('lessons');
-        return mockSupabase;
-      });
-
       const result = await createLesson(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
@@ -285,6 +279,7 @@ describe('Lessons API', () => {
   describe('PUT /api/lessons/:id', () => {
     it('updates a lesson successfully', async () => {
       const lessonUpdate = {
+        id: 'lesson-123',
         title: 'Updated Lesson',
         description: 'Updated description'
       };
@@ -294,7 +289,6 @@ describe('Lessons API', () => {
       
       const { req } = createMocks({
         method: 'PUT',
-        query: { id: 'lesson-123' },
         body: lessonUpdate
       });
 
@@ -308,25 +302,24 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      // Mock the route implementation to actually call from
-      jest.spyOn(mockSupabase, 'from').mockImplementation((table) => {
-        expect(table).toBe('lessons');
-        return mockSupabase;
-      });
-
       const result = await updateLesson(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });
-      expect(mockSupabase.update).toHaveBeenCalledWith(lessonUpdate);
+      expect(mockSupabase.update).toHaveBeenCalledWith({
+        title: 'Updated Lesson',
+        description: 'Updated description'
+      });
       expect(result.status).toBe(200);
     });
 
     it('enforces access control for lesson updates', async () => {
       const { req } = createMocks({
         method: 'PUT',
-        query: { id: 'lesson-123' },
-        body: { title: 'Updated Lesson' }
+        body: { 
+          id: 'lesson-123',
+          title: 'Updated Lesson' 
+        }
       });
 
       // Mock permission check to fail
@@ -351,12 +344,15 @@ describe('Lessons API', () => {
   describe('DELETE /api/lessons/:id', () => {
     it('deletes a lesson successfully', async () => {
       const mockSupabase = getMockSupabase();
-      mockSupabase.data = { id: 'lesson-123' };
+      mockSupabase.data = { id: 'lesson-123', user_id: 'user-123' };
       
       const { req } = createMocks({
         method: 'DELETE',
         query: { id: 'lesson-123' }
       });
+
+      // Add a valid URL to the request
+      req.url = 'http://localhost/api/lessons?id=lesson-123';
 
       // Mock the success response
       const mockSuccessResponse = {
@@ -367,12 +363,6 @@ describe('Lessons API', () => {
       
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
-
-      // Mock the route implementation to actually call from
-      jest.spyOn(mockSupabase, 'from').mockImplementation((table) => {
-        expect(table).toBe('lessons');
-        return mockSupabase;
-      });
 
       const result = await deleteLesson(req);
 
@@ -390,6 +380,9 @@ describe('Lessons API', () => {
         method: 'DELETE',
         query: { id: 'non-existent-lesson' }
       });
+
+      // Add a valid URL to the request
+      req.url = 'http://localhost/api/lessons?id=non-existent-lesson';
 
       // Mock the not found response
       const mockNotFoundResponse = {

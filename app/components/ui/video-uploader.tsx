@@ -147,7 +147,7 @@ export function VideoUploader({
     
     return {
       url: data.url,
-      uploadId: data.uploadId
+      uploadId: data.uploadId // Keep the original property name for API compatibility
     };
   }, []);
 
@@ -156,7 +156,7 @@ export function VideoUploader({
     const fetchWithRetry = async (retries = 3, delay = 1000) => {
       for (let i = 0; i < retries; i++) {
         try {
-          const {url, uploadId} = await getUploadUrl();
+          const {url} = await getUploadUrl();
           setUploadEndpoint(url);
           // We'll get the asset ID after the upload completes
           return;

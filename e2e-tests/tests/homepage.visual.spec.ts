@@ -3,6 +3,9 @@ import { test, expect } from '@playwright/test';
 /**
  * Visual regression test for the homepage
  * These tests capture screenshots of key UI elements and compare them against baseline images
+ * 
+ * Note: When running for the first time or after UI changes, use:
+ * npm run test:visual -- --update-snapshots
  */
 test.describe('Homepage Visual Tests', () => {
   test('homepage visual appearance', async ({ page }) => {
@@ -10,7 +13,7 @@ test.describe('Homepage Visual Tests', () => {
     await page.goto('/');
     
     // Wait for any animations to complete
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
     
     // Take a screenshot of the hero section
     const heroSection = await page.locator('[data-testid="hero-section"]');

@@ -163,10 +163,9 @@ describe('Mux API', () => {
           playback_ids: [{ id: 'playback-123' }],
           upload_id: 'upload-123'
         }
-      });
+      }, 'http://localhost/api/mux/asset-created');
 
       // Use the exported POST handler with a webhook URL
-      req.url = 'http://localhost/api/mux/asset-created';
       
       // Mock NextResponse.json for this test
       const mockSuccessData = { success: true };
@@ -198,10 +197,9 @@ describe('Mux API', () => {
           width: 1920,
           height: 1080
         }
-      });
+      }, 'http://localhost/api/mux/asset-ready');
 
       // Use the exported POST handler with a webhook URL
-      req.url = 'http://localhost/api/mux/asset-ready';
       
       // Mock NextResponse.json for this test
       const mockSuccessData = { success: true };

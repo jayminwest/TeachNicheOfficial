@@ -8,10 +8,12 @@ test('navigation test', async ({ page }) => {
   await expect(page).toHaveTitle(/Teach Niche/);
   
   // Test navigation to About page
-  await page.getByRole('link', { name: /about/i }).click();
+  // Instead of looking for a link with text "about", look for a button with text "About"
+  await page.getByRole('button', { name: 'About' }).click();
   await expect(page).toHaveURL(/.*about/);
   
   // Test navigation back to home
-  await page.getByRole('link', { name: /home/i }).click();
+  // Instead of looking for a button with text "home", look for a button with text "Home"
+  await page.getByRole('button', { name: 'Home' }).click();
   await expect(page).toHaveURL(/^\/$|^\/\?/);
 });

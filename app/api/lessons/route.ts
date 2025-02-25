@@ -13,8 +13,8 @@ interface LessonData {
   category?: string;
 }
 
-// App Router handler for POST
-export async function POST(request: Request) {
+// Export the handler functions for testing
+export async function createLesson(request: Request) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -89,8 +89,7 @@ export async function POST(request: Request) {
   }
 }
 
-// GET handler for App Router
-export async function GET(request: Request) {
+export async function getLessons(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get('limit') || '10');
   const category = searchParams.get('category');
@@ -133,8 +132,7 @@ export async function GET(request: Request) {
   }
 }
 
-// PUT handler for App Router
-export async function PUT(request: Request) {
+export async function updateLesson(request: Request) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -195,8 +193,7 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE handler for App Router
-export async function DELETE(request: Request) {
+export async function deleteLesson(request: Request) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -255,4 +252,24 @@ export async function DELETE(request: Request) {
       { status: 500 }
     );
   }
+}
+
+// App Router handler for POST
+export async function POST(request: Request) {
+  return createLesson(request);
+}
+
+// GET handler for App Router
+export async function GET(request: Request) {
+  return getLessons(request);
+}
+
+// PUT handler for App Router
+export async function PUT(request: Request) {
+  return updateLesson(request);
+}
+
+// DELETE handler for App Router
+export async function DELETE(request: Request) {
+  return deleteLesson(request);
 }

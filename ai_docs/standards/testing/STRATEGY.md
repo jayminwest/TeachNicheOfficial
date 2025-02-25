@@ -46,9 +46,48 @@ Our testing approach follows the testing pyramid model:
 
 - **Purpose**: Verify complete user journeys across the entire application
 - **Coverage Target**: Core user journeys and critical business flows
-- **Tools**: Cypress, Playwright
+- **Tools**: Playwright
 - **Responsibility**: QA Engineers with Developer support
 - **When**: After feature implementation, before release
+
+## Playwright for End-to-End Testing
+
+Playwright is our primary tool for end-to-end testing, chosen for its:
+
+- **Cross-browser support**: Tests run on Chromium, Firefox, and WebKit
+- **Reliable automation**: Auto-wait capabilities reduce flakiness
+- **Modern architecture**: Works with modern web features and frameworks
+- **Performance**: Parallel test execution and isolation
+- **Developer experience**: Debugging tools and trace viewer
+
+### Key Playwright Features We Use
+
+1. **Auto-waiting**: Playwright automatically waits for elements to be actionable
+2. **Network interception**: Mocking API responses for consistent test environments
+3. **Visual comparisons**: Screenshot testing for UI verification
+4. **Authentication state**: Reuse authentication state between tests
+5. **Tracing**: Detailed recordings of test execution for debugging
+6. **Test generators**: Record interactions to generate test code
+7. **Mobile emulation**: Test responsive design across device profiles
+
+### Playwright Test Structure
+
+```typescript
+// Example Playwright test
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../models/LoginPage';
+
+test.describe('Authentication flows', () => {
+  test('should allow user to sign in', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login('test-user@example.com', 'password123');
+    
+    // Verify successful login
+    await expect(page.locator('[data-testid="user-avatar"]')).toBeVisible();
+  });
+});
+```
 
 ## Test Types
 
@@ -62,10 +101,10 @@ Our testing approach follows the testing pyramid model:
 ### Non-Functional Testing
 
 - **Performance Testing**: Response time, throughput, resource usage
-- **Accessibility Testing**: WCAG compliance
+- **Accessibility Testing**: WCAG compliance with Playwright and axe-core
 - **Security Testing**: Vulnerability scanning, penetration testing
 - **Usability Testing**: User experience evaluation
-- **Compatibility Testing**: Browser and device compatibility
+- **Compatibility Testing**: Browser and device compatibility via Playwright
 
 ## Test Organization
 
@@ -78,12 +117,18 @@ app/
 │       └── __tests__/  # Component tests
 └── features/
     └── __tests__/      # Feature tests
+
+e2e-tests/               # Playwright tests
+├── fixtures/           # Test data and fixtures
+├── models/             # Page object models
+├── specs/              # Test specifications
+└── utils/              # Test utilities
 ```
 
 ### File Naming
 - Unit tests: `*.test.ts`
 - Integration tests: `*.integration.test.ts`
-- E2E tests: `*.e2e.test.ts`
+- E2E tests: `*.spec.ts` (in e2e-tests directory)
 
 ## Coverage Requirements
 
@@ -155,6 +200,44 @@ describe('API', () => {
 });
 ```
 
+### 3. Playwright E2E Testing
+```typescript
+// Example Playwright test for lesson purchase
+import { test, expect } from '@playwright/test';
+import { LessonPage } from '../models/LessonPage';
+import { CheckoutPage } from '../models/CheckoutPage';
+
+test('user can purchase a lesson', async ({ page }) => {
+  // Login first
+  await page.goto('/');
+  await page.click('[data-testid="sign-in-button"]');
+  await page.fill('[data-testid="email-input"]', 'test-buyer@example.com');
+  await page.fill('[data-testid="password-input"]', 'TestPassword123!');
+  await page.click('[data-testid="submit-sign-in"]');
+  await page.waitForSelector('[data-testid="user-avatar"]');
+  
+  // Navigate to lesson
+  const lessonPage = new LessonPage(page);
+  await lessonPage.goto('lesson-1');
+  
+  // Purchase the lesson
+  await lessonPage.clickPurchaseButton();
+  
+  // Complete checkout
+  const checkoutPage = new CheckoutPage(page);
+  await checkoutPage.fillPaymentDetails({
+    cardNumber: '4242424242424242',
+    expiry: '12/30',
+    cvc: '123'
+  });
+  await checkoutPage.submitPayment();
+  
+  // Verify success
+  await expect(page.locator('[data-testid="purchase-success"]')).toBeVisible();
+  await expect(page.locator('[data-testid="video-player"]')).toBeVisible();
+});
+```
+
 ## Best Practices
 
 ### 1. Test Structure
@@ -185,6 +268,13 @@ describe('ComponentName', () => {
 - Test edge cases
 - Test validation
 
+### 5. Playwright-Specific Best Practices
+- Use Page Object Model pattern
+- Leverage test fixtures for common setup
+- Use data-testid attributes for stable selectors
+- Implement authentication helpers to avoid repetitive login steps
+- Use trace viewer for debugging failed tests
+
 ## Test Environment Strategy
 
 | Environment | Purpose | Data | Refresh Cycle |
@@ -201,6 +291,7 @@ describe('ComponentName', () => {
 - Avoid hardcoded test data
 - Maintain seed data for consistent testing
 - Use data builders for complex test scenarios
+- Leverage Playwright fixtures for E2E test data
 
 ## Quality Gates
 
@@ -232,8 +323,18 @@ test:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: npm ci
-    - name: Run tests
+    - name: Run unit and integration tests
       run: npm test
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: playwright-report
+        path: playwright-report/
     - name: Upload coverage
       uses: codecov/codecov-action@v2
 ```
@@ -251,13 +352,14 @@ test:
 - Test cases documented in code
 - Test results reported and tracked
 - Test coverage reports generated automatically
+- Playwright trace files preserved for failed tests
 
 ## Roles and Responsibilities
 
 | Role | Responsibilities |
 |------|------------------|
 | Developers | Write and maintain unit and integration tests |
-| QA Engineers | Design test plans, write E2E tests, exploratory testing |
+| QA Engineers | Design test plans, write E2E tests with Playwright, exploratory testing |
 | DevOps | Maintain test infrastructure and CI/CD pipeline |
 | Product Managers | Define acceptance criteria and validate test coverage |
 
@@ -267,6 +369,7 @@ test:
 - Defects categorized by severity and priority
 - Critical defects block releases
 - Regression tests added for fixed defects
+- Playwright tests added for reproducible bugs
 
 ## Continuous Improvement
 
@@ -274,5 +377,6 @@ test:
 - Test retrospectives after releases
 - Monitoring of test metrics (coverage, execution time, flakiness)
 - Periodic updates to testing strategy based on project needs
+- Regular updates to Playwright test suite as new features are added
 
 This testing strategy should be reviewed and updated quarterly to ensure it remains effective and aligned with project goals.

@@ -162,10 +162,7 @@ echo "# $ISSUE_TITLE" > issue-description.md
 gh label list
 
 # 5. Create issue with appropriate labels
-gh issue create --title "Fix: $ISSUE_TITLE" \
-  --body-file issue-description.md \
-  --label "bug" \
-  --assignee "@me"
+gh issue create --title "Fix: $ISSUE_TITLE" --body-file issue-description.md --label "bug" --assignee "@me"
 ```
 
 ## Issue Resolution Workflow

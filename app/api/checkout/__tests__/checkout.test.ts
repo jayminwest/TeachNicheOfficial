@@ -65,7 +65,10 @@ jest.mock('../route', () => {
   const originalModule = jest.requireActual('../route');
   return {
     ...originalModule,
-    POST: jest.fn().mockImplementation(async (_req) => {
+    POST: jest.fn().mockImplementation(async (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _req
+    ) => {
       return {
         status: 200,
         body: {

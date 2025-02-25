@@ -36,11 +36,25 @@ const config: PlaywrightTestConfig = {
       name: 'Mobile Chrome',
       use: devices['Pixel 5'],
     },
+    // Special project just for visual testing
+    {
+      name: 'Visual Tests',
+      use: { 
+        browserName: 'chromium',
+        // Consistent viewport for visual testing
+        viewport: { width: 1280, height: 720 },
+        // Consistent theme for visual testing
+        colorScheme: 'light',
+      },
+      testMatch: /.*\.visual\.spec\.ts/
+    }
   ],
   reporter: [
     ['html', { open: 'never' }],
     ['list']
   ],
+  // Update snapshots via command line: npx playwright test --update-snapshots
+  updateSnapshots: process.env.UPDATE_SNAPSHOTS ? 'all' : 'missing',
 };
 
 export default config;

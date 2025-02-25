@@ -208,12 +208,12 @@ export function LessonForm({
                     for (let i = 0; i < retries; i++) {
                       try {
                         // Exponential backoff with jitter
-                        const delay = initialDelay * Math.pow(1.5, i) * (0.75 + Math.random() * 0.5);
-                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries}, delay: ${Math.round(delay)}ms)...`);
+                        const currentDelay = initialDelay * Math.pow(1.5, i) * (0.75 + Math.random() * 0.5);
+                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries}, delay: ${Math.round(currentDelay)}ms)...`);
                         
                         // Wait before checking (longer delays for later attempts)
                         if (i > 0) {
-                          await new Promise(resolve => setTimeout(resolve, delay));
+                          await new Promise(resolve => setTimeout(resolve, currentDelay));
                         }
                         
                         const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
@@ -240,7 +240,7 @@ export function LessonForm({
                       }
                       
                       // Wait before the next retry
-                      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+                      await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, i)));
                     }
                     
                     // This should never be reached due to the throws above

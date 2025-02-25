@@ -101,7 +101,8 @@ export async function getErrorDetails(response: Response): Promise<string> {
       const text = await response.text();
       return text || `HTTP error ${response.status}`;
     }
-  } catch (error) {
+  } catch (_) {
+    // We don't use the error, just return a generic message
     return `HTTP error ${response.status}`;
   }
 }

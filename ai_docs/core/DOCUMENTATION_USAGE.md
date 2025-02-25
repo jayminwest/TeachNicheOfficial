@@ -1,43 +1,29 @@
-# Documentation Usage Guide for Aider
+# Documentation Usage Guide
 
-This guide outlines how to effectively use project documentation with Aider.
+This guide outlines how to effectively use project documentation.
 
 ## Finding Documentation
 
-Aider can locate and use documentation as needed based on the current task:
-
-```
 When working on a task, follow these steps:
 
-1. IDENTIFY the type of task you're working on:
+1. **IDENTIFY** the type of task you're working on:
    - Feature development
    - Bug fix
    - Refactoring
    - Documentation update
 
-2. REQUEST relevant documentation:
+2. **REQUEST** relevant documentation:
    - Ask: "Can you show me documentation about [specific topic]?"
    - Example: "Can you show me documentation about API principles?"
 
-3. REFERENCE specific sections:
+3. **REFERENCE** specific sections:
    - For standards: "What are our standards for [specific area]?"
    - For processes: "What's our process for [specific workflow]?"
 
-4. APPLY documentation appropriately:
+4. **APPLY** documentation appropriately:
    - Follow established patterns
    - Adhere to coding standards
    - Maintain documentation format
-```
-
-## Documentation Structure
-
-Our documentation is organized into these key areas:
-
-- **Core** (`ai_docs/core/`): Fundamental project information
-- **Standards** (`ai_docs/standards/`): Code, testing, and documentation standards
-- **Guides** (`ai_docs/guides/`): How-to instructions for common tasks
-- **Reference** (`ai_docs/reference/`): Detailed technical information
-- **Templates** (`ai_docs/templates/`): Standard formats for documentation
 
 ## When to Request Documentation
 
@@ -56,4 +42,31 @@ For complex tasks:
 3. Implement following documented standards
 4. Update documentation if necessary
 
-This approach allows Aider to discover and apply the appropriate documentation based on the specific context of each task, without overwhelming it with unnecessary information upfront.
+## Documentation Maintenance
+
+When you find outdated or incorrect information:
+1. Identify the specific issue
+2. Propose a clear update
+3. Submit through the established documentation update process
+4. Reference any related code changes
+
+## Effective Documentation Practices
+
+1. **Be Concise**: Keep documentation clear and to the point
+2. **Use Examples**: Include practical code examples
+3. **Maintain Structure**: Follow the established documentation structure
+4. **Cross-Reference**: Link to related documentation
+5. **Keep Updated**: Update documentation when implementing changes
+
+This approach allows you to discover and apply the appropriate documentation based on the specific context of each task, without overwhelming yourself with unnecessary information upfront.
+
+## Version History
+
+| Version | Date | Author | Description |
+|---------|------|--------|-------------|
+| 1.0 | 2025-02-24 | Documentation Team | Initial version |
+| 1.1 | 2025-02-25 | Documentation Team | Removed structure overlap, added maintenance section |
+
+---
+
+*This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*

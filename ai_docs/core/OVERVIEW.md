@@ -1,8 +1,15 @@
 # Teach Niche Project Overview
 
-## Purpose
+## Vision
 
-This document provides a high-level overview of the Teach Niche project, its core philosophy, and guiding principles. It serves as the entry point to our documentation and helps team members understand the project's purpose and direction.
+Teach Niche is a platform designed to connect expert instructors with students seeking specialized knowledge in niche subjects. Our vision is to democratize access to expert instruction in specialized fields that are often underserved by traditional educational platforms.
+
+## Mission
+
+To create a seamless, secure, and engaging platform that:
+- Enables experts to monetize their specialized knowledge
+- Provides learners with high-quality, accessible instruction in niche subjects
+- Fosters communities around specialized interests and skills
 
 ## Core Philosophy
 
@@ -25,6 +32,35 @@ Our development approach emphasizes:
 5. Deliver a high-quality user experience
 6. Enable creators to monetize their expertise
 7. Provide interactive learning opportunities
+
+## Core Values
+
+- **Expertise**: Valuing and promoting deep, specialized knowledge
+- **Accessibility**: Making specialized instruction available to all
+- **Quality**: Maintaining high standards for all content
+- **Community**: Building connections between experts and learners
+- **Innovation**: Continuously improving the learning experience
+
+## Target Audience
+
+### Instructors
+- Subject matter experts with specialized knowledge
+- Content creators looking to monetize their expertise
+- Professionals seeking to share their skills
+
+### Learners
+- Enthusiasts seeking to deepen knowledge in specific areas
+- Professionals looking to acquire specialized skills
+- Hobbyists wanting to learn from recognized experts
+
+## Key Features
+
+- Secure, high-quality video lesson hosting
+- Flexible pricing models for instructors
+- Robust content discovery system
+- Community engagement tools
+- Integrated payment processing with instructor payouts
+- Analytics for instructors to track performance
 
 ## Key Stakeholders
 
@@ -74,69 +110,14 @@ New team members should:
 - Team Communication: Slack
 - Issue Tracking: GitHub Issues
 
-## Version Control
-
-This document is maintained under version control. Significant changes are documented in the version history below.
-
 ## Version History
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2025-02-24 | Documentation Team | Initial version |
 | 1.1 | 2025-02-24 | Documentation Team | Updated as part of documentation restructuring |
+| 1.2 | 2025-02-25 | Documentation Team | Consolidated duplicate overview sections |
 
 ---
 
 *This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*
-# Project Overview
-
-## Vision
-
-Teach Niche is a platform designed to connect expert instructors with students seeking specialized knowledge in niche subjects. Our vision is to democratize access to expert instruction in specialized fields that are often underserved by traditional educational platforms.
-
-## Mission
-
-To create a seamless, secure, and engaging platform that:
-- Enables experts to monetize their specialized knowledge
-- Provides learners with high-quality, accessible instruction in niche subjects
-- Fosters communities around specialized interests and skills
-
-## Core Values
-
-- **Expertise**: Valuing and promoting deep, specialized knowledge
-- **Accessibility**: Making specialized instruction available to all
-- **Quality**: Maintaining high standards for all content
-- **Community**: Building connections between experts and learners
-- **Innovation**: Continuously improving the learning experience
-
-## Target Audience
-
-### Instructors
-- Subject matter experts with specialized knowledge
-- Content creators looking to monetize their expertise
-- Professionals seeking to share their skills
-
-### Learners
-- Enthusiasts seeking to deepen knowledge in specific areas
-- Professionals looking to acquire specialized skills
-- Hobbyists wanting to learn from recognized experts
-
-## Key Features
-
-- Secure, high-quality video lesson hosting
-- Flexible pricing models for instructors
-- Robust content discovery system
-- Community engagement tools
-- Integrated payment processing with instructor payouts
-- Analytics for instructors to track performance
-
-## Technology Philosophy
-
-Our development approach emphasizes:
-- **Modularity**: Each component has a single, well-defined responsibility
-- **Minimalism**: Keep dependencies minimal and interfaces clean
-- **Type Safety**: Leverage TypeScript for robust, maintainable code
-- **Testing First**: Write tests before implementing features
-- **Security**: Prioritize data protection and secure coding practices
-
-This overview provides a foundation for understanding the purpose, values, and approach of the Teach Niche platform.

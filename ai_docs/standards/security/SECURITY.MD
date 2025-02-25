@@ -9,7 +9,151 @@
 - Session management with useAuth() hook
 - Secure token handling and refresh
 
-### 2. API Security
+### Authentication Context
+
+```typescript
+// services/auth/AuthContext.tsx
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signInWithProvider: (provider: OAuthProvider) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
+}
+
+export const AuthContext = createContext<AuthContextType>(null!);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Initialize auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        if (event === 'SIGNED_OUT') {
+          router.push('/');
+        } else if (event === 'SIGNED_IN') {
+          router.push('/dashboard');
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      isAuthenticated: !!user,
+      signIn,
+      signOut
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+```
+
+### Route Protection
+
+#### Middleware
+```typescript
+// middleware.ts
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/signin', req.url))
+  }
+
+  return res
+}
+```
+
+### Role-Based Access Control (RBAC)
+
+```typescript
+enum UserRole {
+  USER = 'user',
+  CREATOR = 'creator',
+  ADMIN = 'admin'
+}
+
+interface User {
+  id: string
+  role: UserRole
+  permissions: string[]
+}
+
+function checkPermission(user: User, permission: string): boolean {
+  return user.permissions.includes(permission)
+}
+
+function RequirePermission({ 
+  permission, 
+  children 
+}: { 
+  permission: string
+  children: React.ReactNode 
+}) {
+  const { user } = useAuth()
+  
+  if (!user || !checkPermission(user, permission)) {
+    return <AccessDenied />
+  }
+
+  return children
+}
+```
+
+### Authentication Flow
+
+```typescript
+async function handleSignIn(email: string, password: string) {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+
+    if (error) throw error
+
+    // Handle successful sign in
+    router.push('/dashboard')
+  } catch (error) {
+    // Handle error
+    toast.error('Failed to sign in')
+  }
+}
+```
+
+### Password Requirements
+```typescript
+const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+  .regex(/[a-z]/, 'Password must contain a lowercase letter')
+  .regex(/[0-9]/, 'Password must contain a number')
+  .regex(/[^A-Za-z0-9]/, 'Password must contain a special character')
+```
+
+### API Security
 - Input validation with Zod
 - Request rate limiting
 - CORS configuration
@@ -82,6 +226,41 @@ try {
     message: 'Operation failed',
     code: 'OPERATION_ERROR'
   };
+}
+```
+
+### 4. Rate Limiting
+```typescript
+import rateLimit from 'express-rate-limit'
+
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5 // limit each IP to 5 requests per windowMs
+})
+```
+
+### 5. OAuth Integration
+```typescript
+const oauthProviders = {
+  google: {
+    id: 'google',
+    name: 'Google',
+    icon: GoogleIcon,
+  },
+  github: {
+    id: 'github',
+    name: 'GitHub',
+    icon: GitHubIcon,
+  }
+}
+
+async function signInWithProvider(provider: string) {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: provider as Provider,
+    options: {
+      redirectTo: `${location.origin}/auth/callback`
+    }
+  })
 }
 ```
 
@@ -175,3 +354,28 @@ const logger = {
 - Incident reports
 - Audit logs
 - Compliance records
+
+## Security Headers
+
+### CSP Configuration
+```typescript
+// next.config.js
+const securityHeaders = [
+  {
+    key: 'Content-Security-Policy',
+    value: `
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' blob: data:;
+      font-src 'self';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-ancestors 'none';
+      block-all-mixed-content;
+      upgrade-insecure-requests;
+    `
+  }
+]
+```

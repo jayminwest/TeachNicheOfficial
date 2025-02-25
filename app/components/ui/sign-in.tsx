@@ -34,13 +34,8 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         throw result.error
       }
       
-      if (typeof window !== 'undefined' && window.nextRouterMock) {
-        // Use the mock in test environment
-        window.nextRouterMock.push('/dashboard');
-      } else {
-        // Use actual navigation in real environment
-        window.location.href = '/dashboard';
-      }
+      // Use the router for navigation in both test and real environments
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     } finally {

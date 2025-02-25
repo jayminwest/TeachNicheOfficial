@@ -1,13 +1,19 @@
 import { test, expect } from '@playwright/test';
 
+// Make sure the app is running before tests
+test.beforeEach(async ({ page }) => {
+  // Check if the app is accessible
+  const response = await page.goto('/');
+  expect(response?.status()).toBeLessThan(400);
+});
+
 test.describe('Authentication flows', () => {
   test('User can sign up with email', async ({ page }) => {
     // Generate a unique email for testing
     const testEmail = `test-${Date.now()}@example.com`;
     const testPassword = 'SecurePassword123!';
     
-    // Navigate to home page
-    await page.goto('/');
+    // We're already on the home page from beforeEach
     
     // Open auth dialog
     await page.click('[data-testid="sign-up-button"]');
@@ -32,8 +38,7 @@ test.describe('Authentication flows', () => {
     const testEmail = 'existing-user@example.com';
     const testPassword = 'ExistingPassword123!';
     
-    // Navigate to home page
-    await page.goto('/');
+    // We're already on the home page from beforeEach
     
     // Open auth dialog
     await page.click('[data-testid="sign-in-button"]');
@@ -53,8 +58,7 @@ test.describe('Authentication flows', () => {
   });
   
   test('User sees error with invalid credentials', async ({ page }) => {
-    // Navigate to home page
-    await page.goto('/');
+    // We're already on the home page from beforeEach
     
     // Open auth dialog
     await page.click('[data-testid="sign-in-button"]');

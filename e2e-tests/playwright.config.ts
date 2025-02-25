@@ -1,9 +1,15 @@
-import { PlaywrightTestConfig } from '@playwright/test';
+import { PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   testDir: './',
   timeout: 30000,
   retries: process.env.CI ? 2 : 0,
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    timeout: 120000,
+    reuseExistingServer: !process.env.CI,
+  },
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
     screenshot: 'only-on-failure',
@@ -25,12 +31,7 @@ const config: PlaywrightTestConfig = {
     },
     {
       name: 'Mobile Chrome',
-      use: {
-        browserName: 'chromium',
-        viewport: { width: 375, height: 667 },
-        deviceScaleFactor: 2,
-        isMobile: true,
-      },
+      use: devices['Pixel 5'],
     },
   ],
   reporter: [

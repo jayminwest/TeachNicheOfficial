@@ -24,11 +24,17 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
-    const { error } = await signInWithGoogle()
-    if (error) {
-      setError(error instanceof Error ? error.message : 'Failed to sign in with Google')
+    try {
+      const result = await signInWithGoogle()
+      if (result.error) {
+        throw result.error
+      }
+      router.push('/')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   return (

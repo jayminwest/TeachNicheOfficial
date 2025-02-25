@@ -51,9 +51,13 @@ async function mockGoogleOAuthResponse(page, options = {}) {
   // Block navigation to Google's auth page
   await page.route('**/auth/v1/authorize?provider=google**', async (route) => {
     console.log('Intercepted Google auth redirect');
-    await route.abort();
+    await route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<html><body>Auth redirect intercepted</body></html>'
+    });
     
-    // Directly call the mock function we'll define below
+    // Use a safer approach to trigger our mock
     await page.evaluate((mockOptions) => {
       console.log('Executing mock auth response');
       if (window.mockAuthCallback) {
@@ -137,7 +141,7 @@ async function mockGoogleOAuthResponse(page, options = {}) {
         // Find the dialog and add the error message
         const dialog = document.querySelector('div[role="dialog"]');
         if (dialog) {
-          const buttonContainer = dialog.querySelector('button[type="button"]').parentNode;
+          const buttonContainer = dialog.querySelector('button').parentNode;
           buttonContainer.appendChild(errorElement);
         }
         
@@ -226,10 +230,16 @@ test.describe('Authentication flows', () => {
     
     // Since we've mocked the auth, we should see a success message or be redirected
     // For now, let's just verify the test doesn't fail
-    await page.waitForTimeout(1000);
+    try {
+      // Wait for any pending promises to resolve
+      await page.waitForTimeout(1000);
     
-    // Test passes if we get here without errors
-    console.log('Authentication test completed successfully');
+      // Test passes if we get here without errors
+      console.log('Authentication test completed successfully');
+    } catch (error) {
+      console.error('Authentication test failed:', error);
+      throw error;
+    }
   });
   
   test('User can sign up with Google', async ({ page }) => {
@@ -279,10 +289,16 @@ test.describe('Authentication flows', () => {
     
     // Since we've mocked the auth, we should see a success message or be redirected
     // For now, let's just verify the test doesn't fail
-    await page.waitForTimeout(1000);
+    try {
+      // Wait for any pending promises to resolve
+      await page.waitForTimeout(1000);
     
-    // Test passes if we get here without errors
-    console.log('Sign up test completed successfully');
+      // Test passes if we get here without errors
+      console.log('Sign up test completed successfully');
+    } catch (error) {
+      console.error('Sign up test failed:', error);
+      throw error;
+    }
   });
   
   test('User sees error with Google authentication failure', async ({ page }) => {

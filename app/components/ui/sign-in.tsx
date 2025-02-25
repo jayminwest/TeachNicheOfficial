@@ -24,10 +24,15 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signInWithGoogle()
+      const result = await signInWithGoogle()
+      if (result.error) {
+        throw result.error
+      }
       router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+    } finally {
+      setIsLoading(false)
     }
   }
 

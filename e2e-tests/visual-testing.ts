@@ -24,7 +24,7 @@ export async function compareScreenshot(
     // Elements to mask before comparison (like timestamps, random content)
     mask: options?.mask ?? [],
     // Maximum pixels that can be different
-    maxDiffPixelRatio: 0.01
+    maxDiffPixels: 100
   });
 }
 

@@ -40,7 +40,7 @@ export function createMockFile(name = 'test.mp4', type = 'video/mp4') {
 }
 
 // Auth wrapper for testing components that need auth context
-export function renderWithAuth(ui: React.ReactElement, { user = null, ...options } = {}) {
+export function renderWithAuth(ui: React.ReactElement, { user: _user = null, ...options } = {}) {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <AuthProvider>

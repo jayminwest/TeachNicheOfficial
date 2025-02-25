@@ -1,7 +1,6 @@
 import { createMocks } from 'node-mocks-http';
 import * as routeModule from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
-import { NextResponse } from 'next/server';
 
 // Define mock Stripe checkout session
 const mockStripeCheckoutSession = {
@@ -25,7 +24,7 @@ jest.mock('../../../services/stripe', () => ({
   StripeError: jest.fn().mockImplementation(function(code, message) {
     const error = new Error(message);
     error.name = 'StripeError';
-    (error as any).code = code;
+    ((error as unknown) as { code: string }).code = code;
     return error;
   })
 }));
@@ -66,7 +65,7 @@ jest.mock('../route', () => {
   const originalModule = jest.requireActual('../route');
   return {
     ...originalModule,
-    POST: jest.fn().mockImplementation(async (req) => {
+    POST: jest.fn().mockImplementation(async (_req) => {
       return {
         status: 200,
         body: {

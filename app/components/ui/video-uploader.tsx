@@ -142,9 +142,8 @@ export function VideoUploader({
       uploadId: data.uploadId
     });
     
-    // Store the upload ID (using destructuring to avoid the unused variable warning)
-    const [, setUploadId] = useState<string | null>(null);
-    setUploadId(data.uploadId);
+    // Store the upload ID
+    _setUploadId(data.uploadId);
     
     return {
       url: data.url,

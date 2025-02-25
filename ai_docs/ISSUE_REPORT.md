@@ -1,14 +1,22 @@
-# Issue Creation Workflow
+# Issue Creation and Resolution Workflow
 
-This document outlines the standardized process for creating detailed GitHub issues using AI assistance and the GitHub CLI.
+This document outlines the standardized process for creating and resolving detailed GitHub issues using AI assistance and the GitHub CLI.
 
-## Overview
+## Issue Creation Overview
 
 The issue creation pipeline follows these steps:
 1. User provides initial issue description
 2. AI assistant expands and formats the issue
 3. AI identifies affected files
 4. Issue is created via GitHub CLI
+
+## Issue Resolution Overview
+
+When fixing an issue, follow these steps:
+1. Create a branch from dev specifically for the fix
+2. Implement and test the fix
+3. Create a pull request
+4. Link the PR to the issue
 
 ## Step 1: Initial Issue Description
 
@@ -42,7 +50,7 @@ The AI assistant will:
 1. Expand the issue description
 2. Add technical analysis
 3. Format according to our template
-4. Save to `ai_docs/scratchpad.md` and also to the `issues/` directory
+4. Save to `ai_docs/scratchpad.md` and also to the `ai_docs/issues/` directory
 
 The expanded issue will include:
 - Detailed description
@@ -53,7 +61,7 @@ The expanded issue will include:
 - Testing requirements
 - Additional context
 
-When saving to the issues/ directory, use a descriptive filename with the date and issue title:
+When saving to the ai_docs/issues/ directory, use a descriptive filename with the date and issue title:
 ```bash
 # Example filename format
 YYYY-MM-DD-issue-title-slug.md
@@ -75,7 +83,7 @@ This analysis is added to the issue report in `scratchpad.md`.
 gh label list
 ```
 
-2. Save the issue to the issues/ directory:
+2. Save the issue to the ai_docs/issues/ directory:
 ```bash
 # Create issues directory if it doesn't exist
 mkdir -p issues
@@ -111,6 +119,8 @@ wontfix           This will not be worked on                  #ffffff
 
 ## Best Practices
 
+### For Issue Creation
+
 1. **Issue Titles**
    - Start with type: "Fix:", "Feature:", "Docs:", etc.
    - Be specific but concise
@@ -132,7 +142,24 @@ wontfix           This will not be worked on                  #ffffff
    - Add screenshots if applicable
    - Link to related issues/PRs
 
-## Example Workflow
+### For Issue Resolution
+
+1. **Branch Naming**
+   - Always create a branch from dev
+   - Use the format: `fix/issue-NUMBER-brief-description`
+   - Keep branch names concise but descriptive
+
+2. **Commit Messages**
+   - Reference the issue number with # prefix
+   - Be clear about what the commit does
+   - Use present tense (e.g., "Fix dropdown menu" not "Fixed dropdown menu")
+
+3. **Pull Requests**
+   - Link to the issue in the PR description
+   - Include "Resolves #ISSUE_NUMBER" to auto-close the issue when merged
+   - Request appropriate reviewers
+
+## Issue Creation Example
 
 ```bash
 # 1. User describes issue to AI assistant
@@ -140,8 +167,8 @@ wontfix           This will not be worked on                  #ffffff
 
 # 3. Save to issues directory with descriptive filename
 ISSUE_TITLE="Mobile Select Menu Interaction Issues"
-ISSUE_FILE="issues/$(date +%Y-%m-%d)-$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').md"
-mkdir -p issues
+ISSUE_FILE="ai_docs/issues/$(date +%Y-%m-%d)-$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').md"
+mkdir -p ai_docs/issues
 cp ai_docs/scratchpad.md "$ISSUE_FILE"
 
 # 4. Check available labels
@@ -154,4 +181,33 @@ gh issue create --title "Fix: $ISSUE_TITLE" \
   --assignee "@me"
 ```
 
-This standardized process ensures consistent, detailed issue reports that help developers understand and resolve problems efficiently.
+## Issue Resolution Workflow
+
+When you're ready to fix an issue:
+
+```bash
+# 1. Get the latest dev branch
+git checkout dev
+git pull
+
+# 2. Create a fix branch from dev
+# Use the issue number in the branch name when possible
+ISSUE_NUMBER="123"  # Replace with actual issue number
+git checkout -b fix/issue-$ISSUE_NUMBER-brief-description dev
+
+# 3. Implement the fix
+
+# 4. Commit your changes with a descriptive message that references the issue
+git add .
+git commit -m "Fix #$ISSUE_NUMBER: Brief description of the fix"
+
+# 5. Push your branch
+git push -u origin fix/issue-$ISSUE_NUMBER-brief-description
+
+# 6. Create a pull request that links to the issue
+gh pr create --title "Fix #$ISSUE_NUMBER: Brief description" \
+  --body "Resolves #$ISSUE_NUMBER" \
+  --base dev
+```
+
+This standardized process ensures consistent, detailed issue reports and properly tracked fixes that help developers understand and resolve problems efficiently.

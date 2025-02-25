@@ -107,10 +107,12 @@ export function VideoUploader({
   };
 
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
-  const [currentAssetId, setCurrentAssetId] = useState<string | null>(null);
 
+  // We need to track the upload ID to get the asset ID later
+  const [_uploadId, _setUploadId] = useState<string | null>(null);
+  
   // First step: Get the Mux upload URL from our API
-  const getUploadUrl = useCallback(async (): Promise<{url: string; assetId: string}> => {
+  const getUploadUrl = useCallback(async (): Promise<{url: string; uploadId: string}> => {
     const response = await fetch('/api/mux/upload', {
       method: 'POST'
     });
@@ -123,10 +125,30 @@ export function VideoUploader({
     }
 
     const data = await response.json();
-    if (!data.url || !data.assetId) {
-      throw new Error('Invalid upload response');
+    console.log("Upload URL response:", data);
+    
+    // Validate the response data more carefully
+    if (!data.url) {
+      throw new Error('Invalid upload response: missing URL');
     }
-    return data;
+    
+    // Store the upload ID for later use
+    if (!data.uploadId || typeof data.uploadId !== 'string' || !data.uploadId.trim()) {
+      throw new Error('Invalid upload response: missing or invalid upload ID');
+    }
+    
+    // Log the IDs for debugging
+    console.log("Received IDs from upload endpoint:", {
+      uploadId: data.uploadId
+    });
+    
+    // Store the upload ID
+    _setUploadId(data.uploadId);
+    
+    return {
+      url: data.url,
+      uploadId: data.uploadId // Keep the original property name for API compatibility
+    };
   }, []);
 
   // Fetch endpoint URL when component mounts if it's a function
@@ -134,9 +156,9 @@ export function VideoUploader({
     const fetchWithRetry = async (retries = 3, delay = 1000) => {
       for (let i = 0; i < retries; i++) {
         try {
-          const {url, assetId} = await getUploadUrl();
+          const {url} = await getUploadUrl();
           setUploadEndpoint(url);
-          setCurrentAssetId(assetId);
+          // We'll get the asset ID after the upload completes
           return;
         } catch (error) {
           console.error(`Upload URL fetch attempt ${i + 1} failed:`, error);
@@ -197,22 +219,109 @@ export function VideoUploader({
   const handleSuccess: MuxUploaderProps["onSuccess"] = async (event) => {
     console.log("Raw success event:", event);
     
-    if (!currentAssetId) {
-      console.error("No asset ID available for completed upload");
-      handleError(new Error("Upload failed: No asset ID available"));
+    if (!_uploadId) {
+      console.error("No upload ID available for completed upload");
+      handleError(new Error("Upload failed: No upload ID available"));
       return;
     }
 
     try {
       setStatus("processing");
       
-      // Since we already have the asset ID from the initial upload setup
-      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${currentAssetId}`);
-      if (!assetResponse.ok) {
-        throw new Error('Failed to get asset status');
-      }
-
-      const assetData = await assetResponse.json();
+      // First, we need to get the asset ID from the upload ID
+      console.log("Getting asset ID from upload ID:", _uploadId);
+      
+      // Wait a moment before checking upload status to allow Mux to process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Get the asset ID from the upload status
+      const getAssetIdFromUpload = async (retries = 3, delay = 2000): Promise<string> => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            console.log(`Checking upload status (attempt ${i + 1}/${retries})...`);
+            
+            const uploadResponse = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(_uploadId)}`);
+            
+            if (!uploadResponse.ok) {
+              const errorText = await uploadResponse.text();
+              console.error(`Upload status check failed (${uploadResponse.status}):`, errorText);
+              
+              if (i === retries - 1) {
+                throw new Error(`Failed to get upload status: ${uploadResponse.status} ${errorText}`);
+              }
+            } else {
+              // Success - parse and check for asset ID
+              const data = await uploadResponse.json();
+              console.log("Upload status response:", data);
+              
+              if (data.assetId) {
+                console.log("Asset ID retrieved:", data.assetId);
+                return data.assetId;
+              } else if (i === retries - 1) {
+                throw new Error("No asset ID available from upload");
+              }
+            }
+          } catch (error) {
+            console.error(`Upload status check error (attempt ${i + 1}/${retries}):`, error);
+            
+            if (i === retries - 1) {
+              throw error;
+            }
+          }
+          
+          // Wait before the next retry
+          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        }
+        
+        throw new Error("Failed to get asset ID from upload after multiple attempts");
+      };
+      
+      // Get the asset ID
+      const assetId = await getAssetIdFromUpload();
+      
+      // Now check the asset status
+      const checkAssetStatus = async (assetId: string, retries = 3, delay = 2000): Promise<{status: string; playbackId?: string}> => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            console.log(`Checking asset status (attempt ${i + 1}/${retries})...`);
+            
+            // Make sure we're using the asset ID, not the upload ID
+            const assetResponse = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+            
+            if (!assetResponse.ok) {
+              const errorText = await assetResponse.text();
+              console.error(`Asset status check failed (${assetResponse.status}):`, errorText);
+              
+              // If this is the last retry, throw the error
+              if (i === retries - 1) {
+                throw new Error(`Failed to get asset status: ${assetResponse.status} ${errorText}`);
+              }
+            } else {
+              // Success - parse and return the data
+              const data = await assetResponse.json();
+              console.log("Asset status response:", data);
+              return data;
+            }
+          } catch (error) {
+            console.error(`Asset status check error (attempt ${i + 1}/${retries}):`, error);
+            
+            // If this is the last retry, throw the error
+            if (i === retries - 1) {
+              throw error;
+            }
+          }
+          
+          // Wait before the next retry
+          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        }
+        
+        // This should never be reached due to the throws above, but TypeScript wants a return
+        throw new Error("Failed to get asset status after multiple attempts");
+      };
+      
+      // Check asset status with retries
+      const assetData = await checkAssetStatus(assetId);
+      
       if (assetData.status === 'errored') {
         throw new Error('Video processing failed');
       }
@@ -222,16 +331,16 @@ export function VideoUploader({
       }
 
       console.log("Upload and processing completed successfully:", {
-        assetId: currentAssetId,
+        assetId: assetId,
         status: assetData.status,
         playbackId: assetData.playbackId
       });
 
       setStatus("ready");
-      onUploadComplete(currentAssetId);
+      onUploadComplete(assetId);
     } catch (error) {
-      console.error("Error getting asset ID from upload:", error);
-      handleError(error instanceof Error ? error : new Error('Failed to get asset ID'));
+      console.error("Error processing video upload:", error);
+      handleError(error instanceof Error ? error : new Error('Failed to process video upload'));
     }
   };
 

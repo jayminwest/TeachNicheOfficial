@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/app/lib/utils";
+import { cn, safeNumberValue } from "@/app/lib/utils";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkdownEditor } from "./markdown-editor";
@@ -156,7 +156,11 @@ export function LessonForm({
                       max="999.99"
                       className="pl-7"
                       {...field} 
-                      onChange={e => field.onChange(parseFloat(e.target.value))}
+                      value={safeNumberValue(field.value)}
+                      onChange={e => {
+                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        field.onChange(Number.isNaN(value) ? 0 : value);
+                      }}
                       disabled={isSubmitting}
                     />
                   </FormControl>
@@ -191,14 +195,59 @@ export function LessonForm({
                   });
                   
                   // Wait for the asset to be ready and get the playback ID
-                  const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
-                  if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(
-                      errorData.error || errorData.details || 
-                      `Failed to get asset status: ${response.status}`
-                    );
+                  // Log the asset ID we're using
+                  console.log("Lesson form using asset ID for status check:", assetId);
+                  
+                  // Validate the asset ID format
+                  if (!assetId.match(/^[a-zA-Z0-9]{20,}$/)) {
+                    console.warn("Asset ID format looks suspicious:", assetId);
                   }
+                  
+                  // Add retry logic for checking asset status with exponential backoff
+                  const checkAssetStatus = async (retries = 5, initialDelay = 2000) => {
+                    for (let i = 0; i < retries; i++) {
+                      try {
+                        // Exponential backoff with jitter
+                        const currentDelay = initialDelay * Math.pow(1.5, i) * (0.75 + Math.random() * 0.5);
+                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries}, delay: ${Math.round(currentDelay)}ms)...`);
+                        
+                        // Wait before checking (longer delays for later attempts)
+                        if (i > 0) {
+                          await new Promise(resolve => setTimeout(resolve, currentDelay));
+                        }
+                        
+                        const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+                        
+                        if (!response.ok) {
+                          const errorText = await response.text();
+                          console.error(`Asset status check failed (${response.status}):`, errorText);
+                          
+                          // If this is the last retry, throw the error
+                          if (i === retries - 1) {
+                            throw new Error(`Failed to get asset status: ${response.status} ${errorText}`);
+                          }
+                        } else {
+                          // Success - return the response
+                          return response;
+                        }
+                      } catch (error) {
+                        console.error(`Asset status check error (attempt ${i + 1}/${retries}):`, error);
+                        
+                        // If this is the last retry, throw the error
+                        if (i === retries - 1) {
+                          throw error;
+                        }
+                      }
+                      
+                      // Wait before the next retry
+                      await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, i)));
+                    }
+                    
+                    // This should never be reached due to the throws above
+                    throw new Error("Failed to get asset status after multiple attempts");
+                  };
+                  
+                  const response = await checkAssetStatus();
                   
                   const data = await response.json();
                   console.log("Asset status response:", data);

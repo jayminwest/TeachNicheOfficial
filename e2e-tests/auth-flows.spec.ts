@@ -36,6 +36,51 @@ test.beforeAll(async ({ browser }) => {
   await context.close();
 });
 
+// Helper function to mock Google OAuth response
+async function mockGoogleOAuthResponse(page, options = {}) {
+  const {
+    success = true,
+    userId = 'google-user-123',
+    email = 'google-user@example.com',
+    fullName = 'Google Test User',
+    avatarUrl = 'https://example.com/avatar.png',
+    isNewUser = false,
+    errorMessage = 'Authentication failed'
+  } = options;
+  
+  if (success) {
+    await page.route('**/auth/callback/google', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          success: true,
+          user: {
+            id: userId,
+            email: email,
+            user_metadata: {
+              full_name: fullName,
+              avatar_url: avatarUrl
+            }
+          },
+          isNewUser
+        })
+      });
+    });
+  } else {
+    await page.route('**/auth/callback/google', async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          error: 'Authentication failed',
+          message: errorMessage
+        })
+      });
+    });
+  }
+}
+
 // Navigate to the home page before each test
 test.beforeEach(async ({ page }) => {
   try {
@@ -48,70 +93,122 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Authentication flows', () => {
-  test('User can sign up with email', async ({ page }) => {
-    // Generate a unique email for testing
-    const testEmail = `test-${Date.now()}@example.com`;
-    const testPassword = 'SecurePassword123!';
-    
+  test('User can sign in with Google', async ({ page, context }) => {
     // We're already on the home page from beforeEach
     
     // Open auth dialog
-    await page.click('[data-testid="sign-up-button"]');
+    await page.click('[data-testid="sign-in-button"]');
     
-    // Fill in sign up form
-    await page.fill('[data-testid="email-input"]', testEmail);
-    await page.fill('[data-testid="password-input"]', testPassword);
-    await page.fill('[data-testid="full-name-input"]', 'Test User');
+    // Mock Google OAuth flow
+    // Note: In a real test, you would need to handle the Google OAuth popup
+    // This is a simplified version that mocks the response
     
-    // Submit form
-    await page.click('[data-testid="submit-sign-up"]');
+    // Click the Google sign-in button
+    const googleSignInButton = page.locator('[data-testid="google-sign-in-button"]');
+    await expect(googleSignInButton).toBeVisible();
     
-    // Verify successful sign up (redirected to dashboard or profile completion)
-    await page.waitForURL(/.*dashboard|profile.*/);
+    // Set up a route to intercept the OAuth redirect
+    await page.route('**/auth/callback/google', async (route) => {
+      // Mock a successful authentication response
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          success: true,
+          user: {
+            id: 'google-user-123',
+            email: 'google-user@example.com',
+            user_metadata: {
+              full_name: 'Google Test User',
+              avatar_url: 'https://example.com/avatar.png'
+            }
+          }
+        })
+      });
+    });
+    
+    // Click the Google sign-in button which would normally open a popup
+    await googleSignInButton.click();
+    
+    // In a real test with a popup, you would need to handle the popup window
+    // For this mock version, we'll simulate the callback directly
+    
+    // Verify successful login (redirected to dashboard)
+    await page.waitForURL(/.*dashboard.*/, { timeout: 10000 });
     
     // Verify user is logged in (avatar or user menu is visible)
     await expect(page.locator('[data-testid="user-avatar"]')).toBeVisible();
   });
   
-  test('User can log in with email', async ({ page }) => {
-    // Use test account credentials
-    const testEmail = 'existing-user@example.com';
-    const testPassword = 'ExistingPassword123!';
-    
+  test('User can sign up with Google', async ({ page }) => {
     // We're already on the home page from beforeEach
     
-    // Open auth dialog
-    await page.click('[data-testid="sign-in-button"]');
+    // Open auth dialog in sign-up mode
+    await page.click('[data-testid="sign-up-button"]');
     
-    // Fill in login form
-    await page.fill('[data-testid="email-input"]', testEmail);
-    await page.fill('[data-testid="password-input"]', testPassword);
+    // Click the Google sign-up button
+    const googleSignUpButton = page.locator('[data-testid="google-sign-up-button"]');
+    await expect(googleSignUpButton).toBeVisible();
     
-    // Submit form
-    await page.click('[data-testid="submit-sign-in"]');
+    // Set up a route to intercept the OAuth redirect
+    await page.route('**/auth/callback/google', async (route) => {
+      // Mock a successful authentication response for a new user
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          success: true,
+          user: {
+            id: 'new-google-user-456',
+            email: 'new-google-user@example.com',
+            user_metadata: {
+              full_name: 'New Google User',
+              avatar_url: 'https://example.com/new-avatar.png'
+            }
+          },
+          isNewUser: true
+        })
+      });
+    });
     
-    // Verify successful login
-    await page.waitForURL(/.*dashboard.*/);
+    // Click the Google sign-up button
+    await googleSignUpButton.click();
+    
+    // Verify successful sign up (redirected to onboarding or dashboard)
+    await page.waitForURL(/.*onboarding|dashboard|profile.*/, { timeout: 10000 });
     
     // Verify user is logged in
     await expect(page.locator('[data-testid="user-avatar"]')).toBeVisible();
   });
   
-  test('User sees error with invalid credentials', async ({ page }) => {
+  test('User sees error with Google authentication failure', async ({ page }) => {
     // We're already on the home page from beforeEach
     
     // Open auth dialog
     await page.click('[data-testid="sign-in-button"]');
     
-    // Fill in login form with invalid credentials
-    await page.fill('[data-testid="email-input"]', 'wrong@example.com');
-    await page.fill('[data-testid="password-input"]', 'WrongPassword123!');
+    // Click the Google sign-in button
+    const googleSignInButton = page.locator('[data-testid="google-sign-in-button"]');
+    await expect(googleSignInButton).toBeVisible();
     
-    // Submit form
-    await page.click('[data-testid="submit-sign-in"]');
+    // Set up a route to intercept the OAuth redirect and simulate a failure
+    await page.route('**/auth/callback/google', async (route) => {
+      // Mock a failed authentication response
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          error: 'Authentication failed',
+          message: 'Google authentication failed'
+        })
+      });
+    });
+    
+    // Click the Google sign-in button
+    await googleSignInButton.click();
     
     // Verify error message is displayed
     await expect(page.locator('[data-testid="auth-error-message"]')).toBeVisible();
-    await expect(page.locator('[data-testid="auth-error-message"]')).toContainText('Invalid credentials');
+    await expect(page.locator('[data-testid="auth-error-message"]')).toContainText('authentication failed');
   });
 });

@@ -13,6 +13,26 @@ export interface LessonRequest {
   tags?: string[];
 }
 
+// Helper function to ensure status is one of the allowed values
+export function ensureValidStatus(status: string): 'open' | 'in_progress' | 'completed' {
+  if (status === 'open' || status === 'in_progress' || status === 'completed') {
+    return status;
+  }
+  return 'open'; // Default to 'open' if invalid status
+}
+
+// Type guard to check if a status string is a valid LessonRequest status
+export function isValidStatus(status: string): status is 'open' | 'in_progress' | 'completed' {
+  return status === 'open' || status === 'in_progress' || status === 'completed';
+}
+
+// Type assertion function for tests
+export function assertValidStatus(status: string): asserts status is 'open' | 'in_progress' | 'completed' {
+  if (!isValidStatus(status)) {
+    throw new Error(`Invalid status: ${status}. Must be 'open', 'in_progress', or 'completed'`);
+  }
+}
+
 export interface LessonRequestVote {
   id: string;
   request_id: string;

@@ -25,11 +25,12 @@ export const createMockError = (
   message: string,
   code = 'mock_error',
   status = 400
-) => ({
-  message,
-  code,
-  status
-});
+): Error => {
+  const error = new Error(message);
+  (error as any).code = code;
+  (error as any).status = status;
+  return error;
+};
 
 // Type for mock function configurations
 export interface MockConfig {

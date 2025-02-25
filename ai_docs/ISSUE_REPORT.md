@@ -100,6 +100,13 @@ wontfix           This will not be worked on                  #ffffff
 
 ## Best Practices
 
+### Command Line Usage
+
+1. **Single-Line Commands**
+   - Always use single-line commands without line continuation characters (\)
+   - Use quotes to handle spaces in arguments
+   - This ensures compatibility with all shells and tools
+
 ### For Issue Creation
 
 1. **Issue Titles**
@@ -155,10 +162,7 @@ echo "# $ISSUE_TITLE" > issue-description.md
 gh label list
 
 # 5. Create issue with appropriate labels
-gh issue create --title "Fix: $ISSUE_TITLE" \
-  --body-file issue-description.md \
-  --label "bug" \
-  --assignee "@me"
+gh issue create --title "Fix: $ISSUE_TITLE" --body-file issue-description.md --label "bug" --assignee "@me"
 ```
 
 ## Issue Resolution Workflow
@@ -185,9 +189,7 @@ git commit -m "Fix #$ISSUE_NUMBER: Brief description of the fix"
 git push -u origin fix/issue-$ISSUE_NUMBER-brief-description
 
 # 6. Create a pull request that links to the issue
-gh pr create --title "Fix #$ISSUE_NUMBER: Brief description" \
-  --body "Resolves #$ISSUE_NUMBER" \
-  --base dev
+gh pr create --title "Fix #$ISSUE_NUMBER: Brief description" --body "Resolves #$ISSUE_NUMBER" --base dev
 ```
 
 This standardized process ensures consistent, detailed issue reports and properly tracked fixes that help developers understand and resolve problems efficiently.

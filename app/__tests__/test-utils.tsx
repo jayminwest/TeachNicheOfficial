@@ -39,17 +39,24 @@ export function renderWithAuth(
   options?: Omit<RenderOptions, 'wrapper'>
 ) {
   return render(ui, {
-    wrapper: ({ children }) => (
-      <AuthContext.Provider
-        value={{
-          user: authProps.user ?? defaultAuthValues.user,
-          loading: authProps.loading ?? defaultAuthValues.loading,
-          isAuthenticated: authProps.isAuthenticated ?? defaultAuthValues.isAuthenticated
-        }}
-      >
-        {children}
-      </AuthContext.Provider>
-    ),
+    wrapper: ({ children }) => {
+      // Ensure we never pass undefined to the context
+      const user = authProps.user !== undefined ? authProps.user : defaultAuthValues.user;
+      const loading = authProps.loading !== undefined ? authProps.loading : defaultAuthValues.loading;
+      const isAuthenticated = authProps.isAuthenticated !== undefined ? authProps.isAuthenticated : defaultAuthValues.isAuthenticated;
+      
+      return (
+        <AuthContext.Provider
+          value={{
+            user: user as User | null, // Force the correct type
+            loading: loading as boolean,
+            isAuthenticated: isAuthenticated as boolean
+          }}
+        >
+          {children}
+        </AuthContext.Provider>
+      );
+    },
     ...options
   })
 }

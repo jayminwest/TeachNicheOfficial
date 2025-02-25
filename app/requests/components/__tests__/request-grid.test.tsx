@@ -13,7 +13,7 @@ describe('RequestGrid', () => {
       description: 'Description 1',
       category: 'Beginner Fundamentals',
       created_at: new Date().toISOString(),
-      status: 'open',
+      status: 'open' as 'open' | 'in_progress' | 'completed',
       vote_count: 5,
       user_id: 'user1'
     },
@@ -23,7 +23,7 @@ describe('RequestGrid', () => {
       description: 'Description 2',
       category: 'Advanced Techniques',
       created_at: new Date().toISOString(),
-      status: 'open',
+      status: 'open' as 'open' | 'in_progress' | 'completed',
       vote_count: 3,
       user_id: 'user2'
     }
@@ -82,7 +82,10 @@ describe('RequestGrid', () => {
     render(<RequestGrid category={category} />)
 
     await waitFor(() => {
-      expect(getRequests).toHaveBeenCalledWith({ category })
+      expect(getRequests).toHaveBeenCalledWith({ 
+        category,
+        sortBy: 'popular' // Include the default sortBy parameter
+      })
     })
   })
 })

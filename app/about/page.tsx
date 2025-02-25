@@ -15,7 +15,7 @@ export default function AboutPage() {
             src="/303_group.png"
             alt="303 Kendama Group"
             fill
-            className="object-cover filter grayscale"
+            className="object-cover filter grayscale pointer-events-none"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>

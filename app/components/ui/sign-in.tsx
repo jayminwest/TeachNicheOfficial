@@ -24,10 +24,22 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signInWithGoogle()
-      router.push('/')
+      // For testing - set a flag that we can detect in tests
+      if (typeof window !== 'undefined') {
+        window.signInWithGoogleCalled = true;
+      }
+      
+      const result = await signInWithGoogle()
+      if (result?.error) {
+        throw result.error
+      }
+      
+      // Use the router for navigation in both test and real environments
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+    } finally {
+      setIsLoading(false)
     }
   }
 

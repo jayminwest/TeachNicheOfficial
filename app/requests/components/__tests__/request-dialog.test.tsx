@@ -18,7 +18,7 @@ const mockRequest = {
   tags: [],
   created_at: '2024-01-01',
   user_id: 'test-user',
-  status: 'open',
+  status: 'open' as 'open' | 'in_progress' | 'completed',
   vote_count: 0
 }
 

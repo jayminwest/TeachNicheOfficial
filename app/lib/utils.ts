@@ -30,3 +30,42 @@ export const calculateFees = (amount: number) => {
     feePercentage: platformFeePercent
   };
 };
+
+/**
+ * Retry a function multiple times with exponential backoff
+ * 
+ * @param fn The async function to retry
+ * @param retries Maximum number of retries
+ * @param baseDelay Base delay in milliseconds
+ * @param onRetry Optional callback for each retry attempt
+ * @returns The result of the function
+ * @throws The last error encountered
+ */
+export async function retry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  baseDelay = 1000,
+  onRetry?: (error: Error, attempt: number) => void
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (onRetry) {
+        onRetry(lastError, attempt + 1);
+      }
+      
+      if (attempt < retries - 1) {
+        // Exponential backoff with jitter
+        const delay = baseDelay * Math.pow(2, attempt) * (0.5 + Math.random() * 0.5);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError!;
+}

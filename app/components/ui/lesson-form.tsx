@@ -195,14 +195,43 @@ export function LessonForm({
                   });
                   
                   // Wait for the asset to be ready and get the playback ID
-                  const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
-                  if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(
-                      errorData.error || errorData.details || 
-                      `Failed to get asset status: ${response.status}`
-                    );
-                  }
+                  // Add retry logic for checking asset status
+                  const checkAssetStatus = async (retries = 3, delay = 2000) => {
+                    for (let i = 0; i < retries; i++) {
+                      try {
+                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries})...`);
+                        const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+                        
+                        if (!response.ok) {
+                          const errorText = await response.text();
+                          console.error(`Asset status check failed (${response.status}):`, errorText);
+                          
+                          // If this is the last retry, throw the error
+                          if (i === retries - 1) {
+                            throw new Error(`Failed to get asset status: ${response.status} ${errorText}`);
+                          }
+                        } else {
+                          // Success - return the response
+                          return response;
+                        }
+                      } catch (error) {
+                        console.error(`Asset status check error (attempt ${i + 1}/${retries}):`, error);
+                        
+                        // If this is the last retry, throw the error
+                        if (i === retries - 1) {
+                          throw error;
+                        }
+                      }
+                      
+                      // Wait before the next retry
+                      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+                    }
+                    
+                    // This should never be reached due to the throws above
+                    throw new Error("Failed to get asset status after multiple attempts");
+                  };
+                  
+                  const response = await checkAssetStatus();
                   
                   const data = await response.json();
                   console.log("Asset status response:", data);

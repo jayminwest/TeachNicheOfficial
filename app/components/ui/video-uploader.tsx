@@ -206,13 +206,49 @@ export function VideoUploader({
     try {
       setStatus("processing");
       
-      // Since we already have the asset ID from the initial upload setup
-      const assetResponse = await fetch(`/api/mux/asset-status?assetId=${currentAssetId}`);
-      if (!assetResponse.ok) {
-        throw new Error('Failed to get asset status');
-      }
-
-      const assetData = await assetResponse.json();
+      // Add retry logic for checking asset status
+      const checkAssetStatus = async (retries = 3, delay = 2000): Promise<any> => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            console.log(`Checking asset status (attempt ${i + 1}/${retries})...`);
+            
+            // Make sure we're using the asset ID, not the upload ID
+            const assetResponse = await fetch(`/api/mux/asset-status?assetId=${currentAssetId}`);
+            
+            if (!assetResponse.ok) {
+              const errorText = await assetResponse.text();
+              console.error(`Asset status check failed (${assetResponse.status}):`, errorText);
+              
+              // If this is the last retry, throw the error
+              if (i === retries - 1) {
+                throw new Error(`Failed to get asset status: ${assetResponse.status} ${errorText}`);
+              }
+            } else {
+              // Success - parse and return the data
+              const data = await assetResponse.json();
+              console.log("Asset status response:", data);
+              return data;
+            }
+          } catch (error) {
+            console.error(`Asset status check error (attempt ${i + 1}/${retries}):`, error);
+            
+            // If this is the last retry, throw the error
+            if (i === retries - 1) {
+              throw error;
+            }
+          }
+          
+          // Wait before the next retry
+          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        }
+        
+        // This should never be reached due to the throws above, but TypeScript wants a return
+        throw new Error("Failed to get asset status after multiple attempts");
+      };
+      
+      // Check asset status with retries
+      const assetData = await checkAssetStatus();
+      
       if (assetData.status === 'errored') {
         throw new Error('Video processing failed');
       }
@@ -230,8 +266,8 @@ export function VideoUploader({
       setStatus("ready");
       onUploadComplete(currentAssetId);
     } catch (error) {
-      console.error("Error getting asset ID from upload:", error);
-      handleError(error instanceof Error ? error : new Error('Failed to get asset ID'));
+      console.error("Error processing video upload:", error);
+      handleError(error instanceof Error ? error : new Error('Failed to process video upload'));
     }
   };
 

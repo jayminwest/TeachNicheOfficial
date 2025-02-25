@@ -44,8 +44,8 @@ if [ "$MODE" = "read-only" ]; then
   for file in $FILES; do
     AIDER_FILES="$AIDER_FILES --read $file"
   done
-  aider --message "$PROMPT" $AIDER_FILES
+  aider --model ollama/deepseek-r1:70b --message "$PROMPT" $AIDER_FILES
 else
   # Editable mode: add files as editable
-  aider --message "$PROMPT" $FILES
+  aider --model ollama/deepseek-r1:70b --message "$PROMPT" $FILES
 fi

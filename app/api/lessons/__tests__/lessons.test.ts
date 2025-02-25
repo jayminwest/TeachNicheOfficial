@@ -124,9 +124,22 @@ describe('Lessons API', () => {
       // Mock the response from getLessons
       const mockResponse = {
         status: 200,
-        body: { lessons: mockLessons },
-        json: () => ({ lessons: mockLessons })
-      };
+        json: jest.fn().mockReturnValue({ lessons: mockLessons }),
+        cookies: new Map(),
+        headers: new Headers(),
+        ok: true,
+        redirected: false,
+        statusText: 'OK',
+        type: 'basic',
+        url: '',
+        clone: jest.fn(),
+        body: null,
+        bodyUsed: false,
+        arrayBuffer: jest.fn(),
+        blob: jest.fn(),
+        formData: jest.fn(),
+        text: jest.fn()
+      } as unknown as NextResponse;
       
       // Mock NextResponse.json to return our mock response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse);

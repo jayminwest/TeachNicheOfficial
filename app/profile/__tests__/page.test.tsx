@@ -9,12 +9,19 @@ const mockPush = jest.fn();
 
 // Mock process.env.NODE_ENV
 const originalNodeEnv = process.env.NODE_ENV;
+
 beforeAll(() => {
-  process.env.NODE_ENV = 'test';
+  Object.defineProperty(process.env, 'NODE_ENV', {
+    value: 'test',
+    configurable: true
+  });
 });
 
 afterAll(() => {
-  process.env.NODE_ENV = originalNodeEnv;
+  Object.defineProperty(process.env, 'NODE_ENV', {
+    value: originalNodeEnv,
+    configurable: true
+  });
 });
 
 // Clear all mocks before each test

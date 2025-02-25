@@ -59,7 +59,8 @@ test.describe('Authentication flows', () => {
       window.lastNavigationAttempt = null;
       
       // Override window.location.href setter to prevent actual navigation in tests
-      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      const descriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
+      const originalLocationHrefSetter = descriptor?.set;
       Object.defineProperty(window.location, 'href', {
         set: function(url) {
           console.log('Navigation intercepted to:', url);
@@ -325,8 +326,13 @@ test.describe('Authentication flows', () => {
       // Find the dialog and add the error message
       const dialog = document.querySelector('div[role="dialog"]');
       if (dialog) {
-        const buttonContainer = dialog.querySelector('button').parentNode;
-        buttonContainer.appendChild(errorElement);
+        const button = dialog.querySelector('button');
+        if (button) {
+          const buttonContainer = button.parentNode;
+          if (buttonContainer) {
+            buttonContainer.appendChild(errorElement);
+          }
+        }
       }
     });
     

@@ -191,6 +191,10 @@ describe('Lessons API', () => {
       };
       
       const mockSupabase = getMockSupabase();
+      // Reset the mock functions to ensure they're tracking calls
+      mockSupabase.from.mockClear();
+      mockSupabase.insert.mockClear();
+      
       mockSupabase.data = { id: 'new-lesson-id', ...newLesson, user_id: 'user-123' };
       
       const { req } = createMocks({
@@ -299,6 +303,11 @@ describe('Lessons API', () => {
       };
       
       const mockSupabase = getMockSupabase();
+      // Reset the mock functions to ensure they're tracking calls
+      mockSupabase.from.mockClear();
+      mockSupabase.match.mockClear();
+      mockSupabase.update.mockClear();
+      
       mockSupabase.data = { id: 'lesson-123', user_id: 'user-123' };
       
       const { req } = createMocks({
@@ -366,6 +375,11 @@ describe('Lessons API', () => {
   describe('DELETE /api/lessons/:id', () => {
     it('deletes a lesson successfully', async () => {
       const mockSupabase = getMockSupabase();
+      // Reset the mock functions to ensure they're tracking calls
+      mockSupabase.from.mockClear();
+      mockSupabase.match.mockClear();
+      mockSupabase.delete.mockClear();
+      
       mockSupabase.data = { id: 'lesson-123', user_id: 'user-123' };
       
       const { req } = createMocks({

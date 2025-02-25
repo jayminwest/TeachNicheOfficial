@@ -1,97 +1,121 @@
-# Feature: Implement Purchase and Payout Verification Flow
+# Feature: Setup Essential E2E Testing Pipelines
 
 ## Issue Description
 
-Our platform needs a secure and reliable purchase and payout flow that verifies all necessary conditions before allowing transactions. This flow should ensure that:
-1. Users are properly authenticated before making purchases
-2. Sellers have completed Stripe Connect onboarding
-3. Payments are correctly processed and distributed between the platform and sellers
-4. All transactions are properly recorded and can be audited
+Our platform requires comprehensive end-to-end (E2E) testing pipelines to ensure reliability and quality before launch. According to our launch plan, we currently have only 26.49% test coverage (target: >80%), with many critical components having 0% coverage. We need to establish robust E2E testing pipelines that:
+
+1. Automate testing of critical user journeys
+2. Verify core functionality across different browsers and devices
+3. Integrate with our CI/CD workflow
+4. Provide consistent and reliable test results
+5. Help identify regressions before they reach production
 
 ## Implementation Steps
 
-1. Implement authentication gate for purchase actions
-2. Add Stripe Connect verification for sellers
-3. Create purchase flow with proper error handling
-4. Implement payout distribution system (platform fee + seller payout)
-5. Add transaction logging and receipt generation
-6. Implement webhook handling for payment status updates
+1. Set up Playwright test configuration for multiple browsers
+2. Create baseline E2E tests for critical user journeys
+3. Implement test fixtures for authentication and data setup
+4. Configure CI pipeline integration
+5. Add visual regression testing
+6. Implement test reporting and monitoring
+7. Document testing standards and practices
 
 ## Expected Behavior
 
-- Users must be authenticated to initiate purchases
-- Sellers must have completed Stripe Connect onboarding to receive payments
-- Platform should receive its fee percentage from each transaction
-- Sellers should receive their portion of each transaction
-- All parties should receive appropriate notifications and receipts
-- Failed transactions should be properly handled with clear error messages
+- E2E tests should run automatically on pull requests
+- Tests should cover all critical user journeys
+- Tests should run across multiple browsers (Chrome, Firefox, Safari, Edge)
+- Visual regression tests should catch unexpected UI changes
+- Test reports should be easily accessible and understandable
+- Failed tests should block deployment to production
+- Tests should be reliable with minimal flakiness
 
 ## Technical Analysis
 
-The purchase and payout flow requires integration between our authentication system, Stripe Connect, and our database:
+The E2E testing pipeline requires integration between Playwright, our CI system, and our application:
 
-1. Authentication verification must occur before any purchase attempt
-2. Stripe Connect status must be verified for sellers before listing their content for sale
-3. Payment processing must handle the split between platform fees and seller payouts
-4. Transaction records must be maintained for accounting and user history
+1. Playwright configuration must support multiple browsers and device profiles
+2. Test fixtures must handle authentication, data setup, and cleanup
+3. CI integration must ensure tests run efficiently without blocking development
+4. Visual regression testing must have a baseline and comparison mechanism
+5. Test reporting must provide actionable insights on failures
 
 ## Potential Implementation Approach
 
-1. Authentication and Seller Verification:
-   - Create middleware to verify user authentication status
-   - Implement Stripe Connect status checking for sellers
-   - Add UI indicators for incomplete seller onboarding
+1. Playwright Configuration:
+   - Set up browser configurations for Chrome, Firefox, Safari, and Edge
+   - Configure mobile device emulation
+   - Set up test parallelization for faster execution
+   - Implement retry logic for flaky tests
 
-2. Purchase Flow:
-   - Create a secure checkout process using Stripe Checkout or Payment Elements
-   - Implement proper error handling for payment failures
-   - Add purchase confirmation and receipt generation
+2. Critical User Journey Tests:
+   - Authentication flows (sign up, sign in, password reset)
+   - Content browsing and discovery
+   - Lesson purchase and access
+   - Creator content upload and management
+   - Payment processing and verification
+   - User profile management
 
-3. Payout System:
-   - Configure Stripe Connect for automatic fee splitting
-   - Implement payout scheduling and status tracking
-   - Create seller dashboard for payout history
+3. Test Infrastructure:
+   - Create reusable test fixtures for common operations
+   - Implement test data generation and cleanup
+   - Set up isolated test environments
+   - Configure screenshot and video capture for failures
 
-4. Monitoring and Reporting:
-   - Add transaction logging to database
-   - Create admin dashboard for transaction monitoring
-   - Implement reporting for financial reconciliation
+4. CI Integration:
+   - Configure GitHub Actions workflow for E2E tests
+   - Set up caching for faster test execution
+   - Implement test splitting for parallel execution
+   - Configure failure notifications
+
+5. Reporting and Monitoring:
+   - Set up test result dashboards
+   - Implement test analytics to track flakiness
+   - Configure alerting for test failures
+   - Create visual regression comparison tools
 
 ## Likely Affected Files
 
-1. `app/components/ui/lesson-access-gate.tsx` - Update to enforce authentication
-2. `app/services/stripe.ts` - Add Connect verification and payout handling
-3. `app/components/ui/stripe-connect-button.tsx` - Update for better onboarding status
-4. `app/dashboard/page.tsx` - Add transaction history and payout information
-5. `app/api/webhooks/stripe/route.ts` - Handle payment and payout event webhooks
-6. `app/components/ui/purchase-button.tsx` - Create new component for purchase flow
+1. `e2e-tests/` - Create or update test files for critical user journeys
+2. `playwright.config.ts` - Configure Playwright settings
+3. `.github/workflows/e2e-tests.yml` - Set up CI workflow
+4. `e2e-tests/fixtures/` - Create test fixtures
+5. `e2e-tests/utils/` - Add test utilities
+6. `package.json` - Add test scripts and dependencies
+7. `ai_docs/standards/TESTING.md` - Document testing standards
 
 ## Testing Requirements
 
-- Test purchase flow with authenticated and unauthenticated users
-- Verify Stripe Connect onboarding and verification process
-- Test payment processing with various payment methods
-- Verify correct fee splitting between platform and sellers
-- Test webhook handling for various payment scenarios
-- Verify transaction records are properly created
-- Test across multiple browsers and devices
+- Verify tests run successfully across all target browsers
+- Ensure tests are reliable and not flaky
+- Confirm CI integration works as expected
+- Verify visual regression testing catches UI changes
+- Test authentication flows with different user types
+- Verify data setup and cleanup works correctly
+- Test reporting provides clear insights on failures
 
 ## Environment
 
-- **Browser**: Chrome, Firefox, Safari, Edge
-- **Environment**: Development, Staging, Production
-- **Payment Provider**: Stripe Connect (v2025-01-27.acacia)
+- **Browsers**: Chrome, Firefox, Safari, Edge
+- **Devices**: Desktop, Tablet, Mobile
+- **CI System**: GitHub Actions
+- **Testing Framework**: Playwright
 - **Authentication**: Supabase Auth
 
 ## Priority
 
-High - The purchase and payout flow is critical for platform monetization and seller satisfaction.
+High - Comprehensive E2E testing is critical for ensuring platform reliability and quality before launch, especially given our current low test coverage.
 
 ## Additional Context
 
-- Platform fee is configured at 15% of transaction value
-- Stripe Connect account type is 'standard'
-- Payouts should be processed automatically after payment completion
-- Consider implementing dispute handling and refund processes
-- Documentation for both users and sellers on the payment process will be needed
-- Consider implementing a sandbox mode for testing without real transactions
+- Current test coverage is only 26.49% (target: >80%)
+- Many critical components have 0% coverage
+- Priority areas for testing include:
+  - Authentication services
+  - Video components
+  - API routes
+  - Payment processing
+  - Lesson access controls
+- Consider implementing a test-driven development approach for new features
+- Documentation for writing and maintaining tests will be needed
+- Consider setting up a visual testing service for UI regression testing

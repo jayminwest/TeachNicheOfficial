@@ -143,34 +143,44 @@ export function LessonForm({
           <FormField
             control={form.control}
             name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price (USD)</FormLabel>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                  <FormControl>
-                    <Input 
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="999.99"
-                      className="pl-7"
-                      {...field} 
-                      value={safeNumberValue(field.value)}
-                      onChange={e => {
-                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                        field.onChange(Number.isNaN(value) ? 0 : value);
-                      }}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                </div>
-                <FormDescription>
-                  Set a fair price for your lesson content (leave at 0 for free)
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              // Debug NaN values
+              if (typeof field.value === 'number' && Number.isNaN(field.value)) {
+                console.warn('NaN detected in price field value - Resetting to 0', field);
+                field.value = 0;
+              }
+
+              return (
+                <FormItem>
+                  <FormLabel>Price (USD)</FormLabel>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="999.99"
+                        className="pl-7"
+                        {...field} 
+                        value={safeNumberValue(field.value)}
+                        onChange={e => {
+                          // Handle empty string and invalid numbers
+                          const inputValue = e.target.value.trim();
+                          const numericValue = inputValue === '' ? 0 : parseFloat(inputValue);
+                          field.onChange(Number.isNaN(numericValue) ? 0 : numericValue);
+                        }}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormDescription>
+                    Set a fair price for your lesson content (leave at 0 for free)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
 

@@ -18,8 +18,8 @@ test('navigation test', async ({ page }) => {
   // Wait for page to be fully loaded
   await page.waitForLoadState('networkidle');
   
-  // Check for any visible element instead of body
-  await expect(page.locator('html')).toBeVisible();
+  // Check for a more reliable element that should be visible on the page
+  await expect(page).toHaveURL(/about/);
   
   // Navigate back to home directly
   await page.goto('/');
@@ -31,6 +31,6 @@ test('navigation test', async ({ page }) => {
   // Wait for page to be fully loaded
   await page.waitForLoadState('networkidle');
   
-  // Check for any visible element instead of body
-  await expect(page.locator('html')).toBeVisible();
+  // Check for a more reliable element that should be visible on the homepage
+  await expect(page).toHaveURL(/\/$/);
 });

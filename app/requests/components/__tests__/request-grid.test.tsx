@@ -82,7 +82,10 @@ describe('RequestGrid', () => {
     render(<RequestGrid category={category} />)
 
     await waitFor(() => {
-      expect(getRequests).toHaveBeenCalledWith({ category })
+      expect(getRequests).toHaveBeenCalledWith({ 
+        category,
+        sortBy: 'popular' // Include the default sortBy parameter
+      })
     })
   })
 })

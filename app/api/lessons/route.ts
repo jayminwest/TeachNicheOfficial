@@ -67,7 +67,7 @@ async function createLessonHandler(request: Request) {
     const dbClient = createClient();
     
     // Call from directly on the supabase client to match test expectations
-    const { data: lesson, error } = await supabase
+    const { data: lesson, error } = await dbClient
       .from('lessons')
       .insert(lessonData)
       .select()

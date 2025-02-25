@@ -107,6 +107,9 @@ A recurring payment model where users pay regularly for access to content.
 ### TDD (Test-Driven Development)
 A software development approach where tests are written before the code implementation.
 
+### Type Safety
+The extent to which a programming language prevents type errors. In TypeScript, this means ensuring variables and functions use consistent types throughout the codebase.
+
 ### Transaction
 A financial exchange between users and the platform or between users.
 

@@ -103,6 +103,7 @@ For more detailed information, refer to:
 - Git Workflow: [standards/git.md](../standards/git.md)
 - Security Requirements: [standards/security.md](../standards/security.md)
 - API Standards: [standards/api.md](../standards/api.md)
+- TypeScript Errors: [guides/development/TYPESCRIPT_ERRORS.md](../guides/development/TYPESCRIPT_ERRORS.md)
 
 ## Getting Help
 

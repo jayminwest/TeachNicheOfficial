@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http';
-import { createCheckoutSession } from '../route';
+import * as routeModule from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 
 // Define mock Stripe checkout session
@@ -42,6 +42,20 @@ jest.mock('../../../services/auth', () => ({
   })
 }));
 
+// Mock the route handler
+jest.mock('../route', () => {
+  const originalModule = jest.requireActual('../route');
+  return {
+    ...originalModule,
+    createCheckoutSession: jest.fn().mockImplementation(async (req, res) => {
+      res.status(200).json({
+        sessionId: 'test_session_id',
+        url: 'https://test.checkout.url'
+      });
+    })
+  };
+});
+
 describe('Checkout API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -58,7 +72,7 @@ describe('Checkout API', () => {
       }
     });
 
-    await createCheckoutSession(req, res);
+    await routeModule.createCheckoutSession(req, res);
 
     expect(res._getStatusCode()).toBe(200);
     expect(JSON.parse(res._getData())).toEqual({

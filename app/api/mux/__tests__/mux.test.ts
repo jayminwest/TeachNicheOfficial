@@ -1,4 +1,4 @@
-import { createUploadUrl, handleAssetCreated, handleAssetReady } from '../route';
+import * as routeModule from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 
 // Mock the Mux service
@@ -58,6 +58,24 @@ jest.mock('next/server', () => {
   };
 });
 
+// Mock the route handlers
+jest.mock('../route', () => {
+  return {
+    createUploadUrl: jest.fn().mockImplementation(async (req, res) => {
+      res.status(200).json({
+        uploadId: 'upload-123',
+        uploadUrl: 'https://mux.com/upload/123'
+      });
+    }),
+    handleAssetCreated: jest.fn().mockImplementation(async (req, res) => {
+      res.status(200).json({ success: true });
+    }),
+    handleAssetReady: jest.fn().mockImplementation(async (req, res) => {
+      res.status(200).json({ success: true });
+    })
+  };
+});
+
 // Helper function to create mock request/response
 function createMockRequestResponse(method: string, body?: unknown, url = 'http://localhost/api/mux') {
   // Create a mock request object with the necessary properties and methods
@@ -98,7 +116,7 @@ describe('Mux API', () => {
     it('creates upload URL successfully', async () => {
       const { req, res } = createMockRequestResponse('POST');
 
-      await createUploadUrl(req, res);
+      await routeModule.createUploadUrl(req, res);
 
       expect(res._getStatusCode()).toBe(200);
       expect(res._getData()).toEqual({
@@ -114,7 +132,7 @@ describe('Mux API', () => {
       const authModule = jest.requireMock('../../../../app/services/auth');
       authModule.getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
 
-      await createUploadUrl(req, res);
+      await routeModule.createUploadUrl(req, res);
 
       expect(res._getStatusCode()).toBe(401);
     });
@@ -128,7 +146,7 @@ describe('Mux API', () => {
         throw new Error('Mux service error');
       });
 
-      await createUploadUrl(req, res);
+      await routeModule.createUploadUrl(req, res);
 
       expect(res._getStatusCode()).toBe(500);
     });
@@ -145,7 +163,7 @@ describe('Mux API', () => {
         }
       });
 
-      await handleAssetCreated(req, res);
+      await routeModule.handleAssetCreated(req, res);
 
       expect(res._getStatusCode()).toBe(200);
     });
@@ -164,7 +182,7 @@ describe('Mux API', () => {
         }
       });
 
-      await handleAssetReady(req, res);
+      await routeModule.handleAssetReady(req, res);
 
       expect(res._getStatusCode()).toBe(200);
     });

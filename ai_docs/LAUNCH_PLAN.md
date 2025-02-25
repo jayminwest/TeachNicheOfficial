@@ -26,37 +26,37 @@
 - [ ] Check feature-based organization structure
 
 ### Current Test Coverage Status
-- Overall coverage: 24.72% (target: >80%)
+- Overall coverage: 26.49% (target: >80%)
 - Coverage breakdown:
-  - Statements: 24.72%
-  - Branches: 19.94%
-  - Functions: 33.62%
-  - Lines: 25.07%
+  - Statements: 26.49%
+  - Branches: 23.16%
+  - Functions: 37.43%
+  - Lines: 26.98%
 
 - Critical areas needing tests:
-  - Authentication components (sign-in.tsx: 0%, sign-up.tsx: 50%)
-  - Video components (video-player.tsx: 0%, video-status.tsx: 0%, video-uploader.tsx: 0%)
-  - Auth services (AuthContext.tsx: 6.45%, supabaseAuth.ts: 18.51%)
+  - Authentication services (AuthContext.tsx: 6.45%, supabaseAuth.ts: 18.51%)
+  - Video components (video-uploader.tsx: 0%)
   - API routes (most at 0% coverage)
   - UI components (many below 50%)
-  - Hooks (useCategories.ts: 71.42%, useLessonAccess.ts: 0%)
+  - Hooks (useLessonAccess.ts: 0%)
 
 - Priority files to test (0% coverage):
-  - app/components/ui/video-player.tsx
-  - app/components/ui/video-status.tsx
   - app/components/ui/video-uploader.tsx
-  - app/components/ui/sign-in.tsx
   - app/hooks/useLessonAccess.ts
-  - app/services/auth/AuthContext.tsx
   - app/services/mux.ts
-  - app/api/* routes (checkout, lessons, mux, stripe, webhooks)
+  - app/services/auth/AuthContext.tsx
+  - app/api/* routes (checkout, lessons/purchase, mux, stripe, webhooks)
+  - app/components/ui/lesson-checkout.tsx
+  - app/components/ui/dropdown-menu.tsx
+  - app/components/ui/navigation-menu.tsx
+  - app/components/ui/animated-hero.tsx
 
 - Components with partial coverage to improve:
-  - app/components/ui/lesson-form.tsx (40%)
-  - app/components/ui/request-card.tsx (41.5%)
+  - app/components/ui/lesson-form.tsx (27.77%)
+  - app/components/ui/request-card.tsx (44.44%)
   - app/components/ui/header.tsx (48%)
-  - app/components/ui/sign-up.tsx (50%)
-  - app/profile/components/profile-form.tsx (54.54%)
+  - app/components/ui/stripe-connect-button.tsx (21.21%)
+  - app/services/stripe.ts (26.41%)
   - app/services/supabase.ts (60%)
 
 - Well-tested components (100% coverage):
@@ -71,6 +71,9 @@
   - app/components/ui/tabs.tsx
   - app/components/ui/textarea.tsx
   - app/profile/components/payment-management.tsx
+  - app/components/ui/video-player.tsx
+  - app/components/ui/video-status.tsx
+  - app/components/ui/sign-up.tsx
 
 ### Authentication & Security
 - [ ] Test all auth flows:

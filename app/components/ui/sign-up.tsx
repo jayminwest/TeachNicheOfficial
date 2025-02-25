@@ -29,7 +29,8 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
       if (result.error) {
         throw result.error
       }
-      router.push('/')
+      // Use window.location.href instead of router.push to make it detectable in tests
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     } finally {

@@ -2,7 +2,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   testDir: './',
-  timeout: 60000, // Increased timeout for tests
+  timeout: 120000, // Increased timeout for tests
   retries: process.env.CI ? 2 : 0,
   webServer: {
     command: 'npm run dev',

@@ -55,17 +55,17 @@ test.describe('Authentication flows', () => {
     
     // Set up mocking before navigating to ensure it's ready
     await page.addInitScript(() => {
-      // Store the original window.location.href setter
-      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      // Create a global variable to store navigation attempts
+      window.lastNavigationAttempt = null;
       
       // Override window.location.href setter to prevent actual navigation in tests
+      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
       Object.defineProperty(window.location, 'href', {
         set: function(url) {
           console.log('Navigation intercepted to:', url);
           // Don't actually navigate, just log it
           window.lastNavigationAttempt = url;
-          // Dispatch an event we can listen for in the test
-          window.dispatchEvent(new CustomEvent('navigationAttempted', { detail: { url } }));
+          // No event dispatch needed - we'll check the variable directly
         }
       });
       
@@ -114,21 +114,15 @@ test.describe('Authentication flows', () => {
     await expect(googleSignInButton).toBeVisible({ timeout: 10000 });
     console.log('Found Google sign in button');
     
-    // Set up a listener for navigation attempts
-    const navigationPromise = page.evaluate(() => {
-      return new Promise(resolve => {
-        window.addEventListener('navigationAttempted', (event) => {
-          resolve(event.detail.url);
-        }, { once: true });
-      });
-    });
-    
     // Click the Google sign-in button
     await googleSignInButton.click();
     console.log('Clicked Google sign in button');
     
-    // Wait for the navigation attempt
-    const navigationUrl = await navigationPromise;
+    // Wait a moment for the click to be processed
+    await page.waitForTimeout(500);
+    
+    // Check the navigation attempt directly
+    const navigationUrl = await page.evaluate(() => window.lastNavigationAttempt);
     console.log('Navigation attempted to:', navigationUrl);
     
     // Verify we attempted to navigate to the dashboard
@@ -141,17 +135,17 @@ test.describe('Authentication flows', () => {
     
     // Set up mocking before navigating
     await page.addInitScript(() => {
-      // Store the original window.location.href setter
-      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      // Create a global variable to store navigation attempts
+      window.lastNavigationAttempt = null;
       
       // Override window.location.href setter to prevent actual navigation in tests
+      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
       Object.defineProperty(window.location, 'href', {
         set: function(url) {
           console.log('Navigation intercepted to:', url);
           // Don't actually navigate, just log it
           window.lastNavigationAttempt = url;
-          // Dispatch an event we can listen for in the test
-          window.dispatchEvent(new CustomEvent('navigationAttempted', { detail: { url } }));
+          // No event dispatch needed - we'll check the variable directly
         }
       });
       
@@ -203,15 +197,6 @@ test.describe('Authentication flows', () => {
     await switchToSignUpLink.click();
     console.log('Clicked switch to sign up link');
     
-    // Set up a listener for navigation attempts
-    const navigationPromise = page.evaluate(() => {
-      return new Promise(resolve => {
-        window.addEventListener('navigationAttempted', (event) => {
-          resolve(event.detail.url);
-        }, { once: true });
-      });
-    });
-    
     // Now we should be in sign up mode
     // Find and click the Google sign-up button within the dialog
     const googleSignUpButton = authDialog.locator('button').filter({ hasText: 'Sign up with Google' }).first();
@@ -222,8 +207,11 @@ test.describe('Authentication flows', () => {
     await googleSignUpButton.click();
     console.log('Clicked Google sign up button');
     
-    // Wait for the navigation attempt
-    const navigationUrl = await navigationPromise;
+    // Wait a moment for the click to be processed
+    await page.waitForTimeout(500);
+    
+    // Check the navigation attempt directly
+    const navigationUrl = await page.evaluate(() => window.lastNavigationAttempt);
     console.log('Navigation attempted to:', navigationUrl);
     
     // Verify we attempted to navigate to the dashboard
@@ -236,6 +224,19 @@ test.describe('Authentication flows', () => {
     
     // Set up mocking to simulate a failure
     await page.addInitScript(() => {
+      // Create a global variable to store navigation attempts
+      window.lastNavigationAttempt = null;
+      
+      // Override window.location.href setter to prevent actual navigation in tests
+      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      Object.defineProperty(window.location, 'href', {
+        set: function(url) {
+          console.log('Navigation intercepted to:', url);
+          // Don't actually navigate, just log it
+          window.lastNavigationAttempt = url;
+        }
+      });
+      
       // Mock the signInWithGoogle function to return an error
       window.signInWithGoogle = async function() {
         console.log('Mocked signInWithGoogle called with failure');

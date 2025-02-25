@@ -25,10 +25,16 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
     setIsLoading(true)
     setError(null)
     try {
+      // For testing - set a flag that we can detect in tests
+      if (typeof window !== 'undefined') {
+        window.signInWithGoogleCalled = true;
+      }
+      
       const result = await signInWithGoogle()
       if (result.error) {
         throw result.error
       }
+      
       if (typeof window !== 'undefined' && window.nextRouterMock) {
         // Use the mock in test environment
         window.nextRouterMock.push('/dashboard');

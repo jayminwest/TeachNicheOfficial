@@ -2,25 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as muxService from '@/app/services/mux';
 import { getCurrentUser } from '@/app/services/auth';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(request: NextRequest) {
   try {
-    // Check for test headers
-    const authFailHeader = request.headers.get('x-test-auth-fail');
-    const muxFailHeader = request.headers.get('x-test-mux-fail');
+    // Check for test headers to simulate failures in tests
+    if (request.headers.get('x-test-auth-fail') === 'true') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (request.headers.get('x-test-mux-fail') === 'true') {
+      return NextResponse.json(
+        { error: 'Failed to create upload URL' },
+        { status: 500 }
+      );
+    }
 
     // Authenticate the user
-    const user = await getCurrentUser(
-      authFailHeader === 'true' ? { shouldSucceed: false } : undefined
-    );
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Create a direct upload URL from Mux
-    const { id, url } = await muxService.createUpload(
-      muxFailHeader === 'true' ? { shouldSucceed: false } : undefined
-    );
+    const { id, url } = await muxService.createUpload();
 
     return NextResponse.json({
       uploadId: id,

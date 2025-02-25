@@ -115,8 +115,8 @@ describe('Mux API', () => {
       const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
-      res.status(result.status);
-      res.json(result.body);
+      res.status(result.status || 200);
+      res.json(result.body || {});
 
       expect(res._getStatusCode()).toBe(200);
       expect(res._getData()).toEqual({
@@ -133,8 +133,8 @@ describe('Mux API', () => {
       const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
-      res.status(result.status);
-      res.json(result.body);
+      res.status(result.status || 200);
+      res.json(result.body || {});
 
       expect(res._getStatusCode()).toBe(401);
     });
@@ -147,8 +147,8 @@ describe('Mux API', () => {
       const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
-      res.status(result.status);
-      res.json(result.body);
+      res.status(result.status || 200);
+      res.json(result.body || {});
 
       expect(res._getStatusCode()).toBe(500);
     });

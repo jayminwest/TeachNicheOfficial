@@ -278,10 +278,3 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   return deleteLessonHandler(request);
 }
-
-// For testing purposes only - these are not exported in the actual file
-// but are needed for the tests to work
-export const createLesson = createLessonHandler;
-export const getLessons = getLessonsHandler;
-export const updateLesson = updateLessonHandler;
-export const deleteLesson = deleteLessonHandler;

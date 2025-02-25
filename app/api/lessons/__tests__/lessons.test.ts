@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http';
-import { getLessons, createLesson, updateLesson, deleteLesson } from '../route';
+import { GET, POST, PUT, DELETE } from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 import { NextResponse } from 'next/server';
 
@@ -109,7 +109,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our mock response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse);
 
-      const result = await getLessons(req);
+      const result = await GET(req);
 
       expect(result.status).toBe(200);
       expect(result.body).toEqual({ lessons: mockLessons });
@@ -141,7 +141,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our mock response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse);
 
-      await getLessons(req);
+      await GET(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.eq).toHaveBeenCalledWith('category', 'programming');
@@ -170,7 +170,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our error response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockErrorResponse);
 
-      const result = await getLessons(req);
+      const result = await GET(req);
 
       expect(result.status).toBe(500);
       expect(result.body).toEqual({
@@ -207,7 +207,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our validation error response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockValidationErrorResponse);
 
-      const response = await createLesson(req);
+      const response = await POST(req);
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
@@ -245,7 +245,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our auth error response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockAuthErrorResponse);
 
-      const response = await createLesson(req);
+      const response = await POST(req);
 
       expect(response.status).toBe(401);
     });
@@ -285,7 +285,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      await updateLesson(req);
+      await PUT(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });
@@ -323,7 +323,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our permission error response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockPermissionErrorResponse);
 
-      const response = await updateLesson(req);
+      const response = await PUT(req);
 
       expect(response.status).toBe(403);
     });
@@ -357,7 +357,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
-      await deleteLesson(req);
+      await DELETE(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.match).toHaveBeenCalledWith({ id: 'lesson-123' });
@@ -386,7 +386,7 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our not found response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockNotFoundResponse);
 
-      const response = await deleteLesson(req);
+      const response = await DELETE(req);
 
       expect(response.status).toBe(404);
     });

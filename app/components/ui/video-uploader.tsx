@@ -109,7 +109,7 @@ export function VideoUploader({
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
 
   // We need to track the upload ID to get the asset ID later
-  const [uploadId] = useState<string | null>(null);
+  const [_uploadId] = useState<string | null>(null);
   
   // First step: Get the Mux upload URL from our API
   const getUploadUrl = useCallback(async (): Promise<{url: string; uploadId: string}> => {
@@ -219,7 +219,7 @@ export function VideoUploader({
   const handleSuccess: MuxUploaderProps["onSuccess"] = async (event) => {
     console.log("Raw success event:", event);
     
-    if (!uploadId) {
+    if (!_uploadId) {
       console.error("No upload ID available for completed upload");
       handleError(new Error("Upload failed: No upload ID available"));
       return;
@@ -229,7 +229,7 @@ export function VideoUploader({
       setStatus("processing");
       
       // First, we need to get the asset ID from the upload ID
-      console.log("Getting asset ID from upload ID:", uploadId);
+      console.log("Getting asset ID from upload ID:", _uploadId);
       
       // Wait a moment before checking upload status to allow Mux to process
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -240,7 +240,7 @@ export function VideoUploader({
           try {
             console.log(`Checking upload status (attempt ${i + 1}/${retries})...`);
             
-            const uploadResponse = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(uploadId)}`);
+            const uploadResponse = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(_uploadId)}`);
             
             if (!uploadResponse.ok) {
               const errorText = await uploadResponse.text();

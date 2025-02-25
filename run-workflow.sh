@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # Run unit tests
 echo "Running unit tests..."
 npm test

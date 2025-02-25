@@ -9,6 +9,9 @@ const config: PlaywrightTestConfig = {
     url: 'http://localhost:3000',
     timeout: 120000,
     reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    retry: true,
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',

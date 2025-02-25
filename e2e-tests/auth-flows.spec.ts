@@ -3,7 +3,22 @@ import { test, expect } from '@playwright/test';
 // Make sure the app is running before tests
 test.beforeEach(async ({ page }) => {
   // Check if the app is accessible
-  const response = await page.goto('/');
+  let retries = 3;
+  let response = null;
+  
+  while (retries > 0 && (!response || response.status() >= 400)) {
+    try {
+      response = await page.goto('/', { timeout: 30000 });
+      if (response && response.status() < 400) break;
+    } catch (error) {
+      console.log(`Connection attempt failed, retries left: ${retries-1}`);
+      if (retries <= 1) throw error;
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+    retries--;
+  }
+  
   expect(response?.status()).toBeLessThan(400);
 });
 

@@ -44,8 +44,8 @@ if [ "$MODE" = "read-only" ]; then
   for file in $FILES; do
     AIDER_FILES="$AIDER_FILES --read $file"
   done
-  aider --model ollama/deepseek-r1:70b --message "$PROMPT" $AIDER_FILES
+  aider --model ollama/deepseek-r1:70b --message "$PROMPT" $AIDER_FILES --eslint-disable-types
 else
   # Editable mode: add files as editable
-  aider --model ollama/deepseek-r1:70b --message "$PROMPT" $FILES
+  aider --model ollama/deepseek-r1:70b --message "$PROMPT" $FILES --eslint-disable-types
 fi

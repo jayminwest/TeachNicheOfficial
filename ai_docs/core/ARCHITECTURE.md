@@ -5,7 +5,7 @@ This document provides a high-level overview of the Teach Niche platform archite
 ## System Architecture
 
 ### Client Layer
-- **Web Application**: Next.js-based frontend with React components
+- **Web Application**: Next.js-based frontend with React components (JavaScript only, no TypeScript)
 - **Mobile Responsive Design**: Adaptive UI for all device sizes
 - **Progressive Enhancement**: Core functionality works without JavaScript
 

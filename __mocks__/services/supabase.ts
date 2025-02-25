@@ -146,7 +146,7 @@ export const createMockSupabaseClient = (config: MockConfig = {}) => {
       signOut: createAsyncMock({}, config),
       resetPasswordForEmail: createAsyncMock({}, config),
       updateUser: createAsyncMock({ user: mockUser }, config),
-      onAuthStateChange: jest.fn().mockImplementation((callback) => {
+      onAuthStateChange: jest.fn().mockImplementation((callback: any) => {
         callback('SIGNED_IN', { user: mockUser });
         return { data: { subscription: { unsubscribe: jest.fn() } } };
       }),
@@ -200,8 +200,8 @@ export const createMockSupabaseClient = (config: MockConfig = {}) => {
     channel: jest.fn().mockReturnValue({
       on: jest.fn().mockReturnThis(),
       subscribe: jest.fn().mockResolvedValue({ 
-        unsubscribe: jest.fn().mockResolvedValue(undefined) 
-      })
+        unsubscribe: jest.fn() 
+      } as any)
     })
   };
 };

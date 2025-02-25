@@ -26,6 +26,13 @@ export function isValidStatus(status: string): status is 'open' | 'in_progress' 
   return status === 'open' || status === 'in_progress' || status === 'completed';
 }
 
+// Type assertion function for tests
+export function assertValidStatus(status: string): asserts status is 'open' | 'in_progress' | 'completed' {
+  if (!isValidStatus(status)) {
+    throw new Error(`Invalid status: ${status}. Must be 'open', 'in_progress', or 'completed'`);
+  }
+}
+
 export interface LessonRequestVote {
   id: string;
   request_id: string;

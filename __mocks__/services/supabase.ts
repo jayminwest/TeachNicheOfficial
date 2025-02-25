@@ -113,7 +113,6 @@ export const createMockQueryBuilder = (config: MockConfig = {}) => {
     in: jest.fn().mockReturnThis(),
     contains: jest.fn().mockReturnThis(),
     containedBy: jest.fn().mockReturnThis(),
-    range: jest.fn().mockReturnThis(),
     overlap: jest.fn().mockReturnThis(),
     textSearch: jest.fn().mockReturnThis(),
     match: jest.fn().mockReturnThis(),
@@ -147,7 +146,7 @@ export const createMockSupabaseClient = (config: MockConfig = {}) => {
       signOut: createAsyncMock({}, config),
       resetPasswordForEmail: createAsyncMock({}, config),
       updateUser: createAsyncMock({ user: mockUser }, config),
-      onAuthStateChange: jest.fn().mockImplementation((callback) => {
+      onAuthStateChange: jest.fn().mockImplementation((callback: (event: string, session: any) => void) => {
         callback('SIGNED_IN', { user: mockUser });
         return { data: { subscription: { unsubscribe: jest.fn() } } };
       }),
@@ -202,7 +201,7 @@ export const createMockSupabaseClient = (config: MockConfig = {}) => {
       on: jest.fn().mockReturnThis(),
       subscribe: jest.fn().mockResolvedValue({ 
         unsubscribe: jest.fn().mockResolvedValue(null) 
-      })
+      } as any)
     })
   };
 };

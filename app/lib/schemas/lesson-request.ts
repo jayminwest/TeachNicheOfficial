@@ -13,6 +13,14 @@ export interface LessonRequest {
   tags?: string[];
 }
 
+// Helper function to ensure status is one of the allowed values
+export function ensureValidStatus(status: string): 'open' | 'in_progress' | 'completed' {
+  if (status === 'open' || status === 'in_progress' || status === 'completed') {
+    return status;
+  }
+  return 'open'; // Default to 'open' if invalid status
+}
+
 export interface LessonRequestVote {
   id: string;
   request_id: string;

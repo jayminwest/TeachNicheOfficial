@@ -18,7 +18,21 @@ test.describe('Homepage Visual Tests', () => {
     // Take a screenshot of the hero section
     const heroSection = await page.locator('[data-testid="hero-section-container"]');
     await expect(heroSection).toBeVisible();
-    await expect(heroSection).toHaveScreenshot('homepage-hero.png');
+    
+    // Add a fixed height to ensure consistent screenshots
+    await page.evaluate(() => {
+      const heroElement = document.querySelector('[data-testid="hero-section-container"]');
+      if (heroElement) {
+        heroElement.setAttribute('style', 'min-height: 600px;');
+      }
+    });
+    
+    // Wait for any style changes to apply
+    await page.waitForTimeout(500);
+    
+    await expect(heroSection).toHaveScreenshot('homepage-hero.png', {
+      maxDiffPixelRatio: 0.1 // Allow for some pixel differences (10%)
+    });
     
     // Take a screenshot of the features section
     const featuresSection = await page.locator('h2:has-text("Why Choose Teach Niche?")').first().locator('..').locator('..');

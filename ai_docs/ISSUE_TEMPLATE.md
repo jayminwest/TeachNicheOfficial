@@ -1,77 +1,97 @@
-# Feature: Implement Email Authentication with SMTP in Supabase
+# Feature: Implement Purchase and Payout Verification Flow
 
 ## Issue Description
 
-Currently, our application lacks email-based authentication. We need to implement email sign-up and sign-in functionality using Supabase Auth with a custom SMTP server configuration. This will allow users to create accounts using their email addresses and receive verification emails.
+Our platform needs a secure and reliable purchase and payout flow that verifies all necessary conditions before allowing transactions. This flow should ensure that:
+1. Users are properly authenticated before making purchases
+2. Sellers have completed Stripe Connect onboarding
+3. Payments are correctly processed and distributed between the platform and sellers
+4. All transactions are properly recorded and can be audited
 
 ## Implementation Steps
 
-1. Configure SMTP server settings in Supabase
-2. Update authentication components to support email sign-up
-3. Add email verification flow
-4. Implement password reset functionality
-5. Update UI components to reflect new authentication options
+1. Implement authentication gate for purchase actions
+2. Add Stripe Connect verification for sellers
+3. Create purchase flow with proper error handling
+4. Implement payout distribution system (platform fee + seller payout)
+5. Add transaction logging and receipt generation
+6. Implement webhook handling for payment status updates
 
 ## Expected Behavior
 
-- Users should be able to sign up with email and password
-- Users should receive verification emails after sign-up
-- Users should be able to verify their email addresses by clicking links in the emails
-- Users should be able to request and complete password resets
-- The authentication UI should clearly present email options
+- Users must be authenticated to initiate purchases
+- Sellers must have completed Stripe Connect onboarding to receive payments
+- Platform should receive its fee percentage from each transaction
+- Sellers should receive their portion of each transaction
+- All parties should receive appropriate notifications and receipts
+- Failed transactions should be properly handled with clear error messages
 
 ## Technical Analysis
 
-Supabase Auth supports email authentication with custom SMTP servers. We need to:
+The purchase and payout flow requires integration between our authentication system, Stripe Connect, and our database:
 
-1. Configure SMTP settings in the Supabase dashboard
-2. Update our authentication service to handle email-specific flows
-3. Modify UI components to support email authentication
-4. Implement proper error handling for email-specific issues
-
-The email templates for verification and password reset will need to be customized to match our brand.
+1. Authentication verification must occur before any purchase attempt
+2. Stripe Connect status must be verified for sellers before listing their content for sale
+3. Payment processing must handle the split between platform fees and seller payouts
+4. Transaction records must be maintained for accounting and user history
 
 ## Potential Implementation Approach
 
-1. SMTP Configuration:
-   - Set up SMTP credentials in Supabase Auth settings
-   - Configure email templates for verification and password reset
+1. Authentication and Seller Verification:
+   - Create middleware to verify user authentication status
+   - Implement Stripe Connect status checking for sellers
+   - Add UI indicators for incomplete seller onboarding
 
-2. Code Implementation:
-   - Update auth service to handle email sign-up/sign-in
-   - Add email verification handling
-   - Implement password reset flow
-   - Update UI components
+2. Purchase Flow:
+   - Create a secure checkout process using Stripe Checkout or Payment Elements
+   - Implement proper error handling for payment failures
+   - Add purchase confirmation and receipt generation
+
+3. Payout System:
+   - Configure Stripe Connect for automatic fee splitting
+   - Implement payout scheduling and status tracking
+   - Create seller dashboard for payout history
+
+4. Monitoring and Reporting:
+   - Add transaction logging to database
+   - Create admin dashboard for transaction monitoring
+   - Implement reporting for financial reconciliation
 
 ## Likely Affected Files
 
-1. `app/services/auth/AuthContext.tsx` - Update authentication context
-2. `app/components/ui/sign-in.tsx` - Add email sign-in UI
-3. `app/components/ui/sign-up.tsx` - Add email sign-up UI
-4. `app/components/ui/auth-dialog.tsx` - Update auth dialog for email flows
-5. `app/components/ui/password-reset.tsx` - Create new component for password reset
+1. `app/components/ui/lesson-access-gate.tsx` - Update to enforce authentication
+2. `app/services/stripe.ts` - Add Connect verification and payout handling
+3. `app/components/ui/stripe-connect-button.tsx` - Update for better onboarding status
+4. `app/dashboard/page.tsx` - Add transaction history and payout information
+5. `app/api/webhooks/stripe/route.ts` - Handle payment and payout event webhooks
+6. `app/components/ui/purchase-button.tsx` - Create new component for purchase flow
 
 ## Testing Requirements
 
-- Test email sign-up flow with valid and invalid email addresses
-- Verify that verification emails are sent and links work correctly
-- Test password reset flow
-- Verify that error messages are displayed appropriately
+- Test purchase flow with authenticated and unauthenticated users
+- Verify Stripe Connect onboarding and verification process
+- Test payment processing with various payment methods
+- Verify correct fee splitting between platform and sellers
+- Test webhook handling for various payment scenarios
+- Verify transaction records are properly created
 - Test across multiple browsers and devices
 
 ## Environment
 
 - **Browser**: Chrome, Firefox, Safari, Edge
 - **Environment**: Development, Staging, Production
-- **Authentication Provider**: Supabase Auth with SMTP
+- **Payment Provider**: Stripe Connect (v2025-01-27.acacia)
+- **Authentication**: Supabase Auth
 
 ## Priority
 
-High - Email authentication is a standard feature expected by users and will increase user acquisition and retention.
+High - The purchase and payout flow is critical for platform monetization and seller satisfaction.
 
 ## Additional Context
 
-- We'll need SMTP server credentials (likely from a service like SendGrid, Mailgun, or similar)
-- Email templates should follow our brand guidelines
-- Consider rate limiting for email-based actions to prevent abuse
-- Documentation for the team on how the email authentication flow works will be needed
+- Platform fee is configured at 15% of transaction value
+- Stripe Connect account type is 'standard'
+- Payouts should be processed automatically after payment completion
+- Consider implementing dispute handling and refund processes
+- Documentation for both users and sellers on the payment process will be needed
+- Consider implementing a sandbox mode for testing without real transactions

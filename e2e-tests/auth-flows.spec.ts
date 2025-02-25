@@ -45,16 +45,53 @@ async function mockGoogleOAuthResponse(page, options = {}) {
     fullName = 'Google Test User',
     avatarUrl = 'https://example.com/avatar.png',
     isNewUser = false,
-    errorMessage = 'Authentication failed'
+    errorMessage = 'Failed to sign in with Google'
   } = options;
   
+  // Mock the signInWithGoogle function from supabaseAuth
+  await page.addInitScript(() => {
+    window.mockAuthSuccess = arguments[0].success;
+    window.mockAuthError = arguments[0].errorMessage;
+    
+    // Override the signInWithGoogle function
+    window.originalSignInWithGoogle = window.signInWithGoogle;
+    window.signInWithGoogle = async function() {
+      console.log('Mocked signInWithGoogle called');
+      
+      if (window.mockAuthSuccess) {
+        // Return a successful response
+        return { 
+          data: { 
+            user: {
+              id: arguments[0].userId,
+              email: arguments[0].email,
+              user_metadata: {
+                full_name: arguments[0].fullName,
+                avatar_url: arguments[0].avatarUrl
+              }
+            },
+            session: { access_token: 'mock-token' }
+          },
+          error: null
+        };
+      } else {
+        // Throw an error to simulate failure
+        throw new Error(window.mockAuthError);
+      }
+    };
+  }, options);
+  
+  // Also intercept any API calls to auth endpoints as a fallback
   if (success) {
-    await page.route('**/auth/callback/google', async (route) => {
+    await page.route('**/auth/v1/token**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({ 
-          success: true,
+          access_token: 'mock-token',
+          token_type: 'bearer',
+          expires_in: 3600,
+          refresh_token: 'mock-refresh-token',
           user: {
             id: userId,
             email: email,
@@ -62,19 +99,18 @@ async function mockGoogleOAuthResponse(page, options = {}) {
               full_name: fullName,
               avatar_url: avatarUrl
             }
-          },
-          isNewUser
+          }
         })
       });
     });
   } else {
-    await page.route('**/auth/callback/google', async (route) => {
+    await page.route('**/auth/v1/token**', async (route) => {
       await route.fulfill({
         status: 400,
         contentType: 'application/json',
         body: JSON.stringify({ 
-          error: 'Authentication failed',
-          message: errorMessage
+          error: 'invalid_grant',
+          error_description: errorMessage
         })
       });
     });
@@ -96,37 +132,19 @@ test.describe('Authentication flows', () => {
   test('User can sign in with Google', async ({ page, context }) => {
     // We're already on the home page from beforeEach
     
-    // Open auth dialog - using the actual button that exists in the app
-    // First, look for a button or link with text containing "Sign In" or "Log In"
-    await page.click('button:has-text("Sign In"), a:has-text("Sign In"), button:has-text("Log In"), a:has-text("Log In")');
+    // Open auth dialog by clicking the sign-in button
+    await page.click('button:has-text("Sign In"), a:has-text("Sign In")');
     
     // Mock Google OAuth flow
     // Note: In a real test, you would need to handle the Google OAuth popup
     // This is a simplified version that mocks the response
     
-    // Click the Google sign-in button - using a more generic selector
-    const googleSignInButton = page.locator('button:has-text("Google"), button:has-text("Continue with Google")');
+    // Click the Google sign-in button
+    const googleSignInButton = page.locator('button:has-text("Sign in with Google")');
     await expect(googleSignInButton).toBeVisible({ timeout: 5000 });
     
-    // Set up a route to intercept the OAuth redirect
-    await page.route('**/auth/callback/google', async (route) => {
-      // Mock a successful authentication response
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ 
-          success: true,
-          user: {
-            id: 'google-user-123',
-            email: 'google-user@example.com',
-            user_metadata: {
-              full_name: 'Google Test User',
-              avatar_url: 'https://example.com/avatar.png'
-            }
-          }
-        })
-      });
-    });
+    // Set up route interception for the Supabase auth endpoint
+    await mockGoogleOAuthResponse(page, { success: true });
     
     // Click the Google sign-in button which would normally open a popup
     await googleSignInButton.click();
@@ -147,32 +165,20 @@ test.describe('Authentication flows', () => {
   test('User can sign up with Google', async ({ page }) => {
     // We're already on the home page from beforeEach
     
-    // Open auth dialog in sign-up mode - using the actual button that exists in the app
-    await page.click('button:has-text("Sign Up"), a:has-text("Sign Up"), button:has-text("Register"), a:has-text("Register")');
+    // Open auth dialog in sign-up mode
+    await page.click('button:has-text("Sign Up"), a:has-text("Sign Up")');
     
-    // Click the Google sign-up button - using a more generic selector
-    const googleSignUpButton = page.locator('button:has-text("Google"), button:has-text("Continue with Google")');
+    // Click the Google sign-up button
+    const googleSignUpButton = page.locator('button:has-text("Sign up with Google")');
     await expect(googleSignUpButton).toBeVisible({ timeout: 5000 });
     
-    // Set up a route to intercept the OAuth redirect
-    await page.route('**/auth/callback/google', async (route) => {
-      // Mock a successful authentication response for a new user
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ 
-          success: true,
-          user: {
-            id: 'new-google-user-456',
-            email: 'new-google-user@example.com',
-            user_metadata: {
-              full_name: 'New Google User',
-              avatar_url: 'https://example.com/new-avatar.png'
-            }
-          },
-          isNewUser: true
-        })
-      });
+    // Set up route interception for the Supabase auth endpoint
+    await mockGoogleOAuthResponse(page, { 
+      success: true,
+      userId: 'new-google-user-456',
+      email: 'new-google-user@example.com',
+      fullName: 'New Google User',
+      isNewUser: true
     });
     
     // Click the Google sign-up button
@@ -192,30 +198,23 @@ test.describe('Authentication flows', () => {
     // We're already on the home page from beforeEach
     
     // Open auth dialog
-    await page.click('button:has-text("Sign In"), a:has-text("Sign In"), button:has-text("Log In"), a:has-text("Log In")');
+    await page.click('button:has-text("Sign In"), a:has-text("Sign In")');
     
     // Click the Google sign-in button
-    const googleSignInButton = page.locator('button:has-text("Google"), button:has-text("Continue with Google")');
+    const googleSignInButton = page.locator('button:has-text("Sign in with Google")');
     await expect(googleSignInButton).toBeVisible({ timeout: 5000 });
     
-    // Set up a route to intercept the OAuth redirect and simulate a failure
-    await page.route('**/auth/callback/google', async (route) => {
-      // Mock a failed authentication response
-      await route.fulfill({
-        status: 400,
-        contentType: 'application/json',
-        body: JSON.stringify({ 
-          error: 'Authentication failed',
-          message: 'Google authentication failed'
-        })
-      });
+    // Set up route interception to simulate a failure
+    await mockGoogleOAuthResponse(page, { 
+      success: false,
+      errorMessage: 'Failed to sign in with Google'
     });
     
     // Click the Google sign-in button
     await googleSignInButton.click();
     
-    // Verify error message is displayed - using a more generic selector for error messages
-    const errorMessage = page.locator('.text-destructive, .text-red-500, .text-error, div:has-text("failed"), div:has-text("error")').first();
+    // Verify error message is displayed - using the selector that matches the error message in sign-in.tsx
+    const errorMessage = page.locator('.text-red-500');
     await expect(errorMessage).toBeVisible({ timeout: 5000 });
     await expect(errorMessage).toContainText(/failed|error|invalid/i);
   });

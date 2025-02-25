@@ -87,3 +87,9 @@
     "whatwg-fetch": "^3.6.20"
   }
 }
+{
+  "scripts": {
+    "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests'",
+    "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual"
+  }
+}

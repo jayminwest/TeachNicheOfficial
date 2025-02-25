@@ -20,9 +20,16 @@ npx playwright install --with-deps
 echo "Running E2E tests..."
 npm run test:e2e
 
-# Run visual tests
+# Build the app
+echo "Building the app for tests..."
+npm run build
+
+# Run visual tests with static server
 echo "Running visual tests..."
+npx serve -s .next -p 3000 &
+sleep 5 # Give the server a moment to start
 npm run test:visual
+kill $(lsof -t -i:3000) # Kill the server when done
 
 # Build the project
 echo "Building the project..."

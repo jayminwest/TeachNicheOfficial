@@ -5,7 +5,7 @@ const config: PlaywrightTestConfig = {
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run build && npx serve -s .next -p 3000',
     url: 'http://localhost:3000',
     timeout: 120000,
     reuseExistingServer: !process.env.CI,

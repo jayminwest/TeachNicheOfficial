@@ -63,14 +63,16 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      - name: Start server for visual tests
-        run: npm run dev &
+      - name: Build app for visual tests
+        run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+      - name: Start static server
+        run: npx serve -s .next -p 3000 &
       - name: Wait for server to start
-        run: npx wait-on http://localhost:3000 -t 60000
+        run: npx wait-on http://localhost:3000 -t 30000
       - name: Run visual tests
         run: npm run test:visual
         env:

@@ -21,7 +21,8 @@ jest.mock('../../../lib/supabase/client', () => {
   };
   
   return {
-    createClient: jest.fn().mockReturnValue(mockClient)
+    createClient: jest.fn().mockReturnValue(mockClient),
+    createRouteHandlerClient: jest.fn().mockReturnValue(mockClient)
   };
 });
 
@@ -40,10 +41,20 @@ jest.mock('next/server', () => {
   };
 });
 
+// Mock cookies
+jest.mock('next/headers', () => ({
+  cookies: jest.fn().mockReturnValue({
+    getAll: jest.fn().mockReturnValue([]),
+    get: jest.fn().mockReturnValue(null),
+    set: jest.fn(),
+    delete: jest.fn()
+  })
+}));
+
 // Get the mock client for setting up test data
 const getMockSupabase = () => {
-  const { createClient } = jest.requireMock('../../../lib/supabase/client');
-  return createClient();
+  const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');
+  return createRouteHandlerClient();
 };
 
 // Mock auth
@@ -198,6 +209,12 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
+      // Mock the route implementation to actually call from
+      jest.spyOn(mockSupabase, 'from').mockImplementation((table) => {
+        expect(table).toBe('lessons');
+        return mockSupabase;
+      });
+
       const result = await createLesson(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
@@ -291,6 +308,12 @@ describe('Lessons API', () => {
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
 
+      // Mock the route implementation to actually call from
+      jest.spyOn(mockSupabase, 'from').mockImplementation((table) => {
+        expect(table).toBe('lessons');
+        return mockSupabase;
+      });
+
       const result = await updateLesson(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
@@ -344,6 +367,12 @@ describe('Lessons API', () => {
       
       // Mock NextResponse.json to return our success response
       jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
+
+      // Mock the route implementation to actually call from
+      jest.spyOn(mockSupabase, 'from').mockImplementation((table) => {
+        expect(table).toBe('lessons');
+        return mockSupabase;
+      });
 
       const result = await deleteLesson(req);
 

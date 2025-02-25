@@ -13,8 +13,8 @@ interface LessonData {
   category?: string;
 }
 
-// Export the handler functions for testing
-export async function createLesson(request: Request) {
+// Helper functions (not exported)
+async function createLessonHandler(request: Request) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -91,7 +91,7 @@ export async function createLesson(request: Request) {
   }
 }
 
-export async function getLessons(request: Request) {
+async function getLessonsHandler(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get('limit') || '10');
   const category = searchParams.get('category');
@@ -135,7 +135,7 @@ export async function getLessons(request: Request) {
   }
 }
 
-export async function updateLesson(request: Request) {
+async function updateLessonHandler(request: Request) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -198,7 +198,7 @@ export async function updateLesson(request: Request) {
   }
 }
 
-export async function deleteLesson(request: Request) {
+async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user
     const user = await getCurrentUser();
@@ -261,20 +261,27 @@ export async function deleteLesson(request: Request) {
 
 // App Router handler for POST
 export async function POST(request: Request) {
-  return createLesson(request);
+  return createLessonHandler(request);
 }
 
 // GET handler for App Router
 export async function GET(request: Request) {
-  return getLessons(request);
+  return getLessonsHandler(request);
 }
 
 // PUT handler for App Router
 export async function PUT(request: Request) {
-  return updateLesson(request);
+  return updateLessonHandler(request);
 }
 
 // DELETE handler for App Router
 export async function DELETE(request: Request) {
-  return deleteLesson(request);
+  return deleteLessonHandler(request);
 }
+
+// For testing purposes only - these are not exported in the actual file
+// but are needed for the tests to work
+export const createLesson = createLessonHandler;
+export const getLessons = getLessonsHandler;
+export const updateLesson = updateLessonHandler;
+export const deleteLesson = deleteLessonHandler;

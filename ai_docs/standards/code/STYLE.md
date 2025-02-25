@@ -1,110 +1,243 @@
-# Code Style Guidelines
+# Style Guide
 
-This document outlines the coding style guidelines for the Teach Niche project. These guidelines are language-agnostic and focus on general principles that apply across different programming languages and frameworks.
+## Code Formatting
 
-## General Principles
+### TypeScript/JavaScript
+```typescript
+// Right way
+function calculateTotal(items: Item[]): number {
+  return items.reduce((total, item) => {
+    return total + item.price;
+  }, 0);
+}
 
-### 1. Consistency
+// Wrong way
+function calculateTotal( items:Item[] ){
+  return items.reduce((total,item)=>{return total+item.price},0)
+}
+```
 
-- Follow established patterns in the codebase
-- Use consistent naming, formatting, and organization
-- When in doubt, match the surrounding code
+### React Components
+```typescript
+// Right way
+export function UserProfile({ user, onUpdate }: UserProfileProps) {
+  const [isEditing, setIsEditing] = useState(false);
 
-### 2. Readability
+  return (
+    <div className="user-profile">
+      {/* Component content */}
+    </div>
+  );
+}
 
-- Write code for humans first, computers second
-- Prioritize clarity over cleverness
-- Use descriptive names that reveal intent
-
-### 3. Simplicity
-
-- Keep functions, methods, and components small and focused
-- Avoid unnecessary complexity
-- Prefer explicit over implicit
-
-### 4. Maintainability
-
-- Write code that is easy to modify and extend
-- Consider future developers (including your future self)
-- Document non-obvious decisions and edge cases
+// Wrong way
+export function UserProfile(props) {
+  var editing = false
+  return (<div className='user-profile'>{/* Content */}</div>)
+}
+```
 
 ## Naming Conventions
 
-### Variables and Functions
-
-- Use descriptive, intention-revealing names
-- Avoid abbreviations unless they are well-known
-- Follow language-specific conventions for casing:
-  - camelCase for JavaScript/TypeScript variables and functions
-  - PascalCase for React components and classes
-  - snake_case for database fields
-  - kebab-case for CSS classes and HTML attributes
-
-### Examples
-
+### Components
 ```typescript
-// Good
-const userProfile = getUserProfile(userId);
-function calculateTotalPrice(items, taxRate) { ... }
+// Right
+export function UserProfile() {}
+export function AuthenticationModal() {}
 
-// Bad
-const data = getData(id);
-function calc(i, t) { ... }
+// Wrong
+export function userProfile() {}
+export function auth_modal() {}
 ```
 
-## Formatting
+### Variables
+```typescript
+// Right
+const userCount = 0;
+const isLoading = false;
+const MAX_RETRIES = 3;
 
-- Use consistent indentation (2 spaces recommended)
-- Limit line length to 100 characters
-- Use whitespace to improve readability
-- Place opening braces on the same line as the statement
-- Use semicolons where appropriate for the language
+// Wrong
+const UsErCoUnT = 0;
+const loading = false;
+const maxRetries = 3;
+```
+
+### Functions
+```typescript
+// Right
+function handleSubmit() {}
+function validateEmail() {}
+
+// Wrong
+function submit() {}
+function emailvalidator() {}
+```
+
+## File Organization
+
+### Directory Structure
+```
+src/
+├── components/
+│   ├── common/
+│   └── features/
+├── hooks/
+├── utils/
+└── types/
+```
+
+### Import Order
+```typescript
+// 1. React and external libraries
+import { useState } from 'react';
+import { z } from 'zod';
+
+// 2. Internal components
+import { Button } from '@/components/ui';
+
+// 3. Types and utilities
+import type { User } from '@/types';
+import { formatDate } from '@/utils';
+
+// 4. Styles
+import './styles.css';
+```
+
+## CSS/Tailwind
+
+### Class Organization
+```html
+<!-- Right -->
+<div
+  className={cn(
+    "flex items-center",
+    "p-4 rounded-lg",
+    "bg-white dark:bg-gray-800",
+    className
+  )}
+>
+
+<!-- Wrong -->
+<div className="flex items-center p-4 rounded-lg bg-white dark:bg-gray-800">
+```
+
+### Custom Classes
+```css
+/* Right */
+.user-profile {
+  @apply flex items-center gap-4 p-4;
+}
+
+/* Wrong */
+.UserProfile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+```
 
 ## Comments
 
-- Write self-documenting code that minimizes the need for comments
-- Use comments to explain "why", not "what" or "how"
-- Keep comments up-to-date with code changes
-- Use JSDoc or similar for API documentation
-
+### Component Documentation
 ```typescript
-// Good
-// Retry up to 3 times to handle potential network flakiness
-function fetchWithRetry() { ... }
+/**
+ * UserProfile displays user information and handles profile updates
+ *
+ * @param user - The user object containing profile data
+ * @param onUpdate - Callback function when profile is updated
+ */
+export function UserProfile({ user, onUpdate }: UserProfileProps) {
+  // Implementation
+}
+```
 
-// Bad
-// Get user data
-function getUser() { ... }
+### Code Comments
+```typescript
+// Right
+// Calculate total with tax and shipping
+const total = subtotal * TAX_RATE + SHIPPING_COST;
+
+// Wrong
+// Calculate
+const t = s * 1.2 + 10;
 ```
 
 ## Error Handling
 
-- Handle errors explicitly and gracefully
-- Provide meaningful error messages
-- Avoid swallowing errors without logging
-- Use appropriate error handling mechanisms for the language/framework
+### Error Messages
+```typescript
+// Right
+throw new Error('Failed to load user profile: Invalid ID');
+
+// Wrong
+throw new Error('error!!!');
+```
+
+### Try/Catch Blocks
+```typescript
+// Right
+try {
+  await saveUserData(userData);
+} catch (error) {
+  logger.error('Failed to save user data:', error);
+  throw new Error('Unable to save user data');
+}
+
+// Wrong
+try {
+  await saveUserData(userData);
+} catch (e) {
+  console.log(e);
+}
+```
 
 ## Testing
 
-- Write testable code with clear dependencies
-- Test both success and failure cases
-- Keep tests readable and maintainable
-- Follow the Arrange-Act-Assert pattern
+### Test Organization
+```typescript
+// Right
+describe('UserProfile', () => {
+  it('displays user information correctly', () => {
+    // Test implementation
+  });
+});
 
-## Language-Specific Guidelines
+// Wrong
+test('it works', () => {
+  // Test implementation
+});
+```
 
-For detailed, language-specific guidelines, refer to:
+## Version Control
 
-- [TypeScript Style Guide](./typescript.md)
-- [React Style Guide](./react.md)
-- [CSS/SCSS Style Guide](./css.md)
-- [SQL Style Guide](./sql.md)
+### Commit Messages
+```
+// Right
+feat(auth): implement OAuth login with Google
 
-## Enforcement
+// Wrong
+fixed stuff
+```
 
-- Use linters and formatters to automate style enforcement
-- Configure CI to validate style compliance
-- Address style issues during code review
-- Prioritize consistency over personal preference
+## Documentation
 
-Remember that these guidelines exist to help create maintainable, high-quality code. They should be applied with judgment rather than dogmatically.
+### README
+- Clear project description
+- Setup instructions
+- Usage examples
+- Contributing guidelines
+- License information
+
+### Component Props
+```typescript
+interface ButtonProps {
+  /** The button's label text */
+  label: string;
+  /** Called when the button is clicked */
+  onClick: () => void;
+  /** Optional CSS class names */
+  className?: string;
+}
+```

@@ -62,40 +62,7 @@ jest.mock('next/server', () => {
   };
 });
 
-// Override the route handlers for testing
-const originalCreateUploadUrl = (routeModule as any).createUploadUrl;
-(routeModule as any).createUploadUrl = jest.fn().mockImplementation(async (req) => {
-  // For authentication error test
-  if (req.headers.get('x-test-auth-fail') === 'true') {
-    return {
-      status: 401,
-      body: { error: 'Unauthorized' },
-      json: () => ({ error: 'Unauthorized' })
-    };
-  }
-  
-  // For Mux service error test
-  if (req.headers.get('x-test-mux-fail') === 'true') {
-    return {
-      status: 500,
-      body: { error: 'Mux service error' },
-      json: () => ({ error: 'Mux service error' })
-    };
-  }
-  
-  // Default success case
-  return {
-    status: 200,
-    body: {
-      uploadId: 'upload-123',
-      uploadUrl: 'https://mux.com/upload/123'
-    },
-    json: () => ({
-      uploadId: 'upload-123',
-      uploadUrl: 'https://mux.com/upload/123'
-    })
-  };
-});
+// Use the exported POST handler instead of trying to mock internal functions
 
 // Helper function to create mock request/response
 function createMockRequestResponse(method: string, body?: unknown, url = 'http://localhost/api/mux', headers = {}) {
@@ -138,7 +105,7 @@ describe('Mux API', () => {
     it('creates upload URL successfully', async () => {
       const { req, res } = createMockRequestResponse('POST');
 
-      const result = await routeModule.createUploadUrl(req);
+      const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
       res.status(result.status);
@@ -156,7 +123,7 @@ describe('Mux API', () => {
         'x-test-auth-fail': 'true'
       });
 
-      const result = await routeModule.createUploadUrl(req);
+      const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
       res.status(result.status);
@@ -170,7 +137,7 @@ describe('Mux API', () => {
         'x-test-mux-fail': 'true'
       });
 
-      const result = await routeModule.createUploadUrl(req);
+      const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
       res.status(result.status);
@@ -191,26 +158,22 @@ describe('Mux API', () => {
         }
       });
 
-      // Restore original implementation for this test
-      const originalHandleAssetCreated = (routeModule as any).handleAssetCreated;
-      (routeModule as any).handleAssetCreated = jest.fn().mockImplementation(async () => {
-        return {
-          status: 200,
-          body: { success: true },
-          json: () => ({ success: true })
-        };
-      });
-
-      const result = await routeModule.handleAssetCreated(req);
+      // Use the exported POST handler with a webhook URL
+      req.url = 'http://localhost/api/mux/asset-created';
+      
+      // Mock NextResponse.json for this test
+      const mockSuccessData = { success: true };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockSuccessData, { status: 200 }) as NextResponse
+      );
+      
+      const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
       res.status(result.status);
       res.json(result.body);
 
       expect(res._getStatusCode()).toBe(200);
-      
-      // Restore the original implementation
-      (routeModule as any).handleAssetCreated = originalHandleAssetCreated;
     });
   });
 
@@ -227,31 +190,24 @@ describe('Mux API', () => {
         }
       });
 
-      // Restore original implementation for this test
-      const originalHandleAssetReady = (routeModule as any).handleAssetReady;
-      (routeModule as any).handleAssetReady = jest.fn().mockImplementation(async () => {
-        return {
-          status: 200,
-          body: { success: true },
-          json: () => ({ success: true })
-        };
-      });
-
-      const result = await routeModule.handleAssetReady(req);
+      // Use the exported POST handler with a webhook URL
+      req.url = 'http://localhost/api/mux/asset-ready';
+      
+      // Mock NextResponse.json for this test
+      const mockSuccessData = { success: true };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockSuccessData, { status: 200 }) as NextResponse
+      );
+      
+      const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
       res.status(result.status);
       res.json(result.body);
 
       expect(res._getStatusCode()).toBe(200);
-      
-      // Restore the original implementation
-      (routeModule as any).handleAssetReady = originalHandleAssetReady;
     });
   });
   
-  // Restore original implementation after all tests
-  afterAll(() => {
-    (routeModule as any).createUploadUrl = originalCreateUploadUrl;
-  });
+  // No need to restore original implementation since we're using the exported handlers
 });

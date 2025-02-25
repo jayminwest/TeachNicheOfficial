@@ -17,7 +17,7 @@ describe('RequestCard', () => {
       description: 'Test Description',
       category: 'Test Category',
       created_at: '2023-01-01T00:00:00.000Z',
-      status: 'open',
+      status: 'open' as 'open' | 'in_progress' | 'completed',
       vote_count: 0,
       user_id: 'user123'
     }

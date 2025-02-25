@@ -72,7 +72,7 @@ describe('Checkout API', () => {
       }
     });
 
-    await routeModule.POST(req, res);
+    await routeModule.POST(req);
 
     expect(res._getStatusCode()).toBe(200);
     expect(JSON.parse(res._getData())).toEqual({

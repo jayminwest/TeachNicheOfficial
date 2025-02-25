@@ -122,27 +122,10 @@ describe('Lessons API', () => {
       req.url = 'http://localhost/api/lessons?limit=10';
 
       // Mock the response from getLessons
-      const mockResponse = {
-        status: 200,
-        json: jest.fn().mockReturnValue({ lessons: mockLessons }),
-        cookies: new Map(),
-        headers: new Headers(),
-        ok: true,
-        redirected: false,
-        statusText: 'OK',
-        type: 'basic',
-        url: '',
-        clone: jest.fn(),
-        body: null,
-        bodyUsed: false,
-        arrayBuffer: jest.fn(),
-        blob: jest.fn(),
-        formData: jest.fn(),
-        text: jest.fn()
-      } as unknown as NextResponse;
-      
-      // Mock NextResponse.json to return our mock response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
+      const mockResponseData = { lessons: mockLessons };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockResponseData, { status: 200 }) as NextResponse
+      );
 
       const result = await GET(req);
 
@@ -167,14 +150,10 @@ describe('Lessons API', () => {
       mockSupabase.data = [];
       
       // Mock the response
-      const mockResponse = {
-        status: 200,
-        body: { lessons: [] },
-        json: () => ({ lessons: [] })
-      };
-      
-      // Mock NextResponse.json to return our mock response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse);
+      const mockResponseData = { lessons: [] };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockResponseData, { status: 200 }) as NextResponse
+      );
 
       await GET(req);
 
@@ -196,14 +175,10 @@ describe('Lessons API', () => {
       req.url = 'http://localhost/api/lessons';
 
       // Mock the error response
-      const mockErrorResponse = {
-        status: 500,
-        body: { error: { message: 'Internal server error' } },
-        json: () => ({ error: { message: 'Internal server error' } })
-      };
-      
-      // Mock NextResponse.json to return our error response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockErrorResponse);
+      const mockErrorData = { error: { message: 'Internal server error' } };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockErrorData, { status: 500 }) as NextResponse
+      );
 
       const result = await GET(req);
 
@@ -239,14 +214,10 @@ describe('Lessons API', () => {
       req.json = jest.fn().mockResolvedValue(lessonData);
 
       // Mock the success response
-      const mockSuccessResponse = {
-        status: 201,
-        body: { id: 'lesson-123', ...lessonData },
-        json: () => ({ id: 'lesson-123', ...lessonData })
-      };
-      
-      // Mock NextResponse.json to return our success response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
+      const mockSuccessData = { id: 'lesson-123', ...lessonData };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockSuccessData, { status: 201 }) as NextResponse
+      );
 
       const response = await POST(req);
 
@@ -271,14 +242,10 @@ describe('Lessons API', () => {
       req.json = jest.fn().mockResolvedValue({ title: 'New Lesson' });
 
       // Mock the validation error response
-      const mockValidationErrorResponse = {
-        status: 400,
-        body: { error: 'Title and description are required' },
-        json: () => ({ error: 'Title and description are required' })
-      };
-      
-      // Mock NextResponse.json to return our validation error response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockValidationErrorResponse);
+      const mockValidationErrorData = { error: 'Title and description are required' };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockValidationErrorData, { status: 400 }) as NextResponse
+      );
 
       const response = await POST(req);
 
@@ -309,14 +276,10 @@ describe('Lessons API', () => {
       jest.mocked(jest.requireMock('../../../services/auth').getCurrentUser).mockImplementationOnce(() => Promise.resolve(null));
 
       // Mock the auth error response
-      const mockAuthErrorResponse = {
-        status: 401,
-        body: { error: 'Authentication required' },
-        json: () => ({ error: 'Authentication required' })
-      };
-      
-      // Mock NextResponse.json to return our auth error response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockAuthErrorResponse);
+      const mockAuthErrorData = { error: 'Authentication required' };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockAuthErrorData, { status: 401 }) as NextResponse
+      );
 
       const response = await POST(req);
 
@@ -349,14 +312,10 @@ describe('Lessons API', () => {
       req.json = jest.fn().mockResolvedValue(lessonUpdate);
 
       // Mock the success response
-      const mockSuccessResponse = {
-        status: 200,
-        body: { ...lessonUpdate, creator_id: 'user-123' },
-        json: () => ({ ...lessonUpdate, creator_id: 'user-123' })
-      };
-      
-      // Mock NextResponse.json to return our success response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
+      const mockSuccessData = { ...lessonUpdate, creator_id: 'user-123' };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockSuccessData, { status: 200 }) as NextResponse
+      );
 
       await PUT(req);
 
@@ -384,14 +343,10 @@ describe('Lessons API', () => {
       mockSupabase.data = { id: 'lesson-123', creator_id: 'different-user' };
 
       // Mock the permission error response
-      const mockPermissionErrorResponse = {
-        status: 403,
-        body: { error: 'You do not have permission to update this lesson' },
-        json: () => ({ error: 'You do not have permission to update this lesson' })
-      };
-      
-      // Mock NextResponse.json to return our permission error response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockPermissionErrorResponse);
+      const mockPermissionErrorData = { error: 'You do not have permission to update this lesson' };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockPermissionErrorData, { status: 403 }) as NextResponse
+      );
 
       const response = await PUT(req);
 
@@ -418,14 +373,10 @@ describe('Lessons API', () => {
       req.url = 'http://localhost/api/lessons?id=lesson-123';
 
       // Mock the success response
-      const mockSuccessResponse = {
-        status: 200,
-        body: { success: true },
-        json: () => ({ success: true })
-      };
-      
-      // Mock NextResponse.json to return our success response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockSuccessResponse);
+      const mockSuccessData = { success: true };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockSuccessData, { status: 200 }) as NextResponse
+      );
 
       await DELETE(req);
 
@@ -447,14 +398,10 @@ describe('Lessons API', () => {
       req.url = 'http://localhost/api/lessons?id=non-existent-lesson';
 
       // Mock the not found response
-      const mockNotFoundResponse = {
-        status: 404,
-        body: { error: 'Lesson not found' },
-        json: () => ({ error: 'Lesson not found' })
-      };
-      
-      // Mock NextResponse.json to return our not found response
-      jest.mocked(NextResponse.json).mockReturnValueOnce(mockNotFoundResponse);
+      const mockNotFoundData = { error: 'Lesson not found' };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockNotFoundData, { status: 404 }) as NextResponse
+      );
 
       const response = await DELETE(req);
 

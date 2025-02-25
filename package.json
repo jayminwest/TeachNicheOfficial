@@ -87,6 +87,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5",
+    "wait-on": "^8.0.2",
     "whatwg-fetch": "^3.6.20"
   }
 }

@@ -16,7 +16,7 @@ test.describe('Homepage Visual Tests', () => {
     await page.waitForTimeout(1000);
     
     // Take a screenshot of the hero section
-    const heroSection = await page.locator('[data-testid="hero-section"]');
+    const heroSection = await page.locator('[data-testid="hero-section-container"]');
     await expect(heroSection).toBeVisible();
     await expect(heroSection).toHaveScreenshot('homepage-hero.png');
     

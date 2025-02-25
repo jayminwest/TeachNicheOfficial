@@ -44,11 +44,6 @@ async function handlePostRequest() {
       fullResponse: upload
     });
 
-    const response = {
-      url: upload.url,
-      assetId: upload.id
-    };
-
     // The upload.id is actually the upload ID, not the asset ID
     // We need to wait for the asset to be created or use a different approach
     // For now, we'll return both IDs and handle appropriately in the client

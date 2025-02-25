@@ -107,9 +107,9 @@ export function VideoUploader({
   };
 
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
-  const [currentAssetId, setCurrentAssetId] = useState<string | null>(null);
 
-  const [uploadId, setUploadId] = useState<string | null>(null);
+  // We need to track the upload ID to get the asset ID later
+  const [uploadId] = useState<string | null>(null);
   
   // First step: Get the Mux upload URL from our API
   const getUploadUrl = useCallback(async (): Promise<{url: string; uploadId: string}> => {
@@ -256,7 +256,6 @@ export function VideoUploader({
               
               if (data.assetId) {
                 console.log("Asset ID retrieved:", data.assetId);
-                setCurrentAssetId(data.assetId);
                 return data.assetId;
               } else if (i === retries - 1) {
                 throw new Error("No asset ID available from upload");

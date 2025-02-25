@@ -5,7 +5,7 @@ set -e
 
 # Run unit tests
 echo "Running unit tests..."
-npm test
+npm test -- --silent
 
 # Run type checking
 echo "Running type checking..."

@@ -94,6 +94,10 @@ The E2E testing for creator functionality requires:
 
 High - Comprehensive E2E testing for creator functionality is critical for ensuring platform reliability and quality before launch, especially given our current low test coverage for creator features.
 
+## Labels
+
+- enhancement
+
 ## Additional Context
 
 - Creator functionality represents a core part of our platform

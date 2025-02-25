@@ -9,13 +9,22 @@ const muxClient = new Mux({
 const { video } = muxClient;
 
 async function createUpload() {
-  return await video.uploads.create({
+  // Create a direct upload
+  const upload = await video.uploads.create({
     new_asset_settings: {
       playback_policy: ["public"],
       encoding_tier: "baseline",
     },
     cors_origin: "*",
   });
+  
+  // Log the upload details
+  console.log('Upload created:', {
+    uploadId: upload.id,
+    uploadUrl: upload.url
+  });
+  
+  return upload;
 }
 import { headers } from 'next/headers';
 
@@ -40,12 +49,20 @@ async function handlePostRequest() {
       assetId: upload.id
     };
 
-    console.log('Sending response:', response);
+    // The upload.id is actually the upload ID, not the asset ID
+    // We need to wait for the asset to be created or use a different approach
+    // For now, we'll return both IDs and handle appropriately in the client
+    console.log('Sending response with correct ID types:', {
+      url: upload.url,
+      uploadId: upload.id,
+      // The asset ID will be available after the upload completes
+      // We'll need to check the upload status to get it
+    });
 
     return NextResponse.json(
       {
         url: upload.url,
-        assetId: upload.id
+        uploadId: upload.id
       },
       {
         status: 200,

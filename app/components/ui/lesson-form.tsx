@@ -203,11 +203,19 @@ export function LessonForm({
                     console.warn("Asset ID format looks suspicious:", assetId);
                   }
                   
-                  // Add retry logic for checking asset status
-                  const checkAssetStatus = async (retries = 3, delay = 2000) => {
+                  // Add retry logic for checking asset status with exponential backoff
+                  const checkAssetStatus = async (retries = 5, initialDelay = 2000) => {
                     for (let i = 0; i < retries; i++) {
                       try {
-                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries})...`);
+                        // Exponential backoff with jitter
+                        const delay = initialDelay * Math.pow(1.5, i) * (0.75 + Math.random() * 0.5);
+                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries}, delay: ${Math.round(delay)}ms)...`);
+                        
+                        // Wait before checking (longer delays for later attempts)
+                        if (i > 0) {
+                          await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                        
                         const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
                         
                         if (!response.ok) {

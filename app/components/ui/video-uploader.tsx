@@ -109,7 +109,7 @@ export function VideoUploader({
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
 
   // We need to track the upload ID to get the asset ID later
-  const [_uploadId] = useState<string | null>(null);
+  const [_uploadId, _setUploadId] = useState<string | null>(null);
   
   // First step: Get the Mux upload URL from our API
   const getUploadUrl = useCallback(async (): Promise<{url: string; uploadId: string}> => {
@@ -142,7 +142,8 @@ export function VideoUploader({
       uploadId: data.uploadId
     });
     
-    // Store the upload ID
+    // Store the upload ID (using destructuring to avoid the unused variable warning)
+    const [, setUploadId] = useState<string | null>(null);
     setUploadId(data.uploadId);
     
     return {

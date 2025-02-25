@@ -80,7 +80,10 @@ describe('SignInPage', () => {
     await user.click(signInButton);
     
     expect(signInWithGoogle).toHaveBeenCalled();
-    expect(mockRouter.push).toHaveBeenCalledWith('/');
+    // Wait for the navigation to occur after successful sign-in
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
+    });
   });
 
   it('shows loading state during Google sign-in', async () => {

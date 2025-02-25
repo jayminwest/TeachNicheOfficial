@@ -207,7 +207,7 @@ export function VideoUploader({
       setStatus("processing");
       
       // Add retry logic for checking asset status
-      const checkAssetStatus = async (retries = 3, delay = 2000): Promise<any> => {
+      const checkAssetStatus = async (retries = 3, delay = 2000): Promise<{status: string; playbackId?: string}> => {
         for (let i = 0; i < retries; i++) {
           try {
             console.log(`Checking asset status (attempt ${i + 1}/${retries})...`);

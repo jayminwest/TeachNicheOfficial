@@ -72,7 +72,7 @@ describe('SignInPage', () => {
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
     const user = userEvent.setup();
-    (signInWithGoogle as jest.Mock).mockResolvedValue(undefined);
+    (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     

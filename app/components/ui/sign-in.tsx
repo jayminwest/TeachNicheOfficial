@@ -30,7 +30,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       }
       
       const result = await signInWithGoogle()
-      if (result.error) {
+      if (result?.error) {
         throw result.error
       }
       

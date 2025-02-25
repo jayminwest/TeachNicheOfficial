@@ -102,7 +102,13 @@ describe('Checkout API', () => {
     
     // Set the response status and data based on the result
     res.status(result.status || 200);
-    res.json(result.body || {});
+    
+    // Handle the response data correctly - avoid double JSON stringification
+    const responseData = typeof result.json === 'function' 
+      ? await result.json() 
+      : result.body || {};
+    
+    res.json(responseData);
 
     expect(res._getStatusCode()).toBe(200);
     expect(res._getData()).toEqual({

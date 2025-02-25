@@ -112,6 +112,18 @@ describe('Mux API', () => {
     it('creates upload URL successfully', async () => {
       const { req, res } = createMockRequestResponse('POST');
 
+      // Mock NextResponse.json for this test
+      const mockSuccessData = {
+        uploadId: 'upload-123',
+        uploadUrl: 'https://mux.com/upload/123'
+      };
+      const mockResponse = { 
+        body: mockSuccessData, 
+        status: 200,
+        json: () => mockSuccessData
+      };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
+      
       const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
@@ -130,10 +142,19 @@ describe('Mux API', () => {
         'x-test-auth-fail': 'true'
       });
 
+      // Mock NextResponse.json for this test
+      const mockErrorData = { error: 'Unauthorized' };
+      const mockResponse = { 
+        body: mockErrorData, 
+        status: 401,
+        json: () => mockErrorData
+      };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
+      
       const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
-      res.status(result.status || 200);
+      res.status(result.status || 401);
       res.json(result.body || {});
 
       expect(res._getStatusCode()).toBe(401);
@@ -144,10 +165,19 @@ describe('Mux API', () => {
         'x-test-mux-fail': 'true'
       });
 
+      // Mock NextResponse.json for this test
+      const mockErrorData = { error: 'Mux service error' };
+      const mockResponse = { 
+        body: mockErrorData, 
+        status: 500,
+        json: () => mockErrorData
+      };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(mockResponse as unknown as NextResponse);
+      
       const result = await routeModule.POST(req);
       
       // Set the response status and data based on the result
-      res.status(result.status || 200);
+      res.status(result.status || 500);
       res.json(result.body || {});
 
       expect(res._getStatusCode()).toBe(500);

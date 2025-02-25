@@ -48,33 +48,9 @@ async function mockGoogleOAuthResponse(page, options = {}) {
     errorMessage = 'Failed to sign in with Google'
   } = options;
   
-  // Block navigation to Google's auth page
-  await page.route('**/auth/v1/authorize?provider=google**', async (route) => {
-    console.log('Intercepted Google auth redirect');
-    
-    // First fulfill the request to prevent navigation
-    await route.fulfill({
-      status: 200,
-      contentType: 'text/html',
-      body: '<html><body>Auth redirect intercepted</body></html>'
-    });
-    
-    // Wait a moment to ensure the page is stable
-    await page.waitForTimeout(100);
-    
-    // Then trigger our mock in a way that's less likely to be affected by navigation
-    try {
-      await page.evaluate((mockOptions) => {
-        console.log('Executing mock auth response');
-        if (window.mockAuthCallback) {
-          window.mockAuthCallback(mockOptions);
-        }
-      }, options);
-    } catch (error) {
-      console.log('Could not execute mock callback in page context, will try alternative approach');
-      // If the evaluate fails, we'll handle it in the test
-    }
-  });
+  // Instead of using route interception which causes issues with test termination,
+  // we'll override the signInWithGoogle function directly and then click the button
+  console.log('Setting up Google auth mock');
   
   // Mock the signInWithGoogle function from supabaseAuth
   await page.addInitScript(({ success, userId, email, fullName, avatarUrl, errorMessage }) => {
@@ -228,16 +204,49 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Authentication flows', () => {
-  test('User can sign in with Google', async ({ page, context }) => {
+  test('User can sign in with Google', async ({ page }) => {
     console.log('Starting sign in test');
     
-    // Create a promise that will resolve when navigation occurs
-    const navigationPromise = page.waitForNavigation({ timeout: 5000 }).catch(() => {
-      console.log('No navigation occurred or navigation timed out');
-    });
-    
     // Set up mocking before navigating to ensure it's ready
-    await mockGoogleOAuthResponse(page, { success: true });
+    await page.addInitScript(() => {
+      // Store the original window.location.href setter
+      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      
+      // Override window.location.href setter to prevent actual navigation in tests
+      Object.defineProperty(window.location, 'href', {
+        set: function(url) {
+          console.log('Navigation intercepted to:', url);
+          // Don't actually navigate, just log it
+          window.lastNavigationAttempt = url;
+          // Dispatch an event we can listen for in the test
+          window.dispatchEvent(new CustomEvent('navigationAttempted', { detail: { url } }));
+        }
+      });
+      
+      // Mock the signInWithGoogle function
+      window.signInWithGoogle = async function() {
+        console.log('Mocked signInWithGoogle called');
+        
+        // Simulate successful auth
+        const user = {
+          id: 'google-user-123',
+          email: 'google-user@example.com',
+          user_metadata: {
+            full_name: 'Google Test User',
+            avatar_url: 'https://example.com/avatar.png'
+          }
+        };
+        
+        // Return a successful response
+        return { 
+          data: { 
+            user,
+            session: { access_token: 'mock-token' }
+          },
+          error: null
+        };
+      };
+    });
     
     // We're already on the home page from beforeEach
     // Look for a sign-in button in the header/navigation
@@ -254,17 +263,17 @@ test.describe('Authentication flows', () => {
     await expect(authDialog).toBeVisible({ timeout: 10000 });
     console.log('Auth dialog visible');
     
-    // Find and click the Google sign-in button within the dialog
+    // Find the Google sign-in button within the dialog
     const googleSignInButton = authDialog.locator('button').filter({ hasText: 'Sign in with Google' }).first();
     await expect(googleSignInButton).toBeVisible({ timeout: 10000 });
     console.log('Found Google sign in button');
     
-    // Before clicking, add a handler for the mock auth success
-    await page.evaluate(() => {
-      window.addEventListener('mockAuthSuccess', (event) => {
-        console.log('Mock auth success event received', event.detail);
-        // Force a redirect to simulate successful auth
-        window.location.href = '/dashboard';
+    // Set up a listener for navigation attempts
+    const navigationPromise = page.evaluate(() => {
+      return new Promise(resolve => {
+        window.addEventListener('navigationAttempted', (event) => {
+          resolve(event.detail.url);
+        }, { once: true });
       });
     });
     
@@ -272,33 +281,57 @@ test.describe('Authentication flows', () => {
     await googleSignInButton.click();
     console.log('Clicked Google sign in button');
     
-    try {
-      // Wait for either navigation or timeout
-      await navigationPromise;
-      
-      // If we get here, either navigation occurred or the timeout was reached
-      console.log('Authentication test completed successfully');
-    } catch (error) {
-      console.error('Authentication test failed:', error);
-      throw error;
-    }
+    // Wait for the navigation attempt
+    const navigationUrl = await navigationPromise;
+    console.log('Navigation attempted to:', navigationUrl);
+    
+    // Verify we attempted to navigate to the dashboard
+    expect(navigationUrl).toContain('/dashboard');
+    console.log('Authentication test completed successfully');
   });
   
-  test('User can sign up with Google', async ({ page, context }) => {
+  test('User can sign up with Google', async ({ page }) => {
     console.log('Starting sign up test');
     
-    // Create a promise that will resolve when navigation occurs
-    const navigationPromise = page.waitForNavigation({ timeout: 5000 }).catch(() => {
-      console.log('No navigation occurred or navigation timed out');
-    });
-    
     // Set up mocking before navigating
-    await mockGoogleOAuthResponse(page, { 
-      success: true,
-      userId: 'new-google-user-456',
-      email: 'new-google-user@example.com',
-      fullName: 'New Google User',
-      isNewUser: true
+    await page.addInitScript(() => {
+      // Store the original window.location.href setter
+      const originalLocationHrefSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
+      
+      // Override window.location.href setter to prevent actual navigation in tests
+      Object.defineProperty(window.location, 'href', {
+        set: function(url) {
+          console.log('Navigation intercepted to:', url);
+          // Don't actually navigate, just log it
+          window.lastNavigationAttempt = url;
+          // Dispatch an event we can listen for in the test
+          window.dispatchEvent(new CustomEvent('navigationAttempted', { detail: { url } }));
+        }
+      });
+      
+      // Mock the signInWithGoogle function
+      window.signInWithGoogle = async function() {
+        console.log('Mocked signInWithGoogle called for sign up');
+        
+        // Simulate successful auth for a new user
+        const user = {
+          id: 'new-google-user-456',
+          email: 'new-google-user@example.com',
+          user_metadata: {
+            full_name: 'New Google User',
+            avatar_url: 'https://example.com/avatar.png'
+          }
+        };
+        
+        // Return a successful response
+        return { 
+          data: { 
+            user,
+            session: { access_token: 'mock-token' }
+          },
+          error: null
+        };
+      };
     });
     
     // We're already on the home page from beforeEach
@@ -324,12 +357,12 @@ test.describe('Authentication flows', () => {
     await switchToSignUpLink.click();
     console.log('Clicked switch to sign up link');
     
-    // Before proceeding, add a handler for the mock auth success
-    await page.evaluate(() => {
-      window.addEventListener('mockAuthSuccess', (event) => {
-        console.log('Mock auth success event received', event.detail);
-        // Force a redirect to simulate successful auth
-        window.location.href = '/dashboard';
+    // Set up a listener for navigation attempts
+    const navigationPromise = page.evaluate(() => {
+      return new Promise(resolve => {
+        window.addEventListener('navigationAttempted', (event) => {
+          resolve(event.detail.url);
+        }, { once: true });
       });
     });
     
@@ -343,25 +376,33 @@ test.describe('Authentication flows', () => {
     await googleSignUpButton.click();
     console.log('Clicked Google sign up button');
     
-    try {
-      // Wait for either navigation or timeout
-      await navigationPromise;
-      
-      // If we get here, either navigation occurred or the timeout was reached
-      console.log('Sign up test completed successfully');
-    } catch (error) {
-      console.error('Sign up test failed:', error);
-      throw error;
-    }
+    // Wait for the navigation attempt
+    const navigationUrl = await navigationPromise;
+    console.log('Navigation attempted to:', navigationUrl);
+    
+    // Verify we attempted to navigate to the dashboard
+    expect(navigationUrl).toContain('/dashboard');
+    console.log('Sign up test completed successfully');
   });
   
   test('User sees error with Google authentication failure', async ({ page }) => {
     console.log('Starting auth failure test');
     
     // Set up mocking to simulate a failure
-    await mockGoogleOAuthResponse(page, { 
-      success: false,
-      errorMessage: 'Failed to sign in with Google'
+    await page.addInitScript(() => {
+      // Mock the signInWithGoogle function to return an error
+      window.signInWithGoogle = async function() {
+        console.log('Mocked signInWithGoogle called with failure');
+        
+        // Create an error
+        const error = new Error('Failed to sign in with Google');
+        
+        // Return an error response
+        return {
+          data: { user: null, session: null },
+          error
+        };
+      };
     });
     
     // We're already on the home page from beforeEach
@@ -379,7 +420,7 @@ test.describe('Authentication flows', () => {
     await expect(authDialog).toBeVisible({ timeout: 10000 });
     console.log('Auth dialog visible');
     
-    // Find and click the Google sign-in button within the dialog
+    // Find the Google sign-in button within the dialog
     const googleSignInButton = authDialog.locator('button').filter({ hasText: 'Sign in with Google' }).first();
     await expect(googleSignInButton).toBeVisible({ timeout: 10000 });
     console.log('Found Google sign in button');

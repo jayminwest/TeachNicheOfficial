@@ -110,3 +110,146 @@ If you need assistance:
 ---
 
 *This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*
+# Getting Started
+
+This guide will help you set up your development environment and get started with the Teach Niche platform.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or later)
+- **npm** (v9 or later) or **yarn** (v1.22 or later)
+- **Git** (v2.30 or later)
+- **Docker** (optional, for local service emulation)
+
+## Development Environment Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-org/teach-niche.git
+cd teach-niche
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 3. Set Up Environment Variables
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` to add your local configuration values.
+
+### 4. Set Up Local Services
+
+#### Option A: Use Remote Development Services
+
+For team members with access to development environments:
+
+1. Request access credentials from the DevOps team
+2. Add the provided credentials to your `.env.local` file
+
+#### Option B: Use Local Docker Services
+
+For completely local development:
+
+```bash
+docker-compose up -d
+```
+
+This will start local instances of:
+- PostgreSQL database
+- Minio (S3-compatible storage)
+- Mailhog (SMTP testing)
+
+### 5. Initialize the Database
+
+```bash
+npm run db:migrate
+npm run db:seed
+# or
+yarn db:migrate
+yarn db:seed
+```
+
+### 6. Start the Development Server
+
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+The application will be available at `http://localhost:3000`.
+
+## Project Structure
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for a detailed overview of the project structure.
+
+## Development Workflow
+
+1. Create a new branch for your feature or fix
+2. Make your changes, following the coding standards
+3. Write tests for your changes
+4. Run the test suite to ensure everything passes
+5. Submit a pull request for review
+
+For more details, see [WORKFLOW.md](../guides/development/WORKFLOW.md).
+
+## Common Tasks
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific tests
+npm test -- --testPathPattern=components
+
+# Run tests in watch mode
+npm test -- --watch
+```
+
+### Building for Production
+
+```bash
+npm run build
+# or
+yarn build
+```
+
+### Linting and Formatting
+
+```bash
+# Run linter
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Format code
+npm run format
+```
+
+## Getting Help
+
+- Check the documentation in the `ai_docs` directory
+- Ask questions in the team Slack channel
+- For bugs, create an issue in the issue tracker
+
+## Next Steps
+
+- Review the [Core Documentation](./OVERVIEW.md) to understand the project
+- Explore the [Guides](../guides) for detailed instructions on specific topics
+- Familiarize yourself with the [Standards](../standards) for code quality and best practices

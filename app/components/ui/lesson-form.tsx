@@ -195,12 +195,20 @@ export function LessonForm({
                   });
                   
                   // Wait for the asset to be ready and get the playback ID
+                  // Log the asset ID we're using
+                  console.log("Lesson form using asset ID for status check:", assetId);
+                  
+                  // Validate the asset ID format
+                  if (!assetId.match(/^[a-zA-Z0-9]{20,}$/)) {
+                    console.warn("Asset ID format looks suspicious:", assetId);
+                  }
+                  
                   // Add retry logic for checking asset status
                   const checkAssetStatus = async (retries = 3, delay = 2000) => {
                     for (let i = 0; i < retries; i++) {
                       try {
                         console.log(`Checking asset status in form (attempt ${i + 1}/${retries})...`);
-                        const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+                        const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
                         
                         if (!response.ok) {
                           const errorText = await response.text();

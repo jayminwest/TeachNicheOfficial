@@ -123,9 +123,24 @@ export function VideoUploader({
     }
 
     const data = await response.json();
-    if (!data.url || !data.assetId) {
-      throw new Error('Invalid upload response');
+    console.log("Upload URL response:", data);
+    
+    // Validate the response data more carefully
+    if (!data.url) {
+      throw new Error('Invalid upload response: missing URL');
     }
+    
+    // Make sure we have a valid asset ID, not an upload ID
+    if (!data.assetId || typeof data.assetId !== 'string' || !data.assetId.trim()) {
+      throw new Error('Invalid upload response: missing or invalid asset ID');
+    }
+    
+    // Log the IDs for debugging
+    console.log("Received IDs from upload endpoint:", {
+      assetId: data.assetId,
+      uploadId: data.uploadId || 'Not provided'
+    });
+    
     return data;
   }, []);
 
@@ -206,14 +221,25 @@ export function VideoUploader({
     try {
       setStatus("processing");
       
+      // Log the asset ID we're about to use
+      console.log("Using asset ID for status check:", currentAssetId);
+      
+      // Wait a moment before checking asset status to allow Mux to process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       // Add retry logic for checking asset status
       const checkAssetStatus = async (retries = 3, delay = 2000): Promise<{status: string; playbackId?: string}> => {
         for (let i = 0; i < retries; i++) {
           try {
             console.log(`Checking asset status (attempt ${i + 1}/${retries})...`);
             
+            // Validate the asset ID format before sending
+            if (!currentAssetId.match(/^[a-zA-Z0-9]{20,}$/)) {
+              console.warn("Asset ID format looks suspicious:", currentAssetId);
+            }
+            
             // Make sure we're using the asset ID, not the upload ID
-            const assetResponse = await fetch(`/api/mux/asset-status?assetId=${currentAssetId}`);
+            const assetResponse = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(currentAssetId)}`);
             
             if (!assetResponse.ok) {
               const errorText = await assetResponse.text();

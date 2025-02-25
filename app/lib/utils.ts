@@ -69,3 +69,39 @@ export async function retry<T>(
   
   throw lastError!;
 }
+
+/**
+ * Validates if a string appears to be a valid Mux Asset ID
+ * 
+ * @param id The ID to validate
+ * @returns Boolean indicating if the ID appears to be a valid Mux Asset ID
+ */
+export function isValidMuxAssetId(id: string): boolean {
+  // Mux Asset IDs typically start with specific prefixes and have a certain format
+  // This is a basic validation that can be refined based on actual Mux ID patterns
+  if (!id || typeof id !== 'string') return false;
+  
+  // Basic format check - alphanumeric, reasonable length
+  return /^[a-zA-Z0-9]{20,}$/.test(id);
+}
+
+/**
+ * Extracts error details from a response
+ * 
+ * @param response The response object
+ * @returns A promise resolving to the error message
+ */
+export async function getErrorDetails(response: Response): Promise<string> {
+  try {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      return data.error || data.details || data.message || `HTTP error ${response.status}`;
+    } else {
+      const text = await response.text();
+      return text || `HTTP error ${response.status}`;
+    }
+  } catch (error) {
+    return `HTTP error ${response.status}`;
+  }
+}

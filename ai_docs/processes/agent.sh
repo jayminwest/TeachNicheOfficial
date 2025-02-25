@@ -42,7 +42,7 @@ if [ "$MODE" = "read-only" ]; then
   # Read-only mode: add files as read-only
   AIDER_FILES=""
   for file in $FILES; do
-    AIDER_FILES="$AIDER_FILES --read-only $file"
+    AIDER_FILES="$AIDER_FILES --read $file"
   done
   aider --message "$PROMPT" $AIDER_FILES
 else

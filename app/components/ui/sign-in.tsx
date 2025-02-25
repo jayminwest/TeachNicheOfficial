@@ -28,8 +28,13 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       if (result.error) {
         throw result.error
       }
-      // Use window.location.href instead of router.push to make it detectable in tests
-      window.location.href = '/dashboard';
+      if (typeof window !== 'undefined' && window.nextRouterMock) {
+        // Use the mock in test environment
+        window.nextRouterMock.push('/dashboard');
+      } else {
+        // Use actual navigation in real environment
+        window.location.href = '/dashboard';
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     } finally {

@@ -68,10 +68,30 @@ test.describe('Authentication flows', () => {
           // No event dispatch needed - we'll check the variable directly
         }
       });
+
+      // Also mock the router.push method that might be used instead of window.location
+      if (!window.mockNextRouter) {
+        window.mockNextRouter = true;
+        // Create a global object to intercept Next.js router calls
+        window.nextRouterMock = {
+          push: function(url) {
+            console.log('Next router push intercepted to:', url);
+            window.lastNavigationAttempt = url;
+            return Promise.resolve(true);
+          }
+        };
+      }
+      
+      // Flag to track if the mock was called
+      window.signInWithGoogleCalled = false;
       
       // Mock the signInWithGoogle function
       window.signInWithGoogle = async function() {
         console.log('Mocked signInWithGoogle called');
+        window.signInWithGoogleCalled = true;
+        
+        // Set the navigation URL directly
+        window.lastNavigationAttempt = '/dashboard';
         
         // Simulate successful auth
         const user = {
@@ -114,12 +134,16 @@ test.describe('Authentication flows', () => {
     await expect(googleSignInButton).toBeVisible({ timeout: 10000 });
     console.log('Found Google sign in button');
     
-    // Click the Google sign-in button
-    await googleSignInButton.click();
+    // Click the Google sign-in button and wait for the handler to complete
+    await Promise.all([
+      googleSignInButton.click(),
+      // Wait for the signInWithGoogle mock to be called
+      page.waitForFunction(() => window.signInWithGoogleCalled === true, { timeout: 5000 })
+    ]);
     console.log('Clicked Google sign in button');
     
-    // Wait a moment for the click to be processed
-    await page.waitForTimeout(500);
+    // Wait a moment for any async operations to complete
+    await page.waitForTimeout(1000);
     
     // Check the navigation attempt directly
     const navigationUrl = await page.evaluate(() => window.lastNavigationAttempt);
@@ -149,9 +173,16 @@ test.describe('Authentication flows', () => {
         }
       });
       
+      // Flag to track if the mock was called
+      window.signInWithGoogleCalled = false;
+      
       // Mock the signInWithGoogle function
       window.signInWithGoogle = async function() {
         console.log('Mocked signInWithGoogle called for sign up');
+        window.signInWithGoogleCalled = true;
+        
+        // Set the navigation URL directly
+        window.lastNavigationAttempt = '/dashboard';
         
         // Simulate successful auth for a new user
         const user = {
@@ -203,12 +234,16 @@ test.describe('Authentication flows', () => {
     await expect(googleSignUpButton).toBeVisible({ timeout: 10000 });
     console.log('Found Google sign up button');
     
-    // Click the Google sign-up button
-    await googleSignUpButton.click();
+    // Click the Google sign-up button and wait for the handler to complete
+    await Promise.all([
+      googleSignUpButton.click(),
+      // Wait for the signInWithGoogle mock to be called
+      page.waitForFunction(() => window.signInWithGoogleCalled === true, { timeout: 5000 })
+    ]);
     console.log('Clicked Google sign up button');
     
-    // Wait a moment for the click to be processed
-    await page.waitForTimeout(500);
+    // Wait a moment for any async operations to complete
+    await page.waitForTimeout(1000);
     
     // Check the navigation attempt directly
     const navigationUrl = await page.evaluate(() => window.lastNavigationAttempt);

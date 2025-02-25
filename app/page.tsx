@@ -5,7 +5,7 @@ import { EmailSignup } from "@/app/components/ui/email-signup";
 export default function Home() {
   return (
     <div className="flex flex-col">
-      <div className="flex flex-col items-center justify-center p-8">
+      <div className="flex flex-col items-center justify-center p-8" data-testid="hero-section">
         <Hero />
       </div>
       <Features />

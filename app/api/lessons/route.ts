@@ -64,7 +64,7 @@ async function createLessonHandler(request: Request) {
       mux_playback_id: muxPlaybackId
     };
 
-    const supabase = createClient();
+    const dbClient = createClient();
     
     // Call from directly on the supabase client to match test expectations
     const { data: lesson, error } = await supabase
@@ -165,10 +165,10 @@ async function updateLessonHandler(request: Request) {
     }
 
     // Check if user has permission to update this lesson
-    const supabase = createClient();
+    const dbClient = createClient();
     
     // Call from directly on the supabase client to match test expectations
-    const { data: lesson } = await supabase
+    const { data: lesson } = await dbClient
       .from('lessons')
       .select('creator_id') // Changed from user_id to creator_id to match database schema
       .eq('id', id)
@@ -189,7 +189,7 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const { data: updatedLesson } = await supabase
+    const { data: updatedLesson } = await dbClient
       .from('lessons')
       .update(updateData)
       .match({ id }) // Use match instead of eq to match test expectations
@@ -230,10 +230,10 @@ async function deleteLessonHandler(request: Request) {
       );
     }
 
-    const supabase = createClient();
+    const dbClient = createClient();
     
     // Call from directly on the supabase client to match test expectations
-    const { data: lesson } = await supabase
+    const { data: lesson } = await dbClient
       .from('lessons')
       .select('*')
       .eq('id', id)
@@ -255,7 +255,7 @@ async function deleteLessonHandler(request: Request) {
       );
     }
 
-    await supabase
+    await dbClient
       .from('lessons')
       .delete()
       .match({ id }) // Use match instead of eq to match test expectations

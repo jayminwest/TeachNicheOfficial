@@ -50,7 +50,6 @@ The AI assistant will:
 1. Expand the issue description
 2. Add technical analysis
 3. Format according to our template
-4. Save to `ai_docs/scratchpad.md` and also to the `ai_docs/issues/` directory
 
 The expanded issue will include:
 - Detailed description
@@ -61,20 +60,12 @@ The expanded issue will include:
 - Testing requirements
 - Additional context
 
-When saving to the ai_docs/issues/ directory, use a descriptive filename with the date and issue title:
-```bash
-# Example filename format
-YYYY-MM-DD-issue-title-slug.md
-```
-
 ## Step 3: File Analysis
 
 The AI assistant will identify:
 1. Files that need to be updated
 2. Type of changes needed
 3. Testing requirements
-
-This analysis is added to the issue report in `scratchpad.md`.
 
 ## Step 4: Creating the GitHub Issue
 
@@ -83,19 +74,9 @@ This analysis is added to the issue report in `scratchpad.md`.
 gh label list
 ```
 
-2. Save the issue to the ai_docs/issues/ directory:
+2. Create the issue using GitHub CLI:
 ```bash
-# Create issues directory if it doesn't exist
-mkdir -p issues
-
-# Save with descriptive filename including date and issue title
-ISSUE_FILE="issues/$(date +%Y-%m-%d)-$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').md"
-cp ai_docs/scratchpad.md "$ISSUE_FILE"
-```
-
-3. Create the issue using GitHub CLI:
-```bash
-gh issue create --title "Fix: [Issue Name]" --body "$(cat ai_docs/scratchpad.md)" --label "bug" --assignee "@me"
+gh issue create --title "Fix: [Issue Name]" --body-file issue-description.md --label "bug" --assignee "@me"
 ```
 
 Additional label options in our repository:
@@ -163,20 +144,19 @@ wontfix           This will not be worked on                  #ffffff
 
 ```bash
 # 1. User describes issue to AI assistant
-# 2. AI expands and formats issue in scratchpad.md
+# 2. AI expands and formats issue in a temporary file
 
-# 3. Save to issues directory with descriptive filename
+# 3. Save the formatted issue to a file
 ISSUE_TITLE="Mobile Select Menu Interaction Issues"
-ISSUE_FILE="ai_docs/issues/$(date +%Y-%m-%d)-$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').md"
-mkdir -p ai_docs/issues
-cp ai_docs/scratchpad.md "$ISSUE_FILE"
+echo "# $ISSUE_TITLE" > issue-description.md
+# Add the expanded issue content to the file
 
 # 4. Check available labels
 gh label list
 
 # 5. Create issue with appropriate labels
 gh issue create --title "Fix: $ISSUE_TITLE" \
-  --body "$(cat ai_docs/scratchpad.md)" \
+  --body-file issue-description.md \
   --label "bug" \
   --assignee "@me"
 ```

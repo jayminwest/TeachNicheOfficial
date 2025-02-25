@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/app/lib/utils";
+import { cn, safeNumberValue } from "@/app/lib/utils";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkdownEditor } from "./markdown-editor";
@@ -156,7 +156,11 @@ export function LessonForm({
                       max="999.99"
                       className="pl-7"
                       {...field} 
-                      onChange={e => field.onChange(parseFloat(e.target.value))}
+                      value={safeNumberValue(field.value)}
+                      onChange={e => {
+                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        field.onChange(Number.isNaN(value) ? 0 : value);
+                      }}
                       disabled={isSubmitting}
                     />
                   </FormControl>

@@ -27,12 +27,26 @@ npm run test:e2e
 echo "Building the app for tests..."
 npm run build
 
-# Run visual tests with static server
+# Check if port 3000 is already in use
+if ! lsof -i:3000 > /dev/null 2>&1; then
+  echo "Starting server on port 3000..."
+  npx serve -s .next -p 3000 &
+  SERVER_STARTED=true
+  sleep 5 # Give the server a moment to start
+else
+  echo "Server already running on port 3000, using existing server."
+  SERVER_STARTED=false
+fi
+
+# Run visual tests
 echo "Running visual tests..."
-npx serve -s .next -p 3000 &
-sleep 5 # Give the server a moment to start
 npm run test:visual
-kill $(lsof -t -i:3000) # Kill the server when done
+
+# Kill the server only if we started it
+if [ "$SERVER_STARTED" = true ]; then
+  echo "Shutting down server..."
+  kill $(lsof -t -i:3000)
+fi
 
 # Build the project
 echo "Building the project..."

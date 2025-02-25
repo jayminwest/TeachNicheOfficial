@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests'",
+    "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",
@@ -85,11 +87,5 @@
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "whatwg-fetch": "^3.6.20"
-  }
-}
-{
-  "scripts": {
-    "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests'",
-    "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual"
   }
 }

@@ -17,7 +17,7 @@ Our development approach emphasizes:
 
 - **Modularity**: Each component and service has a single, well-defined responsibility
 - **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
-- **Pure JavaScript**: Avoid types for maximum flexibility and compatibility
+- **Type Safety**: Leverage TypeScript for robust, maintainable code
 - **Testing First**: Write tests before implementing features
 - **Security**: Security is a fundamental consideration in all aspects of development
 - **Consistency**: Follow established patterns and practices
@@ -74,7 +74,7 @@ Our development approach emphasizes:
 
 ## Technology Stack
 
-- **Frontend**: Next.js, React, JavaScript (no TypeScript), Shadcn UI
+- **Frontend**: Next.js, React, TypeScript, Shadcn UI
 - **Backend**: Next.js API routes, Edge Functions
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth

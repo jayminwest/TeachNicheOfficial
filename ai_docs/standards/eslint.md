@@ -1,12 +1,12 @@
-# ESLint Standards
+# TypeScript ESLint Standards
 
-This document outlines our strict ESLint guidelines for the Teach Niche project.
+This document outlines our strict ESLint guidelines for TypeScript in the Teach Niche project.
 
 ## Core Principles
 
-1. **No Types Allowed**: We strictly prohibit the use of TypeScript or any type annotations
-2. **Pure JavaScript**: All code must be written in pure JavaScript
-3. **Strict Linting**: We enforce a comprehensive set of ESLint rules
+1. **Strong Type Safety**: We require proper TypeScript usage throughout the codebase
+2. **Strict TypeScript Configuration**: We use the strictest TypeScript compiler options
+3. **Comprehensive Linting**: We enforce a robust set of ESLint rules
 
 ## ESLint Configuration
 
@@ -14,12 +14,26 @@ Our ESLint configuration includes:
 
 ```json
 {
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "react", "react-hooks"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
   "rules": {
-    // Prohibit TypeScript
-    "no-undef": "error",
-    "no-unused-vars": "error",
+    // TypeScript specific rules
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-non-null-assertion": "error",
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "@typescript-eslint/prefer-interface": "off",
+    "@typescript-eslint/no-empty-interface": "error",
     
-    // Enforce JavaScript best practices
+    // General code quality
     "eqeqeq": ["error", "always"],
     "curly": ["error", "all"],
     "no-var": "error",
@@ -31,14 +45,15 @@ Our ESLint configuration includes:
     "quotes": ["error", "single"],
     "semi": ["error", "always"]
   },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
   "parserOptions": {
     "ecmaVersion": 2020,
     "sourceType": "module",
+    "project": "./tsconfig.json",
     "ecmaFeatures": {
       "jsx": true
     }
@@ -46,59 +61,118 @@ Our ESLint configuration includes:
 }
 ```
 
-## Aider Configuration
+## TypeScript Configuration
 
-When using Aider, always include the `--eslint-disable-types` flag to ensure generated code follows our no-types policy:
+Our `tsconfig.json` uses strict settings:
 
-```bash
-aider --model ollama/deepseek-r1:70b --message "Your prompt" --eslint-disable-types
+```json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
 ```
 
-## Common Issues and Solutions
+## Best Practices
 
-### Problem: TypeScript Imports
-```javascript
-// BAD
-import { SomeType } from './types';
-
+### Proper Type Imports
+```typescript
 // GOOD
-import { someFunction } from './utils';
+import type { User, Profile } from './types';
+import { fetchUser } from './api';
+
+// BAD - mixing type imports with value imports
+import { User, fetchUser } from './api';
 ```
 
-### Problem: Type Annotations
-```javascript
-// BAD
-function add(a: number, b: number): number {
-  return a + b;
+### Type Definitions
+```typescript
+// GOOD
+interface UserProps {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
 }
 
+// BAD - using type alias for object types
+type UserProps = {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+};
+```
+
+### Function Typing
+```typescript
 // GOOD
-function add(a, b) {
-  return a + b;
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+
+// BAD - missing return type
+function greet(name: string) {
+  return `Hello, ${name}!`;
 }
 ```
 
-### Problem: JSDoc with Types
-```javascript
-// BAD
-/**
- * @param {string} name - The name parameter
- * @returns {string} The greeting
- */
-
+### React Component Types
+```typescript
 // GOOD
-/**
- * Creates a greeting for the given name
- * @param name - The name to greet
- * @returns The greeting message
- */
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+const Button: React.FC<ButtonProps> = ({ 
+  label, 
+  onClick, 
+  disabled = false 
+}) => {
+  return (
+    <button onClick={onClick} disabled={disabled}>
+      {label}
+    </button>
+  );
+};
+
+// BAD - implicit any props
+const Button = (props) => {
+  return (
+    <button onClick={props.onClick} disabled={props.disabled}>
+      {props.label}
+    </button>
+  );
+};
 ```
 
 ## Enforcement
 
-- All PRs are automatically checked for ESLint compliance
-- CI/CD pipelines will fail if any type annotations are detected
-- Code reviews should specifically check for accidental type usage
+- All PRs are automatically checked for TypeScript and ESLint compliance
+- CI/CD pipelines will fail if any TypeScript errors are detected
+- Code reviews should specifically check for proper type usage
+- No use of `any` or `as` type assertions without explicit justification
 
 ## Version History
 

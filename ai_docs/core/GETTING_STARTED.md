@@ -7,7 +7,7 @@ This guide provides essential information for developers joining the Teach Niche
 Our development approach emphasizes:
 - **Modularity**: Each component and service has a single, well-defined responsibility
 - **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
-- **JavaScript First**: Use pure JavaScript without types for maximum flexibility
+- **Type Safety**: Leverage TypeScript for robust, maintainable code
 - **Testing First**: Write tests before implementing features
 
 ## Development Environment Setup
@@ -46,10 +46,10 @@ npm run dev
 
 ## Key Development Standards
 
-### JavaScript and Code Quality
-- Use pure JavaScript for all code (no TypeScript)
+### TypeScript and Code Quality
+- Use TypeScript for all code
 - Follow strict ESLint configurations
-- Avoid type annotations of any kind
+- Avoid using "any" types
 - Write self-documenting code with minimal comments
 
 ### Component Development

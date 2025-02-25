@@ -42,7 +42,7 @@ The AI assistant will:
 1. Expand the issue description
 2. Add technical analysis
 3. Format according to our template
-4. Save to `ai_docs/scratchpad.md` and also to the `issues/` directory
+4. Save to `ai_docs/scratchpad.md` and also to the `ai_docs/issues/` directory
 
 The expanded issue will include:
 - Detailed description
@@ -53,7 +53,7 @@ The expanded issue will include:
 - Testing requirements
 - Additional context
 
-When saving to the issues/ directory, use a descriptive filename with the date and issue title:
+When saving to the ai_docs/issues/ directory, use a descriptive filename with the date and issue title:
 ```bash
 # Example filename format
 YYYY-MM-DD-issue-title-slug.md
@@ -75,7 +75,7 @@ This analysis is added to the issue report in `scratchpad.md`.
 gh label list
 ```
 
-2. Save the issue to the issues/ directory:
+2. Save the issue to the ai_docs/issues/ directory:
 ```bash
 # Create issues directory if it doesn't exist
 mkdir -p issues
@@ -140,8 +140,8 @@ wontfix           This will not be worked on                  #ffffff
 
 # 3. Save to issues directory with descriptive filename
 ISSUE_TITLE="Mobile Select Menu Interaction Issues"
-ISSUE_FILE="issues/$(date +%Y-%m-%d)-$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').md"
-mkdir -p issues
+ISSUE_FILE="ai_docs/issues/$(date +%Y-%m-%d)-$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').md"
+mkdir -p ai_docs/issues
 cp ai_docs/scratchpad.md "$ISSUE_FILE"
 
 # 4. Check available labels

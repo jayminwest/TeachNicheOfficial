@@ -201,7 +201,7 @@ export const createMockSupabaseClient = (config: MockConfig = {}) => {
       on: jest.fn().mockReturnThis(),
       subscribe: jest.fn().mockResolvedValue({ 
         unsubscribe: jest.fn() 
-      } as any)
+      })
     })
   };
 };

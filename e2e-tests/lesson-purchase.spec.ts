@@ -1,19 +1,17 @@
 import { test, expect } from '@playwright/test';
-
-// Helper function to log in
-async function login(page: any) {
-  await page.goto('/');
-  await page.click('[data-testid="sign-in-button"]');
-  await page.fill('[data-testid="email-input"]', 'test-buyer@example.com');
-  await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-  await page.click('[data-testid="submit-sign-in"]');
-  await page.waitForSelector('[data-testid="user-avatar"]');
-}
+import { loginAsUser } from './utils/auth-helpers';
 
 test.describe('Lesson purchase flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Log in before each test
-    await login(page);
+    // Log in before each test with improved helper
+    try {
+      await loginAsUser(page, 'test-buyer@example.com', 'TestPassword123!');
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Take a screenshot for debugging
+      await page.screenshot({ path: `debug-login-error-${Date.now()}.png` });
+      throw error;
+    }
   });
 
   test('User can browse and preview lessons', async ({ page }) => {

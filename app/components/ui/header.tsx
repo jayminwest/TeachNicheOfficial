@@ -138,7 +138,7 @@ export function Header() {
                         <>
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost">Sign In</Button>
+                                    <Button variant="ghost" data-testid="sign-in-button">Sign In</Button>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 bg-background">
                                     {showSignIn ? (
@@ -194,7 +194,7 @@ export function Header() {
                                     <>
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <Button variant="ghost" className="w-full">Sign In</Button>
+                                                <Button variant="ghost" className="w-full" data-testid="sign-in-button-mobile">Sign In</Button>
                                             </DialogTrigger>
                                             <DialogContent className="p-0 bg-background">
                                                 {showSignIn ? (

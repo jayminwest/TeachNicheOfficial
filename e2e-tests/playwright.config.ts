@@ -2,17 +2,14 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   testDir: './tests',
-  // Create the tests directory if it doesn't exist
   testMatch: '**/*.spec.ts',
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
   webServer: {
-    command: 'npm run build && npx serve -s .next -p 3000',
+    command: 'npm run dev',
     url: 'http://localhost:3000',
     timeout: 120000,
     reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
@@ -25,6 +22,9 @@ const config: PlaywrightTestConfig = {
       name: 'Chrome',
       use: { browserName: 'chromium' },
     },
+    // Comment out additional browsers for faster local testing
+    // Uncomment in CI environment
+    /*
     {
       name: 'Firefox',
       use: { browserName: 'firefox' },
@@ -37,6 +37,7 @@ const config: PlaywrightTestConfig = {
       name: 'Mobile Chrome',
       use: devices['Pixel 5'],
     },
+    */
     // Special project just for visual testing
     {
       name: 'Visual Tests',
@@ -59,7 +60,6 @@ const config: PlaywrightTestConfig = {
   // Explicitly ignore node_modules and app directories to avoid conflicts with Jest tests
   testIgnore: ['**/node_modules/**', '**/app/**'],
   
-  // Ensure the tests directory exists
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.05,

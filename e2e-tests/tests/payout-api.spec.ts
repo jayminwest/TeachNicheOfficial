@@ -1,14 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-// Helper function to login as a user
-async function loginAsUser(page, email, password) {
-  await page.goto('/');
-  await page.click('[data-testid="sign-in-button"]');
-  await page.fill('[data-testid="email-input"]', email);
-  await page.fill('[data-testid="password-input"]', password);
-  await page.click('[data-testid="submit-sign-in"]');
-  await page.waitForSelector('[data-testid="user-avatar"]');
-}
+import { loginAsUser } from '../utils/auth-helpers';
 
 test.describe('Payout API Endpoints', () => {
   test('bank account API endpoint works correctly', async ({ request, page }) => {

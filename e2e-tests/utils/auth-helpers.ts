@@ -204,6 +204,7 @@ export async function loginAsUser(page: Page, email: string, password: string) {
     if (!googleButtonClicked) {
       console.log('Could not find Google sign-in button, using test bypass');
       // For tests, simulate a successful Google sign-in without clicking the button
+    }
     
     console.log('Clicked Google sign-in button');
     

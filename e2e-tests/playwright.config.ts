@@ -99,6 +99,14 @@ const config: PlaywrightTestConfig = {
         colorScheme: 'light',
       },
       testMatch: /.*\.visual\.spec\.ts/
+    },
+    // Dedicated project for earnings dashboard tests
+    {
+      name: 'Earnings Dashboard Tests',
+      use: { 
+        browserName: 'chromium',
+      },
+      testMatch: /.*earnings-dashboard\.spec\.ts/
     }
   ],
   reporter: [

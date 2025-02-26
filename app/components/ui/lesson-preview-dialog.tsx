@@ -20,9 +20,9 @@ interface LessonPreviewDialogProps {
 export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]" data-testid="lesson-preview-dialog">
         <DialogHeader>
-          <DialogTitle>{lesson.title}</DialogTitle>
+          <DialogTitle data-testid="lesson-title">{lesson.title}</DialogTitle>
         </DialogHeader>
         
         <div className="relative aspect-video w-full mb-4 overflow-hidden rounded-lg">

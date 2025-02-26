@@ -22,7 +22,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]" data-testid="lesson-preview-dialog">
         <DialogHeader>
-          <DialogTitle data-testid="preview-lesson-title">{lesson.title}</DialogTitle>
+          <DialogTitle data-testid="lesson-title" className="lesson-title">{lesson.title}</DialogTitle>
         </DialogHeader>
         
         <div className="relative aspect-video w-full mb-4 overflow-hidden rounded-lg">
@@ -32,11 +32,12 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
             fill
             className="object-cover"
             priority
+            data-testid="lesson-thumbnail"
           />
         </div>
 
         {(lesson.averageRating !== undefined && lesson.totalRatings !== undefined) && (
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-4" data-testid="lesson-rating">
             <div className="flex items-center">
               <StarIcon className="w-5 h-5 text-yellow-400" />
               <span className="ml-1 font-medium">
@@ -49,13 +50,13 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
           </div>
         )}
 
-        <DialogDescription className="text-base" data-testid="preview-lesson-description">
+        <DialogDescription className="text-base lesson-description" data-testid="lesson-description">
           {lesson.description}
         </DialogDescription>
 
         <DialogFooter className="mt-6">
           <div className="w-full flex items-center justify-between">
-            <div className="text-lg font-medium" data-testid="preview-lesson-price">
+            <div className="text-lg font-medium lesson-price" data-testid="lesson-price">
               {lesson.price === 0 ? (
                 <span className="text-green-600">Free</span>
               ) : (
@@ -67,6 +68,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
                 lessonId={lesson.id} 
                 price={lesson.price}
                 searchParams={new URLSearchParams(window.location.search)}
+                data-testid="lesson-checkout"
               />
             )}
           </div>

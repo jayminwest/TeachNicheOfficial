@@ -113,7 +113,14 @@ Currently, our platform uses Stripe Connect which requires creators to set up an
 ## GitHub CLI Command
 
 ```bash
-gh issue create --title "Transition to Merchant of Record Payment Model" --body-file ai_docs/issues/ISSUE-001-PAYMENT-MODEL-TRANSITION.md --label "enhancement,high-priority" --assignee "@me" --project "Q2 Roadmap"
+gh issue create --title "Transition to Merchant of Record Payment Model" --body-file ai_docs/issues/ISSUE-001-PAYMENT-MODEL-TRANSITION.md --label "enhancement" --assignee "@me" --project "Launch"
+```
+
+Alternatively, to create the high-priority label first and then create the issue:
+
+```bash
+gh label create high-priority --color "#ff0000" --description "Requires immediate attention"
+gh issue create --title "Transition to Merchant of Record Payment Model" --body-file ai_docs/issues/ISSUE-001-PAYMENT-MODEL-TRANSITION.md --label "enhancement,high-priority" --assignee "@me" --project "Launch"
 ```
 
 This issue represents a significant architectural change that will simplify the creator experience while giving Teach Niche more control over the payment process. The transition will require careful planning and communication with existing creators.

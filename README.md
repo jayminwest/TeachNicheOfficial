@@ -1,5 +1,19 @@
 # Teach Niche
 
+> **IMPORTANT: Stripe Configuration for Merchant of Record Transition**
+>
+> We are transitioning from Stripe Connect to a merchant of record payment model. This requires manual configuration in the Stripe Dashboard:
+>
+> 1. **Update Business Settings**: Ensure business information reflects your role as direct seller
+> 2. **Configure Tax Settings**: Set up tax registration numbers and automatic tax calculation
+> 3. **Update Payout Settings**: Configure payout schedule and verify bank account information
+> 4. **Configure Webhooks**: Update endpoints to handle new payment and payout events
+> 5. **Set Up Financial Reporting**: Create custom reports for revenue, fees, and payouts
+> 6. **Update Customer Communication**: Revise email templates and receipts
+> 7. **Update Legal Documents**: Revise Terms of Service and Privacy Policy
+>
+> See issue #038 for detailed instructions on completing these steps.
+
 A modern platform empowering educators to create, share, and monetize educational content. Built with Next.js, TypeScript, and Supabase, following modular and minimalist design principles.
 
 ## Features

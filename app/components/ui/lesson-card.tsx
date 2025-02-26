@@ -35,7 +35,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
           />
         </div>
         <div className="p-6">
-          <h3 className="font-semibold mb-2 line-clamp-2" data-testid="lesson-title">
+          <h3 className="font-semibold mb-2 line-clamp-2" data-testid="lesson-card-title">
             {lesson.title}
           </h3>
           <p className="text-sm text-muted-foreground mb-4 line-clamp-3" data-testid="lesson-description">

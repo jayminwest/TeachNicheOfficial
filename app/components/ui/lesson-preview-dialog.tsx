@@ -64,11 +64,12 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
               )}
             </div>
             {lesson.price > 0 && (
-              <div data-testid="preview-purchase-button">
+              <div>
                 <LessonCheckout 
                   lessonId={lesson.id} 
-                  price={lesson.price}
+                  price={Math.round(lesson.price * 100)} // Convert dollars to cents
                   searchParams={new URLSearchParams(window.location.search)}
+                  data-testid="preview-purchase-button"
                 />
               </div>
             )}

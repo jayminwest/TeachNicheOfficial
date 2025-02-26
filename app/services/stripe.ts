@@ -1,14 +1,14 @@
 import Stripe from 'stripe';
+import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 // Error handling types
 export type StripeErrorCode = 
-  | 'account_mismatch'
-  | 'incomplete_onboarding'
+  | 'payment_failed'
   | 'unauthorized'
-  | 'missing_account'
-  | 'profile_verification_failed'
-  | 'update_failed'
-  | 'callback_failed';
+  | 'invalid_request'
+  | 'bank_account_error'
+  | 'payout_failed'
+  | 'webhook_error';
 
 export class StripeError extends Error {
   constructor(
@@ -26,29 +26,24 @@ export interface StripeConfig {
   publishableKey: string;
   webhookSecret: string;
   apiVersion: '2025-01-27.acacia';
-  connectType: 'standard' | 'express';
   platformFeePercent: number;
   supportedCountries: string[];
   defaultCurrency: string;
+  payoutSchedule: 'weekly' | 'monthly';
+  minimumPayoutAmount: number;
 }
 
-export interface StripeAccountStatus {
-  isComplete: boolean;
-  missingRequirements: string[];
-  pendingVerification: boolean;
+export interface PaymentMetadata {
+  creatorId: string;
+  lessonId: string;
+  purchaseId: string;
 }
 
-export interface ConnectSessionOptions {
-  accountId: string;
-  refreshUrl: string;
-  returnUrl: string;
-  type: 'account_onboarding' | 'account_update';
-}
-
-export interface AccountVerificationResult {
-  verified: boolean;
-  accountId: string;
-  status: StripeAccountStatus;
+export interface PayoutResult {
+  success: boolean;
+  payoutId?: string;
+  amount?: number;
+  error?: string;
 }
 
 // Validate and load configuration
@@ -82,20 +77,20 @@ export const stripeConfig: StripeConfig = {
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_tests',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
   apiVersion: '2025-01-27.acacia',
-  connectType: 'standard',
-  platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '10'),
+  platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
-  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
+  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd',
+  payoutSchedule: (process.env.STRIPE_PAYOUT_SCHEDULE || 'weekly') as 'weekly' | 'monthly',
+  minimumPayoutAmount: Number(process.env.STRIPE_MINIMUM_PAYOUT_AMOUNT || '100')
 };
 
 export const stripeErrorMessages: Record<StripeErrorCode, string> = {
-  account_mismatch: 'Account verification failed',
-  incomplete_onboarding: 'Please complete your Stripe onboarding',
+  payment_failed: 'Payment processing failed',
   unauthorized: 'You must be logged in',
-  missing_account: 'No Stripe account found',
-  profile_verification_failed: 'Profile verification failed',
-  update_failed: 'Failed to update account status',
-  callback_failed: 'Connection process failed'
+  invalid_request: 'Invalid payment request',
+  bank_account_error: 'There was an issue with your bank account information',
+  payout_failed: 'Failed to process payout',
+  webhook_error: 'Webhook processing failed'
 };
 
 // Initialize Stripe client (server-side only)
@@ -111,17 +106,17 @@ export const getStripe = () => {
   if (process.env.NODE_ENV === 'test') {
     // Return mock for tests
     return {
-      accounts: {
-        retrieve: jest.fn().mockResolvedValue({
-          details_submitted: true,
-          payouts_enabled: true,
-          charges_enabled: true,
-          requirements: { currently_due: [], pending_verification: [] }
+      paymentIntents: {
+        create: jest.fn().mockResolvedValue({
+          id: 'pi_test',
+          client_secret: 'pi_test_secret'
         })
       },
-      accountLinks: {
+      payouts: {
         create: jest.fn().mockResolvedValue({
-          url: 'https://connect.stripe.com/setup/test'
+          id: 'po_test',
+          amount: 1000,
+          status: 'pending'
         })
       },
       webhooks: {
@@ -136,34 +131,141 @@ export const getStripe = () => {
   return stripe;
 };
 
-
-// Helper functions and utilities
-export const getAccountStatus = async (accountId: string): Promise<StripeAccountStatus> => {
-  const account = await getStripe().accounts.retrieve(accountId);
-  
-  return {
-    isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
-    missingRequirements: account.requirements?.currently_due || [],
-    pendingVerification: Array.isArray(account.requirements?.pending_verification) && account.requirements.pending_verification.length > 0
-  };
-};
-
-export const createConnectSession = async (options: ConnectSessionOptions) => {
+/**
+ * Creates a payment intent for a lesson purchase
+ * 
+ * @param amount Amount in cents
+ * @param metadata Payment metadata including creator and lesson IDs
+ * @param currency Currency code (default: from config)
+ * @returns Payment intent with client secret
+ */
+export const createPaymentIntent = async (
+  amount: number,
+  metadata: PaymentMetadata,
+  currency: string = stripeConfig.defaultCurrency
+) => {
   try {
-    const session = await getStripe().accountLinks.create({
-      account: options.accountId,
-      refresh_url: options.refreshUrl,
-      return_url: options.returnUrl,
-      type: options.type,
+    const paymentIntent = await getStripe().paymentIntents.create({
+      amount,
+      currency,
+      metadata: {
+        creatorId: metadata.creatorId,
+        lessonId: metadata.lessonId,
+        purchaseId: metadata.purchaseId
+      },
+      automatic_payment_methods: {
+        enabled: true,
+      },
     });
     
-    return session;
+    return paymentIntent;
   } catch (error) {
-    console.error('Stripe Connect session creation failed:', error);
+    console.error('Payment intent creation failed:', error);
     throw new StripeError(
-      'callback_failed',
-      error instanceof Error ? error.message : 'Failed to create Connect session'
+      'payment_failed',
+      error instanceof Error ? error.message : 'Failed to create payment'
     );
+  }
+};
+
+/**
+ * Process a payout to a creator
+ * 
+ * @param creatorId Creator's user ID
+ * @param amount Amount in cents
+ * @param supabaseClient Supabase client instance
+ * @returns Payout result
+ */
+export const processCreatorPayout = async (
+  creatorId: string,
+  amount: number,
+  supabaseClient: TypedSupabaseClient
+): Promise<PayoutResult> => {
+  try {
+    // Get creator's bank account information
+    const { data: bankInfo, error: bankError } = await supabaseClient
+      .from('creator_payout_methods')
+      .select('bank_account_token, last_four')
+      .eq('creator_id', creatorId)
+      .single();
+
+    if (bankError || !bankInfo?.bank_account_token) {
+      console.error('Bank account fetch failed:', bankError);
+      return {
+        success: false,
+        error: 'No bank account found for creator'
+      };
+    }
+
+    // Create a payout using Stripe
+    const payout = await getStripe().payouts.create({
+      amount,
+      currency: stripeConfig.defaultCurrency,
+      destination: bankInfo.bank_account_token,
+      metadata: {
+        creatorId,
+        type: 'creator_earnings'
+      }
+    });
+
+    // Record the payout in our database
+    const { error: payoutError } = await supabaseClient
+      .from('creator_payouts')
+      .insert({
+        creator_id: creatorId,
+        amount,
+        status: payout.status,
+        payout_id: payout.id,
+        destination_last_four: bankInfo.last_four
+      });
+
+    if (payoutError) {
+      console.error('Failed to record payout:', payoutError);
+      // We don't throw here because the payout was successful in Stripe
+      // This is a database recording issue that can be fixed later
+    }
+
+    return {
+      success: true,
+      payoutId: payout.id,
+      amount
+    };
+  } catch (error) {
+    console.error('Payout processing failed:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to process payout'
+    };
+  }
+};
+
+/**
+ * Records earnings for a creator from a payment
+ * 
+ * @param paymentIntentId Stripe payment intent ID
+ * @param creatorId Creator's user ID
+ * @param amount Creator's earnings amount in cents
+ * @param supabaseClient Supabase client instance
+ */
+export const recordCreatorEarnings = async (
+  paymentIntentId: string,
+  creatorId: string,
+  amount: number,
+  supabaseClient: TypedSupabaseClient
+) => {
+  try {
+    await supabaseClient
+      .from('creator_earnings')
+      .insert({
+        creator_id: creatorId,
+        payment_intent_id: paymentIntentId,
+        amount,
+        status: 'pending'
+      });
+  } catch (error) {
+    console.error('Failed to record creator earnings:', error);
+    // We log but don't throw here to prevent payment confirmation issues
+    // This can be fixed through admin intervention if needed
   }
 };
 
@@ -180,55 +282,8 @@ export const verifyStripeWebhook = (
     );
   } catch (err) {
     throw new StripeError(
-      'callback_failed',
+      'webhook_error',
       err instanceof Error ? err.message : 'Invalid webhook signature'
-    );
-  }
-};
-
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
-
-export const verifyConnectedAccount = async (
-  userId: string,
-  accountId: string,
-  supabaseClient: TypedSupabaseClient
-): Promise<AccountVerificationResult> => {
-  try {
-    // Get profile
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('stripe_account_id')
-      .eq('id', userId)
-      .single();
-
-    if (profileError) {
-      console.error('Profile fetch failed:', profileError);
-      throw new StripeError('profile_verification_failed', 'Failed to fetch profile');
-    }
-
-    if (!profile?.stripe_account_id) {
-      throw new StripeError('missing_account', 'No Stripe account found');
-    }
-
-    if (profile.stripe_account_id !== accountId) {
-      throw new StripeError('account_mismatch', 'Account verification failed');
-    }
-
-    const status = await getAccountStatus(accountId);
-
-    return {
-      verified: true,
-      accountId,
-      status
-    };
-  } catch (error) {
-    if (error instanceof StripeError) {
-      throw error;
-    }
-    console.error('Account verification failed:', error);
-    throw new StripeError(
-      'profile_verification_failed',
-      error instanceof Error ? error.message : 'Account verification failed'
     );
   }
 };

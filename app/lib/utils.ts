@@ -32,6 +32,25 @@ export const calculateFees = (amount: number) => {
 };
 
 /**
+ * Formats a number as currency
+ * 
+ * @param amount Amount in cents
+ * @param currency Currency code (default: 'usd')
+ * @returns Formatted currency string
+ */
+export function formatCurrency(amount: number, currency: string = 'usd'): string {
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  
+  // Convert from cents to dollars
+  return formatter.format(amount / 100);
+}
+
+/**
  * Retry a function multiple times with exponential backoff
  * 
  * @param fn The async function to retry

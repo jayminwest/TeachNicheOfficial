@@ -5,6 +5,8 @@ import ActivityFeed from "./components/activity-feed"
 import PerformanceMetrics from "./components/performance-metrics"
 import LessonsGrid from "./components/lessons-grid"
 import AnalyticsSection from "./components/analytics-section"
+import EarningsWidget from "./components/earnings-widget"
+import { BankAccountForm } from "../components/ui/stripe-connect-button"
 
 export default function DashboardPage() {
   return (
@@ -20,15 +22,22 @@ export default function DashboardPage() {
           <DashboardHeader />
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            <AnalyticsSection />
+            <EarningsWidget />
             <ActivityFeed />
             <PerformanceMetrics />
           </div>
 
           <div className="mt-6">
-            <LessonsGrid />
+            <AnalyticsSection />
           </div>
 
+          <div className="mt-6">
+            <LessonsGrid />
+          </div>
+          
+          <div className="mt-6">
+            <BankAccountForm />
+          </div>
         </Suspense>
       </div>
     </div>

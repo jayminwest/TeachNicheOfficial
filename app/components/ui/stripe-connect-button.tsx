@@ -1,25 +1,40 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/components/ui/use-toast';
-import { useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { supabase } from '@/app/services/supabase';
 import { stripeConfig } from '@/app/services/stripe';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 
-interface StripeConnectButtonProps {
-  stripeAccountId?: string | null;
+interface BankAccountFormProps {
+  hasBankAccount?: boolean;
 }
 
-export function StripeConnectButton({ 
-  stripeAccountId 
-}: StripeConnectButtonProps) {
+export function BankAccountForm({ 
+  hasBankAccount = false
+}: BankAccountFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [accountNumber, setAccountNumber] = useState('');
+  const [routingNumber, setRoutingNumber] = useState('');
+  const [accountHolderName, setAccountHolderName] = useState('');
+  const [accountType, setAccountType] = useState('checking');
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const handleConnect = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (isLoading || !user) return;
     
     try {
@@ -42,10 +57,10 @@ export function StripeConnectButton({
       const userCountry = userLocale.split('-')[1] || 'US';
       
       if (!stripeConfig.supportedCountries.includes(userCountry)) {
-        throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${stripeConfig.supportedCountries.join(', ')}`);
+        throw new Error(`Sorry, payouts are not yet supported in your country. Supported countries include: ${stripeConfig.supportedCountries.join(', ')}`);
       }
 
-      const response = await fetch('/api/stripe/connect', {
+      const response = await fetch('/api/payouts/bank-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,8 +70,11 @@ export function StripeConnectButton({
         credentials: 'include',
         body: JSON.stringify({ 
           userId: user.id,
-          locale: userLocale,
-          email: user.email // Add email to payload
+          accountNumber,
+          routingNumber,
+          accountHolderName,
+          accountType,
+          country: userCountry
         }),
       });
       
@@ -64,55 +82,127 @@ export function StripeConnectButton({
       
       if (!response.ok) {
         const error = data.error || {};
-        console.error('Stripe connect error:', {
+        console.error('Bank account setup error:', {
           status: response.status,
           error: error,
           details: data.details
         });
-        throw new Error(error.message || data.details || 'Failed to connect with Stripe');
+        throw new Error(error.message || data.details || 'Failed to set up bank account');
       }
 
-      if (!data.url) {
-        throw new Error('No redirect URL received from server');
-      }
-
-      window.location.href = data.url;
+      toast({
+        title: 'Success',
+        description: 'Your bank account has been successfully set up for payouts.',
+      });
+      
+      // Reset form
+      setAccountNumber('');
+      setRoutingNumber('');
+      setAccountHolderName('');
+      setAccountType('checking');
+      setIsLoading(false);
     } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to connect with Stripe. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to set up bank account. Please try again.',
       });
-      setIsLoading(false); // Only reset loading on error
+      setIsLoading(false);
     }
   };
 
   if (!user) {
     return (
-      <Button 
-        variant="outline" 
-        disabled
-      >
-        Please sign in to connect Stripe
-      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Set Up Payouts</CardTitle>
+          <CardDescription>Please sign in to set up your payout method</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
-  if (stripeAccountId) {
+  if (hasBankAccount) {
     return (
-      <Button variant="outline" disabled>
-        Connected to Stripe
-      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Payout Method</CardTitle>
+          <CardDescription>Your bank account has been set up for payouts</CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button variant="outline">Update Bank Account</Button>
+        </CardFooter>
+      </Card>
     );
   }
 
   return (
-    <Button 
-      onClick={handleConnect} 
-      disabled={isLoading}
-      aria-busy={isLoading ? "true" : "false"}
-    >
-      {isLoading ? 'Connecting...' : 'Connect with Stripe'}
-    </Button>
+    <Card>
+      <CardHeader>
+        <CardTitle>Set Up Payouts</CardTitle>
+        <CardDescription>
+          Enter your bank account details to receive your earnings.
+          Payouts are processed {stripeConfig.payoutSchedule === 'weekly' ? 'weekly' : 'monthly'} 
+          for amounts over {(stripeConfig.minimumPayoutAmount / 100).toFixed(2)} {stripeConfig.defaultCurrency.toUpperCase()}.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="accountHolderName">Account Holder Name</Label>
+            <Input
+              id="accountHolderName"
+              value={accountHolderName}
+              onChange={(e) => setAccountHolderName(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="accountType">Account Type</Label>
+            <Select 
+              value={accountType} 
+              onValueChange={setAccountType}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="checking">Checking</SelectItem>
+                <SelectItem value="savings">Savings</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="routingNumber">Routing Number</Label>
+            <Input
+              id="routingNumber"
+              value={routingNumber}
+              onChange={(e) => setRoutingNumber(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="accountNumber">Account Number</Label>
+            <Input
+              id="accountNumber"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              required
+            />
+          </div>
+          
+          <Button 
+            type="submit" 
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? 'Setting Up...' : 'Set Up Bank Account'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

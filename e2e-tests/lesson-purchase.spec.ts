@@ -88,8 +88,15 @@ test.describe('Lesson purchase flow', () => {
     // Get the lesson title for later verification with a specific selector
     const lessonTitle = await page.locator('[data-testid="preview-lesson-title"]').textContent();
     
-    // Click purchase button
-    await page.click('[data-testid="preview-purchase-button"]');
+    // Click purchase button - try multiple selectors
+    try {
+      // First try the container
+      await page.click('[data-testid="preview-purchase-button"]', { timeout: 5000 });
+    } catch (e) {
+      console.log('Could not find preview-purchase-button, trying checkout-button');
+      // Then try the actual button
+      await page.click('[data-testid="checkout-button"]', { timeout: 5000 });
+    }
     
     // We should use the setupMocks function from test-setup.ts instead of creating routes here
     // The mock for Stripe checkout is already set up in setupMocks

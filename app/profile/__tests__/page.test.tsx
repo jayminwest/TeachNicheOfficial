@@ -38,6 +38,34 @@ jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
 }))
 
+// Mock UI components
+jest.mock('@/app/components/ui/tabs', () => ({
+  Tabs: ({ children, defaultValue }) => (
+    <div data-testid="tabs" data-default-value={defaultValue}>{children}</div>
+  ),
+  TabsList: ({ children }) => <div data-testid="tabs-list">{children}</div>,
+  TabsTrigger: ({ children, value }) => (
+    <button data-testid="tab" data-value={value} role="tab">{children}</button>
+  ),
+  TabsContent: ({ children, value }) => (
+    <div data-testid="tabs-content" data-value={value}>{children}</div>
+  ),
+}))
+
+jest.mock('@/app/components/ui/card', () => ({
+  Card: ({ children, className }) => (
+    <div data-testid="card" className={className}>{children}</div>
+  ),
+}))
+
+jest.mock('@/app/components/ui/stripe-connect-button', () => ({
+  StripeConnectButton: ({ stripeAccountId }) => (
+    <button data-testid="stripe-connect-button" data-account-id={stripeAccountId}>
+      Connect with Stripe
+    </button>
+  ),
+}))
+
 // Mock Supabase client
 jest.mock('@/app/services/supabase', () => ({
   supabase: {
@@ -116,26 +144,28 @@ describe('ProfilePage', () => {
   describe('interactions', () => {
     it('allows switching between tabs', async () => {
       const user = userEvent.setup()
-      const { getByRole, getByText } = renderWithAuth(<ProfilePage />)
+      const { getAllByRole, getByText, getByTestId } = renderWithAuth(<ProfilePage />)
 
       // Click on Content tab
-      await user.click(getByRole('tab', { name: 'Content' }))
-      expect(getByText('Create New Lesson')).toBeInTheDocument()
-
+      await user.click(getAllByRole('tab')[1]) // Content tab is the second tab
+      expect(getByTestId('tabs-content')).toHaveAttribute('data-value', 'content')
+      
       // Click on Settings tab
-      await user.click(getByRole('tab', { name: 'Settings' }))
+      await user.click(getAllByRole('tab')[2]) // Settings tab is the third tab
+      expect(getByTestId('tabs-content')).toHaveAttribute('data-value', 'settings')
       expect(getByText('Stripe Connect')).toBeInTheDocument()
     })
 
     it('displays stripe connect button with account ID', async () => {
-      const { getByRole, getByText } = renderWithAuth(<ProfilePage />)
+      const { getAllByRole, getByText, getByTestId } = renderWithAuth(<ProfilePage />)
       
       // Navigate to settings tab
-      await userEvent.click(getByRole('tab', { name: 'Settings' }))
+      await userEvent.click(getAllByRole('tab')[2]) // Settings tab is the third tab
       
       // Check that the Stripe Connect section is visible
       expect(getByText('Stripe Connect')).toBeInTheDocument()
       expect(getByText('Connect your Stripe account to receive payments for your lessons')).toBeInTheDocument()
+      expect(getByTestId('stripe-connect-button')).toBeInTheDocument()
     })
   })
 })

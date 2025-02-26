@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
@@ -165,14 +165,14 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('purchases')
       .update({
-        stripe_session_id: session.id,
-        payment_intent_id: session.payment_intent as string,
+        stripe_session_id: checkoutSession.id,
+        payment_intent_id: checkoutSession.payment_intent as string,
       })
       .eq('id', purchase.id);
     
     return NextResponse.json({
-      url: session.url,
-      sessionId: session.id,
+      url: checkoutSession.url,
+      sessionId: checkoutSession.id,
     });
   } catch (error) {
     console.error('Checkout creation error:', error);

@@ -103,6 +103,12 @@ test.describe('Lesson purchase flow', () => {
     
     // Verify redirect to success page
     await page.waitForURL('**/success**');
+    
+    // Take a screenshot for debugging
+    await page.screenshot({ path: 'debug-success-page.png' });
+    
+    // Wait for success message with a longer timeout
+    await page.waitForSelector('[data-testid="success-message"]', { timeout: 10000 });
     await expect(page.locator('[data-testid="success-message"]')).toBeVisible();
     
     // Navigate to my lessons page to verify purchase

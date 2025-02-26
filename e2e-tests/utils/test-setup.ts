@@ -45,6 +45,14 @@ export async function setupMocks(page: Page) {
       })
     });
   });
+  
+  // Mock success page response
+  await page.route('**/success**', async (route) => {
+    if (route.request().method() === 'GET') {
+      // Let the actual page load but intercept any API calls
+      await route.continue();
+    }
+  });
 
   // Mock Mux API responses
   await page.route('**/api/mux/**', async (route) => {

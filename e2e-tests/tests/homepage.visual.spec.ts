@@ -16,12 +16,12 @@ test.describe('Homepage Visual Tests', () => {
     await page.waitForTimeout(1000);
     
     // Take a screenshot of the hero section
-    const heroSection = await page.locator('[data-testid="hero-section-container"]');
+    const heroSection = await page.locator('[data-testid="page-hero-container"]');
     await expect(heroSection).toBeVisible();
     
     // Add a fixed height to ensure consistent screenshots
     await page.evaluate(() => {
-      const heroElement = document.querySelector('[data-testid="hero-section-container"]');
+      const heroElement = document.querySelector('[data-testid="page-hero-container"]');
       if (heroElement) {
         heroElement.setAttribute('style', 'min-height: 600px;');
       }

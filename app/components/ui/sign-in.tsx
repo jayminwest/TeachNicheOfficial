@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from './button'
 import {
@@ -49,9 +49,16 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
     }
   }
 
+  const [mounted, setMounted] = useState(false);
+  
+  // This ensures the component is only rendered after it's mounted on the client
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   return (
     <>
-      {loading ? (
+      {!mounted || loading ? (
         <div className="flex min-h-[inherit] w-full items-center justify-center">
           <div className="text-center">
             <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>

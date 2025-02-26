@@ -35,6 +35,12 @@ export function Header() {
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
     const [authDialogOpen, setAuthDialogOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    
+    // This ensures the component is only rendered after it's mounted on the client
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
     const navigationItems: NavigationItem[] = [
         {
             title: "Home",
@@ -119,7 +125,7 @@ export function Header() {
                 </div>
                 <div className="hidden lg:flex justify-end w-full gap-2 items-center">
                     <ThemeToggle />
-                    {!loading && user ? (
+                    {mounted && !loading && user ? (
                         <>
                             <Link href="/profile">
                                 <Button variant="ghost">Profile</Button>
@@ -134,7 +140,7 @@ export function Header() {
                                 Sign Out
                             </Button>
                         </>
-                    ) : !loading ? (
+                    ) : mounted && !loading ? (
                         <>
                             <>
                                 <Button 
@@ -182,7 +188,7 @@ export function Header() {
                                 <div className="flex justify-end">
                                     <ThemeToggle />
                                 </div>
-                                {!loading && user ? (
+                                {mounted && !loading && user ? (
                                     <>
                                         <Link href="/profile">
                                             <Button variant="ghost" className="w-full">Profile</Button>
@@ -198,7 +204,7 @@ export function Header() {
                                             Sign Out
                                         </Button>
                                     </>
-                                ) : !loading ? (
+                                ) : mounted && !loading ? (
                                     <>
                                         <>
                                             <Button 

@@ -166,7 +166,7 @@ describe('ProfilePage', () => {
       
       // Check the third tab (settings tab)
       expect(contentTabs[2]).toHaveAttribute('data-value', 'settings')
-      expect(getByText('Stripe Connect')).toBeInTheDocument()
+      expect(getByText('Account Settings')).toBeInTheDocument()
     })
 
   })

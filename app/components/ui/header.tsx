@@ -150,11 +150,21 @@ export function Header() {
                                 </Button>
                                 
                                 <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
-                                    <DialogContent className="p-0 bg-background" data-testid="auth-dialog">
+                                    <DialogContent className="sm:max-w-[425px] p-0 bg-background" data-testid="auth-dialog">
                                         {showSignIn ? (
-                                            <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
+                                            <>
+                                                <div className="px-6 pt-6">
+                                                    <h2 className="text-lg font-semibold">Sign in to Teach Niche</h2>
+                                                </div>
+                                                <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
+                                            </>
                                         ) : (
-                                            <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
+                                            <>
+                                                <div className="px-6 pt-6">
+                                                    <h2 className="text-lg font-semibold">Join Teach Niche</h2>
+                                                </div>
+                                                <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
+                                            </>
                                         )}
                                     </DialogContent>
                                 </Dialog>
@@ -211,6 +221,7 @@ export function Header() {
                                                 onClick={() => {
                                                     setShowSignIn(true);
                                                     setAuthDialogOpen(true);
+                                                    setOpen(false); // Close mobile menu when opening dialog
                                                 }}
                                             >
                                                 Sign In

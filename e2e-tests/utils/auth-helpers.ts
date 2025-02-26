@@ -30,6 +30,23 @@ export async function loginAsUser(page: Page, email: string, password: string) {
     
     let buttonClicked = false;
     
+    // First check if mobile menu button is visible and click it if needed
+    try {
+      const mobileMenuButton = await page.$('button:has(svg[data-icon="menu"])') || 
+                               await page.$('button:has(.lucide-menu)');
+      if (mobileMenuButton) {
+        const isVisible = await mobileMenuButton.isVisible();
+        if (isVisible) {
+          console.log('Found mobile menu button, clicking it first');
+          await mobileMenuButton.click();
+          // Wait a moment for the menu to appear
+          await page.waitForTimeout(500);
+        }
+      }
+    } catch (error) {
+      console.log('No mobile menu button found or not needed');
+    }
+    
     for (const selector of selectors) {
       try {
         const isVisible = await page.isVisible(selector, { timeout: 5000 });

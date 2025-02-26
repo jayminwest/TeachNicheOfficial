@@ -7,129 +7,63 @@ test.describe('Earnings Dashboard', () => {
     // Set up mocks first
     await setupMocks(page);
     
-    // Login as a creator with our improved helper
-    const success = await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
-    if (!success) {
-      console.warn('Authentication may have failed, but continuing with test');
-    }
+    // Login as a creator
+    await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
     
     // Navigate to earnings page
     await page.goto('/dashboard/earnings');
     
     // Wait for page to load completely
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000); // Extra time for any async loading
     
-    console.log('Current URL:', page.url());
+    // Verify earnings section is visible
+    await expect(page.locator('[data-testid="earnings-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="total-earnings"]')).toBeVisible();
     
-    // Create mock earnings data if not present
-    await page.evaluate(() => {
-      if (!document.querySelector('h2')) {
-        const mockEarningsSection = document.createElement('div');
-        mockEarningsSection.innerHTML = `
-          <h2>Earnings Summary</h2>
-          <div class="earnings-data">
-            <div class="earnings-card">
-              <h3>Total Earnings</h3>
-              <p>$250.00</p>
-            </div>
-            <div class="earnings-card">
-              <h3>Pending Payout</h3>
-              <p>$85.00</p>
-            </div>
-          </div>
-        `;
-        const container = document.querySelector('main') || document.body;
-        container.appendChild(mockEarningsSection);
-      }
-    });
-    
-    // Verify earnings section is visible - use a more specific selector
-    await expect(page.getByRole('heading', { name: 'Earnings Summary', exact: true }).first()).toBeVisible();
+    // Verify earnings history is loaded
+    await expect(page.locator('[data-testid="earnings-history"]')).toBeVisible({ timeout: 10000 });
     
     // Take a screenshot for verification
-    await page.screenshot({ path: 'debug-earnings-dashboard.png' });
+    await page.screenshot({ path: 'earnings-dashboard.png' });
   });
 
   test('bank account setup form works correctly', async ({ page }) => {
     // Set up mocks first
     await setupMocks(page);
     
-    // Login as a creator with our improved helper
-    const success = await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
-    if (!success) {
-      console.warn('Authentication may have failed, but continuing with test');
-    }
+    // Login as a creator
+    await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
     
     // Navigate to earnings page
     await page.goto('/dashboard/earnings');
     
     // Wait for page to load completely
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000); // Extra time for any async loading
-    
-    // Create mock bank account form if not present
-    await page.evaluate(() => {
-      if (!document.querySelector('[data-testid="bank-account-form"]')) {
-        const mockForm = document.createElement('div');
-        mockForm.setAttribute('data-testid', 'bank-account-form');
-        mockForm.innerHTML = `
-          <h3>Set Up Bank Account</h3>
-          <form>
-            <div class="form-group">
-              <label for="accountHolderName">Account Holder Name</label>
-              <input id="accountHolderName" type="text" />
-            </div>
-            <div class="form-group">
-              <label for="accountType">Account Type</label>
-              <select id="accountType">
-                <option value="checking">Checking</option>
-                <option value="savings">Savings</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="routingNumber">Routing Number</label>
-              <input id="routingNumber" type="text" />
-            </div>
-            <div class="form-group">
-              <label for="accountNumber">Account Number</label>
-              <input id="accountNumber" type="text" />
-            </div>
-            <button type="button">Set Up Bank Account</button>
-          </form>
-        `;
-        const container = document.querySelector('main') || document.body;
-        container.appendChild(mockForm);
-      }
-    });
     
     // Verify bank account form is visible
-    await expect(page.locator('[data-testid="bank-account-form"]')).toBeVisible();
+    const bankAccountForm = page.locator('[data-testid="bank-account-form"]');
+    await expect(bankAccountForm).toBeVisible({ timeout: 10000 });
     
     // Fill bank account details
-    await page.fill('[id="accountHolderName"]', 'Creator Name');
-    await page.click('[id="accountType"]');
-    // Use a more specific selector for the option
-    await page.selectOption('[id="accountType"]', 'checking');
-    await page.fill('[id="routingNumber"]', '110000000');
-    await page.fill('[id="accountNumber"]', '000123456789');
+    await page.fill('#accountHolderName', 'Creator Name');
+    await page.click('#accountType');
+    await page.selectOption('#accountType', 'checking');
+    await page.fill('#routingNumber', '110000000');
+    await page.fill('#accountNumber', '000123456789');
     
-    // Set up mock success message
-    await page.evaluate(() => {
-      const button = document.querySelector('[data-testid="bank-account-form"] button');
-      if (button) {
-        button.addEventListener('click', () => {
-          const successMessage = document.createElement('div');
-          successMessage.textContent = 'Your bank account has been successfully set up for payouts';
-          document.body.appendChild(successMessage);
-        });
-      }
+    // Mock the API response for bank account setup
+    await page.route('/api/payouts/bank-account', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true })
+      });
     });
     
     // Submit the form
-    await page.click('[data-testid="bank-account-form"] button');
+    await page.click('button:has-text("Set Up Bank Account")');
     
-    // Verify success message
-    await expect(page.locator('text=Your bank account has been successfully set up for payouts')).toBeVisible();
+    // Verify success message appears
+    await expect(page.locator('[data-testid="bank-account-success"]')).toBeVisible({ timeout: 10000 });
   });
 });

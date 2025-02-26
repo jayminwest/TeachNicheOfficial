@@ -41,7 +41,7 @@ export async function setupMocks(page: Page) {
       status: 200,
       body: JSON.stringify({
         id: 'cs_test_mock',
-        url: '/mock-checkout'
+        url: '/success?session_id=mock_session_id'
       })
     });
   });

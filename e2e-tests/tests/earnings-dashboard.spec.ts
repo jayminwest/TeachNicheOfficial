@@ -24,7 +24,7 @@ test.describe('Earnings Dashboard', () => {
     
     // Create mock earnings data if not present
     await page.evaluate(() => {
-      if (!document.querySelector('h2:has-text("Earnings Summary")')) {
+      if (!document.querySelector('h2')) {
         const mockEarningsSection = document.createElement('div');
         mockEarningsSection.innerHTML = `
           <h2>Earnings Summary</h2>

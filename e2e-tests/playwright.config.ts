@@ -5,6 +5,16 @@ const config: PlaywrightTestConfig = {
   testMatch: '**/*.spec.ts',
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
+  // Only start the web server if explicitly requested
+  webServer: process.env.START_SERVER ? {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    timeout: 120000,
+    reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    cwd: '..'  // Run the command from the parent directory
+  } : undefined,
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',
@@ -12,6 +22,7 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',
     stderr: 'pipe',
+    cwd: '..'  // Run the command from the parent directory
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',

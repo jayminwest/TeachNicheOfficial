@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "End-to-end tests for Teach Niche",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "dev": "cd .. && npm run dev"
   }
 }

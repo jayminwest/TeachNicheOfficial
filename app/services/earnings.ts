@@ -12,6 +12,16 @@ export interface EarningsSummary {
   nextPayoutDate: string | null;
   nextPayoutAmount: number;
   formattedNextPayout: string;
+  recentEarnings?: EarningItem[];
+}
+
+export interface EarningItem {
+  id: string;
+  amount: number;
+  formattedAmount: string;
+  status: 'pending' | 'paid' | 'failed';
+  createdAt: string;
+  lessonTitle: string;
 }
 
 export interface EarningsHistoryItem {
@@ -45,10 +55,17 @@ export const getEarningsSummary = async (
   supabaseClient: TypedSupabaseClient
 ): Promise<EarningsSummary> => {
   // Get all earnings for the creator
-  const { data: earnings, error } = await supabaseClient
+  const { data: earningsData, error } = await supabaseClient
     .from('creator_earnings')
-    .select('amount, status')
-    .eq('creator_id', creatorId);
+    .select(`
+      id,
+      amount, 
+      status,
+      created_at,
+      lessons(id, title)
+    `)
+    .eq('creator_id', creatorId)
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Failed to fetch earnings:', error);
@@ -56,13 +73,23 @@ export const getEarningsSummary = async (
   }
 
   // Calculate totals
-  const totalEarnings = earnings.reduce((sum, item) => sum + item.amount, 0);
-  const pendingEarnings = earnings
+  const totalEarnings = earningsData.reduce((sum, item) => sum + item.amount, 0);
+  const pendingEarnings = earningsData
     .filter(item => item.status === 'pending')
     .reduce((sum, item) => sum + item.amount, 0);
-  const paidEarnings = earnings
+  const paidEarnings = earningsData
     .filter(item => item.status === 'paid')
     .reduce((sum, item) => sum + item.amount, 0);
+
+  // Format recent earnings
+  const recentEarnings = earningsData.slice(0, 10).map(item => ({
+    id: item.id,
+    amount: item.amount,
+    formattedAmount: formatCurrency(item.amount),
+    status: item.status,
+    createdAt: item.created_at,
+    lessonTitle: item.lessons?.title || 'Unknown lesson'
+  }));
 
   // Calculate next payout date
   let nextPayoutDate: string | null = null;
@@ -90,7 +117,8 @@ export const getEarningsSummary = async (
     formattedPaid: formatCurrency(paidEarnings),
     nextPayoutDate,
     nextPayoutAmount: pendingEarnings,
-    formattedNextPayout: formatCurrency(pendingEarnings)
+    formattedNextPayout: formatCurrency(pendingEarnings),
+    recentEarnings
   };
 };
 

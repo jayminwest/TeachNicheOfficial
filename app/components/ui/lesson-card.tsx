@@ -24,6 +24,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
       <Card 
         className="h-full hover:shadow-md transition-shadow cursor-pointer"
         onClick={() => setIsPreviewOpen(true)}
+        data-testid="lesson-card"
       >
         <div className="relative aspect-video w-full">
           <Image
@@ -34,14 +35,14 @@ export function LessonCard({ lesson }: LessonCardProps) {
           />
         </div>
         <div className="p-6">
-          <h3 className="font-semibold mb-2 line-clamp-2">
+          <h3 className="font-semibold mb-2 line-clamp-2" data-testid="lesson-title">
             {lesson.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-3" data-testid="lesson-description">
             {lesson.description}
           </p>
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">
+            <div className="text-sm font-medium" data-testid="lesson-price">
               {lesson.price === 0 ? (
                 <span className="text-green-600">Free</span>
               ) : (

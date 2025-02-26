@@ -195,7 +195,7 @@ export function BankAccountForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-testid="bank-account-form">
           {formError && (
             <Alert variant="destructive">
               <AlertDescription>{formError}</AlertDescription>

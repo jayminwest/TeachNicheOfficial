@@ -1,8 +1,20 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test';
+import './setup/register-esm.js';
 
 const config: PlaywrightTestConfig = {
   testDir: './',
   testMatch: '**/*.spec.ts',
+  // Explicitly exclude Jest test files
+  testIgnore: [
+    '**/node_modules/**',
+    '**/app/**/__tests__/**',
+    '**/*.test.ts',
+    '**/*.test.tsx',
+    '**/*.integration.test.ts',
+    '**/*.integration.test.tsx',
+    '**/*.e2e.test.ts',
+    '**/*.e2e.test.tsx'
+  ],
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
   // Configure web server
@@ -62,17 +74,6 @@ const config: PlaywrightTestConfig = {
   // Update snapshots via command line: npx playwright test --update-snapshots
   updateSnapshots: process.env.UPDATE_SNAPSHOTS ? 'all' : 'missing',
   
-  // Explicitly exclude Jest test files and app unit tests
-  testIgnore: [
-    '**/node_modules/**',
-    '**/app/**/__tests__/**',
-    '**/*.test.ts',
-    '**/*.test.tsx',
-    '**/*.integration.test.ts',
-    '**/*.integration.test.tsx',
-    '**/*.e2e.test.ts',
-    '**/*.e2e.test.tsx'
-  ],
   
   expect: {
     toHaveScreenshot: {

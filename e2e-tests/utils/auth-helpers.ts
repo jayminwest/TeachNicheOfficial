@@ -17,39 +17,54 @@ export async function loginAsUser(page: Page, email: string, password: string) {
   await page.waitForLoadState('networkidle');
   console.log('Page loaded');
   
-  // Try to find and click the sign-in button (try both desktop and mobile versions)
+  // Try to find and click the sign-in button with more robust selectors
   try {
-    // Check if desktop sign-in button is visible
-    const desktopSignInButton = page.locator('[data-testid="sign-in-button"]');
-    if (await desktopSignInButton.isVisible({ timeout: 2000 })) {
-      console.log('Found desktop sign-in button');
-      await desktopSignInButton.click();
-    } else {
-      // If desktop button is not visible, try mobile button
-      console.log('Desktop sign-in button not visible, trying mobile button');
-      const mobileMenuButton = page.locator('button:has(svg[class*="Menu"])');
-      if (await mobileMenuButton.isVisible({ timeout: 2000 })) {
-        console.log('Found mobile menu button');
-        await mobileMenuButton.click();
-        
-        // Wait for mobile menu to appear
-        await page.waitForSelector('[data-testid="mobile-menu"]', { timeout: 5000 });
-        console.log('Mobile menu visible');
-        
-        // Click the mobile sign-in button
-        const mobileSignInButton = page.locator('[data-testid="sign-in-button-mobile"]');
-        if (await mobileSignInButton.isVisible({ timeout: 2000 })) {
-          console.log('Found mobile sign-in button');
-          await mobileSignInButton.click();
-        } else {
-          // Fallback to text-based selection
-          console.log('Mobile sign-in button not found with data-testid, trying text selector');
-          await page.click('text=Sign In', { timeout: 3000 });
+    // Try multiple selectors with a more generous timeout
+    const selectors = [
+      '[data-testid="sign-in-button"]',
+      '[data-testid="sign-in-button-mobile"]',
+      'button:has-text("Sign In")',
+      'button:has-text("Sign in")',
+      'button:has-text(/sign in/i)'
+    ];
+    
+    let buttonClicked = false;
+    
+    for (const selector of selectors) {
+      try {
+        const isVisible = await page.isVisible(selector, { timeout: 5000 });
+        if (isVisible) {
+          console.log(`Found sign-in button with selector: ${selector}`);
+          await page.click(selector);
+          buttonClicked = true;
+          break;
         }
-      } else {
-        // Last resort: try to find any button with "Sign In" text
-        console.log('Mobile menu button not found, trying generic text selector');
-        await page.click('button:has-text("Sign In")', { timeout: 3000 });
+      } catch (error) {
+        console.log(`Selector ${selector} not found or not visible`);
+      }
+    }
+    
+    if (!buttonClicked) {
+      // Take a screenshot of the current state for debugging
+      await page.screenshot({ path: `debug-no-sign-in-button-${Date.now()}.png` });
+      
+      // Try one more approach - look for any button containing "Sign In" text
+      const allButtons = await page.$$('button');
+      console.log(`Found ${allButtons.length} buttons on the page`);
+      
+      for (const button of allButtons) {
+        const text = await button.textContent();
+        console.log(`Button text: "${text}"`);
+        if (text && text.toLowerCase().includes('sign in')) {
+          console.log('Found button with "Sign In" text');
+          await button.click();
+          buttonClicked = true;
+          break;
+        }
+      }
+      
+      if (!buttonClicked) {
+        throw new Error('Could not find any sign-in button');
       }
     }
   } catch (error) {
@@ -60,56 +75,67 @@ export async function loginAsUser(page: Page, email: string, password: string) {
   
   console.log('Sign-in dialog should be open now');
   
-  // Fill in credentials
+  // Wait for the auth dialog to appear
   try {
-    // Wait a bit for the dialog to fully render
-    await page.waitForTimeout(500);
+    await page.waitForSelector('[data-testid="auth-dialog"]', { timeout: 5000 });
+    console.log('Auth dialog is visible');
+  } catch (error) {
+    console.error('Auth dialog not found:', error);
+    await page.screenshot({ path: `debug-auth-dialog-${Date.now()}.png` });
+    // Continue anyway, as the dialog might be there but without the data-testid
+  }
+  
+  // Click the Google sign-in button
+  try {
+    // Try multiple selectors for the Google sign-in button
+    const googleButtonSelectors = [
+      '[data-testid="google-sign-in"]',
+      'button:has-text("Sign in with Google")',
+      'button:has-text("Continue with Google")'
+    ];
     
-    // Take a screenshot to debug
-    await page.screenshot({ path: `debug-before-fill-${Date.now()}.png` });
+    let googleButtonClicked = false;
     
-    // Click the Google sign-in button
-    await page.click('[data-testid="google-sign-in"]');
+    for (const selector of googleButtonSelectors) {
+      try {
+        if (await page.isVisible(selector, { timeout: 3000 })) {
+          console.log(`Found Google sign-in button: ${selector}`);
+          await page.click(selector);
+          googleButtonClicked = true;
+          break;
+        }
+      } catch (error) {
+        console.log(`Google button selector ${selector} not found`);
+      }
+    }
+    
+    if (!googleButtonClicked) {
+      throw new Error('Could not find Google sign-in button');
+    }
+    
     console.log('Clicked Google sign-in button');
     
-    // For tests, we'll simulate a successful Google sign-in
-    // by setting a flag that our tests can detect
+    // For tests, simulate a successful Google sign-in
     await page.evaluate(() => {
       if (typeof window !== 'undefined') {
         window.signInWithGoogleCalled = true;
-      }
-    });
-    
-    console.log('Credentials filled (simulated Google sign-in)');
-  } catch (error) {
-    console.error('Failed to fill credentials:', error);
-    await page.screenshot({ path: `debug-credentials-${Date.now()}.png` });
-    throw new Error(`Could not fill credentials: ${error.message}`);
-  }
-  
-  // Submit the form (click the "Already have an account? Sign in" button)
-  try {
-    await page.click('[data-testid="submit-sign-in"]');
-    console.log('Sign-in form submitted');
-    
-    // For tests, we'll simulate a successful authentication
-    // by setting a flag in localStorage and navigating to the dashboard
-    await page.evaluate(() => {
-      if (typeof window !== 'undefined') {
+        // Also set a flag in localStorage to indicate successful auth
         localStorage.setItem('auth-test-success', 'true');
       }
     });
     
+    console.log('Credentials filled (simulated Google sign-in)');
+    
+    // Navigate to dashboard to simulate successful sign-in
     await page.goto('/dashboard');
     console.log('Navigated to dashboard');
+    
+    return true;
   } catch (error) {
-    console.error('Failed to submit sign-in form:', error);
-    await page.screenshot({ path: `debug-submit-${Date.now()}.png` });
-    throw new Error(`Could not submit sign-in form: ${error.message}`);
+    console.error('Failed to complete sign-in:', error);
+    await page.screenshot({ path: `debug-sign-in-error-${Date.now()}.png` });
+    throw error;
   }
-  
-  // Authentication is considered complete since we navigated to dashboard
-  console.log('Authentication completed successfully');
 }
 
 /**

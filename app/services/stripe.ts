@@ -1,5 +1,4 @@
 import Stripe from 'stripe';
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 // Error handling types
 export type StripeErrorCode = 
@@ -173,3 +172,89 @@ export const verifyStripeWebhook = (
 
 // Export constants for backward compatibility
 export const DEFAULT_CURRENCY = stripeConfig.defaultCurrency;
+
+/**
+ * Creates a Stripe Connect account link for onboarding
+ */
+export const createConnectSession = async ({
+  accountId,
+  refreshUrl,
+  returnUrl,
+  type = 'account_onboarding'
+}: {
+  accountId: string;
+  refreshUrl: string;
+  returnUrl: string;
+  type?: 'account_onboarding' | 'account_update';
+}) => {
+  try {
+    const accountLink = await getStripe().accountLinks.create({
+      account: accountId,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type,
+    });
+    
+    return accountLink;
+  } catch (error) {
+    console.error('Failed to create account link:', error);
+    throw new StripeError(
+      'invalid_request',
+      error instanceof Error ? error.message : 'Failed to create account link'
+    );
+  }
+};
+
+/**
+ * Gets the status of a Stripe Connect account
+ */
+export const getAccountStatus = async (accountId: string) => {
+  try {
+    const account = await getStripe().accounts.retrieve(accountId);
+    
+    return {
+      id: account.id,
+      chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
+      detailsSubmitted: account.details_submitted,
+      isComplete: account.charges_enabled && account.payouts_enabled && account.details_submitted,
+      requirements: account.requirements,
+    };
+  } catch (error) {
+    console.error('Failed to get account status:', error);
+    throw new StripeError(
+      'invalid_request',
+      error instanceof Error ? error.message : 'Failed to get account status'
+    );
+  }
+};
+
+/**
+ * Verifies a connected account belongs to the user
+ */
+export const verifyConnectedAccount = async (
+  userId: string,
+  accountId: string,
+  supabase: any
+) => {
+  try {
+    // Verify the account exists and belongs to this user
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', userId)
+      .single();
+    
+    if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
+      return { verified: false, status: { isComplete: false } };
+    }
+    
+    // Get account status
+    const status = await getAccountStatus(accountId);
+    
+    return { verified: true, status };
+  } catch (error) {
+    console.error('Failed to verify connected account:', error);
+    return { verified: false, status: { isComplete: false } };
+  }
+};

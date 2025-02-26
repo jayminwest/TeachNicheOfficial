@@ -26,17 +26,17 @@ test.describe('Payment and Payout System', () => {
         contentType: 'application/json',
         body: JSON.stringify({ 
           id: 'test_session_id',
-          url: '/mock-success-page'
+          url: 'http://localhost:3000/mock-success-page'
         })
       });
     });
     
     // Mock the success page redirect
-    await page.route('/mock-success-page', route => {
+    await page.route('**/mock-success-page', route => {
       route.fulfill({
         status: 200,
         contentType: 'text/html',
-        body: '<div data-testid="purchase-success">Success</div><div data-testid="video-player"></div>'
+        body: '<html><body><div data-testid="purchase-success">Success</div><div data-testid="video-player"></div></body></html>'
       });
     });
     
@@ -79,9 +79,15 @@ test.describe('Payment and Payout System', () => {
     // Complete purchase (this will be intercepted by our mock)
     await page.click('[data-testid="confirm-payment"]', { force: true });
     
+    // Wait for navigation to the success page
+    await page.waitForURL('**/mock-success-page', { timeout: 10000 });
+    
+    // Take a screenshot for debugging
+    await page.screenshot({ path: 'debug-success-page.png' });
+    
     // Verify success and access to content
-    await expect(page.locator('[data-testid="purchase-success"]')).toBeVisible();
-    await expect(page.locator('[data-testid="video-player"]')).toBeVisible();
+    await expect(page.locator('[data-testid="purchase-success"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="video-player"]')).toBeVisible({ timeout: 10000 });
     
     // Verify purchase appears in user's purchases
     await page.goto('http://localhost:3000/dashboard/purchases');

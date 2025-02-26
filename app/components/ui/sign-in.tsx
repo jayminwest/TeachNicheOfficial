@@ -75,7 +75,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
                   className="w-full"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  data-testid="email-input"
+                  data-testid="google-sign-in"
                 >
                   {isLoading ? (
                     <Icons.spinner data-testid="spinner-icon" className="mr-2 h-4 w-4 animate-spin" />

@@ -68,8 +68,8 @@ export async function loginAsUser(page: Page, email: string, password: string) {
     // Take a screenshot to debug
     await page.screenshot({ path: `debug-before-fill-${Date.now()}.png` });
     
-    // Click the Google sign-in button which has the email-input data-testid
-    await page.click('[data-testid="email-input"]');
+    // Click the Google sign-in button
+    await page.click('[data-testid="google-sign-in"]');
     console.log('Clicked Google sign-in button');
     
     // For tests, we'll simulate a successful Google sign-in

@@ -16,7 +16,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] p-0">
+      <DialogContent className="sm:max-w-[425px] p-0" data-testid="auth-dialog">
         <DialogTitle className="px-6 pt-6">
           {view === 'sign-in' ? 'Sign in to Teach Niche' : 'Join Teach Niche'}
         </DialogTitle>

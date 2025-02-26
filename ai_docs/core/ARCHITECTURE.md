@@ -47,8 +47,10 @@ This document provides a high-level overview of the Teach Niche platform archite
 4. **Transactions**:
    - User initiates purchase
    - Payment is processed securely through Teach Niche as merchant of record
+   - Buyer pays base price plus Stripe processing fees
    - Access rights are granted
-   - Creator earnings are recorded in the system
+   - Creator earnings (85% of lesson price) are recorded in the system
+   - Platform fee (15% of lesson price) is retained
    - Creator receives periodic payouts based on accumulated earnings
 
 ## Security Architecture

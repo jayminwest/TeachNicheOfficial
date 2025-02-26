@@ -84,10 +84,13 @@ The process of generating revenue from content.
 The transfer of earnings from the platform to a creator based on the platform's payout schedule.
 
 ### Platform Fee
-The percentage or fixed amount that the platform charges for each transaction as the merchant of record.
+The percentage (15%) that the platform charges for each transaction as the merchant of record.
 
 ### Merchant of Record (MoR)
-The entity (Teach Niche) legally responsible for collecting payment from customers, handling taxes, and distributing earnings to creators.
+The entity (Teach Niche) legally responsible for collecting payment from customers, handling taxes, and distributing earnings to creators (85% of lesson price).
+
+### Processing Fee
+The fee charged by payment processors (Stripe) that is passed on to buyers in addition to the base lesson price.
 
 ### Playwright
 An end-to-end testing framework used to automate browser testing across Chromium, Firefox, and WebKit.

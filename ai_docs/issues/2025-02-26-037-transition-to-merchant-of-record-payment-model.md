@@ -36,7 +36,8 @@ Currently, our platform uses Stripe Connect which requires creators to set up an
 1. **Payment Processing**
    - Modify payment flow to process all transactions through Teach Niche's Stripe account
    - Update database schema to track creator earnings per transaction
-   - Implement revenue sharing calculations based on platform fee percentage
+   - Implement revenue sharing calculations with 85% to creators and 15% platform fee
+   - Pass Stripe processing fees to buyers (added to the base price)
    - Add metadata to Stripe payments to track creator attribution
 
 2. **Payout System**
@@ -190,7 +191,7 @@ To ensure 100% reliability for payments and payouts at launch, the following ite
 - [x] Implement `/api/payments/create-checkout` endpoint
 - [x] Implement `/api/webhooks/stripe` endpoint for payment events
 - [ ] Create `/api/cron/process-payouts` endpoint
-- [x] Add utility function for fee calculation
+- [x] Add utility function for fee calculation (85/15 split with buyer-paid Stripe fees)
 - [ ] Test complete payment flow from purchase to earnings recording
 - [ ] Test bank account setup and validation
 - [ ] Test payout processing and earnings updates

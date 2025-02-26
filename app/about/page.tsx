@@ -214,7 +214,7 @@ export default function AboutPage() {
                     <p>Teach Niche is committed to making kendama education accessible worldwide.</p>
                     <ul className="list-disc pl-5 space-y-2">
                       <li><span className="font-semibold">Multiple Languages:</span> We&apos;re working to translate our platform into several languages to serve the global kendama community.</li>
-                      <li><span className="font-semibold">Global Payment Options:</span> We're expanding our payment options to support various currencies and regional payment methods.</li>
+                      <li><span className="font-semibold">Global Payment Options:</span> We&apos;re expanding our payment options to support various currencies and regional payment methods.</li>
                       <li><span className="font-semibold">Accessible Design:</span> Our platform is built to be accessible to users with different abilities, following WCAG guidelines.</li>
                       <li><span className="font-semibold">Low-Bandwidth Support:</span> We optimize our content to work well even with limited internet connectivity.</li>
                     </ul>

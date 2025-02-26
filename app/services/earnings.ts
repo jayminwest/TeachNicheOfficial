@@ -1,6 +1,6 @@
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 import { formatCurrency } from '@/app/lib/utils';
-import { processCreatorPayout, stripeConfig } from '@/app/services/stripe';
+import { stripeConfig } from '@/app/services/stripe';
 
 export interface EarningsSummary {
   totalEarnings: number;
@@ -42,6 +42,51 @@ export interface PayoutHistoryItem {
   status: 'pending' | 'paid' | 'failed' | 'canceled';
   destination: string;
 }
+
+/**
+ * Calculate creator earnings from a payment amount
+ * 
+ * @param paymentAmount Total payment amount in cents
+ * @returns Creator's earnings after platform fee
+ */
+export const calculateCreatorEarnings = (paymentAmount: number): number => {
+  const platformFeePercent = stripeConfig.platformFeePercent;
+  const platformFee = Math.round(paymentAmount * (platformFeePercent / 100));
+  return paymentAmount - platformFee;
+};
+
+/**
+ * Records earnings for a creator from a payment
+ * 
+ * @param paymentIntentId Stripe payment intent ID
+ * @param creatorId Creator's user ID
+ * @param amount Creator's earnings amount in cents
+ * @param lessonId ID of the lesson purchased
+ * @param supabaseClient Supabase client instance
+ */
+export const recordCreatorEarnings = async (
+  paymentIntentId: string,
+  creatorId: string,
+  amount: number,
+  lessonId: string,
+  supabaseClient: TypedSupabaseClient
+): Promise<void> => {
+  try {
+    await supabaseClient
+      .from('creator_earnings')
+      .insert({
+        creator_id: creatorId,
+        payment_intent_id: paymentIntentId,
+        amount,
+        lesson_id: lessonId,
+        status: 'pending'
+      });
+  } catch (error) {
+    console.error('Failed to record creator earnings:', error);
+    // We log but don't throw here to prevent payment confirmation issues
+    // This can be fixed through admin intervention if needed
+  }
+};
 
 /**
  * Get earnings summary for a creator
@@ -235,6 +280,9 @@ export const processScheduledPayouts = async (
     // Process payouts for each eligible creator
     for (const creator of eligibleCreators) {
       try {
+        // Import dynamically to avoid circular dependencies
+        const { processCreatorPayout } = await import('./payouts');
+        
         const payoutResult = await processCreatorPayout(
           creator.creator_id,
           creator.pending_amount,

@@ -22,7 +22,9 @@ const config: PlaywrightTestConfig = {
     '**/app/**/*.e2e.test.ts',
     '**/app/**/*.e2e.test.tsx',
     '**/__tests__/**/*.test.ts',
-    '**/__tests__/**/*.test.tsx'
+    '**/__tests__/**/*.test.tsx',
+    '**/*.test.{ts,tsx,js,jsx}',
+    '**/__mocks__/**'
   ],
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
@@ -43,7 +45,11 @@ const config: PlaywrightTestConfig = {
       // Ensure Next.js doesn't try to load Jest test files
       NODE_ENV: 'development',
       // Prevent ESM/CJS conflicts with lucide-react
-      NEXT_IGNORE_TESTS: 'true'
+      NEXT_IGNORE_TESTS: 'true',
+      // Disable Jest auto-mocking
+      DISABLE_JEST_AUTOMOCK: 'true',
+      // Tell Next.js we're in E2E test mode
+      NEXT_E2E_TEST: 'true'
     }
   },
   use: {
@@ -94,7 +100,7 @@ const config: PlaywrightTestConfig = {
   updateSnapshots: process.env.UPDATE_SNAPSHOTS ? 'all' : 'missing',
   
   // Global setup to run before tests
-  globalSetup: require.resolve('./setup/test-setup.ts'),
+  globalSetup: './setup/test-setup.ts',
   
   expect: {
     toHaveScreenshot: {

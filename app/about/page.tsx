@@ -206,6 +206,22 @@ export default function AboutPage() {
                   </div>
                 </AccordionContent>
               </AccordionItem>
+
+              <AccordionItem value="global">
+                <AccordionTrigger>Global Accessibility</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche is committed to making kendama education accessible worldwide.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Multiple Languages:</span> We're working to translate our platform into several languages to serve the global kendama community.</li>
+                      <li><span className="font-semibold">Global Payment Options:</span> We're expanding our payment options to support various currencies and regional payment methods.</li>
+                      <li><span className="font-semibold">Accessible Design:</span> Our platform is built to be accessible to users with different abilities, following WCAG guidelines.</li>
+                      <li><span className="font-semibold">Low-Bandwidth Support:</span> We optimize our content to work well even with limited internet connectivity.</li>
+                    </ul>
+                    <p>We believe kendama is a global community, and we're committed to breaking down barriers to participation. Our goal is to connect kendama players worldwide, regardless of language, location, or technical constraints.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </section>
 

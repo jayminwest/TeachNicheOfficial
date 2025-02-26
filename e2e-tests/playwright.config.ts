@@ -9,7 +9,7 @@ const cpuCores = os.cpus().length;
 const defaultWorkers = Math.max(2, Math.min(8, Math.floor(cpuCores * 0.75)));
 
 const config: PlaywrightTestConfig = {
-  testDir: './',
+  testDir: './tests',
   testMatch: '**/*.spec.ts',
   // More comprehensive exclusion of Jest test files and directories
   testIgnore: [
@@ -24,7 +24,9 @@ const config: PlaywrightTestConfig = {
     '**/__tests__/**/*.test.ts',
     '**/__tests__/**/*.test.tsx',
     '**/*.test.{ts,tsx,js,jsx}',
-    '**/__mocks__/**'
+    '**/__mocks__/**',
+    '**/jest.setup.js',
+    '**/jest.config.js'
   ],
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
@@ -58,6 +60,9 @@ const config: PlaywrightTestConfig = {
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
   },
+  
+  // Prevent Playwright from loading Jest test files
+  forbidOnly: !!process.env.CI,
   projects: [
     {
       name: 'Chrome',

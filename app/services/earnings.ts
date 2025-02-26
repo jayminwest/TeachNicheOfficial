@@ -1,3 +1,4 @@
+import { ExtendedSupabaseClient } from '@/app/lib/types/supabase-rpc';
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 import { formatCurrency } from '@/app/lib/utils';
 import { stripeConfig } from '@/app/services/stripe';
@@ -298,7 +299,7 @@ export const getPayoutHistory = async (
  * @returns Results of payout processing
  */
 export const processScheduledPayouts = async (
-  supabaseClient: TypedSupabaseClient
+  supabaseClient: ExtendedSupabaseClient
 ) => {
   const results = {
     processed: 0,
@@ -310,9 +311,9 @@ export const processScheduledPayouts = async (
   try {
     // Get all creators with pending earnings above the minimum threshold
     const { data: eligibleCreators, error } = await supabaseClient.rpc(
-      'get_creators_eligible_for_payout' as any,
+      'get_creators_eligible_for_payout',
       { minimum_amount: stripeConfig.minimumPayoutAmount }
-    ) as unknown as {
+    ) as {
       data: Array<{
         creator_id: string;
         pending_amount: number;
@@ -340,7 +341,7 @@ export const processScheduledPayouts = async (
         if (payoutResult.success) {
           // Update earnings records to 'paid' status
           await supabaseClient.rpc(
-            'mark_creator_earnings_as_paid' as any,
+            'mark_creator_earnings_as_paid',
             { 
               creator_id: creator.creator_id,
               payout_id: payoutResult.payoutId

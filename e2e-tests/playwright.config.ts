@@ -51,7 +51,9 @@ const config: PlaywrightTestConfig = {
       // Disable Jest auto-mocking
       DISABLE_JEST_AUTOMOCK: 'true',
       // Tell Next.js we're in E2E test mode
-      NEXT_E2E_TEST: 'true'
+      NEXT_E2E_TEST: 'true',
+      // Skip loading test files in Next.js
+      NEXT_SKIP_TESTS: 'true'
     }
   },
   use: {

@@ -112,15 +112,57 @@ Currently, our platform uses Stripe Connect which requires creators to set up an
 
 ## GitHub CLI Command
 
+First, create the project and label:
+
 ```bash
-gh issue create --title "Transition to Merchant of Record Payment Model" --body-file ai_docs/issues/ISSUE-001-PAYMENT-MODEL-TRANSITION.md --label "enhancement" --assignee "@me" --project "Launch"
+# Create the project
+gh api graphql -f query='
+  mutation {
+    createProjectV2(input: {ownerId: "OWNER_ID", title: "Launch", repositoryIds: ["REPO_ID"]}) {
+      projectV2 {
+        id
+        title
+      }
+    }
+  }
+'
+
+# Create the high-priority label if it doesn't exist
+gh label create high-priority --color "#ff0000" --description "Requires immediate attention"
 ```
 
-Alternatively, to create the high-priority label first and then create the issue:
+Then create the issue:
 
 ```bash
-gh label create high-priority --color "#ff0000" --description "Requires immediate attention"
-gh issue create --title "Transition to Merchant of Record Payment Model" --body-file ai_docs/issues/ISSUE-001-PAYMENT-MODEL-TRANSITION.md --label "enhancement,high-priority" --assignee "@me" --project "Launch"
+# Create the issue and add it to the project
+gh issue create --title "Transition to Merchant of Record Payment Model" --body-file ai_docs/issues/ISSUE-001-PAYMENT-MODEL-TRANSITION.md --label "enhancement,high-priority" --assignee "@me"
+
+# After creating the issue, you'll need to add it to the project using the project ID
+ISSUE_NUMBER=$(gh issue list --limit 1 --json number --jq '.[0].number')
+gh api graphql -f query='
+  mutation {
+    addProjectV2ItemById(input: {projectId: "PROJECT_ID", contentId: "ISSUE_ID"}) {
+      item {
+        id
+      }
+    }
+  }
+'
+```
+
+Note: The GraphQL commands require replacing placeholders:
+- OWNER_ID: Your GitHub user or organization ID
+- REPO_ID: Your repository ID
+- PROJECT_ID: The ID of the created project
+- ISSUE_ID: The ID of the created issue
+
+You can get these IDs using:
+```bash
+# Get your user/org ID
+gh api user --jq '.id'
+
+# Get your repo ID
+gh api repos/OWNER/REPO --jq '.id'
 ```
 
 This issue represents a significant architectural change that will simplify the creator experience while giving Teach Niche more control over the payment process. The transition will require careful planning and communication with existing creators.

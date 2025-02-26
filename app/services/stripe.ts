@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 // Error handling types
 export type StripeErrorCode = 
@@ -235,7 +236,7 @@ export const getAccountStatus = async (accountId: string) => {
 export const verifyConnectedAccount = async (
   userId: string,
   accountId: string,
-  supabase: any
+  supabase: TypedSupabaseClient
 ) => {
   try {
     // Verify the account exists and belongs to this user

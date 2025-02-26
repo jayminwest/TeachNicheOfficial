@@ -166,3 +166,365 @@ If you encounter TypeScript errors not covered in this guide:
 ---
 
 *This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*
+# TypeScript Errors Guide
+
+This guide provides solutions for common TypeScript errors you might encounter while developing for the Teach Niche platform, with a focus on testing-related TypeScript patterns.
+
+## Common TypeScript Errors
+
+### Type 'X' is not assignable to type 'Y'
+
+This is the most common TypeScript error, indicating a type mismatch.
+
+```typescript
+// Error: Type 'string' is not assignable to type 'number'
+const price: number = "10.99"; // ❌
+```
+
+**Solution:**
+```typescript
+const price: number = 10.99; // ✅
+// Or convert the string to a number
+const priceFromString: number = parseFloat("10.99"); // ✅
+```
+
+### Property 'X' does not exist on type 'Y'
+
+This error occurs when you try to access a property that doesn't exist on a type.
+
+```typescript
+// Error: Property 'price' does not exist on type '{ title: string; }'
+const lesson = { title: "Kendama Basics" };
+console.log(lesson.price); // ❌
+```
+
+**Solution:**
+```typescript
+// Define the type with all required properties
+interface Lesson {
+  title: string;
+  price?: number; // Optional property
+}
+
+const lesson: Lesson = { title: "Kendama Basics" };
+console.log(lesson.price); // ✅ (will be undefined)
+```
+
+### Object is possibly 'null' or 'undefined'
+
+TypeScript warns you when you try to access properties on an object that might be null or undefined.
+
+```typescript
+// Error: Object is possibly 'undefined'
+function getLesson(id: string): Lesson | undefined {
+  // Implementation might return undefined
+}
+
+const lesson = getLesson("123");
+console.log(lesson.title); // ❌
+```
+
+**Solution:**
+```typescript
+// Option 1: Optional chaining
+console.log(lesson?.title); // ✅
+
+// Option 2: Non-null assertion (use only when you're certain)
+console.log(lesson!.title); // Use with caution
+
+// Option 3: Conditional check (safest)
+if (lesson) {
+  console.log(lesson.title); // ✅
+}
+```
+
+## Testing-Related TypeScript Patterns
+
+### Mocking Types for Tests
+
+When writing tests, you often need to create mock objects that match specific interfaces.
+
+```typescript
+// Interface definition
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'creator' | 'learner';
+  createdAt: Date;
+}
+
+// Error: Type '{ id: string; name: string; }' is missing properties
+const mockUser: User = { id: "123", name: "Test User" }; // ❌
+```
+
+**Solution:**
+```typescript
+// Option 1: Partial type for incomplete mocks
+const partialMockUser: Partial<User> = { id: "123", name: "Test User" }; // ✅
+
+// Option 2: Complete mock with all required properties
+const completeMockUser: User = {
+  id: "123",
+  name: "Test User",
+  email: "test@example.com",
+  role: "learner",
+  createdAt: new Date()
+}; // ✅
+
+// Option 3: Mock factory function
+function createMockUser(overrides: Partial<User> = {}): User {
+  return {
+    id: "default-id",
+    name: "Default User",
+    email: "default@example.com",
+    role: "learner",
+    createdAt: new Date(),
+    ...overrides
+  };
+}
+
+const customMockUser = createMockUser({ id: "custom-id" }); // ✅
+```
+
+### Type Assertions in Tests
+
+Sometimes you need to assert types in tests, especially when testing error cases.
+
+```typescript
+// Error: Argument of type 'unknown' is not assignable to parameter of type 'Error'
+test('handles errors', async () => {
+  try {
+    await someFunction();
+  } catch (error) {
+    expect(error.message).toContain('Failed'); // ❌
+  }
+});
+```
+
+**Solution:**
+```typescript
+test('handles errors', async () => {
+  try {
+    await someFunction();
+  } catch (error) {
+    // Option 1: Type assertion
+    expect((error as Error).message).toContain('Failed'); // ✅
+    
+    // Option 2: Type guard
+    if (error instanceof Error) {
+      expect(error.message).toContain('Failed'); // ✅
+    } else {
+      fail('Expected error to be instance of Error');
+    }
+  }
+});
+```
+
+### Typing Test Mocks
+
+When mocking functions or modules in tests, you need to ensure proper typing.
+
+```typescript
+// Error: Type 'jest.Mock<any, any>' is not assignable to type '(id: string) => Promise<User>'
+jest.mock('@/lib/api/users');
+const getUser = require('@/lib/api/users').getUser; // ❌
+getUser.mockResolvedValue({ id: "123", name: "Test User" });
+```
+
+**Solution:**
+```typescript
+// Option 1: Type the mock function
+jest.mock('@/lib/api/users');
+const getUser = require('@/lib/api/users').getUser as jest.MockedFunction<typeof import('@/lib/api/users').getUser>; // ✅
+getUser.mockResolvedValue({ id: "123", name: "Test User" });
+
+// Option 2: Use jest.spyOn with proper typing
+jest.mock('@/lib/api/users');
+const usersApi = require('@/lib/api/users');
+const getUserSpy = jest.spyOn(usersApi, 'getUser') as jest.SpyInstance<Promise<User>, [string]>; // ✅
+getUserSpy.mockResolvedValue({ id: "123", name: "Test User" });
+```
+
+### Testing Component Props
+
+When testing React components, you need to ensure props are correctly typed.
+
+```typescript
+// Component definition
+interface ButtonProps {
+  variant: 'primary' | 'secondary';
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+function Button({ variant, onClick, children }: ButtonProps) {
+  // Implementation
+}
+
+// Error: Type '{ children: string; }' is missing properties
+test('renders button', () => {
+  render(<Button>Click me</Button>); // ❌
+});
+```
+
+**Solution:**
+```typescript
+test('renders button', () => {
+  // Provide all required props
+  render(
+    <Button 
+      variant="primary" 
+      onClick={() => {}}
+    >
+      Click me
+    </Button>
+  ); // ✅
+});
+```
+
+## TDD-Specific TypeScript Patterns
+
+When following Test Driven Development, you'll often write tests for types and interfaces before implementing them.
+
+### Testing Type Definitions
+
+```typescript
+// First, define the types you'll need for your tests
+interface Lesson {
+  id: string;
+  title: string;
+  price: number;
+  creatorId: string;
+}
+
+// Then write tests that use these types
+describe('Lesson API', () => {
+  it('should create a lesson', async () => {
+    const newLesson: Omit<Lesson, 'id'> = {
+      title: 'Test Lesson',
+      price: 19.99,
+      creatorId: 'user-123'
+    };
+    
+    const createdLesson = await createLesson(newLesson);
+    
+    // TypeScript ensures createdLesson has the correct shape
+    expect(createdLesson.id).toBeDefined();
+    expect(createdLesson.title).toBe(newLesson.title);
+  });
+});
+
+// Later, implement the function to match the types
+async function createLesson(lesson: Omit<Lesson, 'id'>): Promise<Lesson> {
+  // Implementation here
+}
+```
+
+### Testing Third-Party API Types
+
+When testing integrations with third-party APIs, define types that match the expected responses.
+
+```typescript
+// Define types for Stripe API responses
+interface StripePaymentIntent {
+  id: string;
+  object: 'payment_intent';
+  amount: number;
+  client_secret: string;
+  status: 'requires_payment_method' | 'requires_confirmation' | 'succeeded';
+}
+
+// Write tests using these types
+describe('Stripe Integration', () => {
+  it('should create a payment intent', async () => {
+    // Test implementation
+    const paymentIntent = await createPaymentIntent(1000);
+    
+    // TypeScript ensures paymentIntent has the correct shape
+    expect(paymentIntent.object).toBe('payment_intent');
+    expect(paymentIntent.amount).toBe(1000);
+  });
+});
+
+// Later, implement the function to match the types
+async function createPaymentIntent(amount: number): Promise<StripePaymentIntent> {
+  // Implementation here
+}
+```
+
+## Troubleshooting TypeScript in Tests
+
+### Issue: Jest Cannot Find Module
+
+```
+Error: Cannot find module '@/components/Button' from 'Button.test.tsx'
+```
+
+**Solution:**
+Check your Jest configuration in `jest.config.js` to ensure module paths are correctly mapped:
+
+```javascript
+module.exports = {
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/app/$1'
+  }
+};
+```
+
+### Issue: Type Errors in Test Files
+
+```
+Error: Property 'toBeInTheDocument' does not exist on type 'Assertion'
+```
+
+**Solution:**
+Ensure you have the correct type definitions installed and imported:
+
+```bash
+npm install --save-dev @testing-library/jest-dom @types/testing-library__jest-dom
+```
+
+Then add to your test setup file or individual test files:
+
+```typescript
+import '@testing-library/jest-dom';
+```
+
+### Issue: Mock Return Types
+
+```
+Error: Type 'string' is not assignable to type 'Promise<User>'
+```
+
+**Solution:**
+Ensure your mocks return the correct types:
+
+```typescript
+// Incorrect
+userService.getUser.mockReturnValue('user123'); // ❌
+
+// Correct
+userService.getUser.mockResolvedValue({ id: 'user123', name: 'Test User' }); // ✅
+```
+
+## Best Practices for TypeScript in TDD
+
+1. **Define Types First**: Before implementing features, define the types and interfaces you'll need
+2. **Write Type-Safe Tests**: Ensure your tests use proper typing to catch type errors early
+3. **Use Type Assertions Sparingly**: Only use type assertions when necessary and you're confident about the type
+4. **Create Test Helpers**: Build type-safe test helpers for common testing patterns
+5. **Mock with Types**: Always type your mocks to ensure they match the expected interfaces
+6. **Test Edge Cases**: Include tests for null/undefined values and other edge cases
+7. **Use TypeScript's Utility Types**: Leverage `Partial<T>`, `Omit<T, K>`, `Pick<T, K>`, etc. for flexible typing in tests
+
+## Version History
+
+| Version | Date | Author | Description |
+|---------|------|--------|-------------|
+| 1.0 | 2025-02-24 | TypeScript Team | Initial version |
+| 1.1 | 2025-02-26 | Documentation Team | Updated to include TDD-specific TypeScript patterns |
+
+---
+
+*This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*

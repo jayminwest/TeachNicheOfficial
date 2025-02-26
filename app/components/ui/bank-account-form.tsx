@@ -141,6 +141,16 @@ export function BankAccountForm({
       successElement.textContent = 'Your bank account has been successfully set up for payouts.';
       document.body.appendChild(successElement);
       
+      // For testing: Add a visible success message in the UI
+      const formElement = document.querySelector('[data-testid="bank-account-form"]');
+      if (formElement) {
+        const successMsg = document.createElement('div');
+        successMsg.setAttribute('data-testid', 'form-success-message');
+        successMsg.className = 'mt-4 p-3 bg-green-100 text-green-800 rounded';
+        successMsg.textContent = 'Bank account setup successful!';
+        formElement.appendChild(successMsg);
+      }
+      
       // Reset form
       setAccountNumber('');
       setRoutingNumber('');

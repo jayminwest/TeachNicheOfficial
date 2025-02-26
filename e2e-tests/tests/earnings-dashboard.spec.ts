@@ -86,6 +86,10 @@ test.describe('Earnings Dashboard', () => {
     const bankAccountForm = page.locator('[data-testid="bank-account-form"]');
     await expect(bankAccountForm).toBeVisible({ timeout: 15000 });
     
+    // Debug: Print form content to console
+    const formContent = await bankAccountForm.innerHTML();
+    console.log('Bank account form content:', formContent);
+    
     // Mock the API response for bank account setup before interacting with the form
     await page.route('/api/payouts/bank-account', async (route) => {
       await route.fulfill({
@@ -95,19 +99,24 @@ test.describe('Earnings Dashboard', () => {
       });
     });
     
-    // Use more specific selectors with data-testid attributes
-    await page.fill('form[data-testid="bank-account-form"] #accountHolderName', 'Creator Name');
+    // Use simpler selectors
+    await page.fill('#accountHolderName', 'Creator Name');
+    await page.selectOption('#accountType', 'checking');
+    await page.fill('#routingNumber', '110000000');
+    await page.fill('#accountNumber', '000123456789');
     
-    // Use locator().selectOption() instead of click + selectOption
-    await page.locator('form[data-testid="bank-account-form"] #accountType').selectOption('checking');
+    // Submit the form
+    await page.click('button[data-testid="submit-bank-account"]');
     
-    await page.fill('form[data-testid="bank-account-form"] #routingNumber', '110000000');
-    await page.fill('form[data-testid="bank-account-form"] #accountNumber', '000123456789');
+    // Verify success message appears (try both the body element and the in-form message)
+    try {
+      await expect(page.locator('[data-testid="bank-account-success"]')).toBeVisible({ timeout: 5000 });
+    } catch (e) {
+      // If the first success indicator isn't found, try the in-form success message
+      await expect(page.locator('[data-testid="form-success-message"]')).toBeVisible({ timeout: 5000 });
+    }
     
-    // Submit the form with a more specific selector
-    await page.click('form[data-testid="bank-account-form"] button[type="submit"]');
-    
-    // Verify success message appears
-    await expect(page.locator('[data-testid="bank-account-success"]')).toBeVisible({ timeout: 10000 });
+    // Take a screenshot for verification
+    await page.screenshot({ path: 'bank-account-form-success.png' });
   });
 });

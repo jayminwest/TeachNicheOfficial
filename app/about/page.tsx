@@ -150,20 +150,6 @@ export default function AboutPage() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="opensource">
-                <AccordionTrigger>Open Source Philosophy</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-2">
-                    <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                      <li><span className="font-semibold">Transparency:</span> Users can see exactly how the platform works, fostering trust and accountability.</li>
-                      <li><span className="font-semibold">Collaboration:</span> Contributions from developers and enthusiasts who want to help improve Teach Niche are welcome.</li>
-                      <li><span className="font-semibold">Innovation:</span> Open sourcing encourages creative solutions and rapid enhancements, benefiting the entire community.</li>
-                    </ul>
-                    <p>You can check out the repository on GitHub and take a look under the hood!</p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
 
               <AccordionItem value="growth">
                 <AccordionTrigger>Built to Grow with the Community</AccordionTrigger>

@@ -58,7 +58,7 @@ export const processCreatorPayout = async (
       .insert({
         creator_id: creatorId,
         amount,
-        status: payout.status,
+        status: payout.status as 'pending' | 'paid' | 'failed' | 'canceled',
         payout_id: payout.id,
         destination_last_four: bankInfo.last_four
       });
@@ -98,10 +98,13 @@ export const processAllEligiblePayouts = async (
   
   try {
     // Get all creators with pending earnings above the minimum threshold
-    const { data: eligibleCreators, error } = await supabaseClient.rpc<{
-      creator_id: string;
-      pending_amount: number;
-    }>(
+    const { data: eligibleCreators, error } = await supabaseClient.rpc<
+      {
+        creator_id: string;
+        pending_amount: number;
+      },
+      { minimum_amount: number }
+    >(
       'get_creators_eligible_for_payout',
       { minimum_amount: stripeConfig.minimumPayoutAmount }
     );

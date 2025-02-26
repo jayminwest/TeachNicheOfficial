@@ -8,6 +8,7 @@ test.describe('Payout API Endpoints', () => {
     
     // Get the session token
     const sessionData = await page.evaluate(async () => {
+      // @ts-ignore - supabase is available in the browser context
       const { data } = await window.supabase.auth.getSession();
       return data;
     });
@@ -40,6 +41,7 @@ test.describe('Payout API Endpoints', () => {
     
     // Get the session token
     const sessionData = await page.evaluate(async () => {
+      // @ts-ignore - supabase is available in the browser context
       const { data } = await window.supabase.auth.getSession();
       return data;
     });

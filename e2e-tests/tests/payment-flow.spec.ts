@@ -48,7 +48,8 @@ test.describe('Payment and Payout System', () => {
     
     // Verify purchase appears in user's purchases
     await page.goto('http://localhost:3000/dashboard/purchases');
-    await expect(page.locator('.purchase-item')).toContainText(await page.locator('h1.lesson-title').textContent());
+    const lessonTitle = await page.locator('h1.lesson-title').textContent() || '';
+    await expect(page.locator('.purchase-item')).toContainText(lessonTitle);
   });
   
   test('creator can set up bank account for payouts', async ({ page }) => {

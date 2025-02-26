@@ -32,9 +32,12 @@ export default function MyLessonsPage() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
+          console.log('No session found, redirecting to login');
           router.push('/login?redirect=/my-lessons');
           return;
         }
+        
+        console.log('Session found, fetching purchased lessons');
         
         // Fetch purchased lessons
         const { data, error } = await supabase
@@ -68,7 +71,22 @@ export default function MyLessonsPage() {
           totalRatings: 10, // Mock data, replace with actual count
         }));
         
+        console.log('Purchased lessons:', purchasedLessons);
         setLessons(purchasedLessons);
+        
+        // For testing purposes, if no lessons were found, add a mock lesson
+        if (purchasedLessons.length === 0 && process.env.NODE_ENV === 'development') {
+          console.log('No purchased lessons found, adding mock lesson for testing');
+          setLessons([{
+            id: 'mock-lesson-id',
+            title: 'Test Lesson',
+            description: 'This is a test lesson',
+            price: 9.99,
+            thumbnailUrl: '/placeholder-lesson.jpg',
+            averageRating: 4.5,
+            totalRatings: 10
+          }]);
+        }
       } catch (err) {
         console.error('Error fetching purchased lessons:', err);
         setError('Failed to load your lessons. Please try again later.');

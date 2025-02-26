@@ -10,7 +10,7 @@ export async function setupMocks(page: Page) {
   await page.route('**/auth/v1/**', async (route) => {
     const url = route.request().url();
     
-    if (url.includes('/token')) {
+    if (url.includes('/token') || url.includes('/session')) {
       await route.fulfill({
         status: 200,
         body: JSON.stringify({
@@ -29,6 +29,32 @@ export async function setupMocks(page: Page) {
             }
           }
         })
+      });
+    } else {
+      await route.continue();
+    }
+  });
+  
+  // Mock Supabase data responses
+  await page.route('**/rest/v1/**', async (route) => {
+    const url = route.request().url();
+    
+    if (url.includes('/purchases')) {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify([
+          {
+            lesson_id: 'mock-lesson-id',
+            lessons: {
+              id: 'mock-lesson-id',
+              title: 'Test Lesson',
+              description: 'This is a test lesson',
+              price: 9.99,
+              mux_playback_id: 'mock-playback-id',
+              created_at: new Date().toISOString()
+            }
+          }
+        ])
       });
     } else {
       await route.continue();

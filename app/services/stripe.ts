@@ -29,6 +29,8 @@ export interface StripeConfig {
   minimumPayoutAmount: number;
   payoutSchedule: 'weekly' | 'monthly';
   supportedCountries: string[];
+  // Add mock properties for testing
+  mock?: boolean;
 }
 
 export interface PaymentMetadata {
@@ -189,7 +191,8 @@ export const createConnectSession = async ({
   type?: 'account_onboarding' | 'account_update';
 }) => {
   try {
-    const accountLink = await getStripe().accountLinks.create({
+    const stripe = getStripe();
+    const accountLink = await (stripe as Stripe).accountLinks.create({
       account: accountId,
       refresh_url: refreshUrl,
       return_url: returnUrl,
@@ -211,7 +214,8 @@ export const createConnectSession = async ({
  */
 export const getAccountStatus = async (accountId: string) => {
   try {
-    const account = await getStripe().accounts.retrieve(accountId);
+    const stripe = getStripe();
+    const account = await (stripe as Stripe).accounts.retrieve(accountId);
     
     return {
       id: account.id,

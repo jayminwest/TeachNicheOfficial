@@ -309,7 +309,10 @@ export const processScheduledPayouts = async (
 
   try {
     // Get all creators with pending earnings above the minimum threshold
-    const { data: eligibleCreators, error } = await supabaseClient.rpc(
+    const { data: eligibleCreators, error } = await supabaseClient.rpc<{
+      creator_id: string;
+      pending_amount: number;
+    }>(
       'get_creators_eligible_for_payout',
       { minimum_amount: stripeConfig.minimumPayoutAmount }
     );
@@ -320,7 +323,7 @@ export const processScheduledPayouts = async (
     }
 
     // Process payouts for each eligible creator
-    for (const creator of eligibleCreators) {
+    for (const creator of (eligibleCreators || [])) {
       try {
         // Import dynamically to avoid circular dependencies
         const { processCreatorPayout } = await import('./payouts');
@@ -333,7 +336,7 @@ export const processScheduledPayouts = async (
 
         if (payoutResult.success) {
           // Update earnings records to 'paid' status
-          await supabaseClient.rpc(
+          await supabaseClient.rpc<void>(
             'mark_creator_earnings_as_paid',
             { 
               creator_id: creator.creator_id,

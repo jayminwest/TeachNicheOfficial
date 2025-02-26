@@ -40,20 +40,20 @@ jest.mock('next/navigation', () => ({
 
 // Mock UI components
 jest.mock('@/app/components/ui/tabs', () => ({
-  Tabs: ({ children, defaultValue }) => (
+  Tabs: ({ children, defaultValue }: { children: React.ReactNode, defaultValue: string }) => (
     <div data-testid="tabs" data-default-value={defaultValue}>{children}</div>
   ),
-  TabsList: ({ children }) => <div data-testid="tabs-list">{children}</div>,
-  TabsTrigger: ({ children, value }) => (
+  TabsList: ({ children }: { children: React.ReactNode }) => <div data-testid="tabs-list">{children}</div>,
+  TabsTrigger: ({ children, value }: { children: React.ReactNode, value: string }) => (
     <button data-testid="tab" data-value={value} role="tab">{children}</button>
   ),
-  TabsContent: ({ children, value }) => (
+  TabsContent: ({ children, value }: { children: React.ReactNode, value: string }) => (
     <div data-testid="tabs-content" data-value={value}>{children}</div>
   ),
 }))
 
 jest.mock('@/app/components/ui/card', () => ({
-  Card: ({ children, className }) => (
+  Card: ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div data-testid="card" className={className}>{children}</div>
   ),
 }))

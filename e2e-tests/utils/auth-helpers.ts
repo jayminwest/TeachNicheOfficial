@@ -147,7 +147,7 @@ export async function loginAsUser(page: Page, email: string, password: string) {
   } catch (error) {
     console.error('Failed to find sign-in button:', error);
     await page.screenshot({ path: `debug-sign-in-button-${Date.now()}.png` });
-    throw new Error(`Could not find sign-in button: ${error.message}`);
+    throw new Error(`Could not find sign-in button: ${error instanceof Error ? error.message : String(error)}`);
   }
   
   console.log('Sign-in dialog should be open now');

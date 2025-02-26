@@ -24,8 +24,11 @@ export async function POST(request: NextRequest) {
     // Initialize Supabase client
     const supabase = createRouteHandlerClient<Database>({ cookies });
     
+    // Add RPC capabilities to the client
+    const extendedClient = addRpcToClient(supabase);
+    
     // Process scheduled payouts
-    const results = await processScheduledPayouts(supabase);
+    const results = await processScheduledPayouts(extendedClient);
     
     return NextResponse.json({
       success: true,

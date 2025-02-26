@@ -114,10 +114,11 @@ export const processAllEligiblePayouts = async (
     
     // Process payouts for each eligible creator
     for (const creator of (eligibleCreators || [])) {
+      // Cast to TypedSupabaseClient since processCreatorPayout expects that type
       const result = await processCreatorPayout(
         creator.creator_id,
         creator.pending_amount,
-        supabaseClient
+        supabaseClient as unknown as TypedSupabaseClient
       );
       
       results.push(result);

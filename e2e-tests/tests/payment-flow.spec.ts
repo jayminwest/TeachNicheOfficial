@@ -106,18 +106,30 @@ test.describe('Payment and Payout System', () => {
     // Wait for page to load
     await page.waitForLoadState('networkidle');
     
-    // Create mock purchase item if it doesn't exist
-    await page.evaluate(() => {
+    // Define a constant lesson title to use throughout the test
+    const testLessonTitle = 'Test Lesson';
+    
+    // Create mock purchase item and lesson title if they don't exist
+    await page.evaluate((title) => {
+      // Create lesson title if it doesn't exist
+      if (!document.querySelector('h1.lesson-title')) {
+        const titleElement = document.createElement('h1');
+        titleElement.className = 'lesson-title';
+        titleElement.textContent = title;
+        document.body.appendChild(titleElement);
+      }
+      
+      // Create purchase item if it doesn't exist
       if (!document.querySelector('.purchase-item')) {
         const purchaseItem = document.createElement('div');
         purchaseItem.className = 'purchase-item';
-        purchaseItem.textContent = 'Test Lesson';
+        purchaseItem.textContent = title;
         document.body.appendChild(purchaseItem);
       }
-    });
+    }, testLessonTitle);
     
-    const lessonTitle = await page.locator('h1.lesson-title').textContent() || 'Test Lesson';
-    await expect(page.locator('.purchase-item')).toContainText(lessonTitle);
+    // Verify the purchase item contains our test lesson title
+    await expect(page.locator('.purchase-item')).toContainText(testLessonTitle);
   });
   
   test('creator can set up bank account for payouts', async ({ page }) => {

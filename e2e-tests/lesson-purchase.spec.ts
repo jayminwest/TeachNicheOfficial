@@ -50,13 +50,13 @@ test.describe('Lesson purchase flow', () => {
     // Click on a lesson card
     await page.click('[data-testid="lesson-card"]:first-child');
     
-    // Verify preview dialog or lesson details page is visible
-    await expect(page.locator('.lesson-details, [data-testid="lesson-preview-dialog"], .preview-modal')).toBeVisible();
+    // Verify preview dialog is visible
+    await expect(page.locator('[data-testid="lesson-preview-dialog"]')).toBeVisible();
     
-    // Verify lesson details are displayed with more flexible selectors
-    await expect(page.locator('h1, h2, .lesson-title, [data-testid="lesson-title"]')).toBeVisible();
-    await expect(page.locator('.description, [data-testid="lesson-description"], p')).toBeVisible();
-    await expect(page.locator('.price, [data-testid="lesson-price"]')).toBeVisible();
+    // Verify lesson details are displayed with specific selectors
+    await expect(page.locator('[data-testid="lesson-title"]')).toBeVisible();
+    await expect(page.locator('[data-testid="lesson-description"]')).toBeVisible();
+    await expect(page.locator('[data-testid="lesson-price"]')).toBeVisible();
   });
 
   test('User can purchase a lesson', async ({ page }) => {
@@ -85,11 +85,11 @@ test.describe('Lesson purchase flow', () => {
     // Click on a lesson card
     await page.locator('[data-testid="lesson-card"]:first-child').click();
     
-    // Get the lesson title for later verification with a more flexible selector
-    const lessonTitle = await page.locator('h1, h2, .lesson-title, [data-testid="lesson-title"]').textContent();
+    // Get the lesson title for later verification with a specific selector
+    const lessonTitle = await page.locator('[data-testid="lesson-title"]').first().textContent();
     
-    // Click purchase button with a more flexible selector
-    await page.click('[data-testid="purchase-button"], .purchase-button, button:has-text("Purchase")');
+    // Click purchase button
+    await page.click('[data-testid="lesson-checkout"] button');
     
     // We should use the setupMocks function from test-setup.ts instead of creating routes here
     // The mock for Stripe checkout is already set up in setupMocks
@@ -106,7 +106,7 @@ test.describe('Lesson purchase flow', () => {
     await page.goto('/my-lessons');
     
     // Verify the purchased lesson appears in my lessons
-    await expect(page.locator(`[data-testid="lesson-title"]:has-text("${lessonTitle}")`)).toBeVisible();
+    await expect(page.locator(`[data-testid="lesson-card-title"]:has-text("${lessonTitle}")`)).toBeVisible();
   });
 
   test('User can watch purchased lesson', async ({ page }) => {

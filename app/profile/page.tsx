@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation"
 export default function ProfilePage() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<Record<string, any> | null>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [, setInitialLoadComplete] = useState(false);
 
   // Immediate redirect for unauthenticated users

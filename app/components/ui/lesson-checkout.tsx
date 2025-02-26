@@ -18,13 +18,13 @@ interface LessonCheckoutProps {
 export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {
   const router = useRouter();
   const isSuccess = searchParams?.get('purchase') === 'success';
-  const sessionId = searchParams?.get('session_id');
+  // Session ID is available from URL if needed later
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
   // Calculate fees using the utility function
-  const { lessonPrice, stripeFee, totalBuyerCost, creatorEarnings } = calculateFees(price);
+  const { lessonPrice, stripeFee, totalBuyerCost } = calculateFees(price);
 
   const handleCheckout = async () => {
     try {

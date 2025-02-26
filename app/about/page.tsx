@@ -228,7 +228,7 @@ export default function AboutPage() {
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Join Our Community</h2>
             <p className="text-lg max-w-2xl mx-auto">
-              Whether you&rsquo;re here to teach or learn, Teach Niche provides the tools and support
+              Whether you&apos;re here to teach or learn, Teach Niche provides the tools and support
               you need to succeed. Join our growing community of educators and learners today.
             </p>
           </section>

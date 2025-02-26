@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axe } from 'jest-axe'
+// import { axe } from 'jest-axe' - Not used in this test file
 import ProfilePage from '../page'
 import { renderWithAuth } from '@/app/__tests__/test-utils'
 

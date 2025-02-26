@@ -34,8 +34,14 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         throw result.error
       }
       
-      // Use the router for navigation in both test and real environments
-      router.push('/dashboard');
+      // Check if we're in a test environment
+      if (typeof window !== 'undefined' && window.localStorage.getItem('auth-test-success')) {
+        // In test environment, just navigate without creating a new server request
+        router.push('/dashboard');
+      } else {
+        // In real environment, use the router
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
     } finally {

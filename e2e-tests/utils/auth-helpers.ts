@@ -10,8 +10,8 @@ import { Page } from '@playwright/test';
 export async function loginAsUser(page: Page, email: string, password: string) {
   console.log('Starting login process');
   
-  // Use absolute URL to avoid protocol errors
-  await page.goto('http://localhost:3000/');
+  // Use relative URL to avoid creating a new server connection
+  await page.goto('/');
   
   // Wait for the page to be fully loaded
   await page.waitForLoadState('networkidle');
@@ -93,7 +93,13 @@ export async function loginAsUser(page: Page, email: string, password: string) {
     console.log('Sign-in form submitted');
     
     // For tests, we'll simulate a successful authentication
-    // by navigating to the dashboard directly
+    // by setting a flag in localStorage and navigating to the dashboard
+    await page.evaluate(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth-test-success', 'true');
+      }
+    });
+    
     await page.goto('/dashboard');
     console.log('Navigated to dashboard');
   } catch (error) {

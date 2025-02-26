@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { loginAsUser } from './utils/auth-helpers';
+import { setupMocks } from './utils/test-setup';
 
 test.describe('Lesson purchase flow', () => {
   test.beforeEach(async ({ page }) => {
+    // Set up all mocks before any test runs
+    await setupMocks(page);
+    
     // Log in before each test with improved helper
     try {
       await loginAsUser(page, 'test-buyer@example.com', 'TestPassword123!');
@@ -49,17 +53,8 @@ test.describe('Lesson purchase flow', () => {
     // Click purchase button
     await page.click('[data-testid="purchase-button"]');
     
-    // Mock Stripe checkout for testing
-    // In a real test, you might use Stripe test mode
-    await page.route('**/api/stripe/create-checkout-session', route => {
-      return route.fulfill({
-        status: 200,
-        body: JSON.stringify({ 
-          id: 'mock_session_id',
-          url: '/mock-checkout' 
-        })
-      });
-    });
+    // We should use the setupMocks function from test-setup.ts instead of creating routes here
+    // The mock for Stripe checkout is already set up in setupMocks
     
     // Handle mock checkout page
     await page.waitForURL('**/mock-checkout');

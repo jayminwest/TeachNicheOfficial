@@ -86,14 +86,7 @@ test.describe('Earnings Dashboard', () => {
     const bankAccountForm = page.locator('[data-testid="bank-account-form"]');
     await expect(bankAccountForm).toBeVisible({ timeout: 15000 });
     
-    // Fill bank account details
-    await page.fill('#accountHolderName', 'Creator Name');
-    await page.click('#accountType');
-    await page.selectOption('#accountType', 'checking');
-    await page.fill('#routingNumber', '110000000');
-    await page.fill('#accountNumber', '000123456789');
-    
-    // Mock the API response for bank account setup
+    // Mock the API response for bank account setup before interacting with the form
     await page.route('/api/payouts/bank-account', async (route) => {
       await route.fulfill({
         status: 200,
@@ -102,8 +95,17 @@ test.describe('Earnings Dashboard', () => {
       });
     });
     
-    // Submit the form
-    await page.click('button:has-text("Set Up Bank Account")');
+    // Use more specific selectors with data-testid attributes
+    await page.fill('form[data-testid="bank-account-form"] #accountHolderName', 'Creator Name');
+    
+    // Use locator().selectOption() instead of click + selectOption
+    await page.locator('form[data-testid="bank-account-form"] #accountType').selectOption('checking');
+    
+    await page.fill('form[data-testid="bank-account-form"] #routingNumber', '110000000');
+    await page.fill('form[data-testid="bank-account-form"] #accountNumber', '000123456789');
+    
+    // Submit the form with a more specific selector
+    await page.click('form[data-testid="bank-account-form"] button[type="submit"]');
     
     // Verify success message appears
     await expect(page.locator('[data-testid="bank-account-success"]')).toBeVisible({ timeout: 10000 });

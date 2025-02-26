@@ -239,6 +239,8 @@ export function BankAccountForm({
             <Label htmlFor="accountHolderName">Account Holder Name</Label>
             <Input
               id="accountHolderName"
+              name="accountHolderName"
+              data-testid="account-holder-name"
               value={accountHolderName}
               onChange={(e) => setAccountHolderName(e.target.value)}
               required
@@ -289,6 +291,7 @@ export function BankAccountForm({
             type="submit" 
             disabled={isLoading}
             className="w-full"
+            data-testid="submit-bank-account"
           >
             {isLoading ? 'Setting Up...' : 'Set Up Bank Account'}
           </Button>

@@ -99,7 +99,7 @@ export const processAllEligiblePayouts = async (
   try {
     // Get all creators with pending earnings above the minimum threshold
     const { data: eligibleCreators, error } = await supabaseClient.rpc(
-      'get_creators_eligible_for_payout',
+      'get_creators_eligible_for_payout' as any,
       { minimum_amount: stripeConfig.minimumPayoutAmount }
     ) as unknown as {
       data: Array<{

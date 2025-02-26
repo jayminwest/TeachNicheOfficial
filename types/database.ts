@@ -383,6 +383,50 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_payout_methods: {
+        Row: {
+          id: string
+          creator_id: string
+          bank_account_token: string
+          last_four: string
+          bank_name: string | null
+          account_holder_name: string
+          is_default: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          bank_account_token: string
+          last_four: string
+          bank_name?: string | null
+          account_holder_name: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          bank_account_token?: string
+          last_four?: string
+          bank_name?: string | null
+          account_holder_name?: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_payout_methods_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

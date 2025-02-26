@@ -37,11 +37,22 @@ export async function compareScreenshot(
   } catch (error) {
     console.error(`Screenshot comparison failed for ${name}:`, error);
     // Take a fallback screenshot for debugging
-    await page.screenshot({ 
-      path: `test-results/screenshots/${name}-actual.png`,
-      fullPage 
-    });
-    throw error;
+    try {
+      await page.screenshot({ 
+        path: `test-results/screenshots/${name}-actual.png`,
+        fullPage 
+      });
+    } catch (screenshotError) {
+      console.error('Failed to take fallback screenshot:', screenshotError);
+      // Continue with the test even if we can't take a screenshot
+    }
+    
+    // In update mode, don't fail the test
+    if (process.argv.includes('--update-snapshots')) {
+      console.log(`Updating snapshot for ${name}`);
+    } else {
+      throw error;
+    }
   }
 }
 

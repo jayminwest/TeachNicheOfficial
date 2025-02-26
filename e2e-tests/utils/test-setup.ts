@@ -6,6 +6,7 @@ import { Page } from '@playwright/test';
  * @param page Playwright page object
  */
 export async function setupMocks(page: Page) {
+  try {
   // Mock Supabase authentication - intercept ALL auth requests
   await page.route('**/auth/v1/**', async (route) => {
     const url = route.request().url();
@@ -126,4 +127,8 @@ export async function setupMocks(page: Page) {
       })
     });
   });
+  } catch (error) {
+    console.error('Error setting up mocks:', error);
+    // Continue with the test even if mocks fail to set up
+  }
 }

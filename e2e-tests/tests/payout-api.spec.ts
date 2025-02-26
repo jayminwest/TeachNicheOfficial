@@ -97,9 +97,9 @@ test.describe('Payout API Endpoints', () => {
     }
   });
   
-  test('unauthorized access to earnings API is rejected', async ({ request }) => {
+  test('unauthorized access to earnings API is rejected', async ({ request, page }) => {
     // Set up route interception for unauthorized access
-    await request.route('**/api/earnings', route => {
+    await page.route('**/api/earnings', route => {
       route.fulfill({
         status: 401,
         contentType: 'application/json',

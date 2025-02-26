@@ -46,9 +46,10 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 4. **Transactions**:
    - User initiates purchase
-   - Payment is processed securely
+   - Payment is processed securely through Teach Niche as merchant of record
    - Access rights are granted
-   - Instructor receives payout (minus platform fee)
+   - Creator earnings are recorded in the system
+   - Creator receives periodic payouts based on accumulated earnings
 
 ## Security Architecture
 
@@ -77,7 +78,7 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 ## Integration Points
 
-- **Payment Processors**: Stripe for payments and payouts
+- **Payment Processing**: Stripe for payments (merchant of record model) and creator payouts
 - **Video Services**: Mux for video processing and delivery
 - **Analytics**: Internal analytics + optional Google Analytics
 - **Email Service**: For notifications and communications

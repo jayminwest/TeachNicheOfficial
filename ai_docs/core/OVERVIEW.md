@@ -79,7 +79,7 @@ Our development approach emphasizes:
 - **Backend**: Next.js API routes, Edge Functions
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **Payments**: Stripe Connect (v2025-01-27.acacia)
+- **Payments**: Stripe (v2025-01-27.acacia) with merchant of record model
 - **Video**: Mux Video
 - **Deployment**: Vercel
 

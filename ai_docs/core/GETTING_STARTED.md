@@ -258,6 +258,22 @@ npx playwright test e2e-tests/lesson-purchase.spec.ts
 npx playwright test --ui
 ```
 
+### Working with Payments
+
+The platform uses a merchant of record payment model where:
+- Teach Niche processes all payments through our Stripe account
+- Creator earnings are tracked in the database
+- Periodic payouts are made to creators based on accumulated earnings
+
+To test payment flows locally:
+```bash
+# Start Stripe webhook listener (requires Stripe CLI)
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+
+# Trigger test payment event
+stripe trigger payment_intent.succeeded
+```
+
 ### Building for Production
 
 ```bash

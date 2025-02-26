@@ -33,6 +33,7 @@ Request documentation when:
 - Fixing a complex bug
 - Ensuring compliance with project standards
 - Needing clarification on project architecture
+- Working with payment or payout systems
 - Encountering TypeScript errors (see [TYPESCRIPT_ERRORS.md](../guides/development/TYPESCRIPT_ERRORS.md))
 
 ## Documentation-First Approach

@@ -5,9 +5,8 @@ import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
-import { SignInPage } from "./sign-in";
-import { SignUpPage } from "./sign-up";
-import { Dialog, DialogContent, DialogTrigger } from "./dialog";
+import { AuthDialog } from "./auth-dialog";
+import { Dialog, DialogTrigger } from "./dialog";
 import { supabase } from "@/app/services/supabase";
 
 interface NavigationItem {
@@ -149,25 +148,11 @@ export function Header() {
                                     Sign In
                                 </Button>
                                 
-                                <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
-                                    <DialogContent className="sm:max-w-[425px] p-0 bg-background" data-testid="auth-dialog">
-                                        {showSignIn ? (
-                                            <>
-                                                <div className="px-6 pt-6">
-                                                    <h2 className="text-lg font-semibold">Sign in to Teach Niche</h2>
-                                                </div>
-                                                <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="px-6 pt-6">
-                                                    <h2 className="text-lg font-semibold">Join Teach Niche</h2>
-                                                </div>
-                                                <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
-                                            </>
-                                        )}
-                                    </DialogContent>
-                                </Dialog>
+                                <AuthDialog 
+                                    open={authDialogOpen} 
+                                    onOpenChange={setAuthDialogOpen} 
+                                    defaultView={showSignIn ? 'sign-in' : 'sign-up'} 
+                                />
                             </>
                             <Button 
                                 onClick={() => {

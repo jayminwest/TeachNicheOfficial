@@ -6,7 +6,6 @@ import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { AuthDialog } from "./auth-dialog";
-import { Dialog, DialogTrigger } from "./dialog";
 import { supabase } from "@/app/services/supabase";
 
 interface NavigationItem {

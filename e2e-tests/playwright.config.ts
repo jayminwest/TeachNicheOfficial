@@ -1,7 +1,7 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  testDir: './tests',
+  testDir: './',
   testMatch: '**/*.spec.ts',
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
@@ -59,8 +59,18 @@ const config: PlaywrightTestConfig = {
   ],
   // Update snapshots via command line: npx playwright test --update-snapshots
   updateSnapshots: process.env.UPDATE_SNAPSHOTS ? 'all' : 'missing',
-  // Explicitly ignore node_modules and app directories to avoid conflicts with Jest tests
-  testIgnore: ['**/node_modules/**', '**/app/**'],
+  
+  // Explicitly exclude Jest test files and app unit tests
+  testIgnore: [
+    '**/node_modules/**',
+    '**/app/**/__tests__/**',
+    '**/*.test.ts',
+    '**/*.test.tsx',
+    '**/*.integration.test.ts',
+    '**/*.integration.test.tsx',
+    '**/*.e2e.test.ts',
+    '**/*.e2e.test.tsx'
+  ],
   
   expect: {
     toHaveScreenshot: {

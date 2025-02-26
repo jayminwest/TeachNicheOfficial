@@ -1,5 +1,11 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test';
 import './setup/register-esm.js';
+import os from 'os';
+
+// Calculate optimal number of workers based on CPU cores
+// Use 75% of available cores, minimum 2, maximum 8
+const cpuCores = os.cpus().length;
+const defaultWorkers = Math.max(2, Math.min(8, Math.floor(cpuCores * 0.75)));
 
 const config: PlaywrightTestConfig = {
   testDir: './',
@@ -17,6 +23,10 @@ const config: PlaywrightTestConfig = {
   ],
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
+  // Set number of parallel workers
+  workers: process.env.CI 
+    ? parseInt(process.env.CI_WORKERS || '4') // Use environment variable in CI
+    : parseInt(process.env.PLAYWRIGHT_WORKERS || String(defaultWorkers)), // Use calculated value locally
   // Configure web server
   webServer: {
     command: 'npm run dev',

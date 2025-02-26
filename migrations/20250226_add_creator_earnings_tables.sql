@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION get_creators_eligible_for_payout(
   minimum_amount INTEGER
 ) RETURNS TABLE (
   creator_id UUID,
-  pending_amount INTEGER
+  pending_amount BIGINT
 ) AS $$
 BEGIN
   RETURN QUERY

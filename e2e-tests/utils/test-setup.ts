@@ -6,33 +6,40 @@ import { Page } from '@playwright/test';
  * @param page Playwright page object
  */
 export async function setupMocks(page: Page) {
-  // Mock Supabase authentication
+  // Mock Supabase authentication - intercept ALL auth requests
   await page.route('**/auth/v1/**', async (route) => {
-    const url = route.request().url();
+    console.log('Intercepted auth request:', route.request().url());
     
-    if (url.includes('/token') || url.includes('/session')) {
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify({
+    // Always return a successful auth response
+    await route.fulfill({
+      status: 200,
+      body: JSON.stringify({
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        user: {
+          id: 'test-user-id',
+          email: 'test-buyer@example.com',
+          user_metadata: {
+            full_name: 'Test User',
+            avatar_url: 'https://example.com/avatar.png'
+          },
+          app_metadata: {
+            provider: 'email',
+            providers: ['email']
+          }
+        },
+        session: {
           access_token: 'mock-access-token',
           refresh_token: 'mock-refresh-token',
           user: {
             id: 'test-user-id',
-            email: 'test-buyer@example.com',
-            user_metadata: {
-              full_name: 'Test User',
-              avatar_url: 'https://example.com/avatar.png'
-            },
-            app_metadata: {
-              provider: 'email',
-              providers: ['email']
-            }
+            email: 'test-buyer@example.com'
           }
-        })
-      });
-    } else {
-      await route.continue();
-    }
+        }
+      })
+    });
   });
   
   // Mock Supabase data responses

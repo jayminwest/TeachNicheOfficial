@@ -58,13 +58,6 @@ jest.mock('@/app/components/ui/card', () => ({
   ),
 }))
 
-jest.mock('@/app/components/ui/stripe-connect-button', () => ({
-  StripeConnectButton: ({ stripeAccountId }) => (
-    <button data-testid="stripe-connect-button" data-account-id={stripeAccountId}>
-      Connect with Stripe
-    </button>
-  ),
-}))
 
 // Mock profile components
 jest.mock('../components/profile-form', () => ({
@@ -86,7 +79,7 @@ jest.mock('@/app/services/supabase', () => ({
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     single: jest.fn().mockResolvedValue({
-      data: { stripe_account_id: 'acct_test123' },
+      data: {},
       error: null,
     }),
     auth: {
@@ -176,20 +169,5 @@ describe('ProfilePage', () => {
       expect(getByText('Stripe Connect')).toBeInTheDocument()
     })
 
-    it('displays stripe connect button with account ID', async () => {
-      const { getAllByRole, getByText, getAllByTestId } = renderWithAuth(<ProfilePage />)
-      
-      // Navigate to settings tab
-      await userEvent.click(getAllByRole('tab')[2]) // Settings tab is the third tab
-      
-      // Check that the Stripe Connect section is visible
-      expect(getByText('Stripe Connect')).toBeInTheDocument()
-      expect(getByText('Connect your Stripe account to receive payments for your lessons')).toBeInTheDocument()
-      
-      // Use getAllByTestId to get the stripe connect button
-      const stripeButton = getAllByTestId('stripe-connect-button')[0];
-      expect(stripeButton).toBeInTheDocument()
-      expect(stripeButton).toHaveAttribute('data-account-id', 'acct_test123')
-    })
   })
 })

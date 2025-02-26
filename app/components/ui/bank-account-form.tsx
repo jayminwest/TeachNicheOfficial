@@ -41,6 +41,7 @@ export function BankAccountForm({
   const [accountType, setAccountType] = useState('checking');
   const [country, setCountry] = useState('US');
   const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -135,21 +136,14 @@ export function BankAccountForm({
         description: 'Your bank account has been successfully set up for payouts.',
       });
       
+      // Set state to show success message in the component
+      setFormSuccess(true);
+      
       // Add a success message element for testing
       const successElement = document.createElement('div');
       successElement.setAttribute('data-testid', 'bank-account-success');
       successElement.textContent = 'Your bank account has been successfully set up for payouts.';
       document.body.appendChild(successElement);
-      
-      // For testing: Add a visible success message in the UI
-      const formElement = document.querySelector('[data-testid="bank-account-form"]');
-      if (formElement) {
-        const successMsg = document.createElement('div');
-        successMsg.setAttribute('data-testid', 'form-success-message');
-        successMsg.className = 'mt-4 p-3 bg-green-100 text-green-800 rounded';
-        successMsg.textContent = 'Bank account setup successful!';
-        formElement.appendChild(successMsg);
-      }
       
       // Reset form
       setAccountNumber('');
@@ -306,14 +300,20 @@ export function BankAccountForm({
             />
           </div>
           
-          <Button 
-            type="submit" 
-            disabled={isLoading}
-            className="w-full"
-            data-testid="submit-bank-account"
-          >
-            {isLoading ? 'Setting Up...' : 'Set Up Bank Account'}
-          </Button>
+          {formSuccess ? (
+            <div data-testid="form-success-message" className="mt-4 p-3 bg-green-100 text-green-800 rounded">
+              Bank account setup successful!
+            </div>
+          ) : (
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full"
+              data-testid="submit-bank-account"
+            >
+              {isLoading ? 'Setting Up...' : 'Set Up Bank Account'}
+            </Button>
+          )}
         </form>
       </CardContent>
     </Card>

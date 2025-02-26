@@ -202,7 +202,7 @@ export default function AboutPage() {
                     </ul>
                     
                     <h4 className="font-semibold mt-4 mb-2">Getting Started as a Creator</h4>
-                    <p>To receive payments as a creator, you'll need to set up a Stripe Connect account through your Teach Niche dashboard. This process is straightforward and allows us to send your earnings directly to your bank account.</p>
+                    <p>As a creator, you don't need to set up your own payment processing. Teach Niche handles all payment collection as the merchant of record, and we'll send your earnings directly to your bank account based on our payout schedule.</p>
                   </div>
                 </AccordionContent>
               </AccordionItem>

@@ -142,7 +142,7 @@ Before going live:
 
 ```bash
 # Create the issue and add it to the project
-gh issue create --title "Manual Stripe Configuration for Merchant of Record Transition" --body-file ai_docs/issues/2025-02-26-038-manual-stripe-configuration-for-merchant-model.md --label "task,high-priority" --assignee "@me"
+gh issue create --title "Manual Stripe Configuration for Merchant of Record Transition" --body-file ai_docs/issues/2025-02-26-038-manual-stripe-configuration-for-merchant-model.md --label "high-priority" --assignee "@me"
 ```
 
 This issue tracks the manual configuration steps required in the Stripe Dashboard to support our transition to a merchant of record payment model. These steps must be carefully completed and documented to ensure a smooth transition.

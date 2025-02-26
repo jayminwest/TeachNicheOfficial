@@ -180,6 +180,32 @@ export default function AboutPage() {
                   </div>
                 </AccordionContent>
               </AccordionItem>
+
+              <AccordionItem value="payments">
+                <AccordionTrigger>Payments & Payouts</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche uses a secure and transparent payment system to handle transactions between students and instructors.</p>
+                    <h4 className="font-semibold mt-4 mb-2">How Payments Work</h4>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Secure Processing:</span> All payments are processed through Stripe, a leading payment processor with bank-level security.</li>
+                      <li><span className="font-semibold">Merchant of Record:</span> Teach Niche acts as the merchant of record, handling tax compliance and payment processing.</li>
+                      <li><span className="font-semibold">Transparent Pricing:</span> Students see the full price upfront, including any applicable processing fees.</li>
+                    </ul>
+                    
+                    <h4 className="font-semibold mt-4 mb-2">Creator Payouts</h4>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Creator Share:</span> Instructors receive 85% of the lesson price for each sale.</li>
+                      <li><span className="font-semibold">Platform Fee:</span> Teach Niche retains a 15% fee to maintain and improve the platform.</li>
+                      <li><span className="font-semibold">Payout Schedule:</span> Earnings are accumulated and paid out to creators on a regular schedule.</li>
+                      <li><span className="font-semibold">Earnings Dashboard:</span> Creators can track their sales and earnings through a comprehensive dashboard.</li>
+                    </ul>
+                    
+                    <h4 className="font-semibold mt-4 mb-2">Getting Started as a Creator</h4>
+                    <p>To receive payments as a creator, you'll need to set up a Stripe Connect account through your Teach Niche dashboard. This process is straightforward and allows us to send your earnings directly to your bank account.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </section>
 

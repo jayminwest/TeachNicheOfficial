@@ -26,6 +26,9 @@ export interface StripeConfig {
   apiVersion: '2025-01-27.acacia';
   platformFeePercent: number;
   defaultCurrency: string;
+  minimumPayoutAmount: number;
+  payoutSchedule: 'weekly' | 'monthly';
+  supportedCountries: string[];
 }
 
 export interface PaymentMetadata {
@@ -67,7 +70,10 @@ export const stripeConfig: StripeConfig = {
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
   apiVersion: '2025-01-27.acacia',
   platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
-  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
+  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd',
+  minimumPayoutAmount: Number(process.env.STRIPE_MINIMUM_PAYOUT_AMOUNT || '100'),
+  payoutSchedule: (process.env.STRIPE_PAYOUT_SCHEDULE || 'weekly') as 'weekly' | 'monthly',
+  supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU').split(',')
 };
 
 export const stripeErrorMessages: Record<StripeErrorCode, string> = {

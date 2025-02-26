@@ -17,10 +17,19 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
 
 interface BankAccountFormProps {
   hasBankAccount?: boolean;
 }
+
+// Routing number validation by country
+const routingNumberValidation: Record<string, { length: number, name: string }> = {
+  'US': { length: 9, name: 'Routing Number' },
+  'CA': { length: 9, name: 'Transit Number' },
+  'GB': { length: 6, name: 'Sort Code' },
+  'AU': { length: 6, name: 'BSB' },
+};
 
 export function BankAccountForm({ 
   hasBankAccount = false
@@ -30,12 +39,46 @@ export function BankAccountForm({
   const [routingNumber, setRoutingNumber] = useState('');
   const [accountHolderName, setAccountHolderName] = useState('');
   const [accountType, setAccountType] = useState('checking');
+  const [country, setCountry] = useState('US');
+  const [formError, setFormError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Get routing number validation for selected country
+  const routingValidation = routingNumberValidation[country] || routingNumberValidation['US'];
+
+  const validateForm = () => {
+    if (!accountHolderName.trim()) {
+      setFormError('Account holder name is required');
+      return false;
+    }
+    
+    if (!accountNumber.trim()) {
+      setFormError('Account number is required');
+      return false;
+    }
+    
+    if (!routingNumber.trim()) {
+      setFormError(`${routingValidation.name} is required`);
+      return false;
+    }
+    
+    if (routingNumber.length !== routingValidation.length) {
+      setFormError(`${routingValidation.name} must be ${routingValidation.length} digits`);
+      return false;
+    }
+    
+    setFormError(null);
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading || !user) return;
+    
+    if (!validateForm()) {
+      return;
+    }
     
     try {
       setIsLoading(true);
@@ -52,12 +95,10 @@ export function BankAccountForm({
 
       const { session } = result.data;
 
-      // Get user's locale and check if their country is supported
-      const userLocale = navigator.language || 'en';
-      const userCountry = userLocale.split('-')[1] || 'US';
-      
-      if (!stripeConfig.supportedCountries.includes(userCountry)) {
-        throw new Error(`Sorry, payouts are not yet supported in your country. Supported countries include: ${stripeConfig.supportedCountries.join(', ')}`);
+      // Check if country is supported
+      const supportedCountries = stripeConfig.supportedCountries || ['US'];
+      if (!supportedCountries.includes(country)) {
+        throw new Error(`Sorry, payouts are not yet supported in your country. Supported countries include: ${supportedCountries.join(', ')}`);
       }
 
       const response = await fetch('/api/payouts/bank-account', {
@@ -65,7 +106,6 @@ export function BankAccountForm({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
-          'Accept-Language': userLocale
         },
         credentials: 'include',
         body: JSON.stringify({ 
@@ -74,7 +114,7 @@ export function BankAccountForm({
           routingNumber,
           accountHolderName,
           accountType,
-          country: userCountry
+          country
         }),
       });
       
@@ -129,6 +169,14 @@ export function BankAccountForm({
           <CardTitle>Payout Method</CardTitle>
           <CardDescription>Your bank account has been set up for payouts</CardDescription>
         </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertDescription>
+              Payouts are processed {stripeConfig.payoutSchedule === 'weekly' ? 'weekly' : 'monthly'} 
+              for amounts over {((stripeConfig.minimumPayoutAmount || 100) / 100).toFixed(2)} {(stripeConfig.defaultCurrency || 'usd').toUpperCase()}.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
         <CardFooter>
           <Button variant="outline">Update Bank Account</Button>
         </CardFooter>
@@ -142,12 +190,40 @@ export function BankAccountForm({
         <CardTitle>Set Up Payouts</CardTitle>
         <CardDescription>
           Enter your bank account details to receive your earnings.
-          Payouts are processed {stripeConfig.payoutSchedule === 'weekly' ? 'weekly' : 'monthly'} 
-          for amounts over {(stripeConfig.minimumPayoutAmount / 100).toFixed(2)} {stripeConfig.defaultCurrency.toUpperCase()}.
+          Payouts are processed {(stripeConfig.payoutSchedule || 'weekly') === 'weekly' ? 'weekly' : 'monthly'} 
+          for amounts over {((stripeConfig.minimumPayoutAmount || 100) / 100).toFixed(2)} {(stripeConfig.defaultCurrency || 'usd').toUpperCase()}.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {formError && (
+            <Alert variant="destructive">
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="country">Country</Label>
+            <Select 
+              value={country} 
+              onValueChange={setCountry}
+            >
+              <SelectTrigger id="country">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent>
+                {(stripeConfig.supportedCountries || ['US']).map((countryCode) => (
+                  <SelectItem key={countryCode} value={countryCode}>
+                    {countryCode === 'US' ? 'United States' : 
+                     countryCode === 'CA' ? 'Canada' : 
+                     countryCode === 'GB' ? 'United Kingdom' : 
+                     countryCode === 'AU' ? 'Australia' : countryCode}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="accountHolderName">Account Holder Name</Label>
             <Input
@@ -164,7 +240,7 @@ export function BankAccountForm({
               value={accountType} 
               onValueChange={setAccountType}
             >
-              <SelectTrigger>
+              <SelectTrigger id="accountType">
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
               <SelectContent>
@@ -175,13 +251,17 @@ export function BankAccountForm({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="routingNumber">Routing Number</Label>
+            <Label htmlFor="routingNumber">{routingValidation.name}</Label>
             <Input
               id="routingNumber"
               value={routingNumber}
-              onChange={(e) => setRoutingNumber(e.target.value)}
+              onChange={(e) => setRoutingNumber(e.target.value.replace(/\D/g, ''))}
+              maxLength={routingValidation.length}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              {routingValidation.length} digits
+            </p>
           </div>
           
           <div className="space-y-2">
@@ -189,7 +269,7 @@ export function BankAccountForm({
             <Input
               id="accountNumber"
               value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
+              onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
               required
             />
           </div>

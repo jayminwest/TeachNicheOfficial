@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
 import { calculateFees } from '@/app/lib/utils';
+import { calculateCreatorEarnings } from '@/app/services/earnings';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-01-27.acacia'
@@ -37,6 +38,10 @@ export async function POST(request: Request) {
 
       case 'account.updated':
         await handleAccount(event.data.object as Stripe.Account);
+        break;
+        
+      case 'charge.refunded':
+        await handleRefund(event.data.object as Stripe.Charge);
         break;
 
       // Add more event types as needed
@@ -77,23 +82,24 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
   // Calculate fees for creator earnings
   const { creatorEarnings } = calculateFees(purchase.amount)
 
-  const creatorStripeAccountId = purchase.lesson.creator.stripe_account_id;
-  if (!creatorStripeAccountId) {
-    console.error('Creator stripe account not found for purchase:', purchase.id);
-    return;
+  // Record the earnings in creator_earnings table
+  try {
+    await supabase
+      .from('creator_earnings')
+      .insert({
+        creator_id: purchase.creator_id,
+        payment_intent_id: paymentIntent.id,
+        amount: creatorEarnings,
+        lesson_id: purchase.lesson_id,
+        status: 'pending'
+      });
+  } catch (error) {
+    console.error('Failed to record creator earnings:', error);
+    // Continue processing - this is not critical for the payment flow
   }
 
-  // Create transfer to creator
+  // Update purchase status
   try {
-    const transfer = await stripe.transfers.create({
-      amount: creatorEarnings,
-      currency: stripeConfig.defaultCurrency,
-      destination: creatorStripeAccountId,
-      transfer_group: purchase.stripe_session_id,
-      source_transaction: paymentIntent.id
-    });
-
-    // Update purchase status with transfer info
     const { error: updateError } = await supabase
       .from('purchases')
       .update({
@@ -102,7 +108,6 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
         metadata: {
           stripe_payment_status: paymentIntent.status,
           payment_completed_at: new Date().toISOString(),
-          transfer_id: transfer.id,
           ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
         }
       })
@@ -115,7 +120,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
 
     console.log('Purchase completed:', purchase.id);
   } catch (err) {
-    console.error('Transfer creation error:', err);
+    console.error('Purchase update error:', err);
     return;
   }
 }
@@ -138,5 +143,91 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
   }
 
   console.log('Creator account status updated:', account.id);
+}
+
+async function handleRefund(charge: Stripe.Charge): Promise<void> {
+  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const paymentIntentId = charge.payment_intent as string;
+  const refundAmount = charge.amount_refunded;
+  
+  if (!paymentIntentId) {
+    console.error('Missing payment intent ID in refund:', charge.id);
+    return;
+  }
+  
+  // Get the purchase record
+  const { data: purchase, error: fetchError } = await supabase
+    .from('purchases')
+    .select('id, creator_id, lesson_id')
+    .eq('payment_intent_id', paymentIntentId)
+    .single();
+    
+  if (fetchError || !purchase) {
+    console.error('Purchase fetch error for refund:', fetchError);
+    return;
+  }
+  
+  // Update purchase status
+  const { error: updateError } = await supabase
+    .from('purchases')
+    .update({
+      status: 'refunded',
+      updated_at: new Date().toISOString(),
+      metadata: {
+        refunded_at: new Date().toISOString(),
+        refund_amount: refundAmount,
+      }
+    })
+    .eq('id', purchase.id);
+    
+  if (updateError) {
+    console.error('Purchase update error for refund:', updateError);
+    return;
+  }
+  
+  // Handle the earnings adjustment
+  try {
+    // Get the earnings record
+    const { data: earnings, error: earningsError } = await supabase
+      .from('creator_earnings')
+      .select('id, amount, status')
+      .eq('payment_intent_id', paymentIntentId)
+      .single();
+      
+    if (earningsError || !earnings) {
+      console.error('Earnings fetch error for refund:', earningsError);
+      return;
+    }
+    
+    // Calculate refunded earnings amount
+    const refundedEarnings = calculateCreatorEarnings(refundAmount);
+    
+    if (earnings.status === 'pending') {
+      // If earnings are still pending, update the record
+      await supabase
+        .from('creator_earnings')
+        .update({
+          status: 'failed',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', earnings.id);
+    } else if (earnings.status === 'paid') {
+      // If earnings were already paid, create a negative adjustment
+      await supabase
+        .from('creator_earnings')
+        .insert({
+          creator_id: purchase.creator_id,
+          payment_intent_id: `${paymentIntentId}_refund`,
+          amount: -refundedEarnings, // Negative amount
+          lesson_id: purchase.lesson_id,
+          status: 'pending'
+        });
+    }
+    
+    console.log('Refund processed for purchase:', purchase.id);
+  } catch (error) {
+    console.error('Failed to handle earnings for refund:', error);
+    // Continue processing - this is not critical for the refund flow
+  }
 }
 

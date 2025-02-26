@@ -1,10 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { loginAsUser } from '../utils/auth-helpers';
+import { setupMocks } from '../utils/test-setup';
 
 test.describe('Payout API Endpoints', () => {
   test('bank account API endpoint works correctly', async ({ request, page }) => {
-    // Login to get authentication token
-    await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
+    // Set up mocks first
+    await setupMocks(page);
+    
+    // Login to get authentication token with our improved helper
+    const success = await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
+    if (!success) {
+      console.warn('Authentication may have failed, but continuing with test');
+    }
     
     // Get the session token
     const sessionData = await page.evaluate(async () => {

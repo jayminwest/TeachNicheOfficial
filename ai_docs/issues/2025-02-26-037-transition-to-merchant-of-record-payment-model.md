@@ -165,12 +165,14 @@ This issue represents a significant architectural change that will simplify the 
 ### In Progress 🔄
 1. **UI Components**
    - ✅ Implemented `LessonCheckout` component
-   - Creating earnings dashboard for creators
+   - ✅ Created earnings dashboard for creators
+   - ✅ Implemented bank account form for creators
 
 2. **API Endpoints**
    - ✅ Implemented `/api/payments/create-checkout` endpoint
    - ✅ Implemented `/api/webhooks/stripe` endpoint for payment events
-   - Creating `/api/cron/process-payouts` endpoint for scheduled payouts
+   - ✅ Created `/api/cron/process-payouts` endpoint for scheduled payouts
+   - ✅ Implemented `/api/payouts/bank-account` endpoint for secure bank account setup
 
 ### Pending 📝
 1. **Testing**
@@ -190,8 +192,11 @@ To ensure 100% reliability for payments and payouts at launch, the following ite
 - [x] Create `LessonCheckout` component to replace Stripe Connect checkout
 - [x] Implement `/api/payments/create-checkout` endpoint
 - [x] Implement `/api/webhooks/stripe` endpoint for payment events
-- [ ] Create `/api/cron/process-payouts` endpoint
+- [x] Create `/api/cron/process-payouts` endpoint
 - [x] Add utility function for fee calculation (85/15 split with buyer-paid Stripe fees)
+- [x] Create bank account form for creators
+- [x] Implement earnings dashboard with history view
+- [x] Implement payout history view
 - [ ] Test complete payment flow from purchase to earnings recording
 - [ ] Test bank account setup and validation
 - [ ] Test payout processing and earnings updates
@@ -207,10 +212,11 @@ To ensure 100% reliability for payments and payouts at launch, the following ite
    - Implemented `/api/webhooks/stripe` endpoint
    - Added fee calculation utilities
 
-2. **Day 2 (2025-02-27)**: Implement remaining components
-   - Create earnings dashboard for creators
-   - Implement `/api/cron/process-payouts` endpoint
-   - Add bank account management interface
+2. **Day 2 (2025-02-27)**: ✅ Implemented remaining components
+   - Created earnings dashboard for creators
+   - Implemented `/api/cron/process-payouts` endpoint
+   - Added bank account management interface
+   - Implemented earnings and payout history views
 
 3. **Day 3 (2025-02-28)**: Testing and monitoring
    - Complete end-to-end testing of payment flow

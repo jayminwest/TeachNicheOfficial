@@ -75,15 +75,6 @@ test.describe('Payment and Payout System', () => {
     const formExists = await page.locator('[data-testid="bank-account-form"]').count() > 0;
     
     if (!formExists) {
-      console.log('Bank account form not found, skipping test');
-      test.skip();
-      return;
-    }
-    
-    // Check if bank account form exists, if not create a mock form for testing
-    const formExists = await page.locator('[data-testid="bank-account-form"]').count() > 0;
-    
-    if (!formExists) {
       console.log('Bank account form not found, creating mock form for testing');
       await page.evaluate(() => {
         const mockForm = document.createElement('div');

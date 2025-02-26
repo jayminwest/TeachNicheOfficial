@@ -76,11 +76,12 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
                   data-testid="google-sign-in"
+                  id="google-sign-in-button"
                 >
                   {isLoading ? (
                     <Icons.spinner data-testid="spinner-icon" className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <Icons.google className="mr-2 h-4 w-4" />
+                    <Icons.google className="mr-2 h-4 w-4 google-icon" />
                   )}
                   Sign in with Google
                 </Button>

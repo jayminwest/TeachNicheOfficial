@@ -140,6 +140,8 @@ export function Header() {
                                 <Button 
                                     variant="ghost" 
                                     data-testid="sign-in-button"
+                                    id="sign-in-button"
+                                    className="sign-in-button"
                                     onClick={() => {
                                         setShowSignIn(true);
                                         setAuthDialogOpen(true);
@@ -201,8 +203,9 @@ export function Header() {
                                         <>
                                             <Button 
                                                 variant="ghost" 
-                                                className="w-full" 
+                                                className="w-full sign-in-button" 
                                                 data-testid="sign-in-button-mobile"
+                                                id="sign-in-button-mobile"
                                                 onClick={() => {
                                                     setShowSignIn(true);
                                                     setAuthDialogOpen(true);

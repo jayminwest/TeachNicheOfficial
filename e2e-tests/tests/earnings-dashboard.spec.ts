@@ -129,9 +129,10 @@ test.describe('Earnings Dashboard', () => {
       
       // For the account type, we need to click the button and then select from the dropdown
       // since it's a custom select component, not a native <select>
-      await page.click('#accountType');
-      await page.waitForSelector('[role="option"][data-value="checking"]');
-      await page.click('[role="option"][data-value="checking"]');
+      await page.click('[data-testid="account-type-trigger"]');
+      // Wait for the dropdown to appear and then click the checking option
+      await page.waitForSelector('[data-testid="account-type-checking"]', { timeout: 5000 });
+      await page.click('[data-testid="account-type-checking"]');
       
       await page.fill('#routingNumber', '110000000');
       await page.fill('#accountNumber', '000123456789');
@@ -142,9 +143,10 @@ test.describe('Earnings Dashboard', () => {
       await page.fill('#accountHolderName', 'Creator Name');
       
       // For the account type, we need to click the button and then select from the dropdown
-      await page.click('#accountType');
-      await page.waitForSelector('[role="option"][data-value="checking"]', { timeout: 2000 });
-      await page.click('[role="option"][data-value="checking"]');
+      await page.click('[data-testid="account-type-trigger"]');
+      // Wait for the dropdown to appear and then click the checking option
+      await page.waitForSelector('[data-testid="account-type-checking"]', { timeout: 5000 });
+      await page.click('[data-testid="account-type-checking"]');
       
       await page.fill('#routingNumber', '110000000');
       await page.fill('#accountNumber', '000123456789');

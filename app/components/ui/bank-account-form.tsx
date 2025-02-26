@@ -272,12 +272,12 @@ export function BankAccountForm({
               value={accountType} 
               onValueChange={setAccountType}
             >
-              <SelectTrigger id="accountType">
+              <SelectTrigger id="accountType" data-testid="account-type-trigger">
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="checking">Checking</SelectItem>
-                <SelectItem value="savings">Savings</SelectItem>
+                <SelectItem value="checking" data-testid="account-type-checking">Checking</SelectItem>
+                <SelectItem value="savings" data-testid="account-type-savings">Savings</SelectItem>
               </SelectContent>
             </Select>
           </div>

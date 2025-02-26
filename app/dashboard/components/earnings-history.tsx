@@ -83,7 +83,7 @@ export default function EarningsHistory() {
   const totalEarnings = earnings.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="earnings-history">
       <div className="bg-muted/50 p-4 rounded-lg">
         <p className="text-sm text-muted-foreground">Total Earnings</p>
         <p className="text-2xl font-bold">{formatCurrency(totalEarnings / 100)}</p>

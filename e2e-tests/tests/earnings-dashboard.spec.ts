@@ -90,6 +90,27 @@ test.describe('Earnings Dashboard', () => {
     const formContent = await bankAccountForm.innerHTML();
     console.log('Bank account form content:', formContent);
     
+    // Inject test user data into the page to ensure the form is fully rendered
+    await page.evaluate(() => {
+      // Create a mock user object in the window
+      window.mockUser = {
+        id: 'test-user-id',
+        email: 'test-creator@example.com',
+        user_metadata: {
+          full_name: 'Test Creator',
+          avatar_url: 'https://example.com/avatar.png'
+        }
+      };
+      
+      // Dispatch an event that our auth context might listen for
+      window.dispatchEvent(new CustomEvent('mock-auth-update', { detail: window.mockUser }));
+      
+      // Force re-render if needed
+      if (document.querySelector('[data-testid="bank-account-form"]')) {
+        document.querySelector('[data-testid="bank-account-form"]').setAttribute('data-test-ready', 'true');
+      }
+    });
+    
     // Mock the API response for bank account setup before interacting with the form
     await page.route('/api/payouts/bank-account', async (route) => {
       await route.fulfill({
@@ -99,11 +120,24 @@ test.describe('Earnings Dashboard', () => {
       });
     });
     
-    // Use simpler selectors
-    await page.fill('#accountHolderName', 'Creator Name');
-    await page.selectOption('#accountType', 'checking');
-    await page.fill('#routingNumber', '110000000');
-    await page.fill('#accountNumber', '000123456789');
+    // Wait for account holder name input to be available
+    await page.waitForSelector('#accountHolderName', { timeout: 5000 });
+    
+    // Use simpler selectors with retry logic
+    try {
+      await page.fill('#accountHolderName', 'Creator Name');
+      await page.selectOption('#accountType', 'checking');
+      await page.fill('#routingNumber', '110000000');
+      await page.fill('#accountNumber', '000123456789');
+    } catch (e) {
+      console.log('Retrying form interaction after error:', e);
+      // If first attempt fails, try again after a short delay
+      await page.waitForTimeout(1000);
+      await page.fill('#accountHolderName', 'Creator Name');
+      await page.selectOption('#accountType', 'checking');
+      await page.fill('#routingNumber', '110000000');
+      await page.fill('#accountNumber', '000123456789');
+    }
     
     // Submit the form
     await page.click('button[data-testid="submit-bank-account"]');

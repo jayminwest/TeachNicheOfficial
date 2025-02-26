@@ -85,3 +85,11 @@ export function AuthProvider({
 export function useAuth() {
   return useContext(AuthContext)
 }
+
+// Helper function to detect if we're in a test environment
+export function isTestEnvironment() {
+  return typeof window !== 'undefined' && 
+    (process.env.NODE_ENV === 'test' || 
+     window.location.href.includes('localhost') || 
+     window.location.href.includes('127.0.0.1'));
+}

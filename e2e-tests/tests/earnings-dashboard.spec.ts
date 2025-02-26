@@ -44,8 +44,8 @@ test.describe('Earnings Dashboard', () => {
       }
     });
     
-    // Verify earnings section is visible
-    await expect(page.getByText('Earnings Summary')).toBeVisible();
+    // Verify earnings section is visible - use a more specific selector
+    await expect(page.getByRole('heading', { name: 'Earnings Summary', exact: true }).first()).toBeVisible();
     
     // Take a screenshot for verification
     await page.screenshot({ path: 'debug-earnings-dashboard.png' });

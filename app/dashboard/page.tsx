@@ -6,7 +6,6 @@ import PerformanceMetrics from "./components/performance-metrics"
 import LessonsGrid from "./components/lessons-grid"
 import AnalyticsSection from "./components/analytics-section"
 import EarningsWidget from "./components/earnings-widget"
-import { BankAccountForm } from "../components/ui/stripe-connect-button"
 
 export default function DashboardPage() {
   return (
@@ -35,9 +34,6 @@ export default function DashboardPage() {
             <LessonsGrid />
           </div>
           
-          <div className="mt-6">
-            <BankAccountForm />
-          </div>
         </Suspense>
       </div>
     </div>

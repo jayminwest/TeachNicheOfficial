@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { processScheduledPayouts } from '@/app/services/earnings';
-import { addRpcToClient } from '@/app/lib/types/supabase-rpc';
+import { addRpcToClient, EnhancedSupabaseClient } from '@/app/lib/types/supabase-rpc';
 
 // Secret key to secure the cron endpoint
 const CRON_SECRET = process.env.CRON_SECRET;

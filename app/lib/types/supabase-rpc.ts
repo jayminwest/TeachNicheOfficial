@@ -2,8 +2,8 @@ import { Database } from '@/types/database';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { TypedSupabaseClient } from './supabase';
 
-// Extend the TypedSupabaseClient to include our custom RPC functions
-export interface ExtendedSupabaseClient extends TypedSupabaseClient {
+// Create a separate interface for our custom RPC functions
+export interface ExtendedSupabaseClient {
   rpc<T = any>(
     fn: string,
     params?: object,
@@ -17,15 +17,18 @@ export interface ExtendedSupabaseClient extends TypedSupabaseClient {
   }>;
 }
 
+// Combine the TypedSupabaseClient with our ExtendedSupabaseClient
+export type EnhancedSupabaseClient = TypedSupabaseClient & ExtendedSupabaseClient;
+
 /**
  * Adds RPC capabilities to a Supabase client
  * 
  * @param client The Supabase client to extend
  * @returns The extended client with RPC capabilities
  */
-export const addRpcToClient = (client: TypedSupabaseClient): ExtendedSupabaseClient => {
-  // Cast the client to the extended type
+export const addRpcToClient = (client: TypedSupabaseClient): EnhancedSupabaseClient => {
+  // Cast the client to the enhanced type
   // This is safe because we're not actually changing the implementation,
   // just providing a more specific type for TypeScript
-  return client as unknown as ExtendedSupabaseClient;
+  return client as unknown as EnhancedSupabaseClient;
 };

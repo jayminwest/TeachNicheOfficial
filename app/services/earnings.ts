@@ -1,4 +1,4 @@
-import { ExtendedSupabaseClient } from '@/app/lib/types/supabase-rpc';
+import { EnhancedSupabaseClient } from '@/app/lib/types/supabase-rpc';
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 import { formatCurrency } from '@/app/lib/utils';
 import { stripeConfig } from '@/app/services/stripe';
@@ -299,7 +299,7 @@ export const getPayoutHistory = async (
  * @returns Results of payout processing
  */
 export const processScheduledPayouts = async (
-  supabaseClient: ExtendedSupabaseClient
+  supabaseClient: EnhancedSupabaseClient
 ) => {
   const results = {
     processed: 0,

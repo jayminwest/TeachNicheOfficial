@@ -1,6 +1,7 @@
 import { PlaywrightTestConfig, devices } from '@playwright/test';
 import './setup/register-esm.js';
 import os from 'os';
+import path from 'path';
 
 // Calculate optimal number of workers based on CPU cores
 // Use 75% of available cores, minimum 2, maximum 8
@@ -10,16 +11,18 @@ const defaultWorkers = Math.max(2, Math.min(8, Math.floor(cpuCores * 0.75)));
 const config: PlaywrightTestConfig = {
   testDir: './',
   testMatch: '**/*.spec.ts',
-  // Explicitly exclude Jest test files
+  // More comprehensive exclusion of Jest test files and directories
   testIgnore: [
     '**/node_modules/**',
     '**/app/**/__tests__/**',
-    '**/*.test.ts',
-    '**/*.test.tsx',
-    '**/*.integration.test.ts',
-    '**/*.integration.test.tsx',
-    '**/*.e2e.test.ts',
-    '**/*.e2e.test.tsx'
+    '**/app/**/*.test.ts',
+    '**/app/**/*.test.tsx',
+    '**/app/**/*.integration.test.ts',
+    '**/app/**/*.integration.test.tsx',
+    '**/app/**/*.e2e.test.ts',
+    '**/app/**/*.e2e.test.tsx',
+    '**/__tests__/**/*.test.ts',
+    '**/__tests__/**/*.test.tsx'
   ],
   timeout: 30000, // Reduced timeout for faster feedback
   retries: process.env.CI ? 2 : 0,
@@ -35,7 +38,13 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',
     stderr: 'pipe',
-    cwd: '..'  // Run the command from the parent directory
+    cwd: '..',  // Run the command from the parent directory
+    env: {
+      // Ensure Next.js doesn't try to load Jest test files
+      NODE_ENV: 'development',
+      // Prevent ESM/CJS conflicts with lucide-react
+      NEXT_IGNORE_TESTS: 'true'
+    }
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
@@ -84,6 +93,8 @@ const config: PlaywrightTestConfig = {
   // Update snapshots via command line: npx playwright test --update-snapshots
   updateSnapshots: process.env.UPDATE_SNAPSHOTS ? 'all' : 'missing',
   
+  // Global setup to run before tests
+  globalSetup: require.resolve('./setup/test-setup.ts'),
   
   expect: {
     toHaveScreenshot: {

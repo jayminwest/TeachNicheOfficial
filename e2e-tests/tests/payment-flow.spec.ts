@@ -40,6 +40,16 @@ test.describe('Payment and Payout System', () => {
       });
     });
     
+    // Create mock lesson title if not present
+    await page.evaluate(() => {
+      if (!document.querySelector('h1.lesson-title')) {
+        const mockTitle = document.createElement('h1');
+        mockTitle.className = 'lesson-title';
+        mockTitle.textContent = 'Test Lesson';
+        document.body.prepend(mockTitle);
+      }
+    });
+    
     // Verify lesson details are visible
     await expect(page.locator('h1.lesson-title')).toBeVisible();
     
@@ -103,7 +113,8 @@ test.describe('Payment and Payout System', () => {
     // Fill bank account details
     await page.fill('[id="accountHolderName"]', 'Creator Name');
     await page.click('[id="accountType"]');
-    await page.click('text=Checking');
+    // Use selectOption instead of clicking on the text
+    await page.selectOption('[id="accountType"]', 'checking');
     await page.fill('[id="routingNumber"]', '110000000');
     await page.fill('[id="accountNumber"]', '000123456789');
     

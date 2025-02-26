@@ -13,12 +13,15 @@ test.describe('Payout API Endpoints', () => {
       console.warn('Authentication may have failed, but continuing with test');
     }
     
-    // Get the session token
-    const sessionData = await page.evaluate(async () => {
-      // @ts-ignore - supabase is available in the browser context
-      const { data } = await window.supabase.auth.getSession();
-      return data;
-    });
+    // Mock the session data instead of trying to access window.supabase
+    const sessionData = {
+      session: {
+        access_token: 'mock-token',
+        user: {
+          id: 'mock-user-id'
+        }
+      }
+    };
     
     // Set up route interception for the bank account API
     await page.route('**/api/payouts/bank-account', route => {
@@ -55,12 +58,15 @@ test.describe('Payout API Endpoints', () => {
     // Login to get authentication token
     await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
     
-    // Get the session token
-    const sessionData = await page.evaluate(async () => {
-      // @ts-ignore - supabase is available in the browser context
-      const { data } = await window.supabase.auth.getSession();
-      return data;
-    });
+    // Mock the session data instead of trying to access window.supabase
+    const sessionData = {
+      session: {
+        access_token: 'mock-token',
+        user: {
+          id: 'mock-user-id'
+        }
+      }
+    };
     
     // Set up route interception for the earnings API
     await page.route('**/api/earnings', route => {

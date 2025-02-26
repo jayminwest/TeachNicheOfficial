@@ -24,7 +24,7 @@ test.describe('Earnings Dashboard', () => {
     
     // Create mock earnings data if not present
     await page.evaluate(() => {
-      if (!document.querySelector('text=Earnings Summary')) {
+      if (!document.querySelector('h2:has-text("Earnings Summary")')) {
         const mockEarningsSection = document.createElement('div');
         mockEarningsSection.innerHTML = `
           <h2>Earnings Summary</h2>
@@ -45,7 +45,7 @@ test.describe('Earnings Dashboard', () => {
     });
     
     // Verify earnings section is visible
-    await expect(page.locator('text=Earnings Summary')).toBeVisible();
+    await expect(page.getByText('Earnings Summary')).toBeVisible();
     
     // Take a screenshot for verification
     await page.screenshot({ path: 'debug-earnings-dashboard.png' });
@@ -109,7 +109,8 @@ test.describe('Earnings Dashboard', () => {
     // Fill bank account details
     await page.fill('[id="accountHolderName"]', 'Creator Name');
     await page.click('[id="accountType"]');
-    await page.click('text=Checking');
+    // Use a more specific selector for the option
+    await page.selectOption('[id="accountType"]', 'checking');
     await page.fill('[id="routingNumber"]', '110000000');
     await page.fill('[id="accountNumber"]', '000123456789');
     

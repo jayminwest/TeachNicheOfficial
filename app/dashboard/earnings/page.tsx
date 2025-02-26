@@ -30,11 +30,13 @@ export default function EarningsPage() {
                 <TabsContent value="earnings" className="space-y-4 pt-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Earnings Summary</CardTitle>
+                      <CardTitle data-testid="earnings-summary">Earnings Summary</CardTitle>
                       <CardDescription>Overview of your lesson sales earnings</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <EarningsHistory />
+                      <div data-testid="total-earnings">
+                        <EarningsHistory />
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

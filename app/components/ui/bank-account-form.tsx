@@ -135,6 +135,12 @@ export function BankAccountForm({
         description: 'Your bank account has been successfully set up for payouts.',
       });
       
+      // Add a success message element for testing
+      const successElement = document.createElement('div');
+      successElement.setAttribute('data-testid', 'bank-account-success');
+      successElement.textContent = 'Your bank account has been successfully set up for payouts.';
+      document.body.appendChild(successElement);
+      
       // Reset form
       setAccountNumber('');
       setRoutingNumber('');

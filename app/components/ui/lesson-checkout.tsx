@@ -141,7 +141,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         onClick={handleCheckout} 
         disabled={isLoading}
         className="w-full"
-        data-testid="checkout-button"
+        data-testid="purchase-button"
       >
         {isLoading ? (
           <span className="flex items-center justify-center">

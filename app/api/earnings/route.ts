@@ -45,7 +45,7 @@ export async function GET() {
       amount: earning.amount,
       status: earning.status,
       created_at: earning.created_at,
-      lesson_title: earning.lessons?.title || 'Unknown lesson'
+      lesson_title: earning.lessons?.[0]?.title || 'Unknown lesson'
     }));
     
     return NextResponse.json({ earnings: formattedEarnings });

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
+import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
 
 // Initialize Stripe
@@ -9,7 +10,7 @@ const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: stripeConfig.apiVersion,
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Get the request body
     const body = await request.json();
@@ -18,20 +19,20 @@ export async function POST(request: Request) {
     // Validate the request
     if (!userId || !accountNumber || !routingNumber || !accountHolderName || !accountType) {
       return NextResponse.json(
-        { error: { message: 'Missing required fields' } },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
     
     // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createRouteHandlerClient<Database>({ cookies });
     
     // Get the current user
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session || session.user.id !== userId) {
       return NextResponse.json(
-        { error: { message: 'Unauthorized' } },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -55,16 +56,20 @@ export async function POST(request: Request) {
       .upsert({
         creator_id: userId,
         bank_account_token: bankAccount.id,
-        last_four: bankAccount.bank_account?.last4 || '',
-        country: country || 'US',
-        currency: 'usd',
+        last_four: bankAccount.bank_account?.last4 || '0000',
+        bank_name: bankAccount.bank_account?.bank_name || null,
+        account_holder_name: accountHolderName,
+        is_default: true,
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'creator_id',
       });
     
     if (error) {
       console.error('Error storing bank account:', error);
       return NextResponse.json(
-        { error: { message: 'Failed to store bank account information' } },
+        { error: 'Failed to store bank account information' },
         { status: 500 }
       );
     }
@@ -72,15 +77,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true,
       message: 'Bank account set up successfully',
-      last_four: bankAccount.bank_account?.last4 || ''
+      last_four: bankAccount.bank_account?.last4 || '0000'
     });
   } catch (error) {
     console.error('Error setting up bank account:', error);
     return NextResponse.json(
       { 
-        error: { 
-          message: error instanceof Error ? error.message : 'Failed to set up bank account'
-        } 
+        error: error instanceof Error 
+          ? error.message 
+          : 'Failed to set up bank account'
       },
       { status: 500 }
     );

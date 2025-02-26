@@ -163,11 +163,12 @@ This issue represents a significant architectural change that will simplify the 
 
 ### In Progress 🔄
 1. **UI Components**
-   - Implementing `LessonCheckout` component
+   - ✅ Implemented `LessonCheckout` component
    - Creating earnings dashboard for creators
 
 2. **API Endpoints**
-   - Implementing `/api/payments/create-checkout` endpoint
+   - ✅ Implemented `/api/payments/create-checkout` endpoint
+   - ✅ Implemented `/api/webhooks/stripe` endpoint for payment events
    - Creating `/api/cron/process-payouts` endpoint for scheduled payouts
 
 ### Pending 📝
@@ -185,8 +186,9 @@ This issue represents a significant architectural change that will simplify the 
 
 To ensure 100% reliability for payments and payouts at launch, the following items must be completed:
 
-- [ ] Create `LessonCheckout` component to replace Stripe Connect checkout
-- [ ] Implement `/api/payments/create-checkout` endpoint
+- [x] Create `LessonCheckout` component to replace Stripe Connect checkout
+- [x] Implement `/api/payments/create-checkout` endpoint
+- [x] Implement `/api/webhooks/stripe` endpoint for payment events
 - [ ] Create `/api/cron/process-payouts` endpoint
 - [ ] Add utility function for fee calculation
 - [ ] Test complete payment flow from purchase to earnings recording

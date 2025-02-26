@@ -4,10 +4,22 @@ import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
 import Stripe from 'stripe';
+import { z } from 'zod';
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: stripeConfig.apiVersion,
+});
+
+// Validate the request body
+const checkoutSchema = z.object({
+  lessonId: z.string().uuid(),
+  price: z.number().positive(),
+  userId: z.string().optional(),
+  utm_source: z.string().optional(),
+  utm_medium: z.string().optional(),
+  utm_campaign: z.string().optional(),
+  referral: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -22,22 +34,47 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
+    const result = checkoutSchema.safeParse(body);
+    
+    if (!result.success) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: result.error.format() },
+        { status: 400 }
+      );
+    }
+    
     const { 
       lessonId, 
       price, 
-      userId,
+      userId = session.user.id,
       utm_source,
       utm_medium,
       utm_campaign,
       referral
-    } = body;
+    } = result.data;
     
     // Verify the user is making a purchase for themselves
     if (session.user.id !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized to make this purchase' },
+        { status: 403 }
+      );
+    }
+    
+    // Check if user already owns this lesson
+    const { data: existingPurchase } = await supabase
+      .from('purchases')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('lesson_id', lessonId)
+      .eq('status', 'completed')
+      .maybeSingle();
+      
+    if (existingPurchase) {
+      return NextResponse.json(
+        { error: 'You already own this lesson' },
         { status: 403 }
       );
     }
@@ -57,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Calculate fees
-    const priceInCents = price * 100; // Convert to cents
+    const priceInCents = Math.round(price * 100); // Convert to cents
     const platformFee = Math.round(priceInCents * (stripeConfig.platformFeePercent / 100));
     const creatorEarnings = priceInCents - platformFee;
     
@@ -113,7 +150,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}`,
       metadata: {
         lessonId,
@@ -121,6 +158,7 @@ export async function POST(request: NextRequest) {
         purchaseId: purchase.id,
         creatorId: lesson.creator_id,
       },
+      customer_email: session.user.email,
     });
     
     // Update purchase record with session ID

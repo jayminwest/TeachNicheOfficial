@@ -22,6 +22,7 @@ export interface EarningItem {
   status: 'pending' | 'paid' | 'failed';
   createdAt: string;
   lessonTitle: string;
+  lessonId: string;
 }
 
 export interface EarningsHistoryItem {
@@ -32,6 +33,7 @@ export interface EarningsHistoryItem {
   status: 'pending' | 'paid' | 'failed';
   lessonTitle?: string;
   lessonId?: string;
+  purchaseId?: string;
 }
 
 export interface PayoutHistoryItem {
@@ -41,6 +43,7 @@ export interface PayoutHistoryItem {
   formattedAmount: string;
   status: 'pending' | 'paid' | 'failed' | 'canceled';
   destination: string;
+  earningsCount: number;
 }
 
 /**
@@ -56,29 +59,55 @@ export const calculateCreatorEarnings = (paymentAmount: number): number => {
 };
 
 /**
+ * Calculate fees for a payment amount
+ * 
+ * @param paymentAmount Total payment amount in cents
+ * @returns Object with platform fee and creator earnings
+ */
+export const calculateFees = (paymentAmount: number): {
+  platformFee: number;
+  creatorEarnings: number;
+} => {
+  const platformFeePercent = stripeConfig.platformFeePercent;
+  const platformFee = Math.round(paymentAmount * (platformFeePercent / 100));
+  const creatorEarnings = paymentAmount - platformFee;
+  
+  return {
+    platformFee,
+    creatorEarnings
+  };
+};
+
+/**
  * Records earnings for a creator from a payment
  * 
- * @param paymentIntentId Stripe payment intent ID
- * @param creatorId Creator's user ID
- * @param amount Creator's earnings amount in cents
- * @param lessonId ID of the lesson purchased
- * @param supabaseClient Supabase client instance
+ * @param params Object containing payment details
  */
 export const recordCreatorEarnings = async (
-  paymentIntentId: string,
-  creatorId: string,
-  amount: number,
-  lessonId: string,
-  supabaseClient: TypedSupabaseClient
+  params: {
+    paymentIntentId: string;
+    creatorId: string;
+    amount: number;
+    lessonId: string;
+    purchaseId: string;
+    supabaseClient: TypedSupabaseClient;
+  }
 ): Promise<void> => {
+  const { paymentIntentId, creatorId, amount, lessonId, purchaseId, supabaseClient } = params;
+  
   try {
+    // Calculate fees
+    const { platformFee, creatorEarnings } = calculateFees(amount);
+    
     await supabaseClient
       .from('creator_earnings')
       .insert({
         creator_id: creatorId,
         payment_intent_id: paymentIntentId,
-        amount,
+        amount: creatorEarnings,
         lesson_id: lessonId,
+        purchase_id: purchaseId,
+        platform_fee: platformFee,
         status: 'pending'
       });
   } catch (error) {
@@ -107,6 +136,7 @@ export const getEarningsSummary = async (
       amount, 
       status,
       created_at,
+      lesson_id,
       lessons(id, title)
     `)
     .eq('creator_id', creatorId)
@@ -130,10 +160,11 @@ export const getEarningsSummary = async (
   const recentEarnings = earningsData.slice(0, 10).map(item => ({
     id: item.id,
     amount: item.amount,
-    formattedAmount: formatCurrency(item.amount),
+    formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
     status: item.status,
     createdAt: item.created_at,
-    lessonTitle: item.lessons?.title || 'Unknown lesson'
+    lessonTitle: item.lessons?.title || 'Unknown lesson',
+    lessonId: item.lesson_id
   }));
 
   // Calculate next payout date
@@ -157,12 +188,12 @@ export const getEarningsSummary = async (
     totalEarnings,
     pendingEarnings,
     paidEarnings,
-    formattedTotal: formatCurrency(totalEarnings),
-    formattedPending: formatCurrency(pendingEarnings),
-    formattedPaid: formatCurrency(paidEarnings),
+    formattedTotal: formatCurrency(totalEarnings / 100), // Convert cents to dollars for display
+    formattedPending: formatCurrency(pendingEarnings / 100),
+    formattedPaid: formatCurrency(paidEarnings / 100),
     nextPayoutDate,
     nextPayoutAmount: pendingEarnings,
-    formattedNextPayout: formatCurrency(pendingEarnings),
+    formattedNextPayout: formatCurrency(pendingEarnings / 100),
     recentEarnings
   };
 };
@@ -189,6 +220,8 @@ export const getEarningsHistory = async (
       created_at,
       amount,
       status,
+      purchase_id,
+      lesson_id,
       lessons(id, title)
     `)
     .eq('creator_id', creatorId)
@@ -204,10 +237,11 @@ export const getEarningsHistory = async (
     id: item.id,
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
-    formattedAmount: formatCurrency(item.amount),
+    formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
     status: item.status,
     lessonTitle: item.lessons?.title,
-    lessonId: item.lessons?.id
+    lessonId: item.lessons?.id,
+    purchaseId: item.purchase_id
   }));
 };
 
@@ -228,7 +262,14 @@ export const getPayoutHistory = async (
 ): Promise<PayoutHistoryItem[]> => {
   const { data, error } = await supabaseClient
     .from('creator_payouts')
-    .select('id, created_at, amount, status, destination_last_four')
+    .select(`
+      id, 
+      created_at, 
+      amount, 
+      status, 
+      destination_last_four,
+      earnings_count
+    `)
     .eq('creator_id', creatorId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -242,9 +283,10 @@ export const getPayoutHistory = async (
     id: item.id,
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
-    formattedAmount: formatCurrency(item.amount),
+    formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
     status: item.status,
-    destination: `••••${item.destination_last_four}`
+    destination: `••••${item.destination_last_four}`,
+    earningsCount: item.earnings_count || 0
   }));
 };
 

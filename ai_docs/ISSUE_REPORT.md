@@ -2,6 +2,24 @@
 
 This document outlines the standardized process for creating and resolving detailed GitHub issues using AI assistance and the GitHub CLI.
 
+## Issue File Naming Convention
+
+All issue files should follow this naming convention:
+```
+YYYY-MM-DD-ISSUE_NUMBER-issue-title-in-kebab-case.md
+```
+
+Example:
+```
+2025-02-26-037-transition-to-merchant-of-record-payment-model.md
+```
+
+This naming convention ensures:
+- Chronological sorting by date
+- Clear issue number reference
+- Descriptive title for easy identification
+- Consistent formatting with kebab-case
+
 ## Issue Creation Overview
 
 The issue creation pipeline follows these steps:

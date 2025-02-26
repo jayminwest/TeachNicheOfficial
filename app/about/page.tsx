@@ -172,7 +172,7 @@ export default function AboutPage() {
                   <div className="space-y-4 pt-2">
                     <p>Since Teach Niche handles financial transactions and user data, we&apos;ve made the decision to keep our codebase closed for security reasons.</p>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li><span className="font-semibold">Security First:</span> Protecting our users' financial information and personal data is our top priority.</li>
+                      <li><span className="font-semibold">Security First:</span> Protecting our users&apos; financial information and personal data is our top priority.</li>
                       <li><span className="font-semibold">Available Upon Request:</span> We&apos;re happy to share portions of our codebase with interested developers upon request and after proper vetting.</li>
                       <li><span className="font-semibold">Transparency:</span> While the code itself is private, we maintain transparency about our business practices, commission structure, and how the platform operates.</li>
                     </ul>

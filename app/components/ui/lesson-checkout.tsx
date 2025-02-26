@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
 import { supabase } from '@/app/services/supabase';
 import { useRouter } from 'next/navigation';
+import { calculateFees, formatPrice, PAYMENT_CONSTANTS } from '@/app/lib/constants';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -21,6 +22,9 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Calculate fees using the utility function
+  const { lessonPrice, stripeFee, totalBuyerCost, creatorEarnings } = calculateFees(price);
 
   const handleCheckout = async () => {
     try {
@@ -41,7 +45,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         throw new Error('Stripe failed to initialize');
       }
 
-      // Use the new API endpoint for the merchant of record model
+      // Use the API endpoint for the merchant of record model
       const response = await fetch('/api/payments/create-checkout', {
         method: 'POST',
         headers: {
@@ -50,7 +54,8 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         credentials: 'include',
         body: JSON.stringify({
           lessonId,
-          price,
+          price: totalBuyerCost, // Send the total price including fees
+          returnUrl: window.location.href,
         }),
       });
 
@@ -112,10 +117,31 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
           {error}
         </div>
       )}
+      
+      {/* Fee breakdown */}
+      <div className="mb-4 p-3 bg-muted/50 rounded-md">
+        <div className="flex justify-between text-sm mb-1">
+          <span>Lesson price:</span>
+          <span>{formatPrice(lessonPrice)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+          <span>Processing fee:</span>
+          <span>{formatPrice(stripeFee)}</span>
+        </div>
+        <div className="flex justify-between font-medium border-t border-border pt-2">
+          <span>Total:</span>
+          <span>{formatPrice(totalBuyerCost)}</span>
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          <span>{PAYMENT_CONSTANTS.CREATOR_SHARE_PERCENTAGE * 100}% of the lesson price goes directly to the creator.</span>
+        </div>
+      </div>
+      
       <Button 
         onClick={handleCheckout} 
         disabled={isLoading}
         className="w-full"
+        data-testid="checkout-button"
       >
         {isLoading ? (
           <span className="flex items-center justify-center">
@@ -126,9 +152,13 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
             Processing...
           </span>
         ) : (
-          `Purchase for ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)}`
+          `Purchase for ${formatPrice(totalBuyerCost)}`
         )}
       </Button>
+      
+      <p className="text-xs text-muted-foreground text-center mt-3">
+        Secure payment processed by Teach Niche. By purchasing, you agree to our Terms of Service.
+      </p>
     </div>
   );
 }

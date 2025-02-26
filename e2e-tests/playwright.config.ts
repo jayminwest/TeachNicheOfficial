@@ -65,6 +65,8 @@ const config: PlaywrightTestConfig = {
   
   // Prevent Playwright from loading Jest test files
   forbidOnly: !!process.env.CI,
+  // Ensure all tests run, including those that might be skipped
+  grep: /.*/,
   projects: [
     {
       name: 'Chrome',

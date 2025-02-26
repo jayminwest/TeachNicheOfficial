@@ -8,12 +8,22 @@ import { Page } from '@playwright/test';
  * @param password User password
  */
 export async function loginAsUser(page: Page, email: string, password: string) {
-  await page.goto('/');
+  // Use absolute URL to avoid protocol errors
+  await page.goto('http://localhost:3000/');
+  
+  // Wait for the page to be fully loaded
+  await page.waitForLoadState('networkidle');
+  
+  // Click the sign-in button
   await page.click('[data-testid="sign-in-button"]');
+  
+  // Fill in credentials
   await page.fill('[data-testid="email-input"]', email);
   await page.fill('[data-testid="password-input"]', password);
   await page.click('[data-testid="submit-sign-in"]');
-  await page.waitForSelector('[data-testid="user-avatar"]');
+  
+  // Wait for authentication to complete
+  await page.waitForSelector('[data-testid="user-avatar"]', { timeout: 10000 });
 }
 
 /**

@@ -10,11 +10,14 @@ export default function SuccessPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
+    console.log('Success page loaded with session ID:', sessionId);
+    
     // In a real app, you would verify the session with your backend
     // For the test, we'll just simulate a successful verification
     const timer = setTimeout(() => {
+      console.log('Setting loading to false');
       setIsLoading(false);
-    }, 500);
+    }, 100); // Reduced timeout for faster tests
     
     return () => clearTimeout(timer);
   }, [sessionId]);
@@ -28,7 +31,7 @@ export default function SuccessPage() {
   }
   
   return (
-    <div className="container mx-auto py-12">
+    <div className="container mx-auto py-12" data-testid="success-page-container">
       <SuccessMessage />
     </div>
   );

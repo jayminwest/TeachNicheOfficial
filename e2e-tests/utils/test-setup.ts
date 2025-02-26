@@ -8,7 +8,8 @@ import { Page } from '@playwright/test';
 export async function setupMocks(page: Page) {
   // Mock Supabase authentication - intercept ALL auth requests
   await page.route('**/auth/v1/**', async (route) => {
-    console.log('Intercepted auth request:', route.request().url());
+    const url = route.request().url();
+    console.log('Intercepted auth request:', url);
     
     // Always return a successful auth response
     await route.fulfill({
@@ -36,6 +37,32 @@ export async function setupMocks(page: Page) {
           user: {
             id: 'test-user-id',
             email: 'test-buyer@example.com'
+          }
+        }
+      })
+    });
+  });
+  
+  // Mock Supabase session check
+  await page.route('**/auth/v1/session**', async (route) => {
+    console.log('Intercepted session request');
+    await route.fulfill({
+      status: 200,
+      body: JSON.stringify({
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        user: {
+          id: 'test-user-id',
+          email: 'test-buyer@example.com',
+          user_metadata: {
+            full_name: 'Test User',
+            avatar_url: 'https://example.com/avatar.png'
+          },
+          app_metadata: {
+            provider: 'email',
+            providers: ['email']
           }
         }
       })

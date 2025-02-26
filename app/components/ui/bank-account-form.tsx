@@ -164,6 +164,9 @@ export function BankAccountForm({
           <CardTitle>Set Up Payouts</CardTitle>
           <CardDescription>Please sign in to set up your payout method</CardDescription>
         </CardHeader>
+        <CardContent>
+          <div data-testid="bank-account-form">Please sign in to continue</div>
+        </CardContent>
       </Card>
     );
   }
@@ -176,12 +179,14 @@ export function BankAccountForm({
           <CardDescription>Your bank account has been set up for payouts</CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert>
-            <AlertDescription>
-              Payouts are processed {stripeConfig.payoutSchedule === 'weekly' ? 'weekly' : 'monthly'} 
-              for amounts over {((stripeConfig.minimumPayoutAmount || 100) / 100).toFixed(2)} {(stripeConfig.defaultCurrency || 'usd').toUpperCase()}.
-            </AlertDescription>
-          </Alert>
+          <div data-testid="bank-account-form">
+            <Alert>
+              <AlertDescription>
+                Payouts are processed {stripeConfig.payoutSchedule === 'weekly' ? 'weekly' : 'monthly'} 
+                for amounts over {((stripeConfig.minimumPayoutAmount || 100) / 100).toFixed(2)} {(stripeConfig.defaultCurrency || 'usd').toUpperCase()}.
+              </AlertDescription>
+            </Alert>
+          </div>
         </CardContent>
         <CardFooter>
           <Button variant="outline">Update Bank Account</Button>

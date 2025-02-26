@@ -57,7 +57,7 @@ export default function EarningsHistory() {
 
   if (isLoading && page === 0) {
     return (
-      <div className="flex justify-center py-6">
+      <div className="flex justify-center py-6" data-testid="earnings-history">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -65,7 +65,7 @@ export default function EarningsHistory() {
 
   if (error) {
     return (
-      <div className="py-4">
+      <div className="py-4" data-testid="earnings-history">
         <p className="text-destructive">{error}</p>
       </div>
     );
@@ -73,7 +73,7 @@ export default function EarningsHistory() {
 
   if (earnings.length === 0) {
     return (
-      <div className="py-4">
+      <div className="py-4" data-testid="earnings-history">
         <p className="text-muted-foreground">No earnings history available yet.</p>
       </div>
     );

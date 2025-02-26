@@ -1,10 +1,8 @@
-import { Database } from '@/types/database';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { TypedSupabaseClient } from './supabase';
 
 // Create a separate interface for our custom RPC functions
 export interface ExtendedSupabaseClient {
-  rpc<T = any>(
+  rpc<T = unknown>(
     fn: string,
     params?: object,
     options?: {

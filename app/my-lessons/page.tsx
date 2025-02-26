@@ -125,7 +125,7 @@ export default function MyLessonsPage() {
       <div className="container mx-auto py-12">
         <h1 className="text-2xl font-bold mb-8">My Lessons</h1>
         <div className="text-center py-12">
-          <p className="text-muted-foreground mb-6">You haven't purchased any lessons yet.</p>
+          <p className="text-muted-foreground mb-6">You haven&apos;t purchased any lessons yet.</p>
           <Button asChild>
             <Link href="/lessons">Browse Lessons</Link>
           </Button>

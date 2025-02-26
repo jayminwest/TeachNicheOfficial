@@ -66,6 +66,19 @@ jest.mock('@/app/components/ui/stripe-connect-button', () => ({
   ),
 }))
 
+// Mock profile components
+jest.mock('../components/profile-form', () => ({
+  ProfileForm: () => <div data-testid="profile-form">Profile Form</div>,
+}))
+
+jest.mock('../components/account-settings', () => ({
+  AccountSettings: () => <div data-testid="account-settings">Account Settings</div>,
+}))
+
+jest.mock('../components/content-management', () => ({
+  ContentManagement: () => <div data-testid="content-management">Content Management</div>,
+}))
+
 // Mock Supabase client
 jest.mock('@/app/services/supabase', () => ({
   supabase: {

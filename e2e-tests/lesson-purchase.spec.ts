@@ -54,9 +54,9 @@ test.describe('Lesson purchase flow', () => {
     await expect(page.locator('[data-testid="lesson-preview-dialog"]')).toBeVisible();
     
     // Verify lesson details are displayed with specific selectors
-    await expect(page.locator('[data-testid="lesson-title"]')).toBeVisible();
-    await expect(page.locator('[data-testid="lesson-description"]')).toBeVisible();
-    await expect(page.locator('[data-testid="lesson-price"]')).toBeVisible();
+    await expect(page.locator('[data-testid="preview-lesson-title"]')).toBeVisible();
+    await expect(page.locator('[data-testid="preview-lesson-description"]')).toBeVisible();
+    await expect(page.locator('[data-testid="preview-lesson-price"]')).toBeVisible();
   });
 
   test('User can purchase a lesson', async ({ page }) => {
@@ -86,10 +86,10 @@ test.describe('Lesson purchase flow', () => {
     await page.locator('[data-testid="lesson-card"]:first-child').click();
     
     // Get the lesson title for later verification with a specific selector
-    const lessonTitle = await page.locator('[data-testid="lesson-title"]').first().textContent();
+    const lessonTitle = await page.locator('[data-testid="preview-lesson-title"]').textContent();
     
     // Click purchase button
-    await page.click('[data-testid="lesson-checkout"] button');
+    await page.click('[data-testid="preview-purchase-button"]');
     
     // We should use the setupMocks function from test-setup.ts instead of creating routes here
     // The mock for Stripe checkout is already set up in setupMocks

@@ -22,7 +22,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]" data-testid="lesson-preview-dialog">
         <DialogHeader>
-          <DialogTitle data-testid="lesson-title" className="text-xl font-bold">{lesson.title}</DialogTitle>
+          <DialogTitle data-testid="preview-lesson-title" className="text-xl font-bold">{lesson.title}</DialogTitle>
         </DialogHeader>
         
         <div className="relative aspect-video w-full mb-4 overflow-hidden rounded-lg">
@@ -50,13 +50,13 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
           </div>
         )}
 
-        <DialogDescription className="text-base" data-testid="lesson-description">
+        <DialogDescription className="text-base" data-testid="preview-lesson-description">
           {lesson.description}
         </DialogDescription>
 
         <DialogFooter className="mt-6">
           <div className="w-full flex items-center justify-between">
-            <div className="text-lg font-medium" data-testid="lesson-price">
+            <div className="text-lg font-medium" data-testid="preview-lesson-price">
               {lesson.price === 0 ? (
                 <span className="text-green-600">Free</span>
               ) : (
@@ -64,12 +64,13 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
               )}
             </div>
             {lesson.price > 0 && (
-              <LessonCheckout 
-                lessonId={lesson.id} 
-                price={lesson.price}
-                searchParams={new URLSearchParams(window.location.search)}
-                data-testid="lesson-checkout"
-              />
+              <div data-testid="preview-purchase-button">
+                <LessonCheckout 
+                  lessonId={lesson.id} 
+                  price={lesson.price}
+                  searchParams={new URLSearchParams(window.location.search)}
+                />
+              </div>
             )}
           </div>
         </DialogFooter>

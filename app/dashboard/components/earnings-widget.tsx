@@ -38,7 +38,7 @@ export default function EarningsWidget() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card data-testid="earnings-widget">
         <CardHeader>
           <CardTitle>Earnings</CardTitle>
           <CardDescription>Your earnings summary</CardDescription>
@@ -52,7 +52,7 @@ export default function EarningsWidget() {
 
   if (error) {
     return (
-      <Card>
+      <Card data-testid="earnings-widget">
         <CardHeader>
           <CardTitle>Earnings</CardTitle>
           <CardDescription>Your earnings summary</CardDescription>
@@ -66,7 +66,7 @@ export default function EarningsWidget() {
 
   if (!earnings) {
     return (
-      <Card>
+      <Card data-testid="earnings-widget">
         <CardHeader>
           <CardTitle>Earnings</CardTitle>
           <CardDescription>Your earnings summary</CardDescription>
@@ -79,7 +79,7 @@ export default function EarningsWidget() {
   }
 
   return (
-    <Card>
+    <Card data-testid="earnings-widget">
       <CardHeader>
         <CardTitle>Earnings</CardTitle>
         <CardDescription>Your earnings summary</CardDescription>
@@ -105,6 +105,29 @@ export default function EarningsWidget() {
             <div className="pt-2">
               <p className="text-sm text-muted-foreground">Paid to Date</p>
               <p className="text-xl font-semibold">{earnings.formattedPaid}</p>
+            </div>
+            
+            <div className="pt-4">
+              <h4 className="text-sm font-medium mb-2">Recent Earnings</h4>
+              <ul className="space-y-2" data-testid="earnings-list">
+                {earnings.recentEarnings && earnings.recentEarnings.map(earning => (
+                  <li key={earning.id} className="bg-card p-3 rounded-md border flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{earning.lessonTitle}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(earning.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">{earning.formattedAmount}</div>
+                      <div className={`text-xs px-2 py-0.5 rounded-full inline-block capitalize
+                        ${earning.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+                        {earning.status}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </TabsContent>
           

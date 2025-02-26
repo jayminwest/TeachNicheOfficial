@@ -126,7 +126,13 @@ test.describe('Earnings Dashboard', () => {
     // Use simpler selectors with retry logic
     try {
       await page.fill('#accountHolderName', 'Creator Name');
-      await page.selectOption('#accountType', 'checking');
+      
+      // For the account type, we need to click the button and then select from the dropdown
+      // since it's a custom select component, not a native <select>
+      await page.click('#accountType');
+      await page.waitForSelector('[role="option"][data-value="checking"]');
+      await page.click('[role="option"][data-value="checking"]');
+      
       await page.fill('#routingNumber', '110000000');
       await page.fill('#accountNumber', '000123456789');
     } catch (e) {
@@ -134,7 +140,12 @@ test.describe('Earnings Dashboard', () => {
       // If first attempt fails, try again after a short delay
       await page.waitForTimeout(1000);
       await page.fill('#accountHolderName', 'Creator Name');
-      await page.selectOption('#accountType', 'checking');
+      
+      // For the account type, we need to click the button and then select from the dropdown
+      await page.click('#accountType');
+      await page.waitForSelector('[role="option"][data-value="checking"]', { timeout: 2000 });
+      await page.click('[role="option"][data-value="checking"]');
+      
       await page.fill('#routingNumber', '110000000');
       await page.fill('#accountNumber', '000123456789');
     }

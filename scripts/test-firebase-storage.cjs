@@ -23,6 +23,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
+// Verify Firebase configuration
+console.log('Verifying Firebase configuration...');
+console.log('Project ID:', firebaseConfig.projectId);
+console.log('Storage Bucket:', firebaseConfig.storageBucket);
+console.log('Auth Domain:', firebaseConfig.authDomain);
+console.log('API Key is set:', !!firebaseConfig.apiKey);
+console.log('App ID is set:', !!firebaseConfig.appId);
+console.log('Messaging Sender ID is set:', !!firebaseConfig.messagingSenderId);
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
@@ -34,6 +43,13 @@ console.log('Using storage bucket:', firebaseConfig.storageBucket);
 if (!firebaseConfig.storageBucket) {
   console.error('ERROR: Storage bucket is not configured. Please set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET environment variable.');
   process.exit(1);
+}
+
+// Check if we're using the default bucket name
+if (firebaseConfig.storageBucket === `${firebaseConfig.projectId}.appspot.com`) {
+  console.log('Using default Firebase Storage bucket name.');
+  console.log('Make sure the Storage service is enabled in the Firebase Console.');
+  console.log('Visit: https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage');
 }
 
 class FirebaseStorage {

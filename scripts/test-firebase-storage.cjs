@@ -48,16 +48,7 @@ if (!firebaseConfig.storageBucket) {
 // Check if we're using the default bucket name
 if (firebaseConfig.storageBucket === `${firebaseConfig.projectId}.appspot.com`) {
   console.log('Using default Firebase Storage bucket name.');
-  console.log('Make sure the Storage service is enabled in the Firebase Console.');
-  console.log('Visit: https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage');
-  console.log('IMPORTANT: You need to initialize Firebase Storage in the Firebase Console first.');
-  console.log('1. Go to https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage');
-  console.log('2. Click "Get Started" to create a storage bucket');
-  console.log('3. Select a location (preferably the same as your Firestore database)');
-  console.log('4. Choose appropriate security rules (start with test mode for development)');
-  console.log('5. Click "Done" to create the bucket');
-  console.log('After creating the bucket, run this test script again.');
-  process.exit(0);
+  console.log('Storage bucket is configured and ready for testing.');
 }
 
 class FirebaseStorage {

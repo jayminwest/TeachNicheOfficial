@@ -34,6 +34,7 @@ Request documentation when:
 - Ensuring compliance with project standards
 - Needing clarification on project architecture
 - Working with payment or payout systems
+- Working with Google Cloud Platform services
 - Encountering TypeScript errors (see [TYPESCRIPT_ERRORS.md](../guides/development/TYPESCRIPT_ERRORS.md))
 
 ## Documentation-First and Test-Driven Approach
@@ -52,7 +53,7 @@ For complex tasks:
 4. Write tests before implementing any code (TDD)
    - Start with basic unit and component tests
    - Add integration tests for component interactions
-   - Include end-to-end tests with Playwright that verify third-party API integrations
+   - Include end-to-end tests with Playwright that verify third-party API integrations with Firebase, GCP, and other services
 5. Implement following documented standards
 6. Ensure all tests pass
 7. Update documentation if necessary

@@ -16,7 +16,8 @@ Our development approach emphasizes:
 - Node.js (v18+)
 - npm or yarn
 - Git
-- Supabase CLI
+- Google Cloud SDK
+- Firebase CLI
 - Vercel CLI (optional, for deployments)
 
 ### Initial Setup
@@ -67,7 +68,7 @@ npm run dev
 - Include end-to-end tests with Playwright that test actual third-party API integrations (Stripe, Supabase, etc.)
 
 ### Data Management
-- Initialize Supabase client in dedicated file
+- Initialize Firebase/GCP clients in dedicated files
 - Validate all data with Zod
 - Choose appropriate fetching strategy (SSR/CSR)
 - Write efficient queries
@@ -263,7 +264,7 @@ npx playwright test --ui
 npm run test:integration
 ```
 
-Remember: Always write tests before implementing features (TDD). Start with basic e2e tests and progressively add tests that integrate with actual third-party APIs like Stripe and Supabase to verify correct implementation.
+Remember: Always write tests before implementing features (TDD). Start with basic e2e tests and progressively add tests that integrate with actual third-party APIs like Stripe and Firebase/GCP to verify correct implementation.
 
 ### Working with Payments
 

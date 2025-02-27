@@ -22,7 +22,7 @@ Our development approach emphasizes:
 - **Security**: Security is a fundamental consideration in all aspects of development
 - **Consistency**: Follow established patterns and practices
 - **Documentation**: Comprehensive documentation is essential for maintainability
-- **Complete Test Coverage**: Ensure all user journeys are tested with Playwright, including tests that interact with actual third-party APIs like Stripe and Supabase
+- **Complete Test Coverage**: Ensure all user journeys are tested with Playwright, including tests that interact with actual third-party APIs like Stripe and Google Cloud Platform services
 
 ## Project Goals
 
@@ -77,11 +77,13 @@ Our development approach emphasizes:
 
 - **Frontend**: Next.js, React, TypeScript, Shadcn UI
 - **Backend**: Next.js API routes, Edge Functions
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
+- **Database**: Google Cloud SQL (PostgreSQL)
+- **Authentication**: Firebase Authentication
+- **Storage**: Firebase Storage / Google Cloud Storage
 - **Payments**: Stripe (v2025-01-27.acacia) with merchant of record model (85% to creators, buyers pay processing fees)
 - **Video**: Mux Video
 - **Deployment**: Vercel
+- **Infrastructure**: Google Cloud Platform, Terraform
 
 ## Documentation Structure
 

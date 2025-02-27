@@ -22,8 +22,8 @@ This document provides a high-level overview of the Teach Niche platform archite
 - **Notification Service**: User alerts and communications
 
 ### Data Layer
-- **Relational Database**: Primary data store for structured data
-- **Object Storage**: For video and other media content
+- **Relational Database**: Google Cloud SQL (PostgreSQL) for structured data
+- **Object Storage**: Firebase Storage / Google Cloud Storage for media content
 - **Search Index**: For efficient content discovery
 - **Cache**: For performance optimization
 
@@ -55,12 +55,12 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 ## Security Architecture
 
-- **Authentication**: Multi-factor authentication options
+- **Authentication**: Firebase Authentication with multi-factor authentication options
 - **Authorization**: Role-based access control
 - **Data Protection**: Encryption at rest and in transit
 - **API Security**: Rate limiting, input validation, CSRF protection
-- **Monitoring**: Anomaly detection and alerting
-- **End-to-End Testing**: Comprehensive testing of security flows with Playwright, including tests that verify correct integration with third-party authentication and payment services
+- **Monitoring**: Google Cloud Monitoring with anomaly detection and alerting
+- **End-to-End Testing**: Comprehensive testing of security flows with Playwright, including tests that verify correct integration with Firebase Authentication and payment services
 
 ## Testing Architecture
 
@@ -68,7 +68,7 @@ This document provides a high-level overview of the Teach Niche platform archite
 - **Unit Testing**: Component and function level tests
 - **Integration Testing**: Testing interactions between components
 - **End-to-End Testing**: Playwright tests for complete user journeys
-- **Third-Party API Testing**: Tests that interact with actual third-party services (Stripe, Supabase, etc.)
+- **Third-Party API Testing**: Tests that interact with actual third-party services (Stripe, Firebase, Google Cloud, etc.)
 - **Visual Regression**: Screenshot comparison for UI consistency
 - **API Testing**: Validation of API contracts and behaviors
 
@@ -84,8 +84,9 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 - **Payment Processing**: Stripe for payments (merchant of record model) and creator payouts
 - **Video Services**: Mux for video processing and delivery
-- **Analytics**: Internal analytics + optional Google Analytics
-- **Email Service**: For notifications and communications
+- **Analytics**: Google Analytics and BigQuery for data analysis
+- **Email Service**: Google Workspace for notifications and communications
 - **Social Media**: For sharing and authentication
+- **Infrastructure**: Google Cloud Platform for hosting and services
 
 This architecture is designed to be technology-agnostic while providing a clear structure for implementation. Specific technology choices should adhere to the principles outlined in this document.

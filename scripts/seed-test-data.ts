@@ -260,6 +260,45 @@ async function seedTestData() {
         }
       }
       
+      // Check if the profiles table has an email column
+      const emailColumnResult = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'email'
+        );
+      `);
+      
+      if (emailColumnResult.rows[0].exists) {
+        console.log('Found email column in profiles table...');
+        
+        // Check if email column has a NOT NULL constraint
+        const emailNotNullResult = await client.query(`
+          SELECT is_nullable 
+          FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'email'
+        `);
+        
+        const isNullable = emailNotNullResult.rows[0]?.is_nullable === 'YES';
+        
+        if (!isNullable) {
+          console.log('email column has NOT NULL constraint, adding default value...');
+          // Try to make the column nullable first
+          try {
+            await client.query(`
+              ALTER TABLE profiles 
+              ALTER COLUMN email DROP NOT NULL;
+            `);
+            console.log('Made email column nullable');
+          } catch (error) {
+            console.log('Could not make email column nullable, will provide a value');
+          }
+        }
+      }
+      
       try {
         const profileId = uuidv4();
         const fullNameColumnExists = await client.query(`
@@ -274,8 +313,97 @@ async function seedTestData() {
         // Prepare query and parameters based on column existence
         let query, params;
         
-        if (columnCheckResult.rows[0].exists && fullNameColumnExists.rows[0].exists) {
-          // Both username and full_name columns exist
+        // Check if email column exists
+        const emailColumnExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.columns 
+            WHERE table_schema = 'public' 
+            AND table_name = 'profiles' 
+            AND column_name = 'email'
+          );
+        `);
+        
+        // Prepare query and parameters based on column existence
+        let query, params;
+        
+        if (columnCheckResult.rows[0].exists && fullNameColumnExists.rows[0].exists && emailColumnExists.rows[0].exists) {
+          // Username, full_name, and email columns exist
+          console.log('Inserting profile with username, full_name, and email...');
+          query = `
+            INSERT INTO profiles (id, user_id, display_name, username, full_name, email, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $3, username = $4, full_name = $5, email = $6, avatar_url = $7, updated_at = $9
+          `;
+          params = [
+            profileId,
+            user.id, 
+            displayName, 
+            username,
+            displayName, // Use displayName for full_name too
+            user.email,  // Use user's email
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ];
+        } else if (fullNameColumnExists.rows[0].exists && emailColumnExists.rows[0].exists) {
+          // full_name and email columns exist (no username)
+          console.log('Inserting profile with full_name and email but no username...');
+          query = `
+            INSERT INTO profiles (id, user_id, display_name, full_name, email, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $3, full_name = $4, email = $5, avatar_url = $6, updated_at = $8
+          `;
+          params = [
+            profileId,
+            user.id, 
+            displayName,
+            displayName, // Use displayName for full_name too
+            user.email,  // Use user's email
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ];
+        } else if (columnCheckResult.rows[0].exists && emailColumnExists.rows[0].exists) {
+          // username and email columns exist (no full_name)
+          console.log('Inserting profile with username and email but no full_name...');
+          query = `
+            INSERT INTO profiles (id, user_id, display_name, username, email, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $3, username = $4, email = $5, avatar_url = $6, updated_at = $8
+          `;
+          params = [
+            profileId,
+            user.id, 
+            displayName, 
+            username,
+            user.email,  // Use user's email
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ];
+        } else if (emailColumnExists.rows[0].exists) {
+          // Only email column exists (no username or full_name)
+          console.log('Inserting profile with email only...');
+          query = `
+            INSERT INTO profiles (id, user_id, display_name, email, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $3, email = $4, avatar_url = $5, updated_at = $7
+          `;
+          params = [
+            profileId,
+            user.id, 
+            displayName,
+            user.email,  // Use user's email
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ];
+        } else if (columnCheckResult.rows[0].exists && fullNameColumnExists.rows[0].exists) {
+          // Both username and full_name columns exist (no email)
           console.log('Inserting profile with username and full_name...');
           query = `
             INSERT INTO profiles (id, user_id, display_name, username, full_name, avatar_url, created_at, updated_at)
@@ -294,7 +422,7 @@ async function seedTestData() {
             user.updated_at
           ];
         } else if (fullNameColumnExists.rows[0].exists) {
-          // Only full_name column exists (no username)
+          // Only full_name column exists (no username or email)
           console.log('Inserting profile with full_name but no username...');
           query = `
             INSERT INTO profiles (id, user_id, display_name, full_name, avatar_url, created_at, updated_at)
@@ -312,7 +440,7 @@ async function seedTestData() {
             user.updated_at
           ];
         } else if (columnCheckResult.rows[0].exists) {
-          // Only username column exists (no full_name)
+          // Only username column exists (no full_name or email)
           console.log('Inserting profile with username but no full_name...');
           query = `
             INSERT INTO profiles (id, user_id, display_name, username, avatar_url, created_at, updated_at)
@@ -330,8 +458,8 @@ async function seedTestData() {
             user.updated_at
           ];
         } else {
-          // Neither username nor full_name columns exist
-          console.log('Inserting profile with neither username nor full_name...');
+          // No special columns exist
+          console.log('Inserting profile with basic columns only...');
           query = `
             INSERT INTO profiles (id, user_id, display_name, avatar_url, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6)

@@ -128,8 +128,12 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Updated auth-provider.ts and index.ts to reference firebase-auth.ts
   - ✅ Fixed TypeScript and ESLint errors
   - ✅ Updated environment variables in .env files
+- ⚠️ Module resolution error in test scripts
+  - ⚠️ Error: "Cannot find module '/app/services/storage/firebase-storage'"
+  - ⚠️ Need to fix import paths in test scripts
 
 ### Next Steps
+- ⏳ Fix module resolution in test scripts
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
 - ⏳ Set up Cloud Storage buckets and migrate files
 - ⏳ Implement Google Workspace email integration

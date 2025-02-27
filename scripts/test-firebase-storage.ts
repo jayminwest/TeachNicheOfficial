@@ -9,7 +9,7 @@
  * Usage: npx ts-node scripts/test-firebase-storage.ts
  */
 
-import { FirebaseStorage } from '../app/services/storage/firebase-storage';
+import { FirebaseStorage } from '../app/services/storage/firebase-storage.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

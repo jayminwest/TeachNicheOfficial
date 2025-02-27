@@ -175,6 +175,10 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created test script for email service
   - ✅ Enabled Gmail API in Google Cloud Console
   - ✅ Successfully tested email service with test-email-service.ts
+- ⚠️ Database schema mismatch
+  - ⚠️ Error in seed-test-data.ts: "column 'username' of relation 'profiles' does not exist"
+  - ⚠️ Need to update seed script to match actual database schema
+  - ⚠️ Need to verify database schema against application expectations
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
@@ -200,6 +204,7 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Updated CloudSqlDatabase to use ESM-compatible imports
   - ✅ Verified database setup with verify-migration.ts
   - ✅ Successfully tested database service with test-database-service.ts
+  - ⚠️ Fix seed-test-data.ts script to match actual database schema
 - ✅ Set up Cloud Storage buckets and migrate files
   - ✅ Created migration script (scripts/migrate-storage.ts)
   - ✅ Fixed Firebase configuration in storage migration script
@@ -239,6 +244,8 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Successfully ran setup scripts to create and initialize database
   - ✅ Verified database setup with verify-migration.ts
   - ✅ All tables created successfully and verified
+  - ⚠️ Schema mismatch detected in seed-test-data.ts script
+  - ⚠️ Need to update seed script to match actual database schema
 - ⏳ Update database client code to use GCP libraries
   - ✅ Created CloudSqlDatabase implementation
   - ✅ Fixed ESM import issues with pg module

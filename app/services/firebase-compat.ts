@@ -1,63 +1,51 @@
 /**
- * Firebase Service (Supabase Compatibility Layer)
+ * Firebase Compatibility Layer
  * 
- * This file provides Firebase services with a Supabase-compatible interface
- * to minimize changes needed throughout the codebase.
+ * This module provides a compatibility layer for code that was previously using Supabase.
+ * It implements similar interfaces and methods but uses Firebase under the hood.
  */
 
-import { getAuth } from 'firebase/auth';
-import { 
-  getFirestore, 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  limit, 
-  orderBy 
-} from 'firebase/firestore';
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL, 
-  deleteObject 
-} from 'firebase/storage';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { app } from '@/app/lib/firebase';
 
 // Initialize Firebase services
-const auth = getAuth(app);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
+const auth = getAuth(app);
 
 // Create a compatibility layer that mimics Supabase client structure
-const firebaseClient = {
+export const firebaseClient = {
+  // Auth compatibility
   auth: {
-    getSession: async () => {
+    signIn: async ({ email, password }: { email: string; password: string }) => {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return { data: { user: userCredential.user }, error: null };
+      } catch (error) {
+        return { data: { user: null }, error };
+      }
+    },
+    signUp: async ({ email, password }: { email: string; password: string }) => {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        return { data: { user: userCredential.user }, error: null };
+      } catch (error) {
+        return { data: { user: null }, error };
+      }
+    },
+    signOut: async () => {
+      try {
+        await signOut(auth);
+        return { error: null };
+      } catch (error) {
+        return { error };
+      }
+    },
+    getUser: () => {
       const user = auth.currentUser;
-      return { 
-        data: { 
-          session: user ? { 
-            user: {
-              id: user.uid,
-              email: user.email,
-              user_metadata: {
-                full_name: user.displayName || '',
-                avatar_url: user.photoURL || ''
-              },
-              app_metadata: {
-                provider: 'firebase',
-                providers: ['firebase']
-              }
-            } 
-          } : null 
-        }, 
-        error: null 
-      };
+      return { data: { user }, error: null };
     }
   },
   
@@ -212,8 +200,10 @@ const firebaseClient = {
   }
 };
 
-// Export the Firebase client as if it were Supabase
-export const supabase = firebaseClient;
+// Export a function to get the Firebase compatibility client
+export function getFirebaseCompat() {
+  return firebaseClient;
+}
 
-// For backward compatibility
+// Default export for backward compatibility
 export default firebaseClient;

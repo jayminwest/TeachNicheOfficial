@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { app } from '@/app/lib/firebase'
 import authService from './auth-provider'
 
 interface AuthContextType {
@@ -17,6 +19,9 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isCreator: () => false,
 })
+
+// Initialize Firebase Auth
+const auth = getAuth(app);
 
 export function AuthProvider({ 
   children, 

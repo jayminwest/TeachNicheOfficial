@@ -18,7 +18,7 @@ const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'teachnicheofficial',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'teachnicheofficial.appspot.com',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'teachnicheofficial.firebasestorage.app',
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
@@ -71,11 +71,6 @@ class FirebaseStorage {
       const fileData = file;
       
       console.log(`Attempting to upload file to path: ${path}`);
-      
-      // Upload the file with metadata
-      const metadata = {
-        contentType: 'text/plain',
-      };
       
       const snapshot = await uploadBytes(storageRef, fileData, metadata);
       console.log('Upload successful, snapshot:', snapshot.ref.fullPath);

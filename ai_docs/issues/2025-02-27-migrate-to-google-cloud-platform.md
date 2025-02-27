@@ -142,10 +142,12 @@ We will migrate to a GCP-based infrastructure:
 - Test the abstraction layers with GCP backends
 
 ### Database Migration
-- Export schema from Supabase
-- Create equivalent schema in Cloud SQL using gcloud CLI where possible
-- Update database client code to use GCP libraries
-- Implement proper connection pooling and error handling
+- ✅ Export schema from Supabase
+- ✅ Create script to generate equivalent schema in Cloud SQL
+- ✅ Create script to migrate data from Supabase to Cloud SQL
+- ⏳ Execute database migration
+- ⏳ Update database client code to use GCP libraries
+- ⏳ Implement proper connection pooling and error handling
 
 ### Authentication Changes
 - ✅ Replace Supabase Auth with Firebase Authentication

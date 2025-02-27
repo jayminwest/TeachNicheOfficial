@@ -38,7 +38,7 @@ jest.mock('../../components/payout-history', () => ({
 // Mock Next.js Link component
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: any }) => (
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => (
     <a href={href} {...props}>{children}</a>
   ),
 }));

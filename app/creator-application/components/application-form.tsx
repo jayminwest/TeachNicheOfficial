@@ -139,7 +139,7 @@ export function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  Share your passion and explain why you'd be a great addition to our creator community.
+                  Share your passion and explain why you&apos;d be a great addition to our creator community.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

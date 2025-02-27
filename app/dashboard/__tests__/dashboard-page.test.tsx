@@ -33,7 +33,7 @@ jest.mock('../components/earnings-widget', () => ({
 }));
 
 jest.mock('../../components/ui/earnings-link', () => ({
-  EarningsLink: ({ variant, ...props }: { variant?: string; [key: string]: any }) => (
+  EarningsLink: ({ variant, ...props }: { variant?: string; [key: string]: unknown }) => (
     <a href="/dashboard/earnings" data-testid={props['data-testid'] || 'earnings-link'} data-variant={variant}>
       {variant === 'minimal' ? 'Earnings' : 'View detailed earnings & payouts'}
     </a>

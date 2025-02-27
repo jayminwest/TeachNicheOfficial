@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/services/supabase";
 import { Toaster } from "@/app/components/ui/toaster";
+import { formatPrice } from "@/app/lib/constants";
 
 interface LessonDetailProps {
   id: string;
@@ -149,7 +150,7 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
                     {lesson.price === 0 ? (
                       <span className="text-green-600">Free</span>
                     ) : (
-                      <span>${lesson.price.toFixed(2)}</span>
+                      <span>{formatPrice(lesson.price)}</span>
                     )}
                   </div>
                 </div>

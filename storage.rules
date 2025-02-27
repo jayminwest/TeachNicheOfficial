@@ -7,27 +7,32 @@ service firebase.storage {
     }
     
     // Profile images
-    match /profiles/{userId}/avatar.{extension} {
+    match /profiles/{userId}/avatar {
       allow read: if true; // Public profile images
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
     // Lesson thumbnails
-    match /lessons/{lessonId}/thumbnail.{extension} {
+    match /lessons/{lessonId}/thumbnail {
       allow read: if true; // Public thumbnails
-      allow write: if request.auth != null && request.resource.metadata.creatorId == request.auth.uid;
+      allow write: if request.auth != null;
     }
     
     // Lesson videos (protected)
-    match /lessons/{lessonId}/video.{extension} {
+    match /lessons/{lessonId}/video {
       allow read: if request.auth != null; // Only authenticated users
-      allow write: if request.auth != null && request.resource.metadata.creatorId == request.auth.uid;
+      allow write: if request.auth != null;
     }
     
     // Temporary uploads
     match /uploads/{userId}/{fileName} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Test files (for development only)
+    match /test/{allTestFiles=**} {
+      allow read, write: if true;
     }
   }
 }

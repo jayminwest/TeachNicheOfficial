@@ -70,6 +70,33 @@ async function seedTestData() {
     // Begin transaction
     await client.query('BEGIN');
     
+    // Check if auth schema exists
+    const schemaCheckResult = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.schemata 
+        WHERE schema_name = 'auth'
+      );
+    `);
+    
+    if (!schemaCheckResult.rows[0].exists) {
+      console.log('Auth schema does not exist. Creating it...');
+      await client.query(`CREATE SCHEMA IF NOT EXISTS auth;`);
+      
+      // Create users table in auth schema
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS auth.users (
+          id UUID PRIMARY KEY,
+          email TEXT UNIQUE NOT NULL,
+          encrypted_password TEXT,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          raw_app_meta_data JSONB,
+          raw_user_meta_data JSONB
+        );
+      `);
+      console.log('Created auth schema and users table');
+    }
+    
     // Insert test users
     console.log('Inserting test users...');
     for (const user of testUsers) {

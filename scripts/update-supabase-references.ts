@@ -289,9 +289,9 @@ async function main() {
   );
   console.log(`Migration plans saved to ${migrationPlanPath}`);
   
-  // Apply automated replacements (dry run by default)
-  console.log('\nPerforming dry run of automated replacements...');
-  const dryRun = true; // Set to false to actually apply changes
+  // Apply automated replacements
+  console.log('\nApplying automated replacements...');
+  const dryRun = false; // Set to false to actually apply changes
   let totalChanges = 0;
   
   for (const file of files) {

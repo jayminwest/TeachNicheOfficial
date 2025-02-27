@@ -54,11 +54,13 @@ We will migrate to a GCP-based infrastructure:
 - [x] Create development environment in GCP
 
 ### Phase 2: Core Services Migration
-- [ ] Migrate database schema to Cloud SQL
+- [x] Migrate database schema to Cloud SQL (script created)
 - [x] Set up Firebase project and Firestore database
 - [x] Implement Firebase Authentication
 - [ ] Update API routes to use GCP services
-- [ ] Migrate file storage to Cloud Storage
+- [x] Implement Firebase Storage service
+- [x] Create script to migrate files to Firebase Storage
+- [ ] Execute file migration
 - [ ] Remove Supabase dependencies and references
 
 ### Phase 3: Email and Advanced Services
@@ -156,10 +158,14 @@ We will migrate to a GCP-based infrastructure:
 - ✅ Ensure secure role-based access control
 
 ### Storage Migration
-- Move files from Supabase Storage to Cloud Storage
-- Update file upload/download logic
-- Implement proper access controls and signed URLs
-- Optimize for performance and cost
+- ✅ Create Firebase Storage implementation
+- ✅ Deploy Firebase Storage security rules
+- ✅ Create script to migrate files from Supabase to Firebase Storage
+- ⏳ Execute file migration
+- ✅ Update file upload/download logic
+- ✅ Implement proper access controls and signed URLs
+- ✅ Create test script for Firebase Storage
+- ⏳ Optimize for performance and cost
 
 ### Email Integration
 - Set up Google Workspace API credentials

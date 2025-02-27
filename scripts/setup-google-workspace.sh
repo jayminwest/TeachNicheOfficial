@@ -83,7 +83,23 @@ echo "Extracted authorization code: $AUTH_CODE"
 echo "Exchanging code for tokens..."
 TOKENS=$(curl -s -d "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&code=$AUTH_CODE&redirect_uri=http://localhost:3000/api/auth/callback/google&grant_type=authorization_code" https://oauth2.googleapis.com/token)
 echo "Token response: $TOKENS"
-REFRESH_TOKEN=$(echo $TOKENS | grep -o '"refresh_token":"[^"]*' | cut -d'"' -f4)
+
+# Extract refresh token using a more reliable method
+REFRESH_TOKEN=$(echo "$TOKENS" | grep -o '"refresh_token":"[^"]*"' | sed 's/"refresh_token":"//g' | sed 's/"//g')
+
+# If that fails, try an alternative method
+if [ -z "$REFRESH_TOKEN" ]; then
+    echo "Trying alternative extraction method..."
+    REFRESH_TOKEN=$(echo "$TOKENS" | python3 -c "import sys, json; print(json.load(sys.stdin).get('refresh_token', ''))" 2>/dev/null)
+fi
+
+# If Python is not available, try with Node.js
+if [ -z "$REFRESH_TOKEN" ] && command -v node &> /dev/null; then
+    echo "Trying Node.js extraction method..."
+    REFRESH_TOKEN=$(echo "$TOKENS" | node -e "const data = JSON.parse(process.stdin.read()); console.log(data.refresh_token || '');" 2>/dev/null)
+fi
+
+echo "Extracted refresh token: $REFRESH_TOKEN"
 
 if [ -z "$REFRESH_TOKEN" ]; then
     echo "Error: Failed to get refresh token. Please try again."

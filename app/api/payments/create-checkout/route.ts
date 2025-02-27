@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
+import { calculateFees } from '@/app/lib/constants';
 import Stripe from 'stripe';
 import { z } from 'zod';
 
@@ -93,6 +94,33 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Verify the price matches the lesson's actual price
+    const { data: lessonPrice } = await supabase
+      .from('lessons')
+      .select('price')
+      .eq('id', lessonId)
+      .single();
+      
+    if (!lessonPrice) {
+      return NextResponse.json(
+        { error: 'Failed to verify lesson price' },
+        { status: 500 }
+      );
+    }
+    
+    // Calculate expected total price with fees
+    const { totalBuyerCost: expectedPrice } = calculateFees(lessonPrice.price);
+    const expectedPriceInCents = Math.round(expectedPrice * 100);
+    
+    // Validate the price (allow small rounding differences)
+    if (Math.abs(price - expectedPriceInCents) > 1) {
+      console.error(`Price mismatch: received ${price}, expected ${expectedPriceInCents}`);
+      return NextResponse.json(
+        { error: 'Invalid price' },
+        { status: 400 }
+      );
+    }
+    
     // Calculate fees
     const priceInCents = Math.round(price * 100); // Convert to cents
     const platformFee = Math.round(priceInCents * (stripeConfig.platformFeePercent / 100));
@@ -134,7 +162,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
@@ -165,14 +193,14 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('purchases')
       .update({
-        stripe_session_id: session.id,
-        payment_intent_id: session.payment_intent as string,
+        stripe_session_id: checkoutSession.id,
+        payment_intent_id: checkoutSession.payment_intent as string,
       })
       .eq('id', purchase.id);
     
     return NextResponse.json({
-      url: session.url,
-      sessionId: session.id,
+      url: checkoutSession.url,
+      sessionId: checkoutSession.id,
     });
   } catch (error) {
     console.error('Checkout creation error:', error);

@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
-import Link from "next/link"
 import DashboardHeader from "./components/dashboard-header"
+import { EarningsLink } from "../components/ui/earnings-link"
 import ActivityFeed from "./components/activity-feed"
 import PerformanceMetrics from "./components/performance-metrics"
 import LessonsGrid from "./components/lessons-grid"
@@ -25,12 +25,7 @@ export default function DashboardPage() {
             <div>
               <EarningsWidget />
               <div className="mt-2 text-center">
-                <Link 
-                  href="/dashboard/earnings" 
-                  className="text-sm text-primary hover:underline"
-                >
-                  View detailed earnings & payouts
-                </Link>
+                <EarningsLink variant="dashboard" data-testid="earnings-dashboard-link" />
               </div>
             </div>
             <ActivityFeed />

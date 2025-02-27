@@ -1,5 +1,7 @@
+import { EnhancedSupabaseClient } from '@/app/lib/types/supabase-rpc';
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 import { getStripe, stripeConfig } from './stripe';
+import Stripe from 'stripe';
 
 export interface PayoutResult {
   success: boolean;
@@ -40,7 +42,8 @@ export const processCreatorPayout = async (
     }
 
     // Create a payout using Stripe
-    const payout = await getStripe().payouts.create({
+    const stripe = getStripe();
+    const payout = await (stripe as Stripe).payouts.create({
       amount,
       currency: stripeConfig.defaultCurrency,
       destination: bankInfo.bank_account_token,
@@ -56,7 +59,7 @@ export const processCreatorPayout = async (
       .insert({
         creator_id: creatorId,
         amount,
-        status: payout.status,
+        status: payout.status as 'pending' | 'paid' | 'failed' | 'canceled',
         payout_id: payout.id,
         destination_last_four: bankInfo.last_four
       });
@@ -90,7 +93,7 @@ export const processCreatorPayout = async (
  * @returns Array of payout results
  */
 export const processAllEligiblePayouts = async (
-  supabaseClient: TypedSupabaseClient
+  supabaseClient: EnhancedSupabaseClient
 ): Promise<PayoutResult[]> => {
   const results: PayoutResult[] = [];
   
@@ -99,16 +102,23 @@ export const processAllEligiblePayouts = async (
     const { data: eligibleCreators, error } = await supabaseClient.rpc(
       'get_creators_eligible_for_payout',
       { minimum_amount: stripeConfig.minimumPayoutAmount }
-    );
+    ) as {
+      data: Array<{
+        creator_id: string;
+        pending_amount: number;
+      }> | null;
+      error: Error | null;
+    };
     
     if (error) throw error;
     
     // Process payouts for each eligible creator
-    for (const creator of eligibleCreators) {
+    for (const creator of (eligibleCreators || [])) {
+      // Cast to TypedSupabaseClient since processCreatorPayout expects that type
       const result = await processCreatorPayout(
         creator.creator_id,
         creator.pending_amount,
-        supabaseClient
+        supabaseClient as unknown as TypedSupabaseClient
       );
       
       results.push(result);

@@ -4,7 +4,6 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
-import { calculateCreatorEarnings } from '@/app/services/earnings';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: stripeConfig.apiVersion

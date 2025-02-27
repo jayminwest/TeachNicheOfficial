@@ -368,6 +368,20 @@ export function VideoUploader({
     return <div>Loading upload URL...</div>;
   }
 
+  const handleRetry = async () => {
+    setStatus('idle');
+    setProgress(0);
+    setErrorMessage('');
+    
+    // Re-fetch the upload URL
+    try {
+      const {url} = await getUploadUrl();
+      setUploadEndpoint(url);
+    } catch (error) {
+      handleError(error instanceof Error ? error : new Error('Failed to get upload URL'));
+    }
+  };
+
   return (
     <div className={cn("relative space-y-4", className)}>
       <MuxUploader
@@ -406,6 +420,17 @@ export function VideoUploader({
           {status === 'ready' && 'Upload complete!'}
           {status === 'error' && (errorMessage || 'Upload failed. Please try again.')}
         </p>
+        
+        {status === 'error' && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRetry}
+            className="ml-2"
+          >
+            Retry
+          </Button>
+        )}
       </div>
 
       <p className="text-xs text-muted-foreground">

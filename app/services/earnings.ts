@@ -1,3 +1,4 @@
+import { EnhancedSupabaseClient } from '@/app/lib/types/supabase-rpc';
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 import { formatCurrency } from '@/app/lib/utils';
 import { stripeConfig } from '@/app/services/stripe';
@@ -298,7 +299,7 @@ export const getPayoutHistory = async (
  * @returns Results of payout processing
  */
 export const processScheduledPayouts = async (
-  supabaseClient: TypedSupabaseClient
+  supabaseClient: EnhancedSupabaseClient
 ) => {
   const results = {
     processed: 0,
@@ -312,7 +313,13 @@ export const processScheduledPayouts = async (
     const { data: eligibleCreators, error } = await supabaseClient.rpc(
       'get_creators_eligible_for_payout',
       { minimum_amount: stripeConfig.minimumPayoutAmount }
-    );
+    ) as {
+      data: Array<{
+        creator_id: string;
+        pending_amount: number;
+      }> | null;
+      error: Error | null;
+    };
 
     if (error) {
       console.error('Failed to fetch eligible creators:', error);
@@ -320,7 +327,7 @@ export const processScheduledPayouts = async (
     }
 
     // Process payouts for each eligible creator
-    for (const creator of eligibleCreators) {
+    for (const creator of (eligibleCreators || [])) {
       try {
         // Import dynamically to avoid circular dependencies
         const { processCreatorPayout } = await import('./payouts');

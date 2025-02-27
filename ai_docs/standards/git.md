@@ -258,3 +258,269 @@ git push origin dev
 - Check commit history
 - Use PR templates
 - Ask for help when needed
+# Git Standards
+
+This document outlines the Git workflow and standards for the Teach Niche platform, with an emphasis on our Test Driven Development (TDD) approach.
+
+## Branch Strategy
+
+### Main Branches
+
+- **main**: Production-ready code
+- **dev**: Integration branch for development work
+- **staging**: Pre-production testing branch
+
+### Feature Branches
+
+All development work should be done in feature branches:
+
+- **feature/[feature-name]**: For new features
+- **fix/[issue-description]**: For bug fixes
+- **refactor/[component-name]**: For code refactoring
+- **docs/[document-name]**: For documentation updates
+- **test/[test-description]**: For adding or updating tests
+
+## Commit Standards
+
+### Commit Message Format
+
+Follow the Conventional Commits specification:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation changes
+- **style**: Changes that do not affect code functionality (formatting, etc.)
+- **refactor**: Code changes that neither fix bugs nor add features
+- **test**: Adding or modifying tests
+- **chore**: Changes to build process or auxiliary tools
+- **perf**: Performance improvements
+
+### TDD-Specific Commit Types
+
+- **test**: Initial test implementation (Red phase)
+- **feat** or **fix**: Implementation to make tests pass (Green phase)
+- **refactor**: Code improvements while maintaining passing tests (Refactor phase)
+
+### Examples
+
+```
+feat(auth): add two-factor authentication
+
+test(payment): add tests for Stripe payment processing
+
+fix(video): resolve playback issue on Safari browsers
+
+refactor(dashboard): improve performance of analytics charts
+
+docs(api): update API documentation with new endpoints
+```
+
+## Pull Request Process
+
+### Creating Pull Requests
+
+1. Create a feature branch from dev:
+   ```bash
+   git checkout dev
+   git pull
+   git checkout -b feature/your-feature-name
+   ```
+
+2. Develop using TDD approach:
+   - Write tests first
+   - Implement code to make tests pass
+   - Refactor as needed
+
+3. Commit changes following commit standards
+
+4. Push branch to remote:
+   ```bash
+   git push -u origin feature/your-feature-name
+   ```
+
+5. Create a pull request to the dev branch
+
+### Pull Request Requirements
+
+All pull requests must:
+
+1. Follow the TDD approach with tests written before implementation
+2. Include appropriate tests for the changes
+3. Pass all automated tests
+4. Meet code quality standards
+5. Be reviewed by at least one team member
+6. Have no merge conflicts with the target branch
+
+### Pull Request Template
+
+```markdown
+## Description
+[Describe the changes made in this PR]
+
+## Type of Change
+- [ ] New feature (non-breaking change adding functionality)
+- [ ] Bug fix (non-breaking change fixing an issue)
+- [ ] Breaking change (fix or feature causing existing functionality to change)
+- [ ] Refactor (code improvements without changing functionality)
+- [ ] Documentation update
+
+## Test Driven Development
+- [ ] Tests were written before implementation
+- [ ] All tests pass locally
+- [ ] New tests cover the changes appropriately
+- [ ] Includes tests for third-party API integrations (if applicable)
+
+## How Has This Been Tested?
+[Describe the testing process]
+
+## Checklist
+- [ ] My code follows the project's style guidelines
+- [ ] I have performed a self-review of my code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or my feature works
+- [ ] New and existing unit tests pass locally with my changes
+```
+
+## Code Review Standards
+
+### Review Checklist
+
+- Verify tests were written before implementation (TDD approach)
+- Ensure all tests pass
+- Check code quality and adherence to project standards
+- Verify proper error handling
+- Check for security vulnerabilities
+- Ensure documentation is updated
+- Verify third-party API integrations are properly tested
+
+### Review Comments
+
+- Be specific and clear
+- Provide constructive feedback
+- Reference relevant documentation or standards
+- Suggest alternatives when appropriate
+- Use a respectful tone
+
+## Git Workflow Examples
+
+### TDD Workflow Example
+
+```bash
+# Start a new feature
+git checkout dev
+git pull
+git checkout -b feature/user-profile
+
+# Write tests first (Red phase)
+# Create tests for user profile functionality
+git add .
+git commit -m "test(profile): add tests for user profile component"
+
+# Implement the feature (Green phase)
+# Write code to make the tests pass
+git add .
+git commit -m "feat(profile): implement user profile component"
+
+# Refactor the code (Refactor phase)
+# Improve the implementation while keeping tests passing
+git add .
+git commit -m "refactor(profile): optimize profile data loading"
+
+# Add tests for third-party integration
+git add .
+git commit -m "test(profile): add tests for Supabase profile data integration"
+
+# Implement third-party integration
+git add .
+git commit -m "feat(profile): integrate with Supabase for profile data"
+
+# Push changes and create PR
+git push -u origin feature/user-profile
+```
+
+### Bug Fix Workflow Example
+
+```bash
+# Start a bug fix
+git checkout dev
+git pull
+git checkout -b fix/payment-error
+
+# Write tests that reproduce the bug (Red phase)
+git add .
+git commit -m "test(payment): add test reproducing payment processing error"
+
+# Fix the bug (Green phase)
+git add .
+git commit -m "fix(payment): resolve payment processing error"
+
+# Refactor if needed (Refactor phase)
+git add .
+git commit -m "refactor(payment): improve error handling in payment process"
+
+# Push changes and create PR
+git push -u origin fix/payment-error
+```
+
+## Handling Merge Conflicts
+
+1. Pull the latest changes from the target branch:
+   ```bash
+   git checkout dev
+   git pull
+   git checkout your-feature-branch
+   git merge dev
+   ```
+
+2. Resolve conflicts:
+   - Identify conflicting files
+   - Edit files to resolve conflicts
+   - Run tests to ensure functionality is preserved
+   - Commit the resolved conflicts
+
+3. Push the resolved branch:
+   ```bash
+   git push
+   ```
+
+## Git Best Practices
+
+1. **Commit Early and Often**: Make small, focused commits
+2. **Write Meaningful Commit Messages**: Follow the commit message format
+3. **Keep Branches Updated**: Regularly merge from the parent branch
+4. **Delete Merged Branches**: Clean up after merging
+5. **Use Pull Requests**: Never commit directly to main branches
+6. **Write Tests First**: Follow the TDD approach
+7. **Verify Tests Pass**: Ensure all tests pass before pushing
+8. **Review Code**: All code should be reviewed before merging
+
+## Git Hooks
+
+We use Git hooks to enforce standards:
+
+- **pre-commit**: Runs linting and formatting
+- **pre-push**: Runs tests to ensure they pass before pushing
+- **commit-msg**: Validates commit message format
+
+## Version History
+
+| Version | Date | Author | Description |
+|---------|------|--------|-------------|
+| 1.0 | 2025-02-24 | Development Team | Initial version |
+| 1.1 | 2025-02-26 | Documentation Team | Updated to emphasize TDD approach |
+
+---
+
+*This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*

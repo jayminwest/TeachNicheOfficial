@@ -31,16 +31,27 @@ export function VideoPlayer({
       // Get signed JWT from your backend
       fetch('/api/video/sign-playback', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ playbackId })
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch playback token: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        if (isMounted) {
+        if (isMounted && data.token) {
           setJwt(data.token);
+        } else if (isMounted) {
+          console.error('Invalid token response:', data);
         }
       })
       .catch(error => {
         console.error('Error fetching playback token:', error);
+        // We could add a state for error handling here
       });
     }
     

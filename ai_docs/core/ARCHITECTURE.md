@@ -60,13 +60,15 @@ This document provides a high-level overview of the Teach Niche platform archite
 - **Data Protection**: Encryption at rest and in transit
 - **API Security**: Rate limiting, input validation, CSRF protection
 - **Monitoring**: Anomaly detection and alerting
-- **End-to-End Testing**: Comprehensive testing of security flows with Playwright
+- **End-to-End Testing**: Comprehensive testing of security flows with Playwright, including tests that verify correct integration with third-party authentication and payment services
 
 ## Testing Architecture
 
+- **Test Driven Development (TDD)**: All features and components must have tests written before implementation
 - **Unit Testing**: Component and function level tests
 - **Integration Testing**: Testing interactions between components
 - **End-to-End Testing**: Playwright tests for complete user journeys
+- **Third-Party API Testing**: Tests that interact with actual third-party services (Stripe, Supabase, etc.)
 - **Visual Regression**: Screenshot comparison for UI consistency
 - **API Testing**: Validation of API contracts and behaviors
 

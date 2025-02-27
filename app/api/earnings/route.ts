@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 export async function GET() {
   try {
@@ -46,7 +45,7 @@ export async function GET() {
       amount: earning.amount,
       status: earning.status,
       created_at: earning.created_at,
-      lesson_title: earning.lessons?.title || 'Unknown lesson'
+      lesson_title: earning.lessons?.[0]?.title || 'Unknown lesson'
     }));
     
     return NextResponse.json({ earnings: formattedEarnings });

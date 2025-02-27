@@ -8,7 +8,7 @@ Our development approach emphasizes:
 - **Modularity**: Each component and service has a single, well-defined responsibility
 - **Minimalism**: Keep dependencies minimal, code simple, and interfaces clean
 - **Type Safety**: Leverage TypeScript for robust, maintainable code
-- **Testing First**: Write tests before implementing features
+- **Test Driven Development (TDD)**: Write tests before implementing any features or components
 
 ## Development Environment Setup
 
@@ -59,10 +59,12 @@ npm run dev
 - Ensure accessibility (WCAG compliance)
 
 ### Testing
-- Write tests before implementing features
+- Follow strict Test Driven Development (TDD) principles
+- Write tests before implementing any features or components
 - Place tests in `__tests__` directories
 - Maintain 80% coverage minimum
 - Use provided testing utilities
+- Include end-to-end tests with Playwright that test actual third-party API integrations (Stripe, Supabase, etc.)
 
 ### Data Management
 - Initialize Supabase client in dedicated file
@@ -256,7 +258,12 @@ npx playwright test e2e-tests/lesson-purchase.spec.ts
 
 # Run Playwright tests with UI mode
 npx playwright test --ui
+
+# Run integration tests that use actual third-party APIs
+npm run test:integration
 ```
+
+Remember: Always write tests before implementing features (TDD). Start with basic e2e tests and progressively add tests that integrate with actual third-party APIs like Stripe and Supabase to verify correct implementation.
 
 ### Working with Payments
 

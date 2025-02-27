@@ -170,10 +170,10 @@ export default function AboutPage() {
                 <AccordionTrigger>Codebase Access</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-4 pt-2">
-                    <p>Since Teach Niche handles financial transactions and user data, we've made the decision to keep our codebase closed for security reasons.</p>
+                    <p>Since Teach Niche handles financial transactions and user data, we&apos;ve made the decision to keep our codebase closed for security reasons.</p>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li><span className="font-semibold">Security First:</span> Protecting our users' financial information and personal data is our top priority.</li>
-                      <li><span className="font-semibold">Available Upon Request:</span> We're happy to share portions of our codebase with interested developers upon request and after proper vetting.</li>
+                      <li><span className="font-semibold">Security First:</span> Protecting our users&apos; financial information and personal data is our top priority.</li>
+                      <li><span className="font-semibold">Available Upon Request:</span> We&apos;re happy to share portions of our codebase with interested developers upon request and after proper vetting.</li>
                       <li><span className="font-semibold">Transparency:</span> While the code itself is private, we maintain transparency about our business practices, commission structure, and how the platform operates.</li>
                     </ul>
                     <p>This approach allows us to maintain the highest security standards while still being open to collaboration with trusted partners and community members.</p>
@@ -202,7 +202,23 @@ export default function AboutPage() {
                     </ul>
                     
                     <h4 className="font-semibold mt-4 mb-2">Getting Started as a Creator</h4>
-                    <p>As a creator, you don't need to set up your own payment processing. Teach Niche handles all payment collection as the merchant of record, and we'll send your earnings directly to your bank account based on our payout schedule.</p>
+                    <p>As a creator, you don&apos;t need to set up your own payment processing. Teach Niche handles all payment collection as the merchant of record, and we&apos;ll send your earnings directly to your bank account based on our payout schedule.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="global">
+                <AccordionTrigger>Global Accessibility</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche is committed to making kendama education accessible worldwide.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Multiple Languages:</span> We&apos;re working to translate our platform into several languages to serve the global kendama community.</li>
+                      <li><span className="font-semibold">Global Payment Options:</span> We&apos;re expanding our payment options to support various currencies and regional payment methods.</li>
+                      <li><span className="font-semibold">Accessible Design:</span> Our platform is built to be accessible to users with different abilities, following WCAG guidelines.</li>
+                      <li><span className="font-semibold">Low-Bandwidth Support:</span> We optimize our content to work well even with limited internet connectivity.</li>
+                    </ul>
+                    <p>We believe kendama is a global community, and we&apos;re committed to breaking down barriers to participation. Our goal is to connect kendama players worldwide, regardless of language, location, or technical constraints.</p>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -212,7 +228,7 @@ export default function AboutPage() {
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Join Our Community</h2>
             <p className="text-lg max-w-2xl mx-auto">
-              Whether you&rsquo;re here to teach or learn, Teach Niche provides the tools and support
+              Whether you&apos;re here to teach or learn, Teach Niche provides the tools and support
               you need to succeed. Join our growing community of educators and learners today.
             </p>
           </section>

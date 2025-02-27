@@ -83,7 +83,7 @@ export default function PayoutHistory() {
   const totalPayouts = payouts.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="payout-history">
       <div className="bg-muted/50 p-4 rounded-lg">
         <p className="text-sm text-muted-foreground">Total Paid Out</p>
         <p className="text-2xl font-bold">{formatCurrency(totalPayouts / 100)}</p>

@@ -38,8 +38,15 @@ export function ProfileForm() {
   const { user } = useAuth()
   const router = useRouter()
 
+  // Define a type that matches the structure we need to check
+  type UserWithCreatorStatus = {
+    metadata?: { is_creator?: boolean };
+    app_metadata?: { is_creator?: boolean };
+    is_creator?: boolean;
+  };
+
   // Function to check if user is a creator
-  function isCreator(user: any) {
+  function isCreator(user: UserWithCreatorStatus | null) {
     return user?.metadata?.is_creator === true || 
            user?.app_metadata?.is_creator === true || 
            user?.is_creator === true;

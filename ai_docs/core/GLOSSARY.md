@@ -122,6 +122,9 @@ The extent to which a programming language prevents type errors. In TypeScript, 
 ### Transaction
 A financial exchange between users and the platform or between users.
 
+### Google Cloud Platform (GCP)
+A suite of cloud computing services that provides database, authentication, storage, and other infrastructure services.
+
 ### Two-Factor Authentication (2FA)
 An additional security layer requiring users to provide two forms of identification.
 

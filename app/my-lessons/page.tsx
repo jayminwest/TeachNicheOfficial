@@ -42,7 +42,7 @@ export default function MyLessonsPage() {
         setIsLoading(true);
         
         // Check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await firebaseAuth.getSession();
         
         if (!session) {
           console.log('No session found, redirecting to login');

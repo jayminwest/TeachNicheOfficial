@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const supabase = createRouteHandlerClient<Database>({ cookies })
 
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { session } } = await firebaseAuth.getSession()
 
     if (!session?.user) {
       return NextResponse.json(

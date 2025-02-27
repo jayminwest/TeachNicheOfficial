@@ -77,7 +77,7 @@ Ensure your sign-up component handles email verification:
 // Example code for sign-up with email
 const signUpWithEmail = async (email: string, password: string) => {
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await firebaseAuth.signUp({
       email,
       password,
     });
@@ -102,7 +102,7 @@ Add password reset functionality:
 // Example code for password reset request
 const requestPasswordReset = async (email: string) => {
   try {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { data, error } = await firebaseAuth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     

@@ -6,7 +6,7 @@ import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
 export async function POST(request: Request) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { session } } = await firebaseAuth.getSession()
 
     if (!session) {
       return NextResponse.json(

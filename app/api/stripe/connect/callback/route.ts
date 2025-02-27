@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const supabase = createRouteHandlerClient({ cookies });
     
     // Get the session from the cookie
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await firebaseAuth.getSession();
     
     if (sessionError || !session) {
       return NextResponse.redirect(

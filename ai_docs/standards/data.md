@@ -97,7 +97,7 @@ async function fetchLessons(page: number) {
 #### Database Errors
 ```typescript
 try {
-  const { data, error } = await supabase.from('lessons').insert(lesson)
+  const { data, error } = await firebaseDb.collection("lessons").insert(lesson)
   if (error) throw error
   return data
 } catch (error) {

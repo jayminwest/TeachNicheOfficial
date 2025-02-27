@@ -9,7 +9,7 @@ import { LessonRequest } from '@/app/lib/schemas/lesson-request'
 import { RequestDialog } from './request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { getFirebaseAuth } from '@supabase/auth-helpers-nextjs'
 
 interface RequestCardProps {
   request: LessonRequest
@@ -22,7 +22,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
   const [hasVoted, setHasVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(request.vote_count)
   const [showAuth, setShowAuth] = useState(false)
-  const supabase = createClientComponentClient()
+  const supabase = getFirebaseAuth()
   const { user } = useAuth();
 
   // Fetch current vote count from Supabase

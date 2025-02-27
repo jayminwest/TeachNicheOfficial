@@ -34,7 +34,7 @@ export default function NewLessonPage() {
         return;
       }
 
-      const session = await supabase.auth.getSession();
+      const session = await firebaseAuth.getSession();
       if (!session.data.session) {
         toast({
           title: "Authentication Required",

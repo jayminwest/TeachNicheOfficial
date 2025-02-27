@@ -26,7 +26,7 @@ const checkoutSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient<Database>({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session) {
       return NextResponse.json(

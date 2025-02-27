@@ -13,7 +13,7 @@ async function getAuthenticatedUser(request: Request) {
   // First try cookie-based session
   const {
     data: { session }
-  } = await supabase.auth.getSession();
+  } = await firebaseAuth.getSession();
 
   if (session?.user) {
     return { user: session.user };
@@ -23,7 +23,7 @@ async function getAuthenticatedUser(request: Request) {
   const authHeader = request.headers.get('Authorization');
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await firebaseAuth.getUser(token);
     
     if (error || !user) {
       return { error: error || new Error('No user found') };

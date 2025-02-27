@@ -80,7 +80,7 @@ async function migrateDatabase() {
     // Check connections
     try {
       // Test Supabase connection
-      const { data, error } = await supabase.from('categories').select('count()', { count: 'exact' });
+      const { data, error } = await firebaseDb.collection("categories").select('count()', { count: 'exact' });
       if (error) throw new Error(`Supabase connection error: ${error.message}`);
       console.log('Supabase connection successful');
       

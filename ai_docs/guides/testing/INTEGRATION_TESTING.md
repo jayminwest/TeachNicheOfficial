@@ -554,7 +554,7 @@ async function createTestUser() {
   const email = `test-${Date.now()}@example.com`;
   const password = 'SecurePassword123!';
   
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await firebaseAuth.signUp({
     email,
     password
   });

@@ -1,11 +1,11 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { getFirebaseAuth } from '@supabase/auth-helpers-nextjs'
 import type { LessonRequest, LessonRequestFormData } from '@/app/lib/schemas/lesson-request'
 import { toast } from '@/app/components/ui/use-toast'
 
 export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Promise<LessonRequest> {
-  const supabase = createClientComponentClient()
+  const supabase = getFirebaseAuth()
   
-  const { data: session } = await supabase.auth.getSession()
+  const { data: session } = await firebaseAuth.getSession()
   if (!session?.session?.user) {
     toast({
       title: "Authentication Required",
@@ -48,7 +48,7 @@ export async function getRequests(filters?: {
   status?: string,
   sortBy?: 'popular' | 'newest'
 }) {
-  const supabase = createClientComponentClient()
+  const supabase = getFirebaseAuth()
   let query = supabase
     .from('lesson_requests')
     .select('*, lesson_request_votes(count)')
@@ -74,9 +74,9 @@ export async function getRequests(filters?: {
 }
 
 export async function updateRequest(id: string, data: Omit<LessonRequestFormData, 'id'>): Promise<LessonRequest> {
-  const supabase = createClientComponentClient()
+  const supabase = getFirebaseAuth()
   
-  const { data: session } = await supabase.auth.getSession()
+  const { data: session } = await firebaseAuth.getSession()
   if (!session?.session?.user) {
     toast({
       title: "Authentication Required",
@@ -127,9 +127,9 @@ export async function updateRequest(id: string, data: Omit<LessonRequestFormData
 }
 
 export async function deleteRequest(id: string): Promise<void> {
-  const supabase = createClientComponentClient()
+  const supabase = getFirebaseAuth()
   
-  const { data: session } = await supabase.auth.getSession()
+  const { data: session } = await firebaseAuth.getSession()
   if (!session?.session?.user) {
     toast({
       title: "Authentication Required",

@@ -213,7 +213,7 @@ async function deleteTestUser(email: string) {
       .single();
       
     if (data?.id) {
-      await supabase.auth.admin.deleteUser(data.id);
+      await firebaseAuth.admin.deleteUser(data.id);
     }
   } catch (error) {
     console.error('Error cleaning up test user:', error);
@@ -252,7 +252,7 @@ test('user can sign up and create profile', async ({ page }) => {
     );
     
     // Confirm user's email
-    await supabase.auth.admin.updateUserById(
+    await firebaseAuth.admin.updateUserById(
       // You would need to retrieve the user ID first
       'user-id',
       { email_confirm: true }

@@ -85,7 +85,7 @@ export function BankAccountForm({
       setIsLoading(true);
       
       // Get the current session
-      const result = await supabase.auth.getSession();
+      const result = await firebaseAuth.getSession();
       if (result.error) {
         throw new Error('Failed to get session');
       }

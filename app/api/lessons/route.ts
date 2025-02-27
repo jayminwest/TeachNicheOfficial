@@ -19,7 +19,7 @@ async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
     const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
       return NextResponse.json(
@@ -143,7 +143,7 @@ async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
     const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
       return NextResponse.json(
@@ -209,7 +209,7 @@ async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
     const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
       return NextResponse.json(

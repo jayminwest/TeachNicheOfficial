@@ -51,7 +51,7 @@ export function PasswordResetRequest({ onSuccess, onCancel }: PasswordResetReque
     setMessage(null)
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      const { error } = await firebaseAuth.resetPasswordForEmail(values.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       })
 
@@ -207,7 +207,7 @@ export function PasswordResetConfirmation() {
     setMessage(null)
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { error } = await firebaseAuth.updateUser({
         password: values.password,
       })
 

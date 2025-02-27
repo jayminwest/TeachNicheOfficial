@@ -383,7 +383,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const supabase = createRouteHandlerClient({ cookies });
-  const session = await supabase.auth.getSession();
+  const session = await firebaseAuth.getSession();
 
   if (!session.data.session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -4559,7 +4559,7 @@ async function fetchLessons(page: number) {
 #### Database Errors
 ```typescript
 try {
-  const { data, error } = await supabase.from('lessons').insert(lesson)
+  const { data, error } = await firebaseDb.collection("lessons").insert(lesson)
   if (error) throw error
   return data
 } catch (error) {
@@ -6063,7 +6063,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Initialize auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = firebaseAuth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
@@ -6117,7 +6117,7 @@ import type { NextRequest } from 'next/server'
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await firebaseAuth.getSession()
 
   if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/signin', req.url))
@@ -6136,7 +6136,7 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const supabase = createServerComponentClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await firebaseAuth.getSession()
 
   if (!session) {
     redirect('/signin')
@@ -6192,7 +6192,7 @@ function RequirePermission({
 ```typescript
 async function handleSignIn(email: string, password: string) {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await firebaseAuth.signInWithPassword({
       email,
       password
     })
@@ -6212,7 +6212,7 @@ async function handleSignIn(email: string, password: string) {
 ```typescript
 async function handleSignUp(email: string, password: string) {
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await firebaseAuth.signUp({
       email,
       password,
       options: {
@@ -6235,7 +6235,7 @@ async function handleSignUp(email: string, password: string) {
 ```typescript
 async function handleSignOut() {
   try {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await firebaseAuth.signOut()
     if (error) throw error
 
     // Handle successful sign out
@@ -6272,13 +6272,13 @@ export const authLimiter = rateLimit({
 ### Session Management
 ```typescript
 // Configure session settings
-supabase.auth.setSession({
+firebaseAuth.setSession({
   access_token,
   refresh_token
 })
 
 // Handle session refresh
-supabase.auth.onAuthStateChange((event, session) => {
+firebaseAuth.onAuthStateChange((event, session) => {
   if (event === 'TOKEN_REFRESHED') {
     // Update session state
   }
@@ -6369,7 +6369,7 @@ const oauthProviders = {
 }
 
 async function signInWithProvider(provider: string) {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await firebaseAuth.signInWithOAuth({
     provider: provider as Provider,
     options: {
       redirectTo: `${location.origin}/auth/callback`

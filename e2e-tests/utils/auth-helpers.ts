@@ -35,7 +35,7 @@ export async function loginAsUser(page: Page, email: string, password: string) {
       };
       
       // Store in localStorage to simulate authenticated state
-      localStorage.setItem('supabase.auth.token', JSON.stringify({
+      localStorage.setItem('firebaseAuth.token', JSON.stringify({
         currentSession: {
           access_token: 'mock-access-token',
           refresh_token: 'mock-refresh-token',

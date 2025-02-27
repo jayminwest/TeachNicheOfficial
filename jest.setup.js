@@ -18,7 +18,7 @@ global.TextDecoder = TextDecoder
 
 // Mock Supabase client
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createClientComponentClient: () => ({
+  getFirebaseAuth: () => ({
     auth: {
       getSession: jest.fn().mockResolvedValue({ 
         data: { 

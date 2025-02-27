@@ -6,7 +6,7 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
 }))
 
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createClientComponentClient: () => ({})
+  getFirebaseAuth: () => ({})
 }))
 
 describe('RequestCard', () => {

@@ -58,7 +58,7 @@ test.describe('Authentication flows', () => {
     
     // Verify we're on the dashboard page or have auth state
     const isAuthenticated = await page.evaluate(() => {
-      return !!localStorage.getItem('supabase.auth.token');
+      return !!localStorage.getItem('firebaseAuth.token');
     });
     
     expect(isAuthenticated).toBeTruthy();
@@ -75,7 +75,7 @@ test.describe('Authentication flows', () => {
     
     // Verify authentication state
     const authData = await page.evaluate(() => {
-      const authToken = localStorage.getItem('supabase.auth.token');
+      const authToken = localStorage.getItem('firebaseAuth.token');
       return authToken ? JSON.parse(authToken) : null;
     });
     
@@ -93,7 +93,7 @@ test.describe('Authentication flows', () => {
       // Override the localStorage.setItem to throw an error when setting auth token
       const originalSetItem = localStorage.setItem;
       localStorage.setItem = function(key, value) {
-        if (key === 'supabase.auth.token') {
+        if (key === 'firebaseAuth.token') {
           throw new Error('Simulated authentication failure');
         }
         return originalSetItem.call(this, key, value);

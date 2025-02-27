@@ -1,7 +1,7 @@
 import { supabase } from '@/app/services/supabase'
 
 export const signInWithEmail = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await firebaseAuth.signInWithPassword({
     email,
     password,
   })
@@ -10,19 +10,19 @@ export const signInWithEmail = async (email: string, password: string) => {
 }
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
+  const { error } = await firebaseAuth.signOut()
   if (error) throw error
 }
 
 export const getCurrentUser = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession()
+  const { data: { session }, error } = await firebaseAuth.getSession()
   if (error) throw error
   return session?.user || null
 }
 
 export const signInWithGoogle = async () => {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await firebaseAuth.signInWithOAuth({
       provider: 'google',
     })
     return { data, error }
@@ -34,7 +34,7 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string) => {
   console.log('Attempting signup with email:', email)
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await firebaseAuth.signUp({
     email,
     password,
     options: {

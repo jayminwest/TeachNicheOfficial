@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const supabase = createRouteHandlerClient({ cookies });
     
     // Get the current user
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session) {
       return NextResponse.json(

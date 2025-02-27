@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    const { data: { session }, error: sessionError } = await firebaseAuth.getSession()
     
     if (sessionError || !session?.user?.id) {
       console.log('API aborting - auth error:', sessionError || 'No user session');

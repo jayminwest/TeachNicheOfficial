@@ -212,7 +212,7 @@ Here's a practical example of our TDD workflow for adding a new feature:
      
      beforeEach(async () => {
        // Login with test user
-       await supabase.auth.signInWithPassword({
+       await firebaseAuth.signInWithPassword({
          email: process.env.TEST_USER_EMAIL!,
          password: process.env.TEST_USER_PASSWORD!
        })
@@ -220,7 +220,7 @@ Here's a practical example of our TDD workflow for adding a new feature:
      
      afterEach(async () => {
        // Clean up test data
-       await supabase.from('lesson_ratings')
+       await firebaseDb.collection("lesson_ratings")
          .delete()
          .eq('lesson_id', 'test-lesson-id')
      })

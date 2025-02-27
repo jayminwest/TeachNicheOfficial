@@ -34,7 +34,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setIsLoading(true);
 
       // Check auth status
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await firebaseAuth.getSession();
       
       if (!session) {
         setError('Please sign in to purchase this lesson');

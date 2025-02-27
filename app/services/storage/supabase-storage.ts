@@ -1,4 +1,4 @@
-import { supabase } from '@/app/lib/supabase';
+import { firebaseAuth, firebaseDb, firebaseStorage } from '@/app/lib/firebase';
 import { StorageService } from './interface';
 
 export class SupabaseStorage implements StorageService {

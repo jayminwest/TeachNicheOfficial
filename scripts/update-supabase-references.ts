@@ -31,7 +31,7 @@ const replacementPatterns = [
     description: 'Replace Supabase import with Firebase import'
   },
   {
-    pattern: /createClientComponentClient/g,
+    pattern: /getFirebaseAuth/g,
     replacement: 'getFirebaseAuth',
     description: 'Replace Supabase client creation with Firebase auth'
   },
@@ -93,8 +93,8 @@ function analyzeFile(filePath) {
       });
     });
     
-    // Check for createClientComponentClient
-    const clientMatches = content.match(/createClientComponentClient/g) || [];
+    // Check for getFirebaseAuth
+    const clientMatches = content.match(/getFirebaseAuth/g) || [];
     clientMatches.forEach(match => {
       references.push({
         type: 'client',
@@ -188,7 +188,7 @@ function generateMigrationPlan(fileAnalysis) {
       type: 'client',
       count: clientRefs.length,
       lines: clientRefs.map(ref => ref.line),
-      recommendation: "Replace createClientComponentClient with getFirebaseAuth"
+      recommendation: "Replace getFirebaseAuth with getFirebaseAuth"
     });
   }
   

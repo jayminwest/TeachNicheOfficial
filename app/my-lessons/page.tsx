@@ -17,6 +17,19 @@ interface Lesson {
   totalRatings: number;
 }
 
+// Define the shape of the data returned from the database
+interface PurchasedLessonData {
+  lessons: {
+    id: string;
+    title: string;
+    description: string | null;
+    price: number;
+    mux_playback_id: string;
+    created_at: string;
+  };
+  lesson_id: string;
+}
+
 export default function MyLessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +74,7 @@ export default function MyLessonsPage() {
         }
         
         // Transform data to match the expected format
-        const purchasedLessons = data.map(purchase => ({
+        const purchasedLessons: Lesson[] = data.map((purchase: PurchasedLessonData) => ({
           id: purchase.lessons.id,
           title: purchase.lessons.title,
           description: purchase.lessons.description || '', // Handle null descriptions

@@ -27,8 +27,9 @@ export default function DashboardPage() {
               <div className="mt-2 text-center">
                 <Link 
                   href="/dashboard/earnings" 
-                  className="text-sm font-medium text-primary hover:underline flex items-center justify-center gap-1"
+                  className="text-sm font-medium text-primary hover:text-primary/80 flex items-center justify-center gap-1 p-2 rounded-md border border-primary/20 transition-colors"
                   data-testid="earnings-dashboard-link"
+                  aria-label="View your detailed earnings and payout history"
                 >
                   <span>View detailed earnings & payouts</span>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">

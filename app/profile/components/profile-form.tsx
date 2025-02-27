@@ -38,18 +38,8 @@ export function ProfileForm() {
   const { user } = useAuth()
   const router = useRouter()
 
-  interface User {
-    metadata?: {
-      is_creator?: boolean;
-    };
-    app_metadata?: {
-      is_creator?: boolean;
-    };
-    is_creator?: boolean;
-  }
-
   // Function to check if user is a creator
-  function isCreator(user: User | null) {
+  function isCreator(user: any) {
     return user?.metadata?.is_creator === true || 
            user?.app_metadata?.is_creator === true || 
            user?.is_creator === true;

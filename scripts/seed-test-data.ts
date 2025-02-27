@@ -223,7 +223,7 @@ seedTestData().catch(error => {
   console.error('Failed to seed test data:', error);
   process.exit(1);
 });
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Script to seed test data into the Cloud SQL database

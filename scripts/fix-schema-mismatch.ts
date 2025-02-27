@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Script to fix database schema mismatches between Supabase and Cloud SQL

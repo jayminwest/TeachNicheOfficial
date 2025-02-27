@@ -60,10 +60,11 @@ export class FirebaseAuth implements AuthService {
   
   private transformUser(user: any): AuthUser {
     return {
-      id: user.id,
-      email: user.email,
-      name: user.user_metadata?.full_name,
-      avatarUrl: user.user_metadata?.avatar_url
+      id: user.uid,
+      email: user.email || '',
+      name: user.displayName || '',
+      provider: user.providerData[0]?.providerId || 'password',
+      avatarUrl: user.photoURL || ''
     };
   }
 }

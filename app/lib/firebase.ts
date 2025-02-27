@@ -72,6 +72,11 @@ try {
   storage = getStorage(app);
   functions = getFunctions(app);
   
+  // Log successful initialization in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Firebase initialized successfully');
+  }
+  
   // Connect to emulators in development if FIREBASE_USE_EMULATORS is set
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
     if (typeof window !== 'undefined') {

@@ -58,7 +58,13 @@ export class FirebaseAuth implements AuthService {
     });
   }
   
-  private transformUser(user: any): AuthUser {
+  private transformUser(user: {
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    providerData: Array<{ providerId: string }>;
+    photoURL: string | null;
+  }): AuthUser {
     return {
       id: user.uid,
       email: user.email || '',

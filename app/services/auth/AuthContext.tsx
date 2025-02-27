@@ -78,7 +78,7 @@ export function AuthProvider({
   }, [])
 
   const isCreator = useCallback(() => {
-    return user?.metadata?.is_creator === true || 
+    return user?.user_metadata?.is_creator === true || 
            user?.app_metadata?.is_creator === true;
   }, [user]);
 

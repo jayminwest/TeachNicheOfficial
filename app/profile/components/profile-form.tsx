@@ -38,18 +38,21 @@ export function ProfileForm() {
   const { user } = useAuth()
   const router = useRouter()
 
-  // Define a type that matches the structure we need to check
-  type UserWithCreatorStatus = {
-    metadata?: { is_creator?: boolean };
-    app_metadata?: { is_creator?: boolean };
-    is_creator?: boolean;
-  };
-
   // Function to check if user is a creator
-  function isCreator(user: UserWithCreatorStatus | null) {
-    return user?.metadata?.is_creator === true || 
-           user?.app_metadata?.is_creator === true || 
-           user?.is_creator === true;
+  function isCreator(user: any) {
+    if (!user) return false;
+    
+    // Check various possible locations for the is_creator flag
+    return (
+      // Check user_metadata
+      user?.user_metadata?.is_creator === true ||
+      // Check metadata
+      user?.metadata?.is_creator === true || 
+      // Check app_metadata
+      user?.app_metadata?.is_creator === true || 
+      // Check direct property
+      user?.is_creator === true
+    );
   }
 
   const handleDashboardNavigation = () => {

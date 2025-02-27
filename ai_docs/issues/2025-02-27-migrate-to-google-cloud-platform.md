@@ -64,8 +64,8 @@ We will migrate to a GCP-based infrastructure:
 - [ ] Remove Supabase dependencies and references
 
 ### Phase 3: Email and Advanced Services
-- [ ] Set up Google Workspace integration
-- [ ] Implement email service for notifications
+- [x] Set up Google Workspace integration
+- [x] Implement email service for notifications
 - [ ] Create waitlist notification system
 - [ ] Add analytics and monitoring
 
@@ -156,8 +156,17 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Updated storage rules to fix permission issues
   - ✅ Verified storage bucket is accessible and working correctly
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
+  - ✅ Created migration script (scripts/migrate-database.ts)
+  - ✅ Created verification script (scripts/verify-migration.ts)
+  - ⏳ Execute database migration
 - ⏳ Set up Cloud Storage buckets and migrate files
-- ⏳ Implement Google Workspace email integration
+  - ✅ Created migration script (scripts/migrate-storage.ts)
+  - ⏳ Execute file migration
+- ✅ Implement Google Workspace email integration
+  - ✅ Created setup script (scripts/setup-google-workspace.sh)
+  - ✅ Created Google Workspace email service (app/services/email/google-workspace.ts)
+  - ✅ Created test script (scripts/test-email-service.ts)
+  - ✅ Successfully obtained OAuth credentials and refresh token
 - ⏳ Test the abstraction layers with GCP backends
 - ⏳ Update remaining components that might still use Supabase directly
 - ⏳ Remove all Supabase dependencies and references
@@ -194,10 +203,10 @@ We will migrate to a GCP-based infrastructure:
 - ⏳ Optimize for performance and cost
 
 ### Email Integration
-- Set up Google Workspace API credentials
-- Create email service for programmatic email sending
-- Implement templates for different notification types
-- Create admin interface for managing email communications
+- ✅ Set up Google Workspace API credentials
+- ✅ Create email service for programmatic email sending
+- ✅ Implement templates for different notification types
+- ⏳ Create admin interface for managing email communications
 
 ## Dependencies
 - Google Cloud SDK

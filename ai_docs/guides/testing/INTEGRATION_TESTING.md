@@ -29,7 +29,7 @@ app/
         stripe-integration.test.ts
       create-payment.ts
   services/
-    supabase/
+    firebase/
       __tests__/
         auth-integration.test.ts
       client.ts
@@ -207,9 +207,10 @@ describe('Stripe Integration (Actual API)', () => {
 ### Supabase Integration Testing
 
 ```typescript
-// app/services/supabase/__tests__/auth-integration.test.ts
+// app/services/auth/__tests__/firebase-auth-integration.test.ts
 import { signUp, signIn, resetPassword } from '../auth';
-import { createClient } from '@supabase/supabase-js';
+import { initializeApp } from 'firebase/app';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 // Mock tests
 describe('Supabase Auth Integration (Mocked)', () => {
@@ -225,8 +226,16 @@ describe('Supabase Auth Integration (Mocked)', () => {
     jest.clearAllMocks();
     
     // Mock the createClient function
-    jest.mock('@/lib/supabase/client', () => ({
-      createClient: jest.fn().mockReturnValue(mockSupabase)
+    jest.mock('firebase/app', () => ({
+      initializeApp: jest.fn(),
+      getApps: jest.fn().mockReturnValue([])
+    }));
+    
+    jest.mock('firebase/auth', () => ({
+      getAuth: jest.fn().mockReturnValue(mockFirebaseAuth),
+      signInWithEmailAndPassword: jest.fn(),
+      createUserWithEmailAndPassword: jest.fn(),
+      sendPasswordResetEmail: jest.fn()
     }));
   });
   
@@ -270,17 +279,26 @@ describe('Supabase Auth Integration (Actual API)', () => {
     return;
   }
   
-  let supabase: ReturnType<typeof createClient>;
+  let auth: any;
   const testEmail = `test-${Date.now()}@example.com`;
   const testPassword = 'SecurePassword123!';
   let testUserId: string | undefined;
   
   beforeAll(() => {
     // Create actual Supabase client with test credentials
-    supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_TEST_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY!
-    );
+    // Initialize Firebase with test config
+    const app = initializeApp({
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_TEST_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_TEST_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_TEST_PROJECT_ID
+    });
+    
+    auth = getAuth(app);
+    
+    // Connect to auth emulator if in test environment
+    if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+      connectAuthEmulator(auth, `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}`);
+    }
   });
   
   afterAll(async () => {
@@ -500,7 +518,7 @@ describe('Mux Video Integration (Actual API)', () => {
 npm test
 
 # Run tests for a specific service
-npm test -- --testPathPattern=supabase
+npm test -- --testPathPattern=firebase
 
 # Run tests with actual API calls
 RUN_ACTUAL_API_TESTS=true npm test -- --testPathPattern=integration

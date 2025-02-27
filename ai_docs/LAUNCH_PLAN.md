@@ -34,7 +34,7 @@
   - Lines: 26.98%
 
 - Critical areas needing tests:
-  - Authentication services (AuthContext.tsx: 6.45%, supabaseAuth.ts: 18.51%)
+  - Authentication services (AuthContext.tsx: 6.45%, firebase-auth.ts: 18.51%)
   - Video components (video-uploader.tsx: 0%)
   - API routes (most at 0% coverage)
   - UI components (many below 50%)
@@ -57,7 +57,7 @@
   - app/components/ui/header.tsx (48%)
   - app/components/ui/stripe-connect-button.tsx (21.21%)
   - app/services/stripe.ts (26.41%)
-  - app/services/supabase.ts (60%)
+  - app/services/firebase.ts (60%)
 
 - Well-tested components (100% coverage):
   - app/components/ui/accordion.tsx
@@ -266,7 +266,7 @@
 ### Service Status Pages
 - Stripe: https://status.stripe.com
 - Mux: https://status.mux.com
-- Supabase: https://status.supabase.com
+- Firebase: https://status.firebase.google.com
 - Vercel: https://www.vercel-status.com
 
 Remember to maintain this checklist during the launch process and update it with any additional items specific to your deployment.

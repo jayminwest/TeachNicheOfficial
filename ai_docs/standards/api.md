@@ -289,7 +289,7 @@ Every API endpoint must have the following tests before implementation:
 // app/api/lessons/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/firebase-admin'
 
 // Input validation schema
 const lessonParamsSchema = z.object({
@@ -305,11 +305,9 @@ export async function GET(
     const validatedParams = lessonParamsSchema.parse(params)
     
     // Get Supabase client
-    const supabase = createClient()
-    
     // Check authentication
-    const { data: { session } } = await firebaseAuth.getSession()
-    if (!session) {
+    const { currentUser } = await getAuth().verifyIdToken(request.headers.get('Authorization')?.split('Bearer ')[1] || '')
+    if (!currentUser) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -317,11 +315,17 @@ export async function GET(
     }
     
     // Fetch data
-    const { data, error } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('id', validatedParams.id)
-      .single()
+    const lessonRef = db.collection('lessons').doc(validatedParams.id);
+    const lessonDoc = await lessonRef.get();
+    
+    if (!lessonDoc.exists) {
+      return NextResponse.json(
+        { error: 'Lesson not found' },
+        { status: 404 }
+      )
+    }
+    
+    const data = { id: lessonDoc.id, ...lessonDoc.data() };
     
     if (error) {
       return NextResponse.json(
@@ -366,30 +370,27 @@ import { createMocks } from 'node-mocks-http'
 import { GET } from '@/app/api/lessons/[id]/route'
 
 // Mock Supabase client
-jest.mock('@/lib/supabase/server', () => ({
-  createClient: jest.fn(() => ({
-    auth: {
-      getSession: jest.fn()
-    },
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: jest.fn()
-        }))
+jest.mock('@/lib/firebase-admin', () => ({
+  db: {
+    collection: jest.fn(() => ({
+      doc: jest.fn(() => ({
+        get: jest.fn()
       }))
     }))
+  }
+}));
+
+jest.mock('firebase-admin/auth', () => ({
+  getAuth: jest.fn(() => ({
+    verifyIdToken: jest.fn()
   }))
-}))
+}));
 
 describe('GET /api/lessons/[id]', () => {
   // Test authentication
   it('returns 401 when user is not authenticated', async () => {
-    const { createClient } = require('@/lib/supabase/server')
-    createClient.mockImplementation(() => ({
-      auth: {
-        getSession: jest.fn().mockResolvedValue({ data: { session: null } })
-      }
-    }))
+    const { getAuth } = require('firebase-admin/auth')
+    getAuth().verifyIdToken.mockResolvedValue({ currentUser: null })
     
     const { req, res } = createMocks({
       method: 'GET',
@@ -410,24 +411,20 @@ describe('GET /api/lessons/[id]', () => {
       description: 'Test Description'
     }
     
-    const { createClient } = require('@/lib/supabase/server')
-    createClient.mockImplementation(() => ({
-      auth: {
-        getSession: jest.fn().mockResolvedValue({
-          data: { session: { user: { id: 'user-123' } } }
-        })
-      },
-      from: jest.fn(() => ({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn().mockResolvedValue({
-              data: mockLesson,
-              error: null
-            })
-          }))
-        }))
-      }))
-    }))
+    const { getAuth } = require('firebase-admin/auth')
+    getAuth().verifyIdToken.mockResolvedValue({ 
+      currentUser: { uid: 'user-123' } 
+    })
+    
+    const { db } = require('@/lib/firebase-admin')
+    db.collection().doc().get.mockResolvedValue({
+      exists: true,
+      id: mockLesson.id,
+      data: () => ({
+        title: mockLesson.title,
+        description: mockLesson.description
+      })
+    })
     
     const { req, res } = createMocks({
       method: 'GET',

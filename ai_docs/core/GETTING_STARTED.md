@@ -16,8 +16,8 @@ Our development approach emphasizes:
 - Node.js (v18+)
 - npm or yarn
 - Git
-- Google Cloud SDK
-- Firebase CLI
+- Google Cloud SDK (gcloud)
+- Firebase CLI (firebase-tools)
 - Vercel CLI (optional, for deployments)
 
 ### Initial Setup

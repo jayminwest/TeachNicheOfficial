@@ -200,45 +200,42 @@ Here's a practical example of our TDD workflow for adding a new feature:
 
    ```typescript
    // __tests__/api/lesson-rating.test.ts
-   import { createClient } from '@supabase/supabase-js'
+   import { db as firebaseDb } from '@/lib/firebase-admin'
    import { submitRating } from '@/lib/api/ratings'
    
-   // This test uses the actual Supabase test environment
+   // This test uses the actual Firebase test environment
    describe('Lesson Rating API', () => {
-     const supabase = createClient(
-       process.env.NEXT_PUBLIC_SUPABASE_TEST_URL!,
-       process.env.NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY!
-     )
-     
      beforeEach(async () => {
        // Login with test user
-       await firebaseAuth.signInWithPassword({
-         email: process.env.TEST_USER_EMAIL!,
-         password: process.env.TEST_USER_PASSWORD!
-       })
+       await firebaseAuth.signInWithEmailAndPassword(
+         process.env.TEST_USER_EMAIL!,
+         process.env.TEST_USER_PASSWORD!
+       )
      })
      
      afterEach(async () => {
        // Clean up test data
-       await firebaseDb.collection("lesson_ratings")
-         .delete()
-         .eq('lesson_id', 'test-lesson-id')
+       const ratingRef = firebaseDb.collection("lesson_ratings")
+         .where('lesson_id', '==', 'test-lesson-id');
+       const snapshot = await ratingRef.get();
+       const batch = firebaseDb.batch();
+       snapshot.forEach(doc => {
+         batch.delete(doc.ref);
+       });
+       await batch.commit();
      })
      
-     it('should save rating to Supabase', async () => {
+     it('should save rating to Firebase', async () => {
        // Submit a rating using our API function
        await submitRating('test-lesson-id', 4)
        
-       // Verify the rating was saved in Supabase
-       const { data, error } = await supabase
-         .from('lesson_ratings')
-         .select('*')
-         .eq('lesson_id', 'test-lesson-id')
-         .single()
+       // Verify the rating was saved in Firebase
+       const ratingRef = firebaseDb.collection("lesson_ratings")
+         .where('lesson_id', '==', 'test-lesson-id');
+       const snapshot = await ratingRef.get();
        
-       expect(error).toBeNull()
-       expect(data).not.toBeNull()
-       expect(data.rating).toBe(4)
+       expect(snapshot.empty).toBe(false);
+       expect(snapshot.docs[0].data().rating).toBe(4);
      })
    })
    ```

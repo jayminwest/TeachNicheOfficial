@@ -199,7 +199,7 @@ The project follows Next.js 13+ app router conventions with a clear separation o
 │   └── page.tsx      # Lessons list page
 ├── lib/              # Shared utilities
 │   ├── schemas/      # Data validation schemas
-│   ├── supabase/    # Database utilities
+│   ├── firebase/    # Firebase utilities
 │   └── utils.ts     # General utilities
 ├── profile/         # User profile feature
 │   ├── components/  # Profile-specific components
@@ -212,7 +212,7 @@ The project follows Next.js 13+ app router conventions with a clear separation o
     ├── auth/       # Authentication
     ├── mux.ts      # Video service
     ├── stripe.ts   # Payment processing
-    └── supabase.ts # Database client
+    └── firebase.ts # Firebase client
 ```
 
 Key organizational principles:
@@ -234,7 +234,7 @@ Key organizational principles:
 4. **Services & Utilities**
    - External service integrations in /services
    - Shared utilities and schemas in /lib
-   - Database utilities separated in /lib/supabase
+   - Database utilities separated in /lib/firebase
 
 5. **Testing Structure**
    - Tests co-located with components

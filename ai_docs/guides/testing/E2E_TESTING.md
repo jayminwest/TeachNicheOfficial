@@ -119,8 +119,8 @@ Create separate test environments for third-party integrations:
 
 ```bash
 # .env.test
-NEXT_PUBLIC_SUPABASE_URL=https://your-test-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-test-anon-key
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-test-project-id
+NEXT_PUBLIC_FIREBASE_API_KEY=your-test-api-key
 STRIPE_SECRET_KEY=sk_test_your_test_key
 MUX_TOKEN_ID=your_test_token_id
 MUX_TOKEN_SECRET=your_test_token_secret
@@ -191,29 +191,35 @@ test('handles declined payment correctly', async ({ page }) => {
 ```typescript
 // e2e-tests/auth/signup.spec.ts
 import { test, expect } from '@playwright/test';
-import { createClient } from '@supabase/supabase-js';
+import { getAuth } from 'firebase-admin/auth';
+import { initializeApp, cert } from 'firebase-admin/app';
 
 // Helper to clean up test users
 async function deleteTestUser(email: string) {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    console.warn('Supabase credentials not available, skipping user cleanup');
+  if (!process.env.FIREBASE_ADMIN_PROJECT_ID || !process.env.FIREBASE_ADMIN_PRIVATE_KEY) {
+    console.warn('Firebase admin credentials not available, skipping user cleanup');
     return;
   }
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  );
+  // Initialize Firebase Admin if not already initialized
+  if (!global.firebaseAdmin) {
+    global.firebaseAdmin = initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n')
+      })
+    }, 'admin');
+  }
+  
+  const auth = getAuth(global.firebaseAdmin);
   
   try {
-    const { data } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
-      
-    if (data?.id) {
-      await firebaseAuth.admin.deleteUser(data.id);
+    // Find user by email
+    const userRecord = await auth.getUserByEmail(email);
+    
+    if (userRecord.uid) {
+      await auth.deleteUser(userRecord.uid);
     }
   } catch (error) {
     console.error('Error cleaning up test user:', error);
@@ -246,16 +252,13 @@ test('user can sign up and create profile', async ({ page }) => {
   
   // For this example, we'll simulate email verification using the admin API
   if (process.env.SUPABASE_SERVICE_KEY) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_KEY
-    );
+    const auth = getAuth();
     
     // Confirm user's email
-    await firebaseAuth.admin.updateUserById(
+    await auth.updateUser(
       // You would need to retrieve the user ID first
       'user-id',
-      { email_confirm: true }
+      { emailVerified: true }
     );
     
     // Refresh the page to simulate clicking the verification link

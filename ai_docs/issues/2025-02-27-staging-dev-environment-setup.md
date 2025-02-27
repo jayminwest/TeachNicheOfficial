@@ -18,39 +18,39 @@ A proper staging environment allows for:
 - Vercel account (if using Vercel for deployments)
 - Local development environment set up
 
-## Supabase Setup
+## Firebase/GCP Setup
 
-### 1. Branch Creation and Configuration
+### 1. Project Configuration
 
-The dev branch in Supabase should be configured as follows:
+The dev environment in GCP/Firebase should be configured as follows:
 
 ```bash
-# Note: These are commands you would execute through the Supabase UI or CLI
+# Note: These are commands you would execute through the GCP/Firebase Console or CLI
 # This is for documentation purposes only
 ```
 
-1. **Create the dev branch** (if not already created):
-   - Navigate to the Supabase dashboard
-   - Select your project
-   - Go to the "Branches" section
-   - Create a new branch named "dev" from your main branch
+1. **Create a separate dev project** (if not already created):
+   - Navigate to the Google Cloud Console
+   - Create a new project named "teachniche-dev"
+   - Link it to the same billing account as production
+   - Enable the same APIs as in production
 
 2. **Configure environment variables**:
-   - In the Supabase dashboard, navigate to your dev branch
-   - Go to Settings > API
-   - Note the API URLs and keys for the dev environment
+   - In the Firebase console, navigate to your dev project
+   - Go to Project Settings
+   - Note the Firebase configuration for the dev environment
    - These will be different from your production keys
 
 ### 2. Database Schema Setup
 
-Since the dev branch is currently empty, you need to populate it with the schema from production:
+Since the dev environment is currently empty, you need to populate it with the schema from production:
 
 1. **Export the production schema**:
-   - Use the Supabase UI or CLI to export your production schema
+   - Use the Cloud SQL export feature to export your production schema
    - Alternatively, you can use the migration files if you have them
 
 2. **Import the schema to dev**:
-   - Apply the schema to your dev branch
+   - Apply the schema to your dev Cloud SQL instance
    - Verify all tables, functions, and triggers are correctly created
 
 3. **Seed with test data**:
@@ -61,7 +61,7 @@ Since the dev branch is currently empty, you need to populate it with the schema
 ### 3. Authentication Configuration
 
 1. **Configure auth providers**:
-   - Set up the same authentication providers as in production
+   - In Firebase Authentication, enable the same authentication providers as in production
    - Use test credentials for OAuth providers where applicable
    - Configure email templates for the dev environment
 
@@ -104,12 +104,27 @@ Create a comprehensive set of environment variables for the dev environment:
 
 1. **Application environment variables**:
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://your-dev-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-dev-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-dev-service-role-key
+   # Firebase Configuration
+   NEXT_PUBLIC_FIREBASE_API_KEY=your-dev-api-key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-dev-project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-dev-project-id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-dev-project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-dev-messaging-sender-id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your-dev-app-id
+   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your-dev-measurement-id
+   
+   # Google Cloud SQL
+   DB_HOST=/cloudsql/your-dev-project:us-central1:teachniche-db-instance
+   DB_USER=teach-niche-app
+   DB_PASSWORD=your-dev-db-password
+   DB_NAME=teach-niche-db
+   
+   # Stripe Configuration
    STRIPE_SECRET_KEY=sk_test_...
    STRIPE_PUBLISHABLE_KEY=pk_test_...
    STRIPE_WEBHOOK_SECRET=whsec_test_...
+   
+   # Mux Configuration
    MUX_TOKEN_ID=your-dev-mux-token-id
    MUX_TOKEN_SECRET=your-dev-mux-token-secret
    ```

@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { supabase } from '@/app/lib/supabase-client'
+import { auth as firebaseAuth } from '@/app/lib/firebase'
 import { Button } from '@/app/components/ui/button'
 import {
   Form,
@@ -147,7 +147,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/app/lib/supabase-client'
+import { auth as firebaseAuth } from '@/app/lib/firebase'
 import { Button } from '@/app/components/ui/button'
 import {
   Form,

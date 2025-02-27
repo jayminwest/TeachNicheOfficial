@@ -4,7 +4,7 @@ This document provides a comprehensive reference for the database schema used in
 
 ## Overview
 
-The Teach Niche platform uses PostgreSQL as its primary database, managed through Supabase. The schema is designed to support:
+The Teach Niche platform uses PostgreSQL as its primary database, managed through Google Cloud SQL. The schema is designed to support:
 
 - User authentication and profiles
 - Lesson creation and management

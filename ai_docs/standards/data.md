@@ -4,16 +4,27 @@
 
 ### Client Setup
 ```typescript
-// lib/supabase/client.ts
-import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/types/database'
+// lib/firebase/client.ts
+import { initializeApp, getApps } from 'firebase/app'
+import { getFirestore } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
+import { getStorage } from 'firebase/storage'
 
-export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 }
+
+// Initialize Firebase
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+export const db = getFirestore(app)
+export const auth = getAuth(app)
+export const storage = getStorage(app)
 ```
 
 ### Data Fetching Strategies
@@ -65,30 +76,63 @@ async function createLesson(input: unknown) {
 
 #### Efficient Queries
 ```typescript
-// Good: Specific column selection
-const { data } = await supabase
-  .from('lessons')
-  .select('id, title, description')
-  .eq('user_id', userId)
+// Good: Specific field selection
+import { collection, query, where, getDocs } from 'firebase/firestore'
 
-// Avoid: Selecting all columns
-const { data } = await supabase
-  .from('lessons')
-  .select('*')
+const lessonsRef = collection(db, 'lessons')
+const q = query(lessonsRef, where('user_id', '==', userId))
+const querySnapshot = await getDocs(q)
+const lessons = querySnapshot.docs.map(doc => {
+  const data = doc.data()
+  return {
+    id: doc.id,
+    title: data.title,
+    description: data.description
+  }
+})
+
+// Avoid: Getting all fields
+const querySnapshot = await getDocs(q)
+const lessons = querySnapshot.docs.map(doc => ({
+  id: doc.id,
+  ...doc.data() // Gets all fields
+}))
 ```
 
 #### Pagination
 ```typescript
+import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore'
+
 const ITEMS_PER_PAGE = 10
 
-async function fetchLessons(page: number) {
-  const { data, error } = await supabase
-    .from('lessons')
-    .select('*')
-    .range(
-      page * ITEMS_PER_PAGE,
-      (page + 1) * ITEMS_PER_PAGE - 1
+async function fetchLessons(page: number, lastDoc = null) {
+  const lessonsRef = collection(db, 'lessons')
+  
+  let q
+  if (lastDoc) {
+    // Get next page
+    q = query(
+      lessonsRef,
+      orderBy('created_at', 'desc'),
+      startAfter(lastDoc),
+      limit(ITEMS_PER_PAGE)
     )
+  } else {
+    // Get first page
+    q = query(
+      lessonsRef,
+      orderBy('created_at', 'desc'),
+      limit(ITEMS_PER_PAGE)
+    )
+  }
+  
+  const querySnapshot = await getDocs(q)
+  const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1]
+  
+  return {
+    lessons: querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+    lastDoc: lastVisible // Pass this to get the next page
+  }
 }
 ```
 
@@ -97,9 +141,8 @@ async function fetchLessons(page: number) {
 #### Database Errors
 ```typescript
 try {
-  const { data, error } = await firebaseDb.collection("lessons").insert(lesson)
-  if (error) throw error
-  return data
+  const docRef = await firebaseDb.collection("lessons").add(lesson)
+  return { id: docRef.id, ...lesson }
 } catch (error) {
   logger.error('Database error:', error)
   throw new Error('Failed to create lesson')
@@ -110,19 +153,36 @@ try {
 
 #### Setup
 ```typescript
-function useRealtimeData(tableName: string, conditions: object) {
-  useEffect(() => {
-    const subscription = supabase
-      .from(tableName)
-      .on('*', (payload) => {
-        // Handle changes
-      })
-      .subscribe()
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
 
+function useRealtimeData(collectionName: string, conditions: Record<string, any>) {
+  const [data, setData] = useState([])
+  
+  useEffect(() => {
+    const collectionRef = collection(db, collectionName)
+    
+    // Build query with conditions
+    const constraints = Object.entries(conditions).map(
+      ([field, value]) => where(field, '==', value)
+    )
+    const q = query(collectionRef, ...constraints)
+    
+    // Set up realtime listener
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setData(newData)
+    })
+
+    // Clean up listener
     return () => {
-      subscription.unsubscribe()
+      unsubscribe()
     }
-  }, [tableName, conditions])
+  }, [collectionName, JSON.stringify(conditions)])
+  
+  return data
 }
 ```
 
@@ -132,22 +192,18 @@ function useRealtimeData(tableName: string, conditions: object) {
 ```typescript
 class LessonRepository {
   async findById(id: string): Promise<Lesson> {
-    const { data, error } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error) throw error
-    return data
+    const lessonRef = db.collection('lessons').doc(id)
+    const doc = await lessonRef.get()
+    
+    if (!doc.exists) {
+      throw new Error('Lesson not found')
+    }
+    
+    return { id: doc.id, ...doc.data() }
   }
 
   async create(lesson: Lesson): Promise<void> {
-    const { error } = await supabase
-      .from('lessons')
-      .insert(lesson)
-
-    if (error) throw error
+    await db.collection('lessons').add(lesson)
   }
 }
 ```

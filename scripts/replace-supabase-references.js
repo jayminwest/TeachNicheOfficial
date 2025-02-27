@@ -164,7 +164,49 @@ const replacements = [
     description: 'Replace Supabase session.user with Firebase user'
   },
   
-  // Add more patterns as needed
+  // More complex patterns for database queries with filters
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)\.eq\(['"]([^'"]+)['"]\s*,\s*([^)]+)\)/g,
+    replacement: "firestore.collection('$1').where('$3', '==', $4).get().then(snapshot => snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))",
+    description: 'Replace Supabase select with eq filter to Firestore where query'
+  },
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)\.order\(['"]([^'"]+)['"]\s*(?:,\s*{\s*ascending\s*:\s*(true|false)\s*})?\)/g,
+    replacement: function(match, table, select, orderField, ascending) {
+      const direction = ascending === 'false' ? 'desc' : 'asc';
+      return `firestore.collection('${table}').orderBy('${orderField}', '${direction}').get().then(snapshot => snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))`;
+    },
+    description: 'Replace Supabase select with order to Firestore orderBy query'
+  },
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)\.limit\(([^)]+)\)/g,
+    replacement: "firestore.collection('$1').limit($3).get().then(snapshot => snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))",
+    description: 'Replace Supabase select with limit to Firestore limit query'
+  },
+  
+  // Complex patterns for destructured query results
+  {
+    pattern: /const\s+{\s*data\s*(?::\s*([a-zA-Z0-9_]+))?\s*,\s*error\s*}\s*=\s*await\s+supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)\.eq\(['"]([^'"]+)['"]\s*,\s*([^)]+)\)/g,
+    replacement: function(match, dataVar, table, select, field, value) {
+      const dataVarName = dataVar || 'data';
+      return `let ${dataVarName} = null;\nlet error = null;\ntry {\n  const snapshot = await firestore.collection('${table}').where('${field}', '==', ${value}).get();\n  ${dataVarName} = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));\n} catch (e) {\n  error = e;\n}`;
+    },
+    description: 'Replace Supabase select with eq filter and destructuring to Firestore where query with try/catch'
+  },
+  
+  // User profile patterns
+  {
+    pattern: /supabase\.from\(['"]profiles['"]\)\.select\(['"]([^'"]+)['"]\)\.eq\(['"]id['"]\s*,\s*([^)]+)\)\.single\(\)/g,
+    replacement: "firestore.collection('profiles').doc($2).get().then(doc => doc.exists ? { data: { ...doc.data(), id: doc.id }, error: null } : { data: null, error: 'Profile not found' })",
+    description: 'Replace Supabase profile query with Firestore doc get'
+  },
+  
+  // Transaction patterns
+  {
+    pattern: /await\s+supabase\.from\(['"]([^'"]+)['"]\)\.insert\(([^)]+)\)\.select\(['"]([^'"]+)['"]\)\.single\(\)/g,
+    replacement: "await firestore.collection('$1').add($2).then(docRef => docRef.get()).then(doc => ({ data: { ...doc.data(), id: doc.id }, error: null }))",
+    description: 'Replace Supabase insert with select to Firestore add with get'
+  }
 ];
 
 // Parse command line arguments

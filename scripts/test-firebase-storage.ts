@@ -9,8 +9,8 @@
  * Usage: npx ts-node scripts/test-firebase-storage.ts
  */
 
-// Import using the correct path
-import { FirebaseStorage } from '../app/services/storage/firebase-storage.ts';
+// Import using the correct path without .ts extension
+import { FirebaseStorage } from '../app/services/storage/firebase-storage';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

@@ -27,7 +27,7 @@ const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 const cloudSqlConfig = {
   user: process.env.CLOUD_SQL_USER || 'postgres',
   password: process.env.CLOUD_SQL_PASSWORD,
-  database: process.env.CLOUD_SQL_DATABASE || 'postgres',
+  database: process.env.CLOUD_SQL_DATABASE || 'teach_niche_db',
   host: process.env.CLOUD_SQL_HOST || 'localhost',
   port: parseInt(process.env.CLOUD_SQL_PORT || '5432'),
   max: 5,
@@ -156,7 +156,7 @@ async function verifyMigration() {
   try {
     // Test connection to Cloud SQL
     const client = await cloudSqlPool.connect();
-    console.log('Successfully connected to database');
+    console.log('✅ Successfully connected to database');
     client.release();
     
     // Check if tables exist
@@ -166,6 +166,7 @@ async function verifyMigration() {
     
     // Only verify data if we're migrating from Supabase
     if (process.env.VERIFY_SUPABASE_MIGRATION === 'true') {
+      console.log('\nVerifying data migration from Supabase...');
       for (const table of tables) {
         const isVerified = await verifyTable(table);
         if (!isVerified) {
@@ -174,18 +175,23 @@ async function verifyMigration() {
       }
       
       if (allTablesVerified) {
-        console.log('✅ All tables verified successfully!');
+        console.log('\n✅ All tables verified successfully!');
       } else {
-        console.log('❌ Verification failed for one or more tables');
+        console.log('\n❌ Verification failed for one or more tables');
       }
     } else {
-      console.log('Skipping data verification since we are not migrating from Supabase');
+      console.log('\nSkipping data verification since we are not migrating from Supabase');
+      console.log('To enable data verification, set VERIFY_SUPABASE_MIGRATION=true in your .env file');
     }
+    
+    console.log('\nDatabase verification complete!');
+    console.log('You can now proceed with the next steps of the GCP migration.');
   } catch (error) {
     console.error('Failed to connect to database:', error);
     console.error('Please make sure the database is created and accessible.');
     console.error('You can set up a local PostgreSQL database with:');
     console.error('  bash scripts/setup-local-postgres.sh');
+    console.error('  bash scripts/init-database.sh');
     process.exit(1);
   } finally {
     // Close connections

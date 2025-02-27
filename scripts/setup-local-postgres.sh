@@ -15,8 +15,20 @@ fi
 # Check if PostgreSQL service is running
 if ! pg_isready &> /dev/null; then
     echo "PostgreSQL service is not running. Starting it now..."
-    brew services start postgresql@14
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        brew services start postgresql@14
+    else
+        # Linux
+        sudo systemctl start postgresql
+    fi
     sleep 5  # Wait for service to start
+    
+    # Check again if service started successfully
+    if ! pg_isready &> /dev/null; then
+        echo "Failed to start PostgreSQL service. Please start it manually."
+        exit 1
+    fi
 fi
 
 # Create database and user

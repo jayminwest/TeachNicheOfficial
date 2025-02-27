@@ -7,7 +7,18 @@ echo "Initializing database with schema..."
 # Check if PostgreSQL is installed
 if ! command -v psql &> /dev/null; then
     echo "Error: PostgreSQL is not installed. Please install it first."
-    echo "You can install it with: brew install postgresql@14"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "You can install it with: brew install postgresql@14"
+    else
+        echo "You can install it with: sudo apt-get install postgresql"
+    fi
+    exit 1
+fi
+
+# Check if migrations directory exists
+if [ ! -d "migrations" ] || [ ! -f "migrations/20250226_current_schema.sql" ]; then
+    echo "Error: Migrations directory or schema file not found."
+    echo "Please make sure the migrations directory exists and contains 20250226_current_schema.sql"
     exit 1
 fi
 

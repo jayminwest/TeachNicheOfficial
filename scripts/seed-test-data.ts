@@ -323,9 +323,6 @@ async function seedTestData() {
           );
         `);
         
-        // Prepare query and parameters based on column existence
-        let query, params;
-        
         if (columnCheckResult.rows[0].exists && fullNameColumnExists.rows[0].exists && emailColumnExists.rows[0].exists) {
           // Username, full_name, and email columns exist
           console.log('Inserting profile with username, full_name, and email...');

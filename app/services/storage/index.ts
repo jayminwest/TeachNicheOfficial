@@ -1,3 +1,8 @@
 import { FirebaseStorage } from './firebase-storage';
+import { StorageService } from './interface';
 
-export const storageService = new FirebaseStorage();
+// Create a singleton instance of the storage service
+const storageService: StorageService = new FirebaseStorage();
+
+export default storageService;
+export * from './interface';

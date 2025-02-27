@@ -143,6 +143,8 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created verification script to diagnose bucket issues
   - ✅ Verified bucket name matches "teachnicheofficial.firebasestorage.app"
   - ✅ Updated environment variables to use correct bucket name
+  - ⚠️ New error: "Firebase Storage: User does not have permission to access 'verification/test-1740688239206.txt'. (storage/unauthorized)"
+  - ⚠️ Bucket exists but permissions need to be updated
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
@@ -184,6 +186,7 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Verified bucket name matches configuration (teachnicheofficial.firebasestorage.app)
   - ✅ Created firebase.json for storage rules configuration
   - ✅ Updated setup script to handle missing configuration
+  - ⚠️ Need to update storage rules to fix permission issues with test directory
 - ⏳ Optimize for performance and cost
 
 ### Email Integration

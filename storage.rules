@@ -34,5 +34,10 @@ service firebase.storage {
     match /test/{allTestFiles=**} {
       allow read, write: if true;
     }
+    
+    // Verification files (for testing configuration)
+    match /verification/{allVerificationFiles=**} {
+      allow read, write: if true;
+    }
   }
 }

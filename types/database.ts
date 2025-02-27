@@ -383,6 +383,161 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_payout_methods: {
+        Row: {
+          id: string
+          creator_id: string
+          bank_account_token: string
+          last_four: string
+          bank_name: string | null
+          account_holder_name: string
+          is_default: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          bank_account_token: string
+          last_four: string
+          bank_name?: string | null
+          account_holder_name: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          bank_account_token?: string
+          last_four?: string
+          bank_name?: string | null
+          account_holder_name?: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_payout_methods_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      creator_earnings: {
+        Row: {
+          id: string
+          creator_id: string
+          payment_intent_id: string
+          amount: number
+          lesson_id: string
+          purchase_id: string
+          platform_fee: number
+          status: 'pending' | 'paid' | 'failed'
+          created_at: string
+          updated_at: string
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          payment_intent_id: string
+          amount: number
+          lesson_id: string
+          purchase_id: string
+          platform_fee?: number
+          status?: 'pending' | 'paid' | 'failed'
+          created_at?: string
+          updated_at?: string
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          payment_intent_id?: string
+          amount?: number
+          lesson_id?: string
+          purchase_id?: string
+          platform_fee?: number
+          status?: 'pending' | 'paid' | 'failed'
+          created_at?: string
+          updated_at?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_earnings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_earnings_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_earnings_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      creator_payouts: {
+        Row: {
+          id: string
+          creator_id: string
+          amount: number
+          status: 'pending' | 'paid' | 'failed' | 'canceled'
+          payout_id: string
+          destination_last_four: string
+          earnings_count: number
+          created_at: string
+          updated_at: string
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          amount: number
+          status?: 'pending' | 'paid' | 'failed' | 'canceled'
+          payout_id: string
+          destination_last_four: string
+          earnings_count?: number
+          created_at?: string
+          updated_at?: string
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          amount?: number
+          status?: 'pending' | 'paid' | 'failed' | 'canceled'
+          payout_id?: string
+          destination_last_four?: string
+          earnings_count?: number
+          created_at?: string
+          updated_at?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_payouts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

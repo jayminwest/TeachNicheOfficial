@@ -2,6 +2,8 @@
 
 This document outlines the standardized process for creating and resolving detailed GitHub issues using AI assistance and the GitHub CLI.
 
+> **Recent Example**: See [Pre-Launch Audit and Bug Fix Plan](./issues/2025-02-26-041-pre-launch-audit-and-bug-fix-plan.md) (Issue #41) for a comprehensive audit template.
+
 ## Issue File Naming Convention
 
 All issue files should follow this naming convention:

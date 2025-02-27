@@ -5,7 +5,6 @@ import { Card } from "@/app/components/ui/card"
 import { ProfileForm } from "./components/profile-form"
 import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"
-import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
 import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
 import { supabase } from "@/app/services/supabase"
@@ -14,9 +13,7 @@ import { useRouter } from "next/navigation"
 export default function ProfilePage() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<{ 
-    stripe_account_id: string | null;
-  } | null>(null);
+  const [, setProfile] = useState<Record<string, unknown> | null>(null);
   const [, setInitialLoadComplete] = useState(false);
 
   // Immediate redirect for unauthenticated users
@@ -39,7 +36,7 @@ export default function ProfilePage() {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('stripe_account_id')
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -94,15 +91,6 @@ export default function ProfilePage() {
             </TabsContent>
             <TabsContent value="settings">
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium">Stripe Connect</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Connect your Stripe account to receive payments for your lessons
-                  </p>
-                  <StripeConnectButton 
-                    stripeAccountId={profile?.stripe_account_id}
-                  />
-                </div>
                 <AccountSettings />
               </div>
             </TabsContent>

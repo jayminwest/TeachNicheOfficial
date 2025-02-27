@@ -46,9 +46,12 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 4. **Transactions**:
    - User initiates purchase
-   - Payment is processed securely
+   - Payment is processed securely through Teach Niche as merchant of record
+   - Buyer pays base price plus Stripe processing fees
    - Access rights are granted
-   - Instructor receives payout (minus platform fee)
+   - Creator earnings (85% of lesson price) are recorded in the system
+   - Platform fee (15% of lesson price) is retained
+   - Creator receives periodic payouts based on accumulated earnings
 
 ## Security Architecture
 
@@ -57,13 +60,15 @@ This document provides a high-level overview of the Teach Niche platform archite
 - **Data Protection**: Encryption at rest and in transit
 - **API Security**: Rate limiting, input validation, CSRF protection
 - **Monitoring**: Anomaly detection and alerting
-- **End-to-End Testing**: Comprehensive testing of security flows with Playwright
+- **End-to-End Testing**: Comprehensive testing of security flows with Playwright, including tests that verify correct integration with third-party authentication and payment services
 
 ## Testing Architecture
 
+- **Test Driven Development (TDD)**: All features and components must have tests written before implementation
 - **Unit Testing**: Component and function level tests
 - **Integration Testing**: Testing interactions between components
 - **End-to-End Testing**: Playwright tests for complete user journeys
+- **Third-Party API Testing**: Tests that interact with actual third-party services (Stripe, Supabase, etc.)
 - **Visual Regression**: Screenshot comparison for UI consistency
 - **API Testing**: Validation of API contracts and behaviors
 
@@ -77,7 +82,7 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 ## Integration Points
 
-- **Payment Processors**: Stripe for payments and payouts
+- **Payment Processing**: Stripe for payments (merchant of record model) and creator payouts
 - **Video Services**: Mux for video processing and delivery
 - **Analytics**: Internal analytics + optional Google Analytics
 - **Email Service**: For notifications and communications

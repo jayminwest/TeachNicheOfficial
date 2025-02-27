@@ -19,6 +19,12 @@ const customJestConfig = {
     '**/__tests__/**/*.e2e.test.ts?(x)',
     '**/api/**/__tests__/**/*.test.ts?(x)'
   ],
+  // Explicitly exclude Playwright spec files
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/.next/',
+    '<rootDir>/e2e-tests/'
+  ],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     'components/**/*.{js,jsx,ts,tsx}',
@@ -64,7 +70,8 @@ const customJestConfig = {
   // Added watchPathIgnorePatterns to improve watch mode performance
   watchPathIgnorePatterns: [
     '<rootDir>/node_modules/',
-    '<rootDir>/.next/'
+    '<rootDir>/.next/',
+    '<rootDir>/e2e-tests/'
   ],
   // Added testTimeout for API tests that might take longer
   testTimeout: 10000,

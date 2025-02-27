@@ -50,7 +50,8 @@ export function renderWithAuth(
           value={{
             user: user as User | null, // Force the correct type
             loading: loading as boolean,
-            isAuthenticated: isAuthenticated as boolean
+            isAuthenticated: isAuthenticated as boolean,
+            isCreator: () => Boolean(user?.user_metadata?.is_creator)
           }}
         >
           {children}

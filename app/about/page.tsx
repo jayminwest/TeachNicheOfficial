@@ -150,20 +150,6 @@ export default function AboutPage() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="opensource">
-                <AccordionTrigger>Open Source Philosophy</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-2">
-                    <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                      <li><span className="font-semibold">Transparency:</span> Users can see exactly how the platform works, fostering trust and accountability.</li>
-                      <li><span className="font-semibold">Collaboration:</span> Contributions from developers and enthusiasts who want to help improve Teach Niche are welcome.</li>
-                      <li><span className="font-semibold">Innovation:</span> Open sourcing encourages creative solutions and rapid enhancements, benefiting the entire community.</li>
-                    </ul>
-                    <p>You can check out the repository on GitHub and take a look under the hood!</p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
 
               <AccordionItem value="growth">
                 <AccordionTrigger>Built to Grow with the Community</AccordionTrigger>
@@ -179,13 +165,70 @@ export default function AboutPage() {
                   </div>
                 </AccordionContent>
               </AccordionItem>
+
+              <AccordionItem value="codebase">
+                <AccordionTrigger>Codebase Access</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Since Teach Niche handles financial transactions and user data, we&apos;ve made the decision to keep our codebase closed for security reasons.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Security First:</span> Protecting our users&apos; financial information and personal data is our top priority.</li>
+                      <li><span className="font-semibold">Available Upon Request:</span> We&apos;re happy to share portions of our codebase with interested developers upon request and after proper vetting.</li>
+                      <li><span className="font-semibold">Transparency:</span> While the code itself is private, we maintain transparency about our business practices, commission structure, and how the platform operates.</li>
+                    </ul>
+                    <p>This approach allows us to maintain the highest security standards while still being open to collaboration with trusted partners and community members.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="payments">
+                <AccordionTrigger>Payments & Payouts</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche uses a secure and transparent payment system to handle transactions between students and instructors.</p>
+                    <h4 className="font-semibold mt-4 mb-2">How Payments Work</h4>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Secure Processing:</span> All payments are processed through Stripe, a leading payment processor with bank-level security.</li>
+                      <li><span className="font-semibold">Merchant of Record:</span> Teach Niche acts as the merchant of record, handling tax compliance and payment processing.</li>
+                      <li><span className="font-semibold">Transparent Pricing:</span> Students see the full price upfront, including any applicable processing fees.</li>
+                    </ul>
+                    
+                    <h4 className="font-semibold mt-4 mb-2">Creator Payouts</h4>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Creator Share:</span> Instructors receive 85% of the lesson price for each sale.</li>
+                      <li><span className="font-semibold">Platform Fee:</span> Teach Niche retains a 15% fee to maintain and improve the platform.</li>
+                      <li><span className="font-semibold">Payout Schedule:</span> Earnings are accumulated and paid out to creators on a regular schedule.</li>
+                      <li><span className="font-semibold">Earnings Dashboard:</span> Creators can track their sales and earnings through a comprehensive dashboard.</li>
+                    </ul>
+                    
+                    <h4 className="font-semibold mt-4 mb-2">Getting Started as a Creator</h4>
+                    <p>As a creator, you don&apos;t need to set up your own payment processing. Teach Niche handles all payment collection as the merchant of record, and we&apos;ll send your earnings directly to your bank account based on our payout schedule.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="global">
+                <AccordionTrigger>Global Accessibility</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p>Teach Niche is committed to making kendama education accessible worldwide.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><span className="font-semibold">Multiple Languages:</span> We&apos;re working to translate our platform into several languages to serve the global kendama community.</li>
+                      <li><span className="font-semibold">Global Payment Options:</span> We&apos;re expanding our payment options to support various currencies and regional payment methods.</li>
+                      <li><span className="font-semibold">Accessible Design:</span> Our platform is built to be accessible to users with different abilities, following WCAG guidelines.</li>
+                      <li><span className="font-semibold">Low-Bandwidth Support:</span> We optimize our content to work well even with limited internet connectivity.</li>
+                    </ul>
+                    <p>We believe kendama is a global community, and we&apos;re committed to breaking down barriers to participation. Our goal is to connect kendama players worldwide, regardless of language, location, or technical constraints.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </section>
 
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">
             <h2 className="text-2xl font-semibold mb-4 text-orange-500">Join Our Community</h2>
             <p className="text-lg max-w-2xl mx-auto">
-              Whether you&rsquo;re here to teach or learn, Teach Niche provides the tools and support
+              Whether you&apos;re here to teach or learn, Teach Niche provides the tools and support
               you need to succeed. Join our growing community of educators and learners today.
             </p>
           </section>

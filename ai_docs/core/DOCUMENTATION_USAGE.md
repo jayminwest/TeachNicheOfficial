@@ -33,9 +33,10 @@ Request documentation when:
 - Fixing a complex bug
 - Ensuring compliance with project standards
 - Needing clarification on project architecture
+- Working with payment or payout systems
 - Encountering TypeScript errors (see [TYPESCRIPT_ERRORS.md](../guides/development/TYPESCRIPT_ERRORS.md))
 
-## Documentation-First Approach
+## Documentation-First and Test-Driven Approach
 
 For complex tasks:
 1. First, understand relevant documentation
@@ -48,8 +49,13 @@ For complex tasks:
    git checkout -b fix/your-fix-description dev
    ```
 3. Plan changes according to established patterns
-4. Implement following documented standards
-5. Update documentation if necessary
+4. Write tests before implementing any code (TDD)
+   - Start with basic unit and component tests
+   - Add integration tests for component interactions
+   - Include end-to-end tests with Playwright that verify third-party API integrations
+5. Implement following documented standards
+6. Ensure all tests pass
+7. Update documentation if necessary
 
 ## Documentation Maintenance
 

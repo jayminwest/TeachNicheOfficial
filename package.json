@@ -10,7 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:e2e": "npx playwright test --config=e2e-tests/playwright.config.ts",
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules npx playwright test --config=e2e-tests/playwright.config.ts",
     "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests' --config=e2e-tests/playwright.config.ts",
     "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual",
     "type-check": "tsc --noEmit"
@@ -67,6 +67,7 @@
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",
     "@swc/jest": "^0.2.37",
+    "@swc/register": "^0.1.10",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",

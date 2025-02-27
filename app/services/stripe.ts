@@ -1,14 +1,12 @@
 import Stripe from 'stripe';
+import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 // Error handling types
 export type StripeErrorCode = 
-  | 'account_mismatch'
-  | 'incomplete_onboarding'
+  | 'payment_failed'
   | 'unauthorized'
-  | 'missing_account'
-  | 'profile_verification_failed'
-  | 'update_failed'
-  | 'callback_failed';
+  | 'invalid_request'
+  | 'webhook_error';
 
 export class StripeError extends Error {
   constructor(
@@ -26,30 +24,21 @@ export interface StripeConfig {
   publishableKey: string;
   webhookSecret: string;
   apiVersion: '2025-01-27.acacia';
-  connectType: 'standard' | 'express';
   platformFeePercent: number;
-  supportedCountries: string[];
   defaultCurrency: string;
+  minimumPayoutAmount: number;
+  payoutSchedule: 'weekly' | 'monthly';
+  supportedCountries: string[];
+  // Add mock properties for testing
+  mock?: boolean;
 }
 
-export interface StripeAccountStatus {
-  isComplete: boolean;
-  missingRequirements: string[];
-  pendingVerification: boolean;
+export interface PaymentMetadata {
+  creatorId: string;
+  lessonId: string;
+  purchaseId: string;
 }
 
-export interface ConnectSessionOptions {
-  accountId: string;
-  refreshUrl: string;
-  returnUrl: string;
-  type: 'account_onboarding' | 'account_update';
-}
-
-export interface AccountVerificationResult {
-  verified: boolean;
-  accountId: string;
-  status: StripeAccountStatus;
-}
 
 // Validate and load configuration
 const validateConfig = () => {
@@ -82,20 +71,18 @@ export const stripeConfig: StripeConfig = {
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_tests',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
   apiVersion: '2025-01-27.acacia',
-  connectType: 'standard',
-  platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '10'),
-  supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
-  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
+  platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
+  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd',
+  minimumPayoutAmount: Number(process.env.STRIPE_MINIMUM_PAYOUT_AMOUNT || '100'),
+  payoutSchedule: (process.env.STRIPE_PAYOUT_SCHEDULE || 'weekly') as 'weekly' | 'monthly',
+  supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU').split(',')
 };
 
 export const stripeErrorMessages: Record<StripeErrorCode, string> = {
-  account_mismatch: 'Account verification failed',
-  incomplete_onboarding: 'Please complete your Stripe onboarding',
+  payment_failed: 'Payment processing failed',
   unauthorized: 'You must be logged in',
-  missing_account: 'No Stripe account found',
-  profile_verification_failed: 'Profile verification failed',
-  update_failed: 'Failed to update account status',
-  callback_failed: 'Connection process failed'
+  invalid_request: 'Invalid payment request',
+  webhook_error: 'Webhook processing failed'
 };
 
 // Initialize Stripe client (server-side only)
@@ -111,17 +98,10 @@ export const getStripe = () => {
   if (process.env.NODE_ENV === 'test') {
     // Return mock for tests
     return {
-      accounts: {
-        retrieve: jest.fn().mockResolvedValue({
-          details_submitted: true,
-          payouts_enabled: true,
-          charges_enabled: true,
-          requirements: { currently_due: [], pending_verification: [] }
-        })
-      },
-      accountLinks: {
+      paymentIntents: {
         create: jest.fn().mockResolvedValue({
-          url: 'https://connect.stripe.com/setup/test'
+          id: 'pi_test',
+          client_secret: 'pi_test_secret'
         })
       },
       webhooks: {
@@ -136,36 +116,43 @@ export const getStripe = () => {
   return stripe;
 };
 
-
-// Helper functions and utilities
-export const getAccountStatus = async (accountId: string): Promise<StripeAccountStatus> => {
-  const account = await getStripe().accounts.retrieve(accountId);
-  
-  return {
-    isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
-    missingRequirements: account.requirements?.currently_due || [],
-    pendingVerification: Array.isArray(account.requirements?.pending_verification) && account.requirements.pending_verification.length > 0
-  };
-};
-
-export const createConnectSession = async (options: ConnectSessionOptions) => {
+/**
+ * Creates a payment intent for a lesson purchase
+ * 
+ * @param amount Amount in cents
+ * @param metadata Payment metadata including creator and lesson IDs
+ * @param currency Currency code (default: from config)
+ * @returns Payment intent with client secret
+ */
+export const createPaymentIntent = async (
+  amount: number,
+  metadata: PaymentMetadata,
+  currency: string = stripeConfig.defaultCurrency
+) => {
   try {
-    const session = await getStripe().accountLinks.create({
-      account: options.accountId,
-      refresh_url: options.refreshUrl,
-      return_url: options.returnUrl,
-      type: options.type,
+    const paymentIntent = await getStripe().paymentIntents.create({
+      amount,
+      currency,
+      metadata: {
+        creatorId: metadata.creatorId,
+        lessonId: metadata.lessonId,
+        purchaseId: metadata.purchaseId
+      },
+      automatic_payment_methods: {
+        enabled: true,
+      },
     });
     
-    return session;
+    return paymentIntent;
   } catch (error) {
-    console.error('Stripe Connect session creation failed:', error);
+    console.error('Payment intent creation failed:', error);
     throw new StripeError(
-      'callback_failed',
-      error instanceof Error ? error.message : 'Failed to create Connect session'
+      'payment_failed',
+      error instanceof Error ? error.message : 'Failed to create payment'
     );
   }
 };
+
 
 export const verifyStripeWebhook = (
   payload: string | Buffer,
@@ -180,59 +167,99 @@ export const verifyStripeWebhook = (
     );
   } catch (err) {
     throw new StripeError(
-      'callback_failed',
+      'webhook_error',
       err instanceof Error ? err.message : 'Invalid webhook signature'
     );
   }
 };
 
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
+// Export constants for backward compatibility
+export const DEFAULT_CURRENCY = stripeConfig.defaultCurrency;
 
-export const verifyConnectedAccount = async (
-  userId: string,
-  accountId: string,
-  supabaseClient: TypedSupabaseClient
-): Promise<AccountVerificationResult> => {
+/**
+ * Creates a Stripe Connect account link for onboarding
+ */
+export const createConnectSession = async ({
+  accountId,
+  refreshUrl,
+  returnUrl,
+  type = 'account_onboarding'
+}: {
+  accountId: string;
+  refreshUrl: string;
+  returnUrl: string;
+  type?: 'account_onboarding' | 'account_update';
+}) => {
   try {
-    // Get profile
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('stripe_account_id')
-      .eq('id', userId)
-      .single();
-
-    if (profileError) {
-      console.error('Profile fetch failed:', profileError);
-      throw new StripeError('profile_verification_failed', 'Failed to fetch profile');
-    }
-
-    if (!profile?.stripe_account_id) {
-      throw new StripeError('missing_account', 'No Stripe account found');
-    }
-
-    if (profile.stripe_account_id !== accountId) {
-      throw new StripeError('account_mismatch', 'Account verification failed');
-    }
-
-    const status = await getAccountStatus(accountId);
-
-    return {
-      verified: true,
-      accountId,
-      status
-    };
+    const stripe = getStripe();
+    const accountLink = await (stripe as Stripe).accountLinks.create({
+      account: accountId,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type,
+    });
+    
+    return accountLink;
   } catch (error) {
-    if (error instanceof StripeError) {
-      throw error;
-    }
-    console.error('Account verification failed:', error);
+    console.error('Failed to create account link:', error);
     throw new StripeError(
-      'profile_verification_failed',
-      error instanceof Error ? error.message : 'Account verification failed'
+      'invalid_request',
+      error instanceof Error ? error.message : 'Failed to create account link'
     );
   }
 };
 
-// Export constants for backward compatibility
-export const SUPPORTED_COUNTRIES = stripeConfig.supportedCountries;
-export const DEFAULT_CURRENCY = stripeConfig.defaultCurrency;
+/**
+ * Gets the status of a Stripe Connect account
+ */
+export const getAccountStatus = async (accountId: string) => {
+  try {
+    const stripe = getStripe();
+    const account = await (stripe as Stripe).accounts.retrieve(accountId);
+    
+    return {
+      id: account.id,
+      chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
+      detailsSubmitted: account.details_submitted,
+      isComplete: account.charges_enabled && account.payouts_enabled && account.details_submitted,
+      requirements: account.requirements,
+    };
+  } catch (error) {
+    console.error('Failed to get account status:', error);
+    throw new StripeError(
+      'invalid_request',
+      error instanceof Error ? error.message : 'Failed to get account status'
+    );
+  }
+};
+
+/**
+ * Verifies a connected account belongs to the user
+ */
+export const verifyConnectedAccount = async (
+  userId: string,
+  accountId: string,
+  supabase: TypedSupabaseClient
+) => {
+  try {
+    // Verify the account exists and belongs to this user
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', userId)
+      .single();
+    
+    if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
+      return { verified: false, status: { isComplete: false } };
+    }
+    
+    // Get account status
+    const status = await getAccountStatus(accountId);
+    
+    return { verified: true, status };
+  } catch (error) {
+    console.error('Failed to verify connected account:', error);
+    return { verified: false, status: { isComplete: false } };
+  }
+};

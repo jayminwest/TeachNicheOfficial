@@ -5,9 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
-import { SignInPage } from "./sign-in";
-import { SignUpPage } from "./sign-up";
-import { Dialog, DialogContent, DialogTrigger } from "./dialog";
+import { AuthDialog } from "./auth-dialog";
 import { supabase } from "@/app/services/supabase";
 
 interface NavigationItem {
@@ -35,6 +33,13 @@ export function Header() {
     const { user, loading } = useAuth();
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
+    const [authDialogOpen, setAuthDialogOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    
+    // This ensures the component is only rendered after it's mounted on the client
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
     const navigationItems: NavigationItem[] = [
         {
             title: "Home",
@@ -119,7 +124,7 @@ export function Header() {
                 </div>
                 <div className="hidden lg:flex justify-end w-full gap-2 items-center">
                     <ThemeToggle />
-                    {!loading && user ? (
+                    {mounted && !loading && user ? (
                         <>
                             <Link href="/profile">
                                 <Button variant="ghost">Profile</Button>
@@ -134,20 +139,28 @@ export function Header() {
                                 Sign Out
                             </Button>
                         </>
-                    ) : !loading ? (
+                    ) : mounted && !loading ? (
                         <>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost">Sign In</Button>
-                                </DialogTrigger>
-                                <DialogContent className="p-0 bg-background">
-                                    {showSignIn ? (
-                                        <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
-                                    ) : (
-                                        <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
-                                    )}
-                                </DialogContent>
-                            </Dialog>
+                            <>
+                                <Button 
+                                    variant="ghost" 
+                                    data-testid="sign-in-button"
+                                    id="sign-in-button"
+                                    className="sign-in-button"
+                                    onClick={() => {
+                                        setShowSignIn(true);
+                                        setAuthDialogOpen(true);
+                                    }}
+                                >
+                                    Sign In
+                                </Button>
+                                
+                                <AuthDialog 
+                                    open={authDialogOpen} 
+                                    onOpenChange={setAuthDialogOpen} 
+                                    defaultView={showSignIn ? 'sign-in' : 'sign-up'} 
+                                />
+                            </>
                             <Button 
                                 onClick={() => {
                                     if (pathname === '/') {
@@ -174,7 +187,7 @@ export function Header() {
                                 <div className="flex justify-end">
                                     <ThemeToggle />
                                 </div>
-                                {!loading && user ? (
+                                {mounted && !loading && user ? (
                                     <>
                                         <Link href="/profile">
                                             <Button variant="ghost" className="w-full">Profile</Button>
@@ -190,20 +203,23 @@ export function Header() {
                                             Sign Out
                                         </Button>
                                     </>
-                                ) : !loading ? (
+                                ) : mounted && !loading ? (
                                     <>
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" className="w-full">Sign In</Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="p-0 bg-background">
-                                                {showSignIn ? (
-                                                    <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
-                                                ) : (
-                                                    <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
-                                                )}
-                                            </DialogContent>
-                                        </Dialog>
+                                        <>
+                                            <Button 
+                                                variant="ghost" 
+                                                className="w-full sign-in-button" 
+                                                data-testid="sign-in-button-mobile"
+                                                id="sign-in-button-mobile"
+                                                onClick={() => {
+                                                    setShowSignIn(true);
+                                                    setAuthDialogOpen(true);
+                                                    setOpen(false); // Close mobile menu when opening dialog
+                                                }}
+                                            >
+                                                Sign In
+                                            </Button>
+                                        </>
                                         <Button 
                                             className="w-full"
                                             onClick={() => {

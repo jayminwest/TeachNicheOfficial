@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { CreatorInfoDialog } from "@/app/components/ui/creator-info-dialog"
+import { useAuth } from "@/app/services/auth/AuthContext"
 import { Button } from "@/app/components/ui/button"
 import {
   Form,
@@ -30,6 +34,41 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export function ProfileForm() {
+  const [creatorDialogOpen, setCreatorDialogOpen] = useState(false)
+  const { user } = useAuth()
+  const router = useRouter()
+
+  // Function to check if user is a creator - using type assertion to handle the type mismatch
+  function isCreator(user: unknown) {
+    if (!user) return false;
+    
+    // Cast to a type that has the properties we want to check
+    const userWithMetadata = user as {
+      user_metadata?: { is_creator?: boolean };
+      metadata?: { is_creator?: boolean };
+      app_metadata?: Record<string, unknown>;
+      is_creator?: boolean;
+    };
+    
+    // Check various possible locations for the is_creator flag
+    return (
+      // Check user_metadata
+      userWithMetadata?.user_metadata?.is_creator === true ||
+      // Check metadata
+      userWithMetadata?.metadata?.is_creator === true || 
+      // Check app_metadata - using a safe approach to check for is_creator
+      userWithMetadata?.app_metadata && 
+        Object.prototype.hasOwnProperty.call(userWithMetadata.app_metadata, 'is_creator') && 
+        userWithMetadata.app_metadata.is_creator === true || 
+      // Check direct property
+      userWithMetadata?.is_creator === true
+    );
+  }
+
+  const handleDashboardNavigation = () => {
+    router.push("/dashboard");
+  }
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -130,6 +169,39 @@ export function ProfileForm() {
         />
         <Button type="submit">Update profile</Button>
       </form>
+      <div className="border-t pt-6 mt-6">
+        <h3 className="text-lg font-medium mb-4">Creator Dashboard</h3>
+        {isCreator(user) ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Access your creator dashboard to manage your lessons, view analytics, and track your earnings.
+            </p>
+            <Button 
+              onClick={handleDashboardNavigation}
+              className="w-full sm:w-auto"
+            >
+              Go to Creator Dashboard
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Share your expertise and earn income by becoming a creator on Teach Niche.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => setCreatorDialogOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              Learn About Becoming a Creator
+            </Button>
+            <CreatorInfoDialog 
+              open={creatorDialogOpen} 
+              onOpenChange={setCreatorDialogOpen} 
+            />
+          </div>
+        )}
+      </div>
     </Form>
   )
 }

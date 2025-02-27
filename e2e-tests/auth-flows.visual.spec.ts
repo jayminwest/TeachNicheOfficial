@@ -1,11 +1,14 @@
 import { test } from '@playwright/test';
-import { compareScreenshot, getMaskSelectors } from './visual-testing';
+import { compareScreenshot, getMaskSelectors, setupVisualTesting } from './visual-testing';
 
 // Visual tests for authentication flows
 test.describe('Authentication UI', () => {
   test('Sign in dialog appearance', async ({ page }) => {
     // Navigate to home page
     await page.goto('/');
+    
+    // Setup page for visual testing
+    await setupVisualTesting(page);
     
     try {
       // Open the sign-in dialog
@@ -33,6 +36,9 @@ test.describe('Authentication UI', () => {
   test('Sign up dialog appearance', async ({ page }) => {
     // Navigate to home page
     await page.goto('/');
+    
+    // Setup page for visual testing
+    await setupVisualTesting(page);
     
     try {
       // Open the sign-in dialog
@@ -68,6 +74,9 @@ test.describe('Authentication UI', () => {
   test('Authentication error appearance', async ({ page }) => {
     // Navigate to home page
     await page.goto('/');
+    
+    // Setup page for visual testing
+    await setupVisualTesting(page);
     
     try {
       // Open the sign-in dialog

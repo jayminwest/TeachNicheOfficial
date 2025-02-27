@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/app/services/supabase'
 
@@ -8,12 +8,14 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   isAuthenticated: boolean
+  isCreator: () => boolean
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAuthenticated: false,
+  isCreator: () => false,
 })
 
 export function AuthProvider({ 
@@ -55,6 +57,12 @@ export function AuthProvider({
           console.log('Auth state changed:', event, session?.user?.id)
           setUser(session?.user ?? null)
           setLoading(false)
+          
+          // Broadcast auth change to other tabs
+          if (typeof window !== 'undefined' && window.localStorage) {
+            const authChangeEvent = new Date().toISOString();
+            localStorage.setItem('auth_state_change', authChangeEvent);
+          }
         })
         
         if (authStateChange && authStateChange.data && authStateChange.data.subscription) {
@@ -69,14 +77,36 @@ export function AuthProvider({
       console.error('Error setting up auth listener:', error)
       setLoading(false)
     }
+    
+    // Listen for auth changes in other tabs
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'auth_state_change') {
+        // Refresh auth state when another tab changes it
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setUser(session?.user ?? null);
+        });
+      }
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageChange);
+    }
 
     return () => {
-      subscription.unsubscribe()
+      subscription.unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageChange);
+      }
     }
   }, [])
 
+  const isCreator = useCallback(() => {
+    return user?.user_metadata?.is_creator === true || 
+           user?.app_metadata?.is_creator === true;
+  }, [user?.user_metadata?.is_creator, user?.app_metadata?.is_creator]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, isCreator }}>
       {children}
     </AuthContext.Provider>
   )
@@ -84,4 +114,12 @@ export function AuthProvider({
 
 export function useAuth() {
   return useContext(AuthContext)
+}
+
+// Helper function to detect if we're in a test environment
+export function isTestEnvironment() {
+  return typeof window !== 'undefined' && 
+    (process.env.NODE_ENV === 'test' || 
+     window.location.href.includes('localhost') || 
+     window.location.href.includes('127.0.0.1'));
 }

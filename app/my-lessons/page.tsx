@@ -64,7 +64,7 @@ export default function MyLessonsPage() {
         const purchasedLessons = data.map(purchase => ({
           id: purchase.lessons.id,
           title: purchase.lessons.title,
-          description: purchase.lessons.description,
+          description: purchase.lessons.description || '', // Handle null descriptions
           price: purchase.lessons.price,
           thumbnailUrl: '/placeholder-lesson.jpg', // Replace with actual thumbnail URL
           averageRating: 4.5, // Mock data, replace with actual rating

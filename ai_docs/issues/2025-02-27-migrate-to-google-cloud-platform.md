@@ -122,8 +122,9 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created Firebase configuration file at app/lib/firebase.ts
   - ✅ Implemented Firebase Authentication in place of Supabase Auth
   - ✅ Updated auth service to use Firebase
-  - ⏳ Need to identify and update remaining Supabase references
-  - ⏳ Need to update service abstraction layers to use Firebase exclusively
+  - ✅ Created firebase-auth.ts to replace supabase-auth.ts
+  - ✅ Updated auth-provider.ts and index.ts to reference firebase-auth.ts
+  - ⏳ Need to update environment variables in .env files
 
 ### Next Steps
 - Remove all Supabase dependencies and references

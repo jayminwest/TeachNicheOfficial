@@ -1,5 +1,5 @@
 import { AuthService } from './interface';
-import { SupabaseAuth } from './supabase-auth';
+import { FirebaseAuth } from './firebase-auth';
 import { FirebaseAuth } from './firebase-auth';
 
 export function getAuthService(): AuthService {

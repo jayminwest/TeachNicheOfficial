@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { EarningsLink } from './earnings-link';
-import userEvent from '@testing-library/user-event';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({

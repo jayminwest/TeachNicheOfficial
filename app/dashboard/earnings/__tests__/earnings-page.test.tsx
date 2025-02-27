@@ -1,23 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import EarningsPage from '../page';
-import userEvent from '@testing-library/user-event';
 
 // Mock the components used in the page
 jest.mock('@/app/components/ui/tabs', () => ({
-  Tabs: ({ children, defaultValue }: any) => <div data-testid="tabs">{children}</div>,
-  TabsContent: ({ children, value }: any) => <div data-testid={`tabs-content-${value}`}>{children}</div>,
-  TabsList: ({ children }: any) => <div data-testid="tabs-list">{children}</div>,
-  TabsTrigger: ({ children, value }: any) => (
+  Tabs: ({ children }: { children: React.ReactNode }) => <div data-testid="tabs">{children}</div>,
+  TabsContent: ({ children, value }: { children: React.ReactNode; value: string }) => (
+    <div data-testid={`tabs-content-${value}`}>{children}</div>
+  ),
+  TabsList: ({ children }: { children: React.ReactNode }) => <div data-testid="tabs-list">{children}</div>,
+  TabsTrigger: ({ children, value }: { children: React.ReactNode; value: string }) => (
     <button data-testid={`tab-${value}`} onClick={() => {}}>{children}</button>
   ),
 }));
 
 jest.mock('@/app/components/ui/card', () => ({
-  Card: ({ children }: any) => <div data-testid="card">{children}</div>,
-  CardContent: ({ children }: any) => <div data-testid="card-content">{children}</div>,
-  CardDescription: ({ children }: any) => <div data-testid="card-description">{children}</div>,
-  CardHeader: ({ children }: any) => <div data-testid="card-header">{children}</div>,
-  CardTitle: ({ children }: any) => <div data-testid="card-title">{children}</div>,
+  Card: ({ children }: { children: React.ReactNode }) => <div data-testid="card">{children}</div>,
+  CardContent: ({ children }: { children: React.ReactNode }) => <div data-testid="card-content">{children}</div>,
+  CardDescription: ({ children }: { children: React.ReactNode }) => <div data-testid="card-description">{children}</div>,
+  CardHeader: ({ children }: { children: React.ReactNode }) => <div data-testid="card-header">{children}</div>,
+  CardTitle: ({ children }: { children: React.ReactNode }) => <div data-testid="card-title">{children}</div>,
 }));
 
 jest.mock('@/app/components/ui/bank-account-form', () => ({
@@ -37,7 +38,7 @@ jest.mock('../../components/payout-history', () => ({
 // Mock Next.js Link component
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ children, href, ...props }: any) => (
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: any }) => (
     <a href={href} {...props}>{children}</a>
   ),
 }));

@@ -43,7 +43,7 @@ export function CreatorInfoDialog({ open, onOpenChange }: CreatorInfoDialogProps
             <h4 className="text-sm font-medium mb-2">Application Process</h4>
             <p className="text-sm text-muted-foreground">
               After applying, our team will review your application within 3-5 business days. 
-              You'll receive an email notification once your creator status is approved.
+              You&apos;ll receive an email notification once your creator status is approved.
             </p>
           </div>
         </div>

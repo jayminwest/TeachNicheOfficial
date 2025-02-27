@@ -2,8 +2,6 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import pg from 'pg';
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../types/database';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -11,17 +9,6 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Supabase connection
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase credentials');
-  process.exit(1);
-}
-
-const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 // Cloud SQL connection
 const cloudSqlConfig = {
@@ -87,23 +74,7 @@ async function checkTablesExist() {
   }
 }
 
-async function getSupabaseCount(table: string): Promise<number> {
-  try {
-    const { count, error } = await supabase
-      .from(table)
-      .select('*', { count: 'exact', head: true });
-    
-    if (error) {
-      console.error(`Error getting count from Supabase for ${table}:`, error);
-      return 0;
-    }
-    
-    return count || 0;
-  } catch (error) {
-    console.error(`Error getting count from Supabase for ${table}:`, error);
-    return 0;
-  }
-}
+// This function is removed as we're focusing on GCP only
 
 async function getCloudSqlCount(table: string): Promise<number> {
   try {
@@ -130,7 +101,6 @@ async function getCloudSqlCount(table: string): Promise<number> {
 async function verifyTable(table: string): Promise<boolean> {
   console.log(`Verifying table: ${table}`);
   
-  const supabaseCount = await getSupabaseCount(table);
   const cloudSqlCount = await getCloudSqlCount(table);
   
   if (cloudSqlCount === -1) {
@@ -138,16 +108,9 @@ async function verifyTable(table: string): Promise<boolean> {
     return false;
   }
   
-  console.log(`  Supabase count: ${supabaseCount}`);
   console.log(`  Cloud SQL count: ${cloudSqlCount}`);
-  
-  if (supabaseCount === cloudSqlCount) {
-    console.log(`  ✅ Counts match for ${table}`);
-    return true;
-  } else {
-    console.log(`  ❌ Counts do not match for ${table}`);
-    return false;
-  }
+  console.log(`  ✅ Table exists and has ${cloudSqlCount} records`);
+  return true;
 }
 
 async function verifyMigration() {
@@ -164,24 +127,19 @@ async function verifyMigration() {
     
     let allTablesVerified = true;
     
-    // Only verify data if we're migrating from Supabase
-    if (process.env.VERIFY_SUPABASE_MIGRATION === 'true') {
-      console.log('\nVerifying data migration from Supabase...');
-      for (const table of tables) {
-        const isVerified = await verifyTable(table);
-        if (!isVerified) {
-          allTablesVerified = false;
-        }
+    // Verify table data counts
+    console.log('\nVerifying database tables...');
+    for (const table of tables) {
+      const isVerified = await verifyTable(table);
+      if (!isVerified) {
+        allTablesVerified = false;
       }
-      
-      if (allTablesVerified) {
-        console.log('\n✅ All tables verified successfully!');
-      } else {
-        console.log('\n❌ Verification failed for one or more tables');
-      }
+    }
+    
+    if (allTablesVerified) {
+      console.log('\n✅ All tables verified successfully!');
     } else {
-      console.log('\nSkipping data verification since we are not migrating from Supabase');
-      console.log('To enable data verification, set VERIFY_SUPABASE_MIGRATION=true in your .env file');
+      console.log('\n❌ Verification failed for one or more tables');
     }
     
     console.log('\nDatabase verification complete!');

@@ -152,6 +152,7 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created default storage bucket in Firebase Console
   - ✅ Created firebase.json configuration file
   - ✅ Updated setup script to handle missing configuration
+  - ⚠️ Need to update storage rules to fix permission issues
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
 - ⏳ Set up Cloud Storage buckets and migrate files
 - ⏳ Implement Google Workspace email integration

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { BankAccountForm } from "@/app/components/ui/bank-account-form";
@@ -10,6 +11,19 @@ export default function EarningsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center gap-2 mb-6">
+          <Link 
+            href="/dashboard" 
+            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+            data-testid="back-to-dashboard"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left">
+              <path d="m12 19-7-7 7-7"/>
+              <path d="M19 12H5"/>
+            </svg>
+            <span>Back to Dashboard</span>
+          </Link>
+        </div>
         <h1 className="text-3xl font-bold mb-6">Earnings & Payouts</h1>
         
         <Suspense

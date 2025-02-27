@@ -27,9 +27,14 @@ export default function DashboardPage() {
               <div className="mt-2 text-center">
                 <Link 
                   href="/dashboard/earnings" 
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm font-medium text-primary hover:underline flex items-center justify-center gap-1"
+                  data-testid="earnings-dashboard-link"
                 >
-                  View detailed earnings & payouts
+                  <span>View detailed earnings & payouts</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
+                    <path d="M5 12h14"/>
+                    <path d="m12 5 7 7-7 7"/>
+                  </svg>
                 </Link>
               </div>
             </div>

@@ -177,7 +177,7 @@ test.describe('Payment and Payout System', () => {
     await page.fill('[id="accountHolderName"]', 'Creator Name');
     // Skip the dropdown interaction and just set the value directly
     await page.evaluate(() => {
-      const select = document.querySelector('[id="accountType"]');
+      const select = document.querySelector('[id="accountType"]') as HTMLSelectElement;
       if (select) {
         select.value = 'checking';
       }

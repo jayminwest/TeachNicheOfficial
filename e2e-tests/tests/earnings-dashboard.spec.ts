@@ -108,8 +108,9 @@ test.describe('Earnings Dashboard', () => {
       window.dispatchEvent(new CustomEvent('mock-auth-update', { detail: window.mockUser }));
       
       // Force re-render if needed
-      if (document.querySelector('[data-testid="bank-account-form"]')) {
-        document.querySelector('[data-testid="bank-account-form"]').setAttribute('data-test-ready', 'true');
+      const bankAccountForm = document.querySelector('[data-testid="bank-account-form"]');
+      if (bankAccountForm) {
+        bankAccountForm.setAttribute('data-test-ready', 'true');
       }
     });
     

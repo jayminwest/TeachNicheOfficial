@@ -8,4 +8,14 @@ interface Window {
   nextRouterMock?: {
     push: (url: string) => Promise<boolean>;
   };
+  // For mocking user in tests
+  mockUser?: {
+    id: string;
+    email: string;
+    user_metadata?: {
+      full_name?: string;
+      avatar_url?: string;
+      is_creator?: boolean;
+    };
+  };
 }

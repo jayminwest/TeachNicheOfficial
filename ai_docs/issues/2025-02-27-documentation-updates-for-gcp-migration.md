@@ -61,7 +61,7 @@ We've made significant progress in updating documentation to reflect our migrati
 ### Reference Documentation
 - [x] Update DATABASE_SCHEMA.md to reflect Cloud SQL
 - [ ] Create new GCP_SERVICES.md reference for GCP services used
-- [ ] Create new FIREBASE_AUTHENTICATION.md reference
+- [x] Create new FIREBASE_AUTHENTICATION.md reference
 - [ ] Create new CLOUD_STORAGE.md reference
 - [ ] Update ENVIRONMENT_VARIABLES.md to reflect GCP environment variables
 
@@ -77,6 +77,7 @@ We've made significant progress in updating documentation to reflect our migrati
 - [x] CODE/GUIDELINES.md
 - [x] DATA.md
 - [x] SUPABASE_SMTP_SETUP.md (updated with deprecation notice)
+- [x] FIREBASE_AUTHENTICATION.md
 
 ## Remaining Tasks
 - Update remaining files with Supabase references (approximately 15 references remaining)

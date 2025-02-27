@@ -129,7 +129,8 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Fixed TypeScript and ESLint errors
   - ✅ Updated environment variables in .env files
 - ✅ Module resolution error in test scripts
-  - ✅ Fixed import paths in test scripts to use relative paths without .js extension
+  - ✅ Fixed import paths in test scripts to use relative paths
+  - ✅ Created missing firebase-storage.ts implementation
   - ✅ Updated scripts/test-firebase-storage.ts to correctly import FirebaseStorage
   - ✅ Added proper error handling and exit codes
 

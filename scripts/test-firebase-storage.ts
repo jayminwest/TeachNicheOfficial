@@ -9,8 +9,8 @@
  * Usage: npx ts-node scripts/test-firebase-storage.ts
  */
 
-// Import using CommonJS style to avoid ESM issues
-import { FirebaseStorage } from '../app/services/storage/firebase-storage';
+// Import using the correct path
+import { FirebaseStorage } from '../app/services/storage/firebase-storage.ts';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

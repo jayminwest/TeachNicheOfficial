@@ -557,23 +557,57 @@ async function seedTestData() {
     
     // Insert test purchases
     console.log('Inserting test purchases...');
-    await client.query(`
-      INSERT INTO purchases (
-        id, user_id, lesson_id, amount, status,
-        created_at, updated_at, stripe_session_id
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      ON CONFLICT (id) DO NOTHING
-    `, [
-      uuidv4(),
-      testUsers[0].id,
-      lessonId,
-      1999, // $19.99
-      'completed',
-      new Date(),
-      new Date(),
-      'stripe_session_123'
-    ]);
+    
+    // Check if purchases table has a creator_id column
+    const creatorIdColumnExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'purchases' 
+        AND column_name = 'creator_id'
+      );
+    `);
+    
+    if (creatorIdColumnExists.rows[0].exists) {
+      console.log('Found creator_id column in purchases table, including it in insert...');
+      await client.query(`
+        INSERT INTO purchases (
+          id, user_id, lesson_id, creator_id, amount, status,
+          created_at, updated_at, stripe_session_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (id) DO NOTHING
+      `, [
+        uuidv4(),
+        testUsers[0].id,
+        lessonId,
+        creatorId,  // Use the creator ID from the lesson
+        1999, // $19.99
+        'completed',
+        new Date(),
+        new Date(),
+        'stripe_session_123'
+      ]);
+    } else {
+      // If creator_id column doesn't exist, use the original query
+      await client.query(`
+        INSERT INTO purchases (
+          id, user_id, lesson_id, amount, status,
+          created_at, updated_at, stripe_session_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (id) DO NOTHING
+      `, [
+        uuidv4(),
+        testUsers[0].id,
+        lessonId,
+        1999, // $19.99
+        'completed',
+        new Date(),
+        new Date(),
+        'stripe_session_123'
+      ]);
+    }
     
     // Commit transaction
     await client.query('COMMIT');

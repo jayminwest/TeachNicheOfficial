@@ -6,7 +6,7 @@
  * 
  * Usage:
  * 1. Set up environment variables for both Supabase and GCP
- * 2. Run with: npx ts-node scripts/migrate-database.ts
+ * 2. Run with: npm run migrate:db
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -14,6 +14,15 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
+
+// Get directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -452,42 +461,6 @@ async function insertBatch(tableName: string, records: any[]) {
 
 // Run the migration
 migrateDatabase().catch(console.error);
-import { createClient } from '@supabase/supabase-js';
-import { Pool } from 'pg';
-import fs from 'fs';
-import path from 'path';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config({ path: '.env.local' });
-
-// Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-// Cloud SQL connection
-const cloudSqlPool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: process.env.DB_SSL === 'true' ? true : false,
-});
-
-// Tables to migrate (in order of dependencies)
-const tables = [
-  'categories',
-  'profiles',
-  'lessons',
-  'lesson_categories',
-  'purchases',
-  'reviews',
-  'lesson_requests',
-  'comments',
-  // Add other tables as needed
-];
 
 async function migrateTable(tableName: string) {
   console.log(`Migrating table: ${tableName}`);

@@ -5,8 +5,6 @@ import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { firebaseConfig } from '../app/lib/firebase';
-
 // Load environment variables
 dotenv.config({ path: '.env.local' });
 
@@ -16,7 +14,10 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Firebase setup
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+});
 const storage = getStorage(app);
 
 // Storage buckets to migrate

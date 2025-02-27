@@ -222,14 +222,17 @@ async function seedTestData() {
       }
       
       try {
+        const profileId = uuidv4();
+        
         if (columnCheckResult.rows[0].exists) {
           // If username column exists, include it in the insert
           await client.query(`
-            INSERT INTO profiles (user_id, display_name, username, avatar_url, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO profiles (id, user_id, display_name, username, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (user_id) DO UPDATE
-            SET display_name = $2, username = $3, avatar_url = $4, updated_at = $6
+            SET display_name = $3, username = $4, avatar_url = $5, updated_at = $7
           `, [
+            profileId,
             user.id, 
             displayName, 
             username, 
@@ -240,11 +243,12 @@ async function seedTestData() {
         } else {
           // If username column doesn't exist, exclude it from the insert
           await client.query(`
-            INSERT INTO profiles (user_id, display_name, avatar_url, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO profiles (id, user_id, display_name, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (user_id) DO UPDATE
-            SET display_name = $2, avatar_url = $3, updated_at = $5
+            SET display_name = $3, avatar_url = $4, updated_at = $6
           `, [
+            profileId,
             user.id, 
             displayName, 
             `https://ui-avatars.com/api/?name=${displayName}&background=random`,
@@ -325,7 +329,8 @@ async function seedTestData() {
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error seeding test data:', error);
-    throw error;
+    // Don't throw the error, just log it and exit gracefully
+    process.exit(1);
   } finally {
     client.release();
     await pool.end();

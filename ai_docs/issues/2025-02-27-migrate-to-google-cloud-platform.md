@@ -51,10 +51,11 @@ We will migrate to a GCP-based infrastructure:
 - [x] Create service abstraction layers for database, auth, storage, and email
 - [ ] Set up billing alerts and monitoring
 - [x] Define initial infrastructure as code with Terraform
-- [ ] Create development environment in GCP
+- [x] Create development environment in GCP
 
 ### Phase 2: Core Services Migration
 - [ ] Migrate database schema to Cloud SQL
+- [x] Set up Firebase project and Firestore database
 - [ ] Implement Firebase Authentication
 - [ ] Update API routes to use GCP services
 - [ ] Migrate file storage to Cloud Storage
@@ -86,11 +87,15 @@ We will migrate to a GCP-based infrastructure:
 - Created service abstraction layers for database, authentication, storage, and email
 - Created initial Terraform configuration files for infrastructure
 
-### Challenges Encountered
+### Challenges Encountered and Resolved
 - Permission issues when trying to add Firebase to the GCP project
   - Error: "The caller does not have permission"
-  - Need to grant additional IAM permissions to the account
+  - Resolved by granting additional IAM permissions with roles/firebase.admin
 - Billing budget creation requires proper formatting of the command
+  - Created a dedicated script for setting up billing budgets
+- Firebase initialization requires creating Firestore database first
+  - Created a script to guide through the Firestore setup process
+  - Successfully deployed Firestore security rules
 
 ### Database Migration
 - Export schema from Supabase

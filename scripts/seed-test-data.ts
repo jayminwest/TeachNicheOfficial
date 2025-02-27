@@ -107,6 +107,29 @@ async function seedTestData() {
       `, [user.id, user.email, user.password_hash, user.created_at, user.updated_at]);
     }
     
+    // Check if profiles table exists
+    const profilesTableExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'profiles'
+      );
+    `);
+    
+    if (!profilesTableExists.rows[0].exists) {
+      console.log('Creating profiles table...');
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS profiles (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+          display_name TEXT,
+          avatar_url TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+      `);
+    }
+    
     // Insert profiles for test users
     console.log('Inserting user profiles...');
     for (const user of testUsers) {
@@ -138,6 +161,27 @@ async function seedTestData() {
         await client.query(`
           ALTER TABLE profiles 
           ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+        `);
+      }
+      
+      // Check if user_id has a unique constraint
+      const uniqueConstraintExists = await client.query(`
+        SELECT COUNT(*) > 0 AS exists
+        FROM pg_constraint
+        WHERE conrelid = 'profiles'::regclass
+        AND contype = 'u'
+        AND conkey @> ARRAY[
+          (SELECT attnum FROM pg_attribute 
+           WHERE attrelid = 'profiles'::regclass 
+           AND attname = 'user_id')
+        ]::smallint[];
+      `);
+      
+      if (!uniqueConstraintExists.rows[0].exists) {
+        console.log('Adding unique constraint to user_id column...');
+        await client.query(`
+          ALTER TABLE profiles 
+          ADD CONSTRAINT profiles_user_id_key UNIQUE (user_id);
         `);
       }
       
@@ -177,35 +221,42 @@ async function seedTestData() {
         `);
       }
       
-      if (columnCheckResult.rows[0].exists) {
-        // If username column exists, include it in the insert
-        await client.query(`
-          INSERT INTO profiles (user_id, display_name, username, avatar_url, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6)
-          ON CONFLICT (user_id) DO UPDATE
-          SET display_name = $2, username = $3, avatar_url = $4, updated_at = $6
-        `, [
-          user.id, 
-          displayName, 
-          username, 
-          `https://ui-avatars.com/api/?name=${displayName}&background=random`,
-          user.created_at,
-          user.updated_at
-        ]);
-      } else {
-        // If username column doesn't exist, exclude it from the insert
-        await client.query(`
-          INSERT INTO profiles (user_id, display_name, avatar_url, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5)
-          ON CONFLICT (user_id) DO UPDATE
-          SET display_name = $2, avatar_url = $3, updated_at = $5
-        `, [
-          user.id, 
-          displayName, 
-          `https://ui-avatars.com/api/?name=${displayName}&background=random`,
-          user.created_at,
-          user.updated_at
-        ]);
+      try {
+        if (columnCheckResult.rows[0].exists) {
+          // If username column exists, include it in the insert
+          await client.query(`
+            INSERT INTO profiles (user_id, display_name, username, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $2, username = $3, avatar_url = $4, updated_at = $6
+          `, [
+            user.id, 
+            displayName, 
+            username, 
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ]);
+        } else {
+          // If username column doesn't exist, exclude it from the insert
+          await client.query(`
+            INSERT INTO profiles (user_id, display_name, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $2, avatar_url = $3, updated_at = $5
+          `, [
+            user.id, 
+            displayName, 
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ]);
+        }
+      } catch (error) {
+        console.error('Error inserting profile for user:', user.email);
+        console.error('Error details:', error);
+        // Continue with the next user instead of failing the entire script
+        continue;
       }
     }
     

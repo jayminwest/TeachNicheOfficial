@@ -124,6 +124,9 @@ describe('VideoPlayer', () => {
       
       expect(global.fetch).toHaveBeenCalledWith('/api/video/sign-playback', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ playbackId: 'mock-playback-id' })
       });
       

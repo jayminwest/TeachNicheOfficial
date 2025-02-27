@@ -77,13 +77,13 @@ export default function RequestsPage() {
             </div>
             {error && (
               <Alert 
-                variant={error.includes("No lesson requests found") ? "default" : "destructive"} 
+                variant={error.toLowerCase().includes("no") && error.toLowerCase().includes("found") ? "default" : "destructive"} 
                 className="mb-6"
               >
-                {error.includes("No lesson requests found") ? (
+                {error.toLowerCase().includes("no") && error.toLowerCase().includes("found") ? (
                   <>
                     <span className="font-semibold">Congrats! You're first.</span>
-                    <span className="ml-2">Make the first lesson request and start something amazing!</span>
+                    <span className="ml-2">Make the first request!</span>
                   </>
                 ) : (
                   <>

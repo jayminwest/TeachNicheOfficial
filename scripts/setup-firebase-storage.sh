@@ -118,6 +118,30 @@ echo "Do you want to run the storage test script? (y/n): "
 read RUN_TEST
 
 if [ "$RUN_TEST" = "y" ]; then
+    echo "Checking environment variables..."
+    if [ -f ".env" ]; then
+        # Check if Firebase environment variables are set
+        if ! grep -q "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET" .env; then
+            echo -e "${YELLOW}Firebase Storage Bucket not found in .env file.${NC}"
+            echo "Adding Firebase Storage Bucket to .env file..."
+            echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.appspot.com" >> .env
+            echo -e "${GREEN}Added NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET to .env file.${NC}"
+        fi
+        
+        # Ensure other Firebase variables are set
+        if ! grep -q "NEXT_PUBLIC_FIREBASE_PROJECT_ID" .env; then
+            echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${PROJECT_ID}" >> .env
+            echo -e "${GREEN}Added NEXT_PUBLIC_FIREBASE_PROJECT_ID to .env file.${NC}"
+        fi
+        
+        echo -e "${GREEN}Environment variables verified.${NC}"
+    else
+        echo -e "${YELLOW}No .env file found. Creating one...${NC}"
+        echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${PROJECT_ID}" > .env
+        echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.appspot.com" >> .env
+        echo -e "${GREEN}Created .env file with Firebase configuration.${NC}"
+    fi
+    
     echo "Running test script..."
     node -r dotenv/config scripts/test-firebase-storage.cjs
 else

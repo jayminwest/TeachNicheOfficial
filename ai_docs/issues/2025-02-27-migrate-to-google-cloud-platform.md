@@ -137,7 +137,8 @@ We will migrate to a GCP-based infrastructure:
   - ⚠️ Error: "Firebase Storage: An unknown error occurred, please check the error payload for server response. (storage/unknown)"
   - ⚠️ Status: 404 - Storage bucket not found or not accessible
   - ⚠️ Created test script with detailed error reporting and configuration verification
-  - ⚠️ Need to create and configure Firebase Storage bucket in Firebase Console
+  - ⚠️ Created proper storage.rules file with correct syntax
+  - ⚠️ Updated setup script to verify environment variables
   - ⚠️ Resolution steps:
     1. Go to Firebase Console: https://console.firebase.google.com/project/teachnicheofficial/storage
     2. Click "Get Started" to create a default storage bucket

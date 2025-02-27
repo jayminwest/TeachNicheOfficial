@@ -141,6 +141,42 @@ async function seedTestData() {
         `);
       }
       
+      // Check if the profiles table has a display_name column
+      const displayNameColumnResult = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'display_name'
+        );
+      `);
+      
+      if (!displayNameColumnResult.rows[0].exists) {
+        console.log('Adding display_name column to profiles table...');
+        await client.query(`
+          ALTER TABLE profiles 
+          ADD COLUMN display_name TEXT;
+        `);
+      }
+      
+      // Check if the profiles table has an avatar_url column
+      const avatarUrlColumnResult = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'avatar_url'
+        );
+      `);
+      
+      if (!avatarUrlColumnResult.rows[0].exists) {
+        console.log('Adding avatar_url column to profiles table...');
+        await client.query(`
+          ALTER TABLE profiles 
+          ADD COLUMN avatar_url TEXT;
+        `);
+      }
+      
       if (columnCheckResult.rows[0].exists) {
         // If username column exists, include it in the insert
         await client.query(`

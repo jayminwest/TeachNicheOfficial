@@ -394,9 +394,9 @@ The migration to Google Cloud Platform is progressing well. Here's a summary of 
 - ⚠️ Need to test authentication flows with Firebase
 
 #### Next Immediate Steps
-1. Run the fix-profiles-schema.ts script to add user_id column to profiles table
-2. Edit the update-supabase-references.ts script to set dryRun = false
-3. Run the script to apply the 50 automated replacements
+1. ✅ Run the fix-profiles-schema.ts script to add user_id column to profiles table
+2. ✅ Update seed-test-data.ts to check for and add missing columns in profiles table
+3. Run the script to apply the automated replacements
 4. Identify and manually update the more complex cases
 5. Run comprehensive tests to ensure the migration doesn't break functionality
 

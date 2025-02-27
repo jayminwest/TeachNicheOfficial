@@ -577,6 +577,19 @@ async function seedTestData() {
         AND column_name = 'platform_fee'
       );
     `);
+
+    // Check if purchases table has a payment_intent_id column
+    const paymentIntentIdColumnExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'purchases' 
+        AND column_name = 'payment_intent_id'
+      );
+    `);
+
+    // Generate a fake payment intent ID for test data
+    const fakePaymentIntentId = 'pi_' + Math.random().toString(36).substring(2, 15);
     
     // Check if purchases table has a creator_earnings column
     const creatorEarningsColumnExists = await client.query(`
@@ -601,9 +614,9 @@ async function seedTestData() {
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings
+            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
           ON CONFLICT (id) DO NOTHING
         `, [
           uuidv4(),
@@ -616,7 +629,8 @@ async function seedTestData() {
           new Date(),
           'stripe_session_123',
           platformFee,
-          creatorEarnings
+          creatorEarnings,
+          fakePaymentIntentId
         ]);
       } else if (creatorEarningsColumnExists.rows[0].exists) {
         // If creator_id doesn't exist but creator_earnings does
@@ -624,7 +638,29 @@ async function seedTestData() {
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings
+            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          platformFee,
+          creatorEarnings,
+          fakePaymentIntentId
+        ]);
+      } else {
+        // If neither creator_id nor creator_earnings columns exist
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, amount, status,
+            created_at, updated_at, stripe_session_id, platform_fee, payment_intent_id
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           ON CONFLICT (id) DO NOTHING
@@ -638,27 +674,7 @@ async function seedTestData() {
           new Date(),
           'stripe_session_123',
           platformFee,
-          creatorEarnings
-        ]);
-      } else {
-        // If neither creator_id nor creator_earnings columns exist
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          platformFee
+          fakePaymentIntentId
         ]);
       }
     } else {
@@ -680,7 +696,51 @@ async function seedTestData() {
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id, creator_earnings
+            created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          creatorId,  // Use the creator ID from the lesson
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          creatorEarnings,
+          fakePaymentIntentId
+        ]);
+      } else if (creatorEarningsColumnExists.rows[0].exists) {
+        // If creator_id doesn't exist but creator_earnings does
+        console.log('Found creator_earnings column in purchases table, including it in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, amount, status,
+            created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          creatorEarnings,
+          fakePaymentIntentId
+        ]);
+      } else if (creatorIdColumnExists.rows[0].exists) {
+        console.log('Found creator_id column in purchases table, including it in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, creator_id, amount, status,
+            created_at, updated_at, stripe_session_id, payment_intent_id
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           ON CONFLICT (id) DO NOTHING
@@ -694,15 +754,14 @@ async function seedTestData() {
           new Date(),
           new Date(),
           'stripe_session_123',
-          creatorEarnings
+          fakePaymentIntentId
         ]);
-      } else if (creatorEarningsColumnExists.rows[0].exists) {
-        // If creator_id doesn't exist but creator_earnings does
-        console.log('Found creator_earnings column in purchases table, including it in insert...');
+      } else {
+        // If neither creator_id nor creator_earnings columns exist
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, creator_earnings
+            created_at, updated_at, stripe_session_id, payment_intent_id
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           ON CONFLICT (id) DO NOTHING
@@ -715,46 +774,7 @@ async function seedTestData() {
           new Date(),
           new Date(),
           'stripe_session_123',
-          creatorEarnings
-        ]);
-      } else if (creatorIdColumnExists.rows[0].exists) {
-        console.log('Found creator_id column in purchases table, including it in insert...');
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          creatorId,  // Use the creator ID from the lesson
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123'
-        ]);
-      } else {
-        // If neither creator_id nor creator_earnings columns exist
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123'
+          fakePaymentIntentId
         ]);
       }
     }

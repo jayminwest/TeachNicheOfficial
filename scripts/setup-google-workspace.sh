@@ -64,13 +64,25 @@ echo "1. Visit the following URL in your browser:"
 echo "https://accounts.google.com/o/oauth2/auth?client_id=$CLIENT_ID&redirect_uri=http://localhost:3000/api/auth/callback/google&scope=https://www.googleapis.com/auth/gmail.send&response_type=code&access_type=offline&prompt=consent"
 echo "2. Sign in and authorize the application"
 echo "3. You'll be redirected to a URL with a code parameter"
-echo "4. Copy the code from the URL"
+echo "4. Copy the ENTIRE URL you were redirected to"
 echo ""
-read -p "Enter the authorization code: " AUTH_CODE
+read -p "Enter the full redirect URL: " REDIRECT_URL
+
+# Extract the authorization code from the URL
+AUTH_CODE=$(echo "$REDIRECT_URL" | grep -o 'code=[^&]*' | cut -d'=' -f2)
+
+if [ -z "$AUTH_CODE" ]; then
+    echo "Error: Could not extract authorization code from URL."
+    echo "Please make sure you copied the entire URL after authorization."
+    exit 1
+fi
+
+echo "Extracted authorization code: $AUTH_CODE"
 
 # Exchange code for tokens
 echo "Exchanging code for tokens..."
 TOKENS=$(curl -s -d "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&code=$AUTH_CODE&redirect_uri=http://localhost:3000/api/auth/callback/google&grant_type=authorization_code" https://oauth2.googleapis.com/token)
+echo "Token response: $TOKENS"
 REFRESH_TOKEN=$(echo $TOKENS | grep -o '"refresh_token":"[^"]*' | cut -d'"' -f4)
 
 if [ -z "$REFRESH_TOKEN" ]; then
@@ -81,11 +93,22 @@ fi
 # Update .env.local file
 echo "Updating .env.local file..."
 if [ -f .env.local ]; then
-    # Remove existing Google credentials if they exist
-    sed -i '' '/GOOGLE_CLIENT_ID/d' .env.local
-    sed -i '' '/GOOGLE_CLIENT_SECRET/d' .env.local
-    sed -i '' '/GOOGLE_REFRESH_TOKEN/d' .env.local
-    sed -i '' '/GOOGLE_REDIRECT_URI/d' .env.local
+    # Check if we're on macOS or Linux for sed compatibility
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS version
+        sed -i '' '/GOOGLE_CLIENT_ID/d' .env.local
+        sed -i '' '/GOOGLE_CLIENT_SECRET/d' .env.local
+        sed -i '' '/GOOGLE_REFRESH_TOKEN/d' .env.local
+        sed -i '' '/GOOGLE_REDIRECT_URI/d' .env.local
+        sed -i '' '/EMAIL_FROM/d' .env.local
+    else
+        # Linux version
+        sed -i '/GOOGLE_CLIENT_ID/d' .env.local
+        sed -i '/GOOGLE_CLIENT_SECRET/d' .env.local
+        sed -i '/GOOGLE_REFRESH_TOKEN/d' .env.local
+        sed -i '/GOOGLE_REDIRECT_URI/d' .env.local
+        sed -i '/EMAIL_FROM/d' .env.local
+    fi
     
     # Add new credentials
     echo "" >> .env.local

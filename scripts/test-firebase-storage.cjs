@@ -36,6 +36,10 @@ console.log('Messaging Sender ID is set:', !!firebaseConfig.messagingSenderId);
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
+// Log more details about the storage configuration
+console.log('Firebase Storage initialized with:');
+console.log('- Default bucket:', storage.bucket);
+
 console.log('Firebase initialized with project:', firebaseConfig.projectId);
 console.log('Using storage bucket:', firebaseConfig.storageBucket);
 
@@ -57,12 +61,24 @@ class FirebaseStorage {
       // Create a reference to the file location in Firebase Storage
       const storageRef = ref(storage, path);
       
-      // In Node.js environment, we can't use the browser's Blob
-      // So we'll just pass the Buffer directly to uploadBytes
-      let fileData = file;
+      // In Node.js environment, we need to use a different approach
+      // Firebase Storage in Node.js expects an object with certain properties
+      const metadata = {
+        contentType: 'text/plain',
+      };
       
-      // Upload the file
-      const snapshot = await uploadBytes(storageRef, fileData);
+      // Pass the file buffer and metadata
+      const fileData = file;
+      
+      console.log(`Attempting to upload file to path: ${path}`);
+      
+      // Upload the file with metadata
+      const metadata = {
+        contentType: 'text/plain',
+      };
+      
+      const snapshot = await uploadBytes(storageRef, fileData, metadata);
+      console.log('Upload successful, snapshot:', snapshot.ref.fullPath);
       
       // Get the download URL
       return getDownloadURL(snapshot.ref);

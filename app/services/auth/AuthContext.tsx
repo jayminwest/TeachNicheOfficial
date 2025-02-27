@@ -30,91 +30,30 @@ export function AuthProvider({
   const isAuthenticated = !!user
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    async function getInitialSession() {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        // Convert AuthUser to User format for compatibility
-        setUser(currentUser ? {
-          id: currentUser.id,
-          email: currentUser.email,
+    // Set up auth state change listener
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Convert Firebase user to User format for compatibility
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
           user_metadata: {
-            full_name: currentUser.name || '',
-            avatar_url: currentUser.avatarUrl || ''
+            full_name: firebaseUser.displayName || '',
+            avatar_url: firebaseUser.photoURL || ''
           },
           app_metadata: {
             provider: 'firebase',
             providers: ['firebase']
           }
-        } as User : null);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error getting initial session:', error)
-        setLoading(false)
-      }
-    }
-
-    getInitialSession()
-
-    // Set up auth state change listener
-    const handleAuthChange = () => {
-      // For Firebase, we can use the onAuthStateChanged listener
-      if (process.env.NEXT_PUBLIC_USE_GCP === 'true') {
-        const { auth } = require('../../../firebase.config');
-        const { onAuthStateChanged } = require('firebase/auth');
-        
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: any) => {
-          if (firebaseUser) {
-            setUser({
-              id: firebaseUser.uid,
-              email: firebaseUser.email,
-              user_metadata: {
-                full_name: firebaseUser.displayName || '',
-                avatar_url: firebaseUser.photoURL || ''
-              },
-              app_metadata: {
-                provider: 'firebase',
-                providers: ['firebase']
-              }
-            } as User);
-          } else {
-            setUser(null);
-          }
-          setLoading(false);
-        });
-        
-        return unsubscribe;
+        } as User);
       } else {
-        // For Supabase, we'll check periodically
-        const checkInterval = setInterval(async () => {
-          const currentUser = await authService.getCurrentUser();
-          if (currentUser) {
-            setUser({
-              id: currentUser.id,
-              email: currentUser.email,
-              user_metadata: {
-                full_name: currentUser.name || '',
-                avatar_url: currentUser.avatarUrl || ''
-              },
-              app_metadata: {
-                provider: 'supabase',
-                providers: ['supabase']
-              }
-            } as User);
-          } else {
-            setUser(null);
-          }
-        }, 5000); // Check every 5 seconds
-        
-        return () => clearInterval(checkInterval);
+        setUser(null);
       }
-    };
+      setLoading(false);
+    });
     
-    const cleanup = handleAuthChange();
-    
-    return () => {
-      cleanup();
-    }
+    // Cleanup subscription
+    return () => unsubscribe();
   }, [])
 
   const isCreator = useCallback(() => {

@@ -20,6 +20,7 @@
     "test:storage": "node --loader ts-node/esm scripts/test-firebase-storage.ts",
     "test:db": "node --loader ts-node/esm scripts/test-database-service.ts",
     "test:email": "node --loader ts-node/esm scripts/test-email-service.ts",
+    "test:auth": "node --loader ts-node/esm scripts/test-firebase-auth.ts",
     "test:all": "node --loader ts-node/esm scripts/test-all-services.ts",
     "migrate": "npm run migrate:db && npm run migrate:storage",
     "verify": "node --loader ts-node/esm scripts/verify-migration.ts",

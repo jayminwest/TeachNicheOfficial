@@ -1,12 +1,38 @@
-import { getFirebaseAuth } from '@supabase/auth-helpers-nextjs'
-import type { Database } from '@/types/database'
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { app } from '@/app/lib/firebase';
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
-}
-if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
-}
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+const storage = getStorage(app);
 
-// Create a single client instance
-export const supabase = getFirebaseAuth<Database>()
+const firebaseClient = {
+  auth: {
+    getSession: async () => {
+      const user = auth.currentUser;
+      return { 
+        data: { 
+          session: user ? { 
+            user: {
+              id: user.uid,
+              email: user.email,
+              user_metadata: {
+                full_name: user.displayName || '',
+                avatar_url: user.photoURL || ''
+              },
+              app_metadata: {
+                provider: 'firebase',
+                providers: ['firebase']
+              }
+            } 
+          } : null 
+        }, 
+        error: null 
+      };
+    }
+  },
+};
+
+export const supabase = firebaseClient;
+export default firebaseClient;

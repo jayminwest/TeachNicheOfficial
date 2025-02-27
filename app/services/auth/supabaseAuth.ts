@@ -1,55 +1,44 @@
-import { supabase } from '@/app/services/supabase'
+import firebaseAuthService from './firebase-auth-service';
 
 export const signInWithEmail = async (email: string, password: string) => {
-  const { data, error } = await firebaseAuth.signInWithPassword({
-    email,
-    password,
-  })
-  if (error) throw error
-  return data
+  const { user, error } = await firebaseAuthService.signInWithEmail(email, password);
+  if (error) throw error;
+  return { user };
 }
 
 export const signOut = async () => {
-  const { error } = await firebaseAuth.signOut()
-  if (error) throw error
+  const { error } = await firebaseAuthService.signOut();
+  if (error) throw error;
 }
 
 export const getCurrentUser = async () => {
-  const { data: { session }, error } = await firebaseAuth.getSession()
-  if (error) throw error
-  return session?.user || null
+  return await firebaseAuthService.getCurrentUser();
 }
 
 export const signInWithGoogle = async () => {
   try {
-    const { data, error } = await firebaseAuth.signInWithOAuth({
-      provider: 'google',
-    })
-    return { data, error }
+    const { user, token, error } = await firebaseAuthService.signInWithGoogle();
+    return { 
+      data: { 
+        user, 
+        session: token ? { access_token: token } : null 
+      }, 
+      error 
+    };
   } catch (err) {
-    return { data: null, error: err as Error }
+    return { data: null, error: err as Error };
   }
 }
 
-
-export const signUp = async (email: string, password: string) => {
-  console.log('Attempting signup with email:', email)
-  const { data, error } = await firebaseAuth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-      data: {
-        email: email,
-      }
-    }
-  })
+export const signUp = async (email: string, password: string, name = '') => {
+  console.log('Attempting signup with email:', email);
+  const { user, error } = await firebaseAuthService.signUp(email, password, name);
   
   if (error) {
-    console.error('Signup error:', error)
-    throw error
+    console.error('Signup error:', error);
+    throw error;
   }
   
-  console.log('Signup response:', data)
-  return data
+  console.log('Signup response:', user);
+  return { user };
 }

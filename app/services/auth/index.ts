@@ -1,19 +1,9 @@
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../supabase';
+import { FirebaseAuth } from './firebase-auth';
 
-/**
- * Gets the current authenticated user
- * @returns The current user or null if not authenticated
- */
-export async function getCurrentUser(): Promise<User | null> {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.user || null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
-}
+// Use environment variable to determine which implementation to use
+const USE_GCP = process.env.NEXT_PUBLIC_USE_GCP === 'true';
+
+export const authService = new FirebaseAuth();
 
 // Re-export the AuthContext components
 export { AuthContext, AuthProvider, useAuth } from './AuthContext';

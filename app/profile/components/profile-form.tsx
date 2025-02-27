@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { CreatorInfoDialog } from "@/app/components/ui/creator-info-dialog"
+import { useAuth } from "@/app/services/auth/AuthContext"
 import { Button } from "@/app/components/ui/button"
 import {
   Form,
@@ -30,6 +34,10 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export function ProfileForm() {
+  const [creatorDialogOpen, setCreatorDialogOpen] = useState(false)
+  const { user } = useAuth()
+  const router = useRouter()
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -130,6 +138,39 @@ export function ProfileForm() {
         />
         <Button type="submit">Update profile</Button>
       </form>
+      <div className="border-t pt-6 mt-6">
+        <h3 className="text-lg font-medium mb-4">Creator Dashboard</h3>
+        {user?.is_creator ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Access your creator dashboard to manage your lessons, view analytics, and track your earnings.
+            </p>
+            <Button 
+              onClick={() => router.push("/dashboard")}
+              className="w-full sm:w-auto"
+            >
+              Go to Creator Dashboard
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Share your expertise and earn income by becoming a creator on Teach Niche.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => setCreatorDialogOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              Learn About Becoming a Creator
+            </Button>
+            <CreatorInfoDialog 
+              open={creatorDialogOpen} 
+              onOpenChange={setCreatorDialogOpen} 
+            />
+          </div>
+        )}
+      </div>
     </Form>
   )
 }

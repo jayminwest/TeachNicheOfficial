@@ -385,15 +385,16 @@ The migration to Google Cloud Platform is progressing well. Here's a summary of 
 - ✅ Successfully tested storage file operations
 - ✅ Fixed schema mismatch with username column in profiles table
 - ✅ Created comprehensive analysis of Supabase references in codebase
+- ✅ Created auth schema for user tables
+- ✅ Created script to fix profiles table schema (add user_id column)
 
 #### Current Challenges
-- ⚠️ Need to create auth schema for user tables
 - ⚠️ Need to apply automated replacements for Supabase references
 - ⚠️ Need to manually update complex cases that cannot be automated
 - ⚠️ Need to test authentication flows with Firebase
 
 #### Next Immediate Steps
-1. Create a script to set up the auth schema in the database
+1. Run the fix-profiles-schema.ts script to add user_id column to profiles table
 2. Edit the update-supabase-references.ts script to set dryRun = false
 3. Run the script to apply the 50 automated replacements
 4. Identify and manually update the more complex cases

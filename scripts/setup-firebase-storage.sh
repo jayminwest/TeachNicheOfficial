@@ -73,6 +73,25 @@ if [ ! -f "firebase.json" ]; then
 }
 EOF
     echo -e "${GREEN}Created firebase.json file.${NC}"
+else
+    echo -e "${YELLOW}firebase.json file found. Checking if storage configuration exists...${NC}"
+    if ! grep -q '"storage"' firebase.json; then
+        echo -e "${YELLOW}Adding storage configuration to firebase.json...${NC}"
+        # Create a temporary file with proper JSON structure
+        TMP_FILE=$(mktemp)
+        # Extract the JSON content without the closing brace
+        sed '$ s/}//' firebase.json > "$TMP_FILE"
+        # Add the storage configuration and closing brace
+        echo '  ,"storage": {' >> "$TMP_FILE"
+        echo '    "rules": "storage.rules"' >> "$TMP_FILE"
+        echo '  }' >> "$TMP_FILE"
+        echo '}' >> "$TMP_FILE"
+        # Replace the original file
+        mv "$TMP_FILE" firebase.json
+        echo -e "${GREEN}Updated firebase.json with storage configuration.${NC}"
+    else
+        echo -e "${GREEN}Storage configuration already exists in firebase.json.${NC}"
+    fi
 fi
 
 echo "Do you want to deploy storage rules? (y/n): "

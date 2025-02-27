@@ -56,8 +56,10 @@ export function ProfileForm() {
       userWithMetadata?.user_metadata?.is_creator === true ||
       // Check metadata
       userWithMetadata?.metadata?.is_creator === true || 
-      // Check app_metadata - using type assertion for this specific check
-      (userWithMetadata?.app_metadata as any)?.is_creator === true || 
+      // Check app_metadata - using a safe approach to check for is_creator
+      userWithMetadata?.app_metadata && 
+        Object.prototype.hasOwnProperty.call(userWithMetadata.app_metadata, 'is_creator') && 
+        userWithMetadata.app_metadata.is_creator === true || 
       // Check direct property
       userWithMetadata?.is_creator === true
     );

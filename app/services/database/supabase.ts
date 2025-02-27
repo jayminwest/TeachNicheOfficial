@@ -5,10 +5,18 @@ export class SupabaseDatabase implements DatabaseService {
   async query<T>(text: string, params: any[] = []): Promise<{ rows: T[]; rowCount: number }> {
     // This is a simplified implementation - Supabase doesn't directly support raw SQL like this
     // In a real implementation, you would use the appropriate Supabase methods
-    const { data, error, count } = await supabase.rpc('execute_sql', { 
+    const { data, error, count } = await // TODO: Replace Supabase RPC call with appropriate Firebase function
+// Original: // TODO: Replace Supabase RPC call with appropriate Firebase function
+// Original: // TODO: Replace Supabase RPC call with appropriate Firebase function
+// Original: // TODO: Replace Supabase RPC call with appropriate Firebase function
+// Original: supabase.rpc('execute_sql', { 
       query_text: text, 
       query_params: params 
-    });
+    })
+// Consider using Firebase Cloud Functions or direct Firestore queries
+// Consider using Firebase Cloud Functions or direct Firestore queries
+// Consider using Firebase Cloud Functions or direct Firestore queries
+// Consider using Firebase Cloud Functions or direct Firestore queries;
     
     if (error) throw error;
     

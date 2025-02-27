@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '@/app/services/supabase'
+import authService from './auth-provider'
 
 interface AuthContextType {
   user: User | null
@@ -33,9 +33,21 @@ export function AuthProvider({
     // Check active sessions and sets the user
     async function getInitialSession() {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        setUser(session?.user ?? null)
-        setLoading(false)
+        const currentUser = await authService.getCurrentUser();
+        // Convert AuthUser to User format for compatibility
+        setUser(currentUser ? {
+          id: currentUser.id,
+          email: currentUser.email,
+          user_metadata: {
+            full_name: currentUser.name || '',
+            avatar_url: currentUser.avatarUrl || ''
+          },
+          app_metadata: {
+            provider: 'firebase',
+            providers: ['firebase']
+          }
+        } as User : null);
+        setLoading(false);
       } catch (error) {
         console.error('Error getting initial session:', error)
         setLoading(false)
@@ -44,35 +56,34 @@ export function AuthProvider({
 
     getInitialSession()
 
-    // Handle auth state changes
-    let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
-    
-    try {
-      // In test environment, we might not have all Supabase methods available
-      if (process.env.NODE_ENV === 'test') {
-        // Mock subscription for tests
-        setLoading(false)
-      } else if (supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
-        const authStateChange = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('Auth state changed:', event, session?.user?.id)
-          setUser(session?.user ?? null)
-          setLoading(false)
-          
-          // Broadcast auth change to other tabs
-          if (typeof window !== 'undefined' && window.localStorage) {
-            const authChangeEvent = new Date().toISOString();
-            localStorage.setItem('auth_state_change', authChangeEvent);
-          }
-        })
-        
-        if (authStateChange && authStateChange.data && authStateChange.data.subscription) {
-          subscription = authStateChange.data.subscription
+    // Set up auth state change listener
+    const handleAuthChange = () => {
+      // This would be replaced with proper listeners for each auth provider
+      // For now, we'll just check the current user periodically
+      const checkInterval = setInterval(async () => {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser({
+            id: currentUser.id,
+            email: currentUser.email,
+            user_metadata: {
+              full_name: currentUser.name || '',
+              avatar_url: currentUser.avatarUrl || ''
+            },
+            app_metadata: {
+              provider: 'firebase',
+              providers: ['firebase']
+            }
+          } as User);
+        } else {
+          setUser(null);
         }
-      } else {
-        // Fallback if method is not available
-        console.warn('Auth state change listener not available')
-        setLoading(false)
-      }
+      }, 5000); // Check every 5 seconds
+      
+      return () => clearInterval(checkInterval);
+    };
+    
+    const cleanup = handleAuthChange();
     } catch (error) {
       console.error('Error setting up auth listener:', error)
       setLoading(false)

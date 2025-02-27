@@ -1,24 +1,13 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  updateProfile,
   User as FirebaseUser
 } from 'firebase/auth';
 import { AuthService, AuthUser } from './interface';
-
-// Initialize Firebase if it hasn't been initialized
-const app = getApps().length > 0 ? getApp() : initializeApp({
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-});
-
-const auth = getAuth(app);
+import { auth } from '../../../firebase.config';
 
 export class FirebaseAuth implements AuthService {
   async signIn(email: string, password: string): Promise<AuthUser> {
@@ -52,9 +41,11 @@ export class FirebaseAuth implements AuthService {
     }
   }
   
-  getCurrentUser(): AuthUser | null {
+  async getCurrentUser(): Promise<AuthUser | null> {
     const user = auth.currentUser;
-    return user ? this.transformUser(user) : null;
+    if (!user) return null;
+    
+    return this.transformUser(user);
   }
   
   private transformUser(firebaseUser: FirebaseUser): AuthUser {

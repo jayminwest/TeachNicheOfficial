@@ -6,7 +6,7 @@ import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { AuthDialog } from "./auth-dialog";
-import { supabase } from "@/app/services/supabase";
+import authService from "@/app/services/auth/auth-provider";
 
 interface NavigationItem {
     title: string;
@@ -132,7 +132,7 @@ export function Header() {
                             <Button 
                                 variant="ghost"
                                 onClick={async () => {
-                                    await supabase.auth.signOut();
+                                    await authService.signOut();
                                     window.location.href = '/';
                                 }}
                             >
@@ -196,7 +196,7 @@ export function Header() {
                                             variant="ghost"
                                             className="w-full"
                                             onClick={async () => {
-                                                await supabase.auth.signOut();
+                                                await authService.signOut();
                                                 window.location.href = '/';
                                             }}
                                         >

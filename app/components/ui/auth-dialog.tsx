@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent } from './dialog'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
+import authService from '@/app/services/auth/auth-provider'
 
 interface AuthDialogProps {
   open: boolean
@@ -23,9 +24,15 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
           </h2>
         </div>
         {view === 'sign-in' ? (
-          <SignInPage onSwitchToSignUp={() => setView('sign-up')} />
+          <SignInPage 
+            onSwitchToSignUp={() => setView('sign-up')} 
+            onSignIn={handleSignIn}
+          />
         ) : (
-          <SignUpPage onSwitchToSignIn={() => setView('sign-in')} />
+          <SignUpPage 
+            onSwitchToSignIn={() => setView('sign-in')} 
+            onSignUp={handleSignUp}
+          />
         )}
       </DialogContent>
     </Dialog>

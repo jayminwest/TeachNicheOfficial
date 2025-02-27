@@ -60,7 +60,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         credentials: 'include',
         body: JSON.stringify({
           lessonId,
-          price: totalBuyerCost, // Send the total price including fees
+          price: totalBuyerCost / 100, // Send the total price including fees, corrected
           returnUrl: window.location.href,
         }),
       });
@@ -128,11 +128,11 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       <div className="mb-4 p-3 bg-muted/50 rounded-md">
         <div className="flex justify-between text-sm mb-1">
           <span>Lesson price:</span>
-          <span>{formatPrice(lessonPrice)}</span>
+          <span>{formatPrice(lessonPrice / 100)}</span>
         </div>
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
           <span>Processing fee:</span>
-          <span>{formatPrice(stripeFee)}</span>
+          <span>{formatPrice(stripeFee / 100)}</span>
         </div>
         <div className="flex justify-between font-medium border-t border-border pt-2">
           <span>Total:</span>

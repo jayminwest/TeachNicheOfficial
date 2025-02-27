@@ -77,7 +77,7 @@ We will migrate to a GCP-based infrastructure:
 - Created dedicated branch `feature/gcp-migration` for the migration work
 - Installed required dependencies:
   ```
-  npm install @google-cloud/storage firebase firebase-admin googleapis google-auth-library pg @types/pg
+  npm install @google-cloud/storage firebase firebase-admin googleapis google-auth-library pg @types/pg pg-pool
   brew install terraform
   brew install --cask google-cloud-sdk
   ```

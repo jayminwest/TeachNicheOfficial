@@ -12,14 +12,7 @@ fi
 
 echo "Using billing account: $BILLING_ACCOUNT"
 
-# Create the budget
-gcloud billing budgets create \
-  --billing-account="$BILLING_ACCOUNT" \
-  --display-name="Teach Niche Budget" \
-  --budget-amount=100USD \
-  --threshold-rule=percent=50 \
-  --threshold-rule=percent=75 \
-  --threshold-rule=percent=90 \
-  --threshold-rule=percent=100
+# Create the budget (all on one line to avoid shell parsing issues)
+gcloud billing budgets create --billing-account="$BILLING_ACCOUNT" --display-name="Teach Niche Budget" --budget-amount=100USD --threshold-rule=percent=50 --threshold-rule=percent=75 --threshold-rule=percent=90 --threshold-rule=percent=100
 
 echo "Budget created successfully!"

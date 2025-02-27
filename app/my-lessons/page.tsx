@@ -24,7 +24,7 @@ interface PurchasedLessonData {
     title: string;
     description: string | null;
     price: number;
-    mux_playback_id: string;
+    mux_playback_id: string | null;
     created_at: string;
   };
   lesson_id: string;

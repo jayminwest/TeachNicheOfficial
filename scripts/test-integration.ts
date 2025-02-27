@@ -24,12 +24,14 @@ if (fs.existsSync(dotenvPath)) {
 }
 
 // Import pg dynamically to avoid ESM issues
-const { Pool } = await import('pg');
+const pg = await import('pg');
+const { Pool } = pg.default;
 
 // Import services dynamically (ESM compatible)
-const { CloudSqlDatabase } = await import('../app/services/database/cloud-sql.js');
-const { FirebaseStorage } = await import('../app/services/storage/firebase-storage.js');
-const { GoogleWorkspaceEmail } = await import('../app/services/email/google-workspace.js');
+// Use .ts extension instead of .js for tsx to work correctly
+const { CloudSqlDatabase } = await import('../app/services/database/cloud-sql.ts');
+const { FirebaseStorage } = await import('../app/services/storage/firebase-storage.ts');
+const { GoogleWorkspaceEmail } = await import('../app/services/email/google-workspace.ts');
 
 // Test database service
 async function testDatabaseService() {

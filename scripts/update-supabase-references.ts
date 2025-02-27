@@ -64,10 +64,7 @@ function findFilesWithSupabaseReferences() {
     // Parse grep output to get file paths
     const fileMatches = grepOutput.split('\n')
       .filter(line => line.trim() !== '')
-      .map(line => {
-        const colonIndex = line.indexOf(':');
-        return line.substring(0, colonIndex);
-      })
+      // No need to extract from colon since grep -l just outputs filenames
       .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
     
     console.log(`Found ${fileMatches.length} files with Supabase references`);

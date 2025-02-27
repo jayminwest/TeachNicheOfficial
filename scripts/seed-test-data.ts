@@ -27,7 +27,8 @@ if (fs.existsSync(dotenvPath)) {
 }
 
 // Import pg dynamically to avoid ESM issues
-const { Pool } = await import('pg');
+const pg = await import('pg');
+const { Pool } = pg.default;
 
 // Database connection configuration
 const dbConfig = {

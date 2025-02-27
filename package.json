@@ -2,6 +2,7 @@
   "name": "teach-niche",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +14,10 @@
     "test:e2e": "NODE_OPTIONS=--experimental-vm-modules npx playwright test --config=e2e-tests/playwright.config.ts",
     "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests' --config=e2e-tests/playwright.config.ts",
     "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "migrate:db": "node --loader ts-node/esm scripts/migrate-database.ts",
+    "migrate:storage": "node --loader ts-node/esm scripts/migrate-storage-files.ts",
+    "test:storage": "node --loader ts-node/esm scripts/test-firebase-storage.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.15.2",
@@ -100,21 +104,5 @@
     "typescript": "^5",
     "wait-on": "^8.0.2",
     "whatwg-fetch": "^3.6.20"
-  }
-}
-{
-  "name": "teach-niche",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "jest",
-    "migrate:db": "node --loader ts-node/esm scripts/migrate-database.ts",
-    "migrate:storage": "node --loader ts-node/esm scripts/migrate-storage-files.ts",
-    "test:storage": "node --loader ts-node/esm scripts/test-firebase-storage.ts"
   }
 }

@@ -9,7 +9,8 @@
  * Usage: npx ts-node scripts/test-firebase-storage.ts
  */
 
-import { FirebaseStorage } from '../app/services/storage/firebase-storage.js';
+// Import using CommonJS style to avoid ESM issues
+import { FirebaseStorage } from '../app/services/storage/firebase-storage';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -46,6 +47,7 @@ async function testFirebaseStorage() {
     console.log('All tests passed! Firebase Storage implementation is working correctly.');
   } catch (error) {
     console.error('❌ Test failed:', error);
+    process.exit(1);
   } finally {
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -53,4 +55,4 @@ async function testFirebaseStorage() {
 }
 
 // Run the test
-testFirebaseStorage().catch(console.error);
+testFirebaseStorage();

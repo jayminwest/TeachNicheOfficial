@@ -19,13 +19,9 @@ class FirebaseStorage {
       // Create a reference to the file location in Firebase Storage
       const storageRef = ref(storage, path);
       
-      // Convert Buffer to Blob if needed
-      let fileData;
-      if (Buffer.isBuffer(file)) {
-        fileData = new Blob([file]);
-      } else {
-        fileData = file;
-      }
+      // In Node.js environment, we can't use the browser's Blob
+      // So we'll just pass the Buffer directly to uploadBytes
+      let fileData = file;
       
       // Upload the file
       const snapshot = await uploadBytes(storageRef, fileData);

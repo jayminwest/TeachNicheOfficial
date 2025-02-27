@@ -578,21 +578,32 @@ async function seedTestData() {
       );
     `);
     
+    // Check if purchases table has a creator_earnings column
+    const creatorEarningsColumnExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'purchases' 
+        AND column_name = 'creator_earnings'
+      );
+    `);
+    
     if (platformFeeColumnExists.rows[0].exists) {
       console.log('Found platform_fee column in purchases table, including it in insert...');
       
       // Calculate platform fee (15% of amount)
       const amount = 1999; // $19.99
       const platformFee = Math.round(amount * 0.15); // 15% platform fee
+      const creatorEarnings = amount - platformFee; // 85% to creator
       
-      if (creatorIdColumnExists.rows[0].exists) {
-        console.log('Found creator_id column in purchases table, including it in insert...');
+      if (creatorIdColumnExists.rows[0].exists && creatorEarningsColumnExists.rows[0].exists) {
+        console.log('Found creator_id and creator_earnings columns in purchases table, including them in insert...');
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee
+            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           ON CONFLICT (id) DO NOTHING
         `, [
           uuidv4(),
@@ -604,10 +615,33 @@ async function seedTestData() {
           new Date(),
           new Date(),
           'stripe_session_123',
-          platformFee
+          platformFee,
+          creatorEarnings
+        ]);
+      } else if (creatorEarningsColumnExists.rows[0].exists) {
+        // If creator_id doesn't exist but creator_earnings does
+        console.log('Found creator_earnings column in purchases table, including it in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, amount, status,
+            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          platformFee,
+          creatorEarnings
         ]);
       } else {
-        // If creator_id column doesn't exist, use the original query plus platform_fee
+        // If neither creator_id nor creator_earnings columns exist
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, amount, status,
@@ -628,8 +662,62 @@ async function seedTestData() {
         ]);
       }
     } else {
-      // If platform_fee column doesn't exist, use the original queries
-      if (creatorIdColumnExists.rows[0].exists) {
+      // If platform_fee column doesn't exist, check for creator_earnings
+      const creatorEarningsColumnExists = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'purchases' 
+          AND column_name = 'creator_earnings'
+        );
+      `);
+      
+      const amount = 1999; // $19.99
+      const creatorEarnings = Math.round(amount * 0.85); // 85% to creator
+      
+      if (creatorIdColumnExists.rows[0].exists && creatorEarningsColumnExists.rows[0].exists) {
+        console.log('Found creator_id and creator_earnings columns in purchases table, including them in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, creator_id, amount, status,
+            created_at, updated_at, stripe_session_id, creator_earnings
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          creatorId,  // Use the creator ID from the lesson
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          creatorEarnings
+        ]);
+      } else if (creatorEarningsColumnExists.rows[0].exists) {
+        // If creator_id doesn't exist but creator_earnings does
+        console.log('Found creator_earnings column in purchases table, including it in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, amount, status,
+            created_at, updated_at, stripe_session_id, creator_earnings
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          creatorEarnings
+        ]);
+      } else if (creatorIdColumnExists.rows[0].exists) {
         console.log('Found creator_id column in purchases table, including it in insert...');
         await client.query(`
           INSERT INTO purchases (
@@ -643,14 +731,14 @@ async function seedTestData() {
           testUsers[0].id,
           lessonId,
           creatorId,  // Use the creator ID from the lesson
-          1999, // $19.99
+          amount,
           'completed',
           new Date(),
           new Date(),
           'stripe_session_123'
         ]);
       } else {
-        // If creator_id column doesn't exist, use the original query
+        // If neither creator_id nor creator_earnings columns exist
         await client.query(`
           INSERT INTO purchases (
             id, user_id, lesson_id, amount, status,
@@ -662,7 +750,7 @@ async function seedTestData() {
           uuidv4(),
           testUsers[0].id,
           lessonId,
-          1999, // $19.99
+          amount,
           'completed',
           new Date(),
           new Date(),

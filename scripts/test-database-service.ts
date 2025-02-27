@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
+dotenv.config(); // Also load from .env if present
 
 // Create a factory function to get the appropriate database service
 function getDatabaseService() {

@@ -30,12 +30,14 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY || '';
 
 // Cloud SQL connection
 const cloudSqlPool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'teach-niche-db',
-  ssl: process.env.DB_SSL === 'true' ? true : false
+  host: process.env.CLOUD_SQL_HOST || process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.CLOUD_SQL_PORT || process.env.DB_PORT || '5432'),
+  user: process.env.CLOUD_SQL_USER || process.env.DB_USER || 'postgres',
+  password: process.env.CLOUD_SQL_PASSWORD || process.env.DB_PASSWORD || '',
+  database: process.env.CLOUD_SQL_DATABASE || process.env.DB_NAME || 'teach-niche-db',
+  ssl: process.env.DB_SSL === 'true' ? true : false,
+  connectionTimeoutMillis: 10000, // 10 seconds
+  idleTimeoutMillis: 30000, // 30 seconds
 });
 
 // Supabase client
@@ -83,12 +85,24 @@ async function migrateDatabase() {
       console.log('Supabase connection successful');
       
       // Test Cloud SQL connection
-      const client = await cloudSqlPool.connect();
-      await client.query('SELECT 1');
-      client.release();
-      console.log('Cloud SQL connection successful');
+      try {
+        const client = await cloudSqlPool.connect();
+        await client.query('SELECT 1');
+        client.release();
+        console.log('Cloud SQL connection successful');
+      } catch (dbErr) {
+        console.error('Cloud SQL connection failed:', dbErr);
+        console.error('\nPlease check your Cloud SQL configuration:');
+        console.error(`- Host: ${process.env.CLOUD_SQL_HOST || process.env.DB_HOST || 'localhost'}`);
+        console.error(`- Port: ${process.env.CLOUD_SQL_PORT || process.env.DB_PORT || '5432'}`);
+        console.error(`- Database: ${process.env.CLOUD_SQL_DATABASE || process.env.DB_NAME || 'teach-niche-db'}`);
+        console.error(`- User: ${process.env.CLOUD_SQL_USER || process.env.DB_USER || 'postgres'}`);
+        console.error('\nYou can set up Cloud SQL using the setup script:');
+        console.error('  bash scripts/setup-cloud-sql.sh');
+        process.exit(1);
+      }
     } catch (err) {
-      console.error('Connection test failed:', err);
+      console.error('Supabase connection test failed:', err);
       process.exit(1);
     }
     

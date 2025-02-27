@@ -102,3 +102,19 @@
     "whatwg-fetch": "^3.6.20"
   }
 }
+{
+  "name": "teach-niche",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "migrate:db": "node --loader ts-node/esm scripts/migrate-database.ts",
+    "migrate:storage": "node --loader ts-node/esm scripts/migrate-storage-files.ts",
+    "test:storage": "node --loader ts-node/esm scripts/test-firebase-storage.ts"
+  }
+}

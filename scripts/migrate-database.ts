@@ -10,7 +10,8 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import * as fs from 'fs';
 import * as path from 'path';
 

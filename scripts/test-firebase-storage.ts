@@ -9,7 +9,7 @@
  * Usage: npx ts-node scripts/test-firebase-storage.ts
  */
 
-import storageService from '../app/services/storage';
+import { FirebaseStorage } from '../app/services/storage/firebase-storage';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -21,6 +21,9 @@ async function testFirebaseStorage() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'firebase-storage-test-'));
   const testFilePath = path.join(tempDir, 'test-file.txt');
   fs.writeFileSync(testFilePath, 'This is a test file for Firebase Storage.');
+  
+  // Create storage service instance
+  const storageService = new FirebaseStorage();
   
   try {
     // 1. Upload test file

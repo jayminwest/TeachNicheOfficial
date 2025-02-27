@@ -18,7 +18,7 @@ const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'teachnicheofficial',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'teachnicheofficial.appspot.com',
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
@@ -28,6 +28,13 @@ const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
 console.log('Firebase initialized with project:', firebaseConfig.projectId);
+console.log('Using storage bucket:', firebaseConfig.storageBucket);
+
+// Check if storage bucket is properly configured
+if (!firebaseConfig.storageBucket) {
+  console.error('ERROR: Storage bucket is not configured. Please set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET environment variable.');
+  process.exit(1);
+}
 
 class FirebaseStorage {
   async uploadFile(path, file) {
@@ -46,6 +53,18 @@ class FirebaseStorage {
       return getDownloadURL(snapshot.ref);
     } catch (error) {
       console.error('Error uploading file to Firebase Storage:', error);
+      console.error('Storage bucket:', firebaseConfig.storageBucket);
+      console.error('File path:', path);
+      console.error('File size:', file.length, 'bytes');
+      
+      // Check if the error is related to permissions or configuration
+      if (error.code === 'storage/unauthorized') {
+        console.error('ERROR: Unauthorized access. Check Firebase Storage rules and authentication.');
+      } else if (error.code === 'storage/unknown' && error.status_ === 404) {
+        console.error('ERROR: Storage bucket not found or not accessible. Check your storage bucket configuration.');
+        console.error('Make sure the bucket exists and is properly configured in Firebase console.');
+      }
+      
       throw error;
     }
   }

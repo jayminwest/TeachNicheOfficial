@@ -24,7 +24,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
   const [isLoading, setIsLoading] = useState(false);
   
   // Calculate fees using the utility function
-  const { lessonPrice, stripeFee, totalBuyerCost } = calculateFees(price);
+  const { lessonPrice, stripeFee, totalBuyerCost } = calculateFees(price / 100); // Convert cents back to dollars for display
 
   const handleCheckout = async () => {
     try {

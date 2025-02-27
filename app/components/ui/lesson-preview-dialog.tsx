@@ -60,7 +60,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
               {lesson.price === 0 ? (
                 <span className="text-green-600">Free</span>
               ) : (
-                <span>${lesson.price.toFixed(2)}</span>
+                <span>{formatPrice(lesson.price)}</span>
               )}
             </div>
             {lesson.price > 0 && (

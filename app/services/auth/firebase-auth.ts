@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
+  onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
 import { AuthService, AuthUser } from './interface';
@@ -42,10 +43,18 @@ export class FirebaseAuth implements AuthService {
   }
   
   async getCurrentUser(): Promise<AuthUser | null> {
-    const user = auth.currentUser;
-    if (!user) return null;
+    // If we already have the current user, return it
+    if (auth.currentUser) {
+      return this.transformUser(auth.currentUser);
+    }
     
-    return this.transformUser(user);
+    // Otherwise, wait for the auth state to be determined
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        unsubscribe();
+        resolve(user ? this.transformUser(user) : null);
+      });
+    });
   }
   
   private transformUser(firebaseUser: FirebaseUser): AuthUser {

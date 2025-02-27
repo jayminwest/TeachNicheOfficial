@@ -6,6 +6,8 @@ export function getAuthService(): AuthService {
   // Check if we should use GCP (Firebase) or Supabase
   const useGCP = process.env.NEXT_PUBLIC_USE_GCP === 'true';
   
+  console.log('Using GCP:', useGCP);
+  
   return useGCP ? new FirebaseAuth() : new SupabaseAuth();
 }
 

@@ -132,8 +132,12 @@ export function Header() {
                             <Button 
                                 variant="ghost"
                                 onClick={async () => {
-                                    await authService.signOut();
-                                    window.location.href = '/';
+                                    try {
+                                        await authService.signOut();
+                                        window.location.href = '/';
+                                    } catch (error) {
+                                        console.error('Error signing out:', error);
+                                    }
                                 }}
                             >
                                 Sign Out
@@ -196,8 +200,12 @@ export function Header() {
                                             variant="ghost"
                                             className="w-full"
                                             onClick={async () => {
-                                                await authService.signOut();
-                                                window.location.href = '/';
+                                                try {
+                                                    await authService.signOut();
+                                                    window.location.href = '/';
+                                                } catch (error) {
+                                                    console.error('Error signing out:', error);
+                                                }
                                             }}
                                         >
                                             Sign Out

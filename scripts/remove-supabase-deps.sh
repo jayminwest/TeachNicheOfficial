@@ -6,13 +6,13 @@ echo "Checking for Supabase references in the codebase..."
 
 # Find all files with Supabase references
 echo "Files with Supabase imports:"
-grep -r --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from '@/app/lib/supabase'" .
+grep -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from '@/app/lib/supabase'" .
 
 echo "Files with Supabase usage:"
-grep -r --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "supabase\." .
+grep -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "supabase\." .
 
 echo "Files with Supabase types:"
-grep -r --include="*.ts" --include="*.tsx" "Supabase" .
+grep -l --include="*.ts" --include="*.tsx" "Supabase" .
 
 echo ""
 echo "To remove Supabase package dependencies, run:"

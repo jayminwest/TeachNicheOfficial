@@ -86,6 +86,21 @@ We will migrate to a GCP-based infrastructure:
 - Selected project "teachnicheofficial" as the working project
 - Created service abstraction layers for database, authentication, storage, and email
 - Created initial Terraform configuration files for infrastructure
+- Set up Firebase project with Firestore database and security rules
+
+### Current Project State
+- Firebase configuration is in `firebase.config.ts`
+- Firestore security rules are in `firestore.rules`
+- Storage security rules are in `storage.rules`
+- Firebase project configuration is in `.firebaserc`
+- Service abstraction layers are in `app/services/` directory
+- Terraform configuration is in `terraform/environments/dev/`
+
+### Scripts Created
+- `scripts/setup-firebase-complete.sh`: Comprehensive Firebase setup script
+- `scripts/setup-firebase-permissions.sh`: Script to grant Firebase permissions
+- `scripts/setup-firestore.sh`: Script to guide through Firestore database creation
+- `scripts/setup-billing-budget.sh`: Script to set up GCP billing budgets
 
 ### Challenges Encountered and Resolved
 - Permission issues when trying to add Firebase to the GCP project
@@ -96,6 +111,13 @@ We will migrate to a GCP-based infrastructure:
 - Firebase initialization requires creating Firestore database first
   - Created a script to guide through the Firestore setup process
   - Successfully deployed Firestore security rules
+
+### Next Steps
+- Complete Firebase Authentication implementation
+- Create Cloud SQL instance and migrate schema from Supabase
+- Set up Cloud Storage buckets and migrate files
+- Implement Google Workspace email integration
+- Test the abstraction layers with both Supabase and GCP backends
 
 ### Database Migration
 - Export schema from Supabase
@@ -158,3 +180,8 @@ We will migrate to a GCP-based infrastructure:
 - This migration should be completed before public launch to avoid future migration challenges with live user data
 - Whenever possible, use gcloud CLI commands to configure resources instead of the console UI to ensure reproducibility
 - Document all CLI commands used for configuration to enable future automation
+- To switch between Supabase and GCP implementations, use the `NEXT_PUBLIC_USE_GCP` environment variable
+- Current Firebase setup uses the project ID "teachnicheofficial"
+- Firestore database has been created in the us-central region
+- Security rules for Firestore and Storage have been deployed
+- The abstraction layers in `app/services/` directory allow for gradual migration

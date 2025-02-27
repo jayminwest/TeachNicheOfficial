@@ -15,7 +15,7 @@ jest.mock('next/image', () => ({
 // Mock the LessonPreviewDialog component
 jest.mock('../lesson-preview-dialog', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  LessonPreviewDialog: ({ lesson, isOpen, onClose }: { lesson: any; isOpen: boolean; onClose: () => void }) => (
+  LessonPreviewDialog: ({ lesson, isOpen, onClose }: { lesson: { id: string; title: string; description: string; price: number; thumbnailUrl: string; averageRating: number; totalRatings: number }; isOpen: boolean; onClose: () => void }) => (
     <div data-testid="lesson-preview-dialog">
       {isOpen ? 'Open' : 'Closed'}
     </div>

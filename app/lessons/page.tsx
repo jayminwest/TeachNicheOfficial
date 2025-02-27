@@ -110,7 +110,7 @@ export default function LessonsPage() {
           </div>
         ) : lessons.length === 0 ? (
           <Card className="p-8 text-center">
-            <h3 className="font-semibold text-xl mb-3">Congrats! You're first.</h3>
+            <h3 className="font-semibold text-xl mb-3">Congrats! You&apos;re first.</h3>
             <p className="text-muted-foreground mb-4">
               Be the pioneer and create the very first lesson on Teach Niche! 
             </p>

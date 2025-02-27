@@ -123,6 +123,24 @@ async function seedTestData() {
         );
       `);
       
+      // Check if the profiles table has a user_id column
+      const userIdColumnResult = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'user_id'
+        );
+      `);
+      
+      if (!userIdColumnResult.rows[0].exists) {
+        console.log('Adding user_id column to profiles table...');
+        await client.query(`
+          ALTER TABLE profiles 
+          ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+        `);
+      }
+      
       if (columnCheckResult.rows[0].exists) {
         // If username column exists, include it in the insert
         await client.query(`

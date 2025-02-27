@@ -1,25 +1,46 @@
-import { createClient } from '@supabase/supabase-js';
-import pkg from 'pg';
-const { Pool } = pkg;
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import pg from 'pg';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
+dotenv.config();
 
-// Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Supabase connection
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase credentials');
+  process.exit(1);
+}
+
+const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 // Cloud SQL connection
-const cloudSqlPool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: process.env.DB_SSL === 'true' ? true : false,
+const cloudSqlConfig = {
+  user: process.env.CLOUD_SQL_USER || 'postgres',
+  password: process.env.CLOUD_SQL_PASSWORD,
+  database: process.env.CLOUD_SQL_DATABASE || 'postgres',
+  host: process.env.CLOUD_SQL_HOST || 'localhost',
+  port: parseInt(process.env.CLOUD_SQL_PORT || '5432'),
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+};
+
+console.log('Cloud SQL connection config:', {
+  ...cloudSqlConfig,
+  password: cloudSqlConfig.password ? '***' : undefined,
 });
+
+const cloudSqlPool = new pg.Pool(cloudSqlConfig);
 
 // Tables to verify
 const tables = [
@@ -35,42 +56,68 @@ const tables = [
   'creator_payouts',
   'lesson_requests',
   'lesson_request_votes',
-  'waitlist'
+  'waitlist',
 ];
 
-async function verifyTable(tableName: string) {
-  console.log(`Verifying table: ${tableName}`);
-  
-  // Get count from Supabase
-  const { count: supabaseCount, error: supabaseError } = await supabase
-    .from(tableName)
-    .select('*', { count: 'exact', head: true });
-  
-  if (supabaseError) {
-    console.error(`Error getting count from Supabase for ${tableName}:`, supabaseError);
-    return false;
+async function getSupabaseCount(table: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from(table)
+      .select('*', { count: 'exact', head: true });
+    
+    if (error) {
+      console.error(`Error getting count from Supabase for ${table}:`, error);
+      return 0;
+    }
+    
+    return count || 0;
+  } catch (error) {
+    console.error(`Error getting count from Supabase for ${table}:`, error);
+    return 0;
   }
-  
-  // Get count from Cloud SQL
+}
+
+async function getCloudSqlCount(table: string): Promise<number> {
   try {
     const client = await cloudSqlPool.connect();
     try {
-      const result = await client.query(`SELECT COUNT(*) FROM ${tableName}`);
-      const cloudSqlCount = parseInt(result.rows[0].count);
-      
-      console.log(`${tableName}: Supabase count = ${supabaseCount}, Cloud SQL count = ${cloudSqlCount}`);
-      
-      if (supabaseCount !== cloudSqlCount) {
-        console.error(`Count mismatch for table ${tableName}`);
-        return false;
-      }
-      
-      return true;
+      const result = await client.query(`SELECT COUNT(*) FROM ${table}`);
+      return parseInt(result.rows[0].count);
     } finally {
       client.release();
     }
-  } catch (err) {
-    console.error(`Error getting count from Cloud SQL for ${tableName}:`, err);
+  } catch (error) {
+    console.error(`Error getting count from Cloud SQL for ${table}:`, error);
+    if (error.code === 'ECONNREFUSED') {
+      console.error(`Could not connect to Cloud SQL at ${cloudSqlConfig.host}:${cloudSqlConfig.port}`);
+      console.error('Please make sure the Cloud SQL instance is created and accessible.');
+      console.error('You can create it using Terraform:');
+      console.error('  cd terraform/environments/dev');
+      console.error('  terraform apply');
+    }
+    return -1;
+  }
+}
+
+async function verifyTable(table: string): Promise<boolean> {
+  console.log(`Verifying table: ${table}`);
+  
+  const supabaseCount = await getSupabaseCount(table);
+  const cloudSqlCount = await getCloudSqlCount(table);
+  
+  if (cloudSqlCount === -1) {
+    console.error(`Verification failed for table ${table}`);
+    return false;
+  }
+  
+  console.log(`  Supabase count: ${supabaseCount}`);
+  console.log(`  Cloud SQL count: ${cloudSqlCount}`);
+  
+  if (supabaseCount === cloudSqlCount) {
+    console.log(`  ✅ Counts match for ${table}`);
+    return true;
+  } else {
+    console.log(`  ❌ Counts do not match for ${table}`);
     return false;
   }
 }
@@ -78,26 +125,40 @@ async function verifyTable(tableName: string) {
 async function verifyMigration() {
   console.log('Starting migration verification...');
   
+  try {
+    // Test connection to Cloud SQL
+    const client = await cloudSqlPool.connect();
+    console.log('Successfully connected to Cloud SQL');
+    client.release();
+  } catch (error) {
+    console.error('Failed to connect to Cloud SQL:', error);
+    console.error('Please make sure the Cloud SQL instance is created and accessible.');
+    console.error('You can create it using Terraform:');
+    console.error('  cd terraform/environments/dev');
+    console.error('  terraform apply');
+    process.exit(1);
+  }
+  
   let allTablesVerified = true;
   
   for (const table of tables) {
-    const verified = await verifyTable(table);
-    if (!verified) {
+    const isVerified = await verifyTable(table);
+    if (!isVerified) {
       allTablesVerified = false;
-      console.error(`Verification failed for table ${table}`);
     }
   }
   
   if (allTablesVerified) {
-    console.log('All tables verified successfully');
-    process.exit(0);
+    console.log('✅ All tables verified successfully!');
   } else {
-    console.error('Verification failed for one or more tables');
-    process.exit(1);
+    console.log('❌ Verification failed for one or more tables');
   }
+  
+  // Close connections
+  await cloudSqlPool.end();
 }
 
-verifyMigration().catch(err => {
-  console.error('Verification failed:', err);
+verifyMigration().catch(error => {
+  console.error('Migration verification failed:', error);
   process.exit(1);
 });

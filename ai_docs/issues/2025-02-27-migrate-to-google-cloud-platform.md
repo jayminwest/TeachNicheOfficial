@@ -133,9 +133,15 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created missing firebase-storage.ts implementation
   - ✅ Updated scripts/test-firebase-storage.ts to correctly import FirebaseStorage
   - ✅ Added proper error handling and exit codes
+- ⚠️ Firebase Storage bucket configuration issue
+  - ⚠️ Error: "Firebase Storage: An unknown error occurred, please check the error payload for server response. (storage/unknown)"
+  - ⚠️ Status: 404 - Storage bucket not found or not accessible
+  - ⚠️ Created test script with detailed error reporting and configuration verification
+  - ⚠️ Need to ensure Firebase Storage bucket is properly configured in Firebase Console
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
+- ⏳ Resolve Firebase Storage bucket configuration issue
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
 - ⏳ Set up Cloud Storage buckets and migrate files
 - ⏳ Implement Google Workspace email integration
@@ -171,6 +177,7 @@ We will migrate to a GCP-based infrastructure:
 - ✅ Update file upload/download logic
 - ✅ Implement proper access controls and signed URLs
 - ✅ Create test script for Firebase Storage
+- ⚠️ Fix Firebase Storage bucket configuration issue
 - ⏳ Optimize for performance and cost
 
 ### Email Integration

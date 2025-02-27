@@ -199,6 +199,11 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Fixed Email service test script imports
   - ✅ Added better error handling and reporting
   - ✅ Created comprehensive fix-test-scripts.sh to automate fixes
+- ✅ Create automated replacement script for Supabase references
+  - ✅ Created replace-supabase-references.ts script
+  - ✅ Implemented pattern matching for common Supabase usage
+  - ✅ Added support for dry-run mode to preview changes
+  - ✅ Added path filtering to target specific files or directories
 - ✅ Set up database for development and testing
   - ✅ Created migration script (scripts/migrate-database.ts)
   - ✅ Created verification script (scripts/verify-migration.ts)
@@ -234,11 +239,12 @@ We will migrate to a GCP-based infrastructure:
   - ⏳ Test authentication flows with Firebase
   - ⏳ Verify proper error handling and fallbacks
 - ⏳ Update remaining components that might still use Supabase directly
-  - ✅ Created script to find and analyze Supabase references (scripts/update-supabase-references.ts)
+  - ✅ Created script to find and analyze Supabase references (scripts/check-supabase-references.ts)
   - ✅ Generated migration plans for components with Supabase references
   - ✅ Created automated replacement patterns for common Supabase usage
   - ✅ Identified 87 files with 1097 Supabase references
   - ✅ Prepared 50 automated replacements for common patterns
+  - ✅ Created replace-supabase-references.ts script to apply automated replacements
   - ⏳ Apply automated replacements to codebase
   - ⏳ Manually update complex cases that cannot be automated
   - ⏳ Prioritize user-facing components first
@@ -406,8 +412,10 @@ The migration to Google Cloud Platform is progressing well. Here's a summary of 
 #### Next Immediate Steps
 1. ✅ Run the fix-profiles-schema.ts script to add user_id column to profiles table
 2. ✅ Update seed-test-data.ts to check for and add missing columns in profiles table
-3. Run the script to apply the automated replacements
-4. Identify and manually update the more complex cases
-5. Run comprehensive tests to ensure the migration doesn't break functionality
+3. ✅ Create replace-supabase-references.ts script for automated replacements
+4. Run the replacement script with --dry-run flag to preview changes
+5. Apply automated replacements to codebase with the replacement script
+6. Identify and manually update the more complex cases
+7. Run comprehensive tests to ensure the migration doesn't break functionality
 
 The migration has identified 87 files with 1097 Supabase references. The automated replacement script has prepared 50 changes that can be applied automatically. After applying these changes, we'll need to manually update the more complex cases, focusing on critical components like authentication flows and API routes.

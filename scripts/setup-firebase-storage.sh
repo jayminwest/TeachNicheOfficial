@@ -144,7 +144,7 @@ if [ "$RUN_TEST" = "y" ]; then
     else
         echo -e "${YELLOW}No .env file found. Creating one...${NC}"
         echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${PROJECT_ID}" > .env
-        echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.appspot.com" >> .env
+        echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.firebasestorage.app" >> .env
         echo -e "${GREEN}Created .env file with Firebase configuration.${NC}"
     fi
     

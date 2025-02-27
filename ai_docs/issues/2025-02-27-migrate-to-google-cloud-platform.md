@@ -60,7 +60,7 @@ We will migrate to a GCP-based infrastructure:
 - [ ] Update API routes to use GCP services
 - [x] Implement Firebase Storage service
 - [x] Create script to migrate files to Firebase Storage
-- [ ] Execute file migration
+- [x] Execute file migration (no files found in Supabase buckets)
 - [ ] Remove Supabase dependencies and references
 
 ### Phase 3: Email and Advanced Services
@@ -105,6 +105,14 @@ We will migrate to a GCP-based infrastructure:
 - `scripts/setup-firebase-permissions.sh`: Script to grant Firebase permissions
 - `scripts/setup-firestore.sh`: Script to guide through Firestore database creation
 - `scripts/setup-billing-budget.sh`: Script to set up GCP billing budgets
+- `scripts/migrate-database.ts`: Script to migrate data from Supabase to Cloud SQL
+- `scripts/migrate-storage.ts`: Script to migrate files from Supabase to Firebase Storage
+- `scripts/verify-migration.ts`: Script to verify database migration
+- `scripts/test-database-service.ts`: Script to test database service abstraction
+- `scripts/test-firebase-storage.ts`: Script to test Firebase Storage
+- `scripts/test-email-service.ts`: Script to test email service
+- `scripts/test-all-services.ts`: Script to run all service tests
+- `scripts/check-supabase-references.ts`: Script to find Supabase references in codebase
 
 ### Challenges Encountered and Resolved
 - Permission issues when trying to add Firebase to the GCP project
@@ -118,6 +126,9 @@ We will migrate to a GCP-based infrastructure:
 - Build errors due to missing Supabase imports
   - Resolved by implementing Firebase auth and removing Supabase dependencies
   - Created a lib/firebase.ts file to centralize Firebase configuration
+- ESM import issues in migration scripts
+  - Fixed by using proper ESM import syntax for CommonJS modules
+  - Added fileURLToPath for __dirname equivalent in ESM
 
 ### Current Issues
 - ✅ Build error: "Module not found: Can't resolve '@/app/lib/supabase'"
@@ -146,6 +157,12 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Added verification directory to storage rules
   - ✅ Successfully uploaded and deleted test file
   - ✅ Verified Firebase Storage is properly configured and accessible
+- ⚠️ Test script failures
+  - ⚠️ All test scripts are failing with cryptic errors
+  - ⚠️ Database service test fails with connection errors
+  - ⚠️ Firebase Storage test fails with configuration errors
+  - ⚠️ Email service test fails with import errors
+  - ⚠️ Need to fix test scripts to properly handle ESM imports and environment variables
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
@@ -155,16 +172,21 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Updated setup script to handle missing configuration
   - ✅ Updated storage rules to fix permission issues
   - ✅ Verified storage bucket is accessible and working correctly
+- ⚠️ Fix test script failures
+  - ⚠️ Update scripts to properly handle ESM imports
+  - ⚠️ Fix environment variable loading
+  - ⚠️ Add better error handling and reporting
+  - ⚠️ Create mock implementations for testing
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
   - ✅ Created migration script (scripts/migrate-database.ts)
   - ✅ Created verification script (scripts/verify-migration.ts)
-  - ⏳ Execute database migration
-  - ⚠️ Fixed ESM import issues in migration scripts
-  - ⚠️ Updated scripts to use CommonJS imports for pg module
+  - ⚠️ Database migration script fails with connection errors
+  - ⚠️ Need to create and configure Cloud SQL instance
+  - ⚠️ Update connection parameters in scripts
 - ⏳ Set up Cloud Storage buckets and migrate files
   - ✅ Created migration script (scripts/migrate-storage.ts)
-  - ⚠️ Fixed Firebase configuration in storage migration script
-  - ⏳ Execute file migration
+  - ✅ Fixed Firebase configuration in storage migration script
+  - ✅ Executed file migration (no files found in Supabase buckets)
 - ✅ Implement Google Workspace email integration
   - ✅ Created setup script (scripts/setup-google-workspace.sh)
   - ✅ Created Google Workspace email service (app/services/email/google-workspace.ts)
@@ -172,8 +194,10 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Successfully obtained OAuth credentials and refresh token
   - ✅ Fixed token extraction in setup script
   - ✅ Updated email interface to support modern email templates
+  - ⚠️ Email service test script fails with import errors
 - ⏳ Test the abstraction layers with GCP backends
 - ⏳ Update remaining components that might still use Supabase directly
+  - ⚠️ Found 253 Supabase references in 58 files that need to be updated
 - ⏳ Remove all Supabase dependencies and references
 
 ### Database Migration
@@ -184,8 +208,10 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created comprehensive migration script with schema creation
   - ✅ Added support for custom types and foreign key constraints
   - ✅ Implemented batch processing for large tables
-  - ⚠️ Fixed module import issues in migration scripts
-  - ⏳ Pending execution on Cloud SQL instance
+  - ✅ Fixed module import issues in migration scripts
+  - ⚠️ Connection to Cloud SQL instance fails with ECONNREFUSED
+  - ⚠️ Need to create and configure Cloud SQL instance
+  - ⚠️ Update connection parameters in scripts
 - ⏳ Update database client code to use GCP libraries
 - ⏳ Implement proper connection pooling and error handling
 
@@ -199,12 +225,12 @@ We will migrate to a GCP-based infrastructure:
 - ✅ Create Firebase Storage implementation
 - ✅ Deploy Firebase Storage security rules
 - ✅ Create script to migrate files from Supabase to Firebase Storage
-- ⏳ Execute file migration
+- ✅ Execute file migration
   - ✅ Created migration script with bucket-by-bucket transfer
   - ✅ Added temporary file handling for large files
   - ✅ Implemented verification of transferred files
-  - ⚠️ Fixed Firebase configuration in storage migration script
-  - ⏳ Pending execution for production data
+  - ✅ Fixed Firebase configuration in storage migration script
+  - ✅ Executed migration (no files found in Supabase buckets)
 - ✅ Update file upload/download logic
 - ✅ Implement proper access controls and signed URLs
 - ✅ Create test script for Firebase Storage
@@ -276,3 +302,6 @@ We will migrate to a GCP-based infrastructure:
 - Security rules for Firestore and Storage have been deployed
 - The abstraction layers in `app/services/` directory allow for gradual migration
 - Need to create a centralized Firebase configuration file to replace Supabase references
+- Need to create a Cloud SQL instance for database migration
+- Need to fix test scripts to properly handle ESM imports and environment variables
+- Need to update 253 Supabase references in 58 files to use GCP services

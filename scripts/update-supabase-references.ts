@@ -299,8 +299,10 @@ async function main() {
     totalChanges += changesApplied;
   }
   
-  console.log(`\nDry run complete. ${totalChanges} total changes would be applied.`);
-  console.log('To apply changes, edit this script to set dryRun = false and run again.');
+  console.log(`\n${dryRun ? 'Dry run complete. ' + totalChanges + ' total changes would be applied.' : 'Applied ' + totalChanges + ' total changes.'}`);
+  if (dryRun) {
+    console.log('To apply changes, edit this script to set dryRun = false and run again.');
+  }
   
   // Generate summary report
   console.log('\n--- Migration Summary ---');

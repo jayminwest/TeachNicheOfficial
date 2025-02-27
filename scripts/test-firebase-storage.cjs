@@ -9,9 +9,25 @@
  * Usage: node scripts/test-firebase-storage.cjs
  */
 
-// Create a CommonJS compatible version of the Firebase Storage class
-const { storage } = require('../app/lib/firebase');
-const { ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
+// Initialize Firebase directly in this script to avoid import issues
+const { initializeApp } = require('firebase/app');
+const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
+
+// Firebase configuration from environment variables
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'teachnicheofficial',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const storage = getStorage(app);
+
+console.log('Firebase initialized with project:', firebaseConfig.projectId);
 
 class FirebaseStorage {
   async uploadFile(path, file) {

@@ -6,7 +6,7 @@ import { formatPrice } from '@/app/lib/constants';
 // Mock the next/image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: React.ComponentProps<'img'> & { fill?: boolean }) => {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={props.src} alt={props.alt} style={props.fill ? { objectFit: 'cover' } : {}} data-testid="next-image" />;
   },
@@ -14,7 +14,8 @@ jest.mock('next/image', () => ({
 
 // Mock the LessonPreviewDialog component
 jest.mock('../lesson-preview-dialog', () => ({
-  LessonPreviewDialog: ({ lesson, isOpen, onClose }: any) => (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  LessonPreviewDialog: ({ lesson, isOpen, onClose }: { lesson: any; isOpen: boolean; onClose: () => void }) => (
     <div data-testid="lesson-preview-dialog">
       {isOpen ? 'Open' : 'Closed'}
     </div>
@@ -23,7 +24,7 @@ jest.mock('../lesson-preview-dialog', () => ({
 
 // Mock the LessonCheckout component
 jest.mock('../lesson-checkout', () => ({
-  LessonCheckout: ({ lessonId, price }: any) => (
+  LessonCheckout: ({ lessonId, price }: { lessonId: string; price: number }) => (
     <div data-testid="lesson-checkout">
       Checkout for {lessonId} at {price} cents
     </div>

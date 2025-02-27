@@ -88,12 +88,12 @@ export default function RequestsPage() {
               >
                 {error.includes("relationship") || error.includes("PGRST200") ? (
                   <>
-                    <span className="font-semibold">Congrats! You're first.</span>
+                    <span className="font-semibold">Congrats! You&apos;re first.</span>
                     <span className="ml-2">Make the first request!</span>
                   </>
                 ) : error.toLowerCase().includes("no") && error.toLowerCase().includes("found") ? (
                   <>
-                    <span className="font-semibold">Congrats! You're first.</span>
+                    <span className="font-semibold">Congrats! You&apos;re first.</span>
                     <span className="ml-2">Make the first request!</span>
                   </>
                 ) : (

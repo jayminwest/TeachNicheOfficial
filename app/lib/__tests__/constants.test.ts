@@ -1,4 +1,4 @@
-import { formatPrice, calculateFees, PAYMENT_CONSTANTS } from '../constants';
+import { formatPrice, calculateFees } from '../constants';
 
 describe('Price Formatting', () => {
   it('formats prices correctly with default currency', () => {

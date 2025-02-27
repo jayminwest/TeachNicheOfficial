@@ -22,6 +22,8 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 2;
   
   // Calculate fees using the utility function
   const { lessonPrice, stripeFee, totalBuyerCost } = calculateFees(price / 100); // Convert cents back to dollars for display
@@ -68,6 +70,13 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
+        // Log detailed error information for debugging
+        console.error('Checkout API error:', {
+          status: response.status,
+          errorData,
+          lessonId
+        });
+        
         if (response.status === 401) {
           setError('Your session has expired. Please sign in again.');
           return;
@@ -78,7 +87,15 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
           return;
         }
         
-        throw new Error(errorData.error || 'Failed to create checkout session');
+        // Handle specific error for purchase record creation
+        if (errorData.code === 'purchase_record_failed' || 
+            errorData.error?.includes('purchase record')) {
+          setError('Unable to create purchase record. Please try again later.');
+          return;
+        }
+        
+        // More descriptive general error
+        throw new Error(errorData.error || errorData.message || 'Failed to create checkout session');
       }
 
       const data = await response.json();
@@ -91,9 +108,27 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         throw redirectError;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during checkout');
       console.error('Checkout error:', err);
+      
+      // Implement retry logic for network errors
+      if ((err instanceof Error && 
+          (err.message.includes('network') || err.message.includes('connection'))) && 
+          retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+        // Wait a bit before retrying
+        setTimeout(() => {
+          setIsLoading(false);
+          handleCheckout();
+        }, 1000);
+        return;
+      }
+      
+      setError(err instanceof Error ? err.message : 'An error occurred during checkout');
     } finally {
+      if (retryCount === MAX_RETRIES) {
+        // Reset retry count after max retries
+        setRetryCount(0);
+      }
       setIsLoading(false);
     }
   };

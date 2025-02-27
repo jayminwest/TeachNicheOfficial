@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 
 /**
  * Script to fix database schema mismatches between Supabase and Cloud SQL
@@ -9,9 +9,8 @@
  * 3. Applies fixes to align the schema with application expectations
  */
 
-import { Pool } from 'pg';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 // ESM equivalent of __dirname
@@ -24,6 +23,9 @@ if (fs.existsSync(dotenvPath)) {
   const dotenv = await import('dotenv');
   dotenv.config({ path: dotenvPath });
 }
+
+// Import pg dynamically to avoid ESM issues
+const { Pool } = await import('pg');
 
 // Database connection configuration
 const dbConfig = {

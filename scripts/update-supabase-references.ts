@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 
 /**
  * Script to find and update Supabase references in the codebase
@@ -9,8 +9,8 @@
  * 3. Optionally applies automated replacements for common patterns
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
@@ -57,8 +57,8 @@ function findFilesWithSupabaseReferences() {
   console.log('Searching for files with Supabase references...');
   
   try {
-    // Use grep to find files with Supabase references
-    const grepCommand = `grep -r --include="*.{ts,tsx,js,jsx,md}" "supabase\\|@supabase" ${rootDir} | grep -v "${excludeDirs.join('\\|')}"`;
+    // Use find and grep to find files with Supabase references (more compatible)
+    const grepCommand = `find ${rootDir} -type f \\( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.md" \\) -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/out/*" -not -path "*/.git/*" -not -path "*/terraform/*" -exec grep -l "supabase\\|@supabase" {} \\;`;
     const grepOutput = execSync(grepCommand, { encoding: 'utf-8' });
     
     // Parse grep output to get file paths

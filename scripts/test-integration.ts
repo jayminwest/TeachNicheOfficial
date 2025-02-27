@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 
 /**
  * Integration tests for GCP services
@@ -7,8 +7,8 @@
  * and the actual GCP implementations.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,6 +22,9 @@ if (fs.existsSync(dotenvPath)) {
   const dotenv = await import('dotenv');
   dotenv.config({ path: dotenvPath });
 }
+
+// Import pg dynamically to avoid ESM issues
+const { Pool } = await import('pg');
 
 // Import services dynamically (ESM compatible)
 const { CloudSqlDatabase } = await import('../app/services/database/cloud-sql.js');
@@ -102,7 +105,11 @@ async function testDatabaseService() {
     console.error('Database service test failed:', error);
     return false;
   } finally {
-    await db.close();
+    // Close the database connection - CloudSqlDatabase doesn't have a close method
+    // so we need to access the pool directly
+    if (db.pool && typeof db.pool.end === 'function') {
+      await db.pool.end();
+    }
   }
 }
 

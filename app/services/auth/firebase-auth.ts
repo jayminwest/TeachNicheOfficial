@@ -1,14 +1,11 @@
+import { auth } from '@/app/lib/firebase';
 import { 
-  getAuth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
   updateProfile,
-  onAuthStateChanged,
-  User as FirebaseUser
+  signOut as firebaseSignOut
 } from 'firebase/auth';
 import { AuthService, AuthUser } from './interface';
-import { auth } from '../../../firebase.config';
 
 export class FirebaseAuth implements AuthService {
   async signIn(email: string, password: string): Promise<AuthUser> {
@@ -24,8 +21,12 @@ export class FirebaseAuth implements AuthService {
   async signUp(email: string, password: string, name: string): Promise<AuthUser> {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Update profile with name
-      await updateProfile(userCredential.user, { displayName: name });
+      
+      // Update the user profile with the name
+      await updateProfile(userCredential.user, {
+        displayName: name
+      });
+      
       return this.transformUser(userCredential.user);
     } catch (error) {
       console.error('Error signing up:', error);
@@ -50,19 +51,20 @@ export class FirebaseAuth implements AuthService {
     
     // Otherwise, wait for the auth state to be determined
     return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
         unsubscribe();
         resolve(user ? this.transformUser(user) : null);
       });
     });
   }
   
-  private transformUser(firebaseUser: FirebaseUser): AuthUser {
+  private transformUser(user: any): AuthUser {
     return {
-      id: firebaseUser.uid,
-      email: firebaseUser.email || '',
-      name: firebaseUser.displayName || undefined,
-      avatarUrl: firebaseUser.photoURL || undefined
+      id: user.uid,
+      email: user.email || '',
+      name: user.displayName || '',
+      provider: user.providerData[0]?.providerId || 'password',
+      avatarUrl: user.photoURL || ''
     };
   }
 }

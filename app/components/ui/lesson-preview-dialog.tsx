@@ -57,12 +57,15 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
 
         <DialogFooter className="mt-6">
           <div className="w-full flex items-center justify-between">
-            {lesson.price === 0 ? (
-              <div className="text-lg font-medium" data-testid="preview-lesson-price">
+            <div className="text-lg font-medium" data-testid="preview-lesson-price">
+              {lesson.price === 0 ? (
                 <span className="text-green-600">Free</span>
-              </div>
-            ) : (
-              <div className="w-full" data-testid="preview-purchase-button">
+              ) : (
+                formatPrice(lesson.price)
+              )}
+            </div>
+            {lesson.price > 0 && (
+              <div className="w-full text-right" data-testid="preview-purchase-button">
                 <LessonCheckout 
                   lessonId={lesson.id} 
                   price={Math.round(lesson.price * 100)} // Convert dollars to cents

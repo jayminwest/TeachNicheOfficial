@@ -1,7 +1,7 @@
 // This script verifies Firebase Storage configuration and bucket existence
-const { initializeApp } = require('firebase/app');
-const { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
-const fs = require('fs');
+import { initializeApp } from 'firebase/app';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import fs from 'fs';
 
 // ANSI color codes for better output
 const colors = {

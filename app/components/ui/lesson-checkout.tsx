@@ -60,7 +60,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         credentials: 'include',
         body: JSON.stringify({
           lessonId,
-          price: totalBuyerCost, // Send the total price including fees
+          price: Math.round(totalBuyerCost * 100), // Convert dollars back to cents for Stripe
           returnUrl: window.location.href,
         }),
       });

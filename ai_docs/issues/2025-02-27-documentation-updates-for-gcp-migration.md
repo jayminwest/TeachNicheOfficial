@@ -69,10 +69,19 @@ We've already updated the core documentation files in `ai_docs/core/` to reflect
 - [ ] Update SERVICE_TEMPLATE.md to include GCP service patterns
 
 ## Files to Remove
+- [ ] `ai_docs/guides/SUPABASE_SMTP_SETUP.md` (confirmed exists)
 - [ ] SUPABASE_SETUP.md (if exists)
 - [ ] SUPABASE_CLI.md (if exists)
 - [ ] SUPABASE_MIGRATION.md (if exists)
 - [ ] Any other Supabase-specific documentation files
+
+## Files to Create
+- [ ] `ai_docs/guides/GCP_SETUP.md`
+- [ ] `ai_docs/guides/FIREBASE_SETUP.md`
+- [ ] `ai_docs/guides/GOOGLE_WORKSPACE_EMAIL.md` (to replace SUPABASE_SMTP_SETUP.md)
+- [ ] `ai_docs/reference/GCP_SERVICES.md`
+- [ ] `ai_docs/reference/FIREBASE_AUTHENTICATION.md`
+- [ ] `ai_docs/reference/CLOUD_STORAGE.md`
 
 ## Implementation Plan
 

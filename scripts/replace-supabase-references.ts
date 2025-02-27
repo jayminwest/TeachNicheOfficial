@@ -3,17 +3,19 @@
  * Script to replace Supabase references with GCP equivalents
  * 
  * Usage:
- *   node scripts/replace-supabase-references.js [--dry-run] [--path=<path>]
+ *   node scripts/replace-supabase-references.ts [--dry-run] [--path=<path>]
  * 
  * Options:
  *   --dry-run    Don't make any changes, just report what would be changed
  *   --path       Specify a specific file or directory to process
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Get the directory name
+// Get the directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 

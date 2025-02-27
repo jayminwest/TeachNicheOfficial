@@ -179,6 +179,9 @@ We will migrate to a GCP-based infrastructure:
   - ⚠️ Error in seed-test-data.ts: "column 'username' of relation 'profiles' does not exist"
   - ⚠️ Need to update seed script to match actual database schema
   - ⚠️ Need to verify database schema against application expectations
+  - ⚠️ Error: "null value in column 'full_name' of relation 'profiles' violates not-null constraint"
+  - ⚠️ Need to check for and handle full_name column in profiles table
+  - ⚠️ Need to update seed-test-data.ts to handle all required columns in profiles table
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts

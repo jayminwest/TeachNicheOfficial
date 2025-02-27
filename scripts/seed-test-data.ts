@@ -221,17 +221,106 @@ async function seedTestData() {
         `);
       }
       
+      // Check if the profiles table has a full_name column
+      const fullNameColumnResult = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'full_name'
+        );
+      `);
+      
+      if (fullNameColumnResult.rows[0].exists) {
+        console.log('Found full_name column in profiles table...');
+        
+        // Check if full_name column has a NOT NULL constraint
+        const fullNameNotNullResult = await client.query(`
+          SELECT is_nullable 
+          FROM information_schema.columns 
+          WHERE table_schema = 'public' 
+          AND table_name = 'profiles' 
+          AND column_name = 'full_name'
+        `);
+        
+        const isNullable = fullNameNotNullResult.rows[0]?.is_nullable === 'YES';
+        
+        if (!isNullable) {
+          console.log('full_name column has NOT NULL constraint, adding default value...');
+          // Try to make the column nullable first
+          try {
+            await client.query(`
+              ALTER TABLE profiles 
+              ALTER COLUMN full_name DROP NOT NULL;
+            `);
+            console.log('Made full_name column nullable');
+          } catch (error) {
+            console.log('Could not make full_name column nullable, will provide a value');
+          }
+        }
+      }
+      
       try {
         const profileId = uuidv4();
+        const fullNameColumnExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.columns 
+            WHERE table_schema = 'public' 
+            AND table_name = 'profiles' 
+            AND column_name = 'full_name'
+          );
+        `);
         
-        if (columnCheckResult.rows[0].exists) {
-          // If username column exists, include it in the insert
-          await client.query(`
+        // Prepare query and parameters based on column existence
+        let query, params;
+        
+        if (columnCheckResult.rows[0].exists && fullNameColumnExists.rows[0].exists) {
+          // Both username and full_name columns exist
+          console.log('Inserting profile with username and full_name...');
+          query = `
+            INSERT INTO profiles (id, user_id, display_name, username, full_name, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $3, username = $4, full_name = $5, avatar_url = $6, updated_at = $8
+          `;
+          params = [
+            profileId,
+            user.id, 
+            displayName, 
+            username,
+            displayName, // Use displayName for full_name too
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ];
+        } else if (fullNameColumnExists.rows[0].exists) {
+          // Only full_name column exists (no username)
+          console.log('Inserting profile with full_name but no username...');
+          query = `
+            INSERT INTO profiles (id, user_id, display_name, full_name, avatar_url, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (user_id) DO UPDATE
+            SET display_name = $3, full_name = $4, avatar_url = $5, updated_at = $7
+          `;
+          params = [
+            profileId,
+            user.id, 
+            displayName,
+            displayName, // Use displayName for full_name too
+            `https://ui-avatars.com/api/?name=${displayName}&background=random`,
+            user.created_at,
+            user.updated_at
+          ];
+        } else if (columnCheckResult.rows[0].exists) {
+          // Only username column exists (no full_name)
+          console.log('Inserting profile with username but no full_name...');
+          query = `
             INSERT INTO profiles (id, user_id, display_name, username, avatar_url, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (user_id) DO UPDATE
             SET display_name = $3, username = $4, avatar_url = $5, updated_at = $7
-          `, [
+          `;
+          params = [
             profileId,
             user.id, 
             displayName, 
@@ -239,23 +328,28 @@ async function seedTestData() {
             `https://ui-avatars.com/api/?name=${displayName}&background=random`,
             user.created_at,
             user.updated_at
-          ]);
+          ];
         } else {
-          // If username column doesn't exist, exclude it from the insert
-          await client.query(`
+          // Neither username nor full_name columns exist
+          console.log('Inserting profile with neither username nor full_name...');
+          query = `
             INSERT INTO profiles (id, user_id, display_name, avatar_url, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (user_id) DO UPDATE
             SET display_name = $3, avatar_url = $4, updated_at = $6
-          `, [
+          `;
+          params = [
             profileId,
             user.id, 
             displayName, 
             `https://ui-avatars.com/api/?name=${displayName}&background=random`,
             user.created_at,
             user.updated_at
-          ]);
+          ];
         }
+        
+        // Execute the query with appropriate parameters
+        await client.query(query, params);
       } catch (error) {
         console.error('Error inserting profile for user:', user.email);
         console.error('Error details:', error);

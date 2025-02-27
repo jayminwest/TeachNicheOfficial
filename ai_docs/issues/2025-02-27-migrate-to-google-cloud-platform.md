@@ -137,23 +137,28 @@ We will migrate to a GCP-based infrastructure:
   - ⚠️ Error: "Firebase Storage: An unknown error occurred, please check the error payload for server response. (storage/unknown)"
   - ⚠️ Status: 404 - Storage bucket not found or not accessible
   - ⚠️ Created test script with detailed error reporting and configuration verification
-  - ⚠️ Need to ensure Firebase Storage bucket is properly configured in Firebase Console
+  - ⚠️ Need to create and configure Firebase Storage bucket in Firebase Console
+  - ⚠️ Resolution steps:
+    1. Go to Firebase Console: https://console.firebase.google.com/project/teachnicheofficial/storage
+    2. Click "Get Started" to create a default storage bucket
+    3. Select region "us-central" to match Firestore database region
+    4. Choose production mode with secure rules
+    5. Verify bucket name is "teachnicheofficial.appspot.com"
+    6. Deploy storage rules from storage.rules file
+    7. Run test script again to verify configuration
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
 - ⏳ Resolve Firebase Storage bucket configuration issue
+  - Create default storage bucket in Firebase Console
+  - Deploy storage rules
+  - Verify configuration with test script
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
 - ⏳ Set up Cloud Storage buckets and migrate files
 - ⏳ Implement Google Workspace email integration
 - ⏳ Test the abstraction layers with GCP backends
 - ⏳ Update remaining components that might still use Supabase directly
-
-### Next Steps
-- Remove all Supabase dependencies and references
-- Create Cloud SQL instance and migrate schema from Supabase
-- Set up Cloud Storage buckets and migrate files
-- Implement Google Workspace email integration
-- Test the abstraction layers with GCP backends
+- ⏳ Remove all Supabase dependencies and references
 
 ### Database Migration
 - ✅ Export schema from Supabase
@@ -177,7 +182,11 @@ We will migrate to a GCP-based infrastructure:
 - ✅ Update file upload/download logic
 - ✅ Implement proper access controls and signed URLs
 - ✅ Create test script for Firebase Storage
-- ⚠️ Fix Firebase Storage bucket configuration issue
+- ⏳ Fix Firebase Storage bucket configuration issue
+  - ⏳ Create default storage bucket in Firebase Console
+  - ⏳ Verify bucket name matches configuration (teachnicheofficial.appspot.com)
+  - ⏳ Redeploy storage rules if needed
+  - ⏳ Verify bucket is accessible with test script
 - ⏳ Optimize for performance and cost
 
 ### Email Integration

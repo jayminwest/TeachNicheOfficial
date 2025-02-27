@@ -1,5 +1,4 @@
 // Firebase app should be initialized only once
-// Import already exists elsewhere in the file
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -85,7 +84,7 @@ testFirebaseStorage().catch(err => {
   process.exit(1);
 });
 // Firebase app should be initialized only once
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+// Import already exists elsewhere in the file
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';

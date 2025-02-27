@@ -93,6 +93,33 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Verify the price matches the lesson's actual price
+    const { data: lessonPrice } = await supabase
+      .from('lessons')
+      .select('price')
+      .eq('id', lessonId)
+      .single();
+      
+    if (!lessonPrice) {
+      return NextResponse.json(
+        { error: 'Failed to verify lesson price' },
+        { status: 500 }
+      );
+    }
+    
+    // Calculate expected total price with fees
+    const { totalBuyerCost: expectedPrice } = calculateFees(lessonPrice.price);
+    const expectedPriceInCents = Math.round(expectedPrice * 100);
+    
+    // Validate the price (allow small rounding differences)
+    if (Math.abs(price - expectedPriceInCents) > 1) {
+      console.error(`Price mismatch: received ${price}, expected ${expectedPriceInCents}`);
+      return NextResponse.json(
+        { error: 'Invalid price' },
+        { status: 400 }
+      );
+    }
+    
     // Calculate fees
     const priceInCents = Math.round(price * 100); // Convert to cents
     const platformFee = Math.round(priceInCents * (stripeConfig.platformFeePercent / 100));

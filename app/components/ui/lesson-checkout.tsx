@@ -39,6 +39,12 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
         return;
       }
 
+      // Validate price is positive and reasonable
+      if (totalBuyerCost <= 0 || totalBuyerCost > 10000) {
+        setError('Invalid price amount');
+        return;
+      }
+
       // Initialize Stripe
       const stripe = await stripePromise;
       if (!stripe) {

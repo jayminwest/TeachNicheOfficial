@@ -32,7 +32,16 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
       
       const result = await signInWithGoogle()
       if (result.error) {
-        throw result.error
+        // Handle specific error types
+        if (result.error.message?.includes('popup')) {
+          throw new Error('Popup was blocked. Please allow popups for this site.');
+        } else if (result.error.message?.includes('closed')) {
+          throw new Error('Sign in was cancelled. Please try again.');
+        } else if (result.error.message?.includes('network')) {
+          throw new Error('Network error. Please check your connection and try again.');
+        } else {
+          throw result.error;
+        }
       }
       
       // Check if we're in a test environment

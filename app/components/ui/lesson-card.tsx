@@ -43,19 +43,17 @@ export function LessonCard({ lesson }: LessonCardProps) {
             {lesson.description}
           </p>
           <div className="flex items-center justify-between mt-auto">
-            <div className="text-sm font-medium" data-testid="lesson-price">
-              {lesson.price === 0 ? (
-                <span className="text-green-600">Free</span>
-              ) : (
-                <span>{formatPrice(lesson.price)}</span>
-              )}
-            </div>
             {lesson.price > 0 && (
               <LessonCheckout 
                 lessonId={lesson.id} 
                 price={Math.round(lesson.price * 100)} // Convert dollars to cents
                 searchParams={new URLSearchParams(window.location.search)}
               />
+            )}
+            {lesson.price === 0 && (
+              <div className="text-sm font-medium" data-testid="lesson-price">
+                <span className="text-green-600">Free</span>
+              </div>
             )}
           </div>
         </div>

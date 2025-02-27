@@ -49,9 +49,11 @@ echo "Importing schema from migrations file..."
 if [ -z "$DB_PASSWORD" ]; then
     # No password authentication
     psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/20250226_current_schema.sql
+    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/20250227_add_creator_applications.sql
 else
     # Password authentication
     PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/20250226_current_schema.sql
+    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/20250227_add_creator_applications.sql
 fi
 
 echo "Database initialization complete!"

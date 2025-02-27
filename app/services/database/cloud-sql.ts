@@ -6,14 +6,25 @@ export class CloudSqlDatabase implements DatabaseService {
   
   constructor() {
     this.pool = new Pool({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      port: parseInt(process.env.DB_PORT || '5432'),
+      host: process.env.CLOUD_SQL_HOST || process.env.DB_HOST,
+      user: process.env.CLOUD_SQL_USER || process.env.DB_USER,
+      password: process.env.CLOUD_SQL_PASSWORD || process.env.DB_PASSWORD,
+      database: process.env.CLOUD_SQL_DATABASE || process.env.DB_NAME,
+      port: parseInt(process.env.CLOUD_SQL_PORT || process.env.DB_PORT || '5432'),
       ssl: process.env.NODE_ENV === 'production',
       max: 20, // Maximum number of clients in the pool
     });
+    
+    // Log connection info in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Database connection configured with:', {
+        host: this.pool.options.host,
+        database: this.pool.options.database,
+        user: this.pool.options.user,
+        port: this.pool.options.port,
+        ssl: this.pool.options.ssl,
+      });
+    }
   }
   
   async getClient(): Promise<PoolClient> {

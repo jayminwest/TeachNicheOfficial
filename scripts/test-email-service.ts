@@ -1,6 +1,6 @@
 // Create a local mock email service for testing
-import dotenv from 'dotenv';
-import dotenv from 'dotenv';
+// Import dotenv only once
+// Import dotenv only once
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });

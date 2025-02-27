@@ -29,7 +29,9 @@ export default function LessonsPage() {
           `)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          throw new Error(`Database error: ${error.message}`);
+        }
         
         // Transform the data to match the Lesson type
         const transformedLessons: Lesson[] = (data || []).map(lesson => {
@@ -53,7 +55,8 @@ export default function LessonsPage() {
         
         setLessons(transformedLessons);
       } catch (error) {
-        console.error('Error fetching lessons:', error);
+        // Improved error logging with more context
+        console.error('Error fetching lessons:', error instanceof Error ? error.message : 'Unknown error');
         toast({
           title: "Error",
           description: "Failed to load lessons. Please try again.",
@@ -93,7 +96,7 @@ export default function LessonsPage() {
           </div>
         ) : lessons.length === 0 ? (
           <Card className="p-8 text-center">
-            <h3 className="font-semibold mb-2">No lessons yet</h3>
+            <h3 className="font-semibold mb-2">No lessons found</h3>
             <p className="text-muted-foreground mb-4">
               Get started by creating your first lesson
             </p>

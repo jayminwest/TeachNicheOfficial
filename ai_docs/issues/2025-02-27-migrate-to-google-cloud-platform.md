@@ -124,6 +124,7 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Updated auth service to use Firebase
   - ✅ Created firebase-auth.ts to replace supabase-auth.ts
   - ✅ Updated auth-provider.ts and index.ts to reference firebase-auth.ts
+  - ✅ Fixed TypeScript and ESLint errors
   - ⏳ Need to update environment variables in .env files
 
 ### Next Steps

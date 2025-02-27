@@ -62,21 +62,49 @@ if [ "$STORAGE_CREATED" != "y" ]; then
 fi
 
 echo
-echo "Deploying storage rules..."
-firebase deploy --only storage
+echo "Checking for firebase.json file..."
+if [ ! -f "firebase.json" ]; then
+    echo -e "${YELLOW}firebase.json file not found. Creating it...${NC}"
+    cat > firebase.json << EOF
+{
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
+EOF
+    echo -e "${GREEN}Created firebase.json file.${NC}"
+fi
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Storage rules deployed successfully!${NC}"
+echo "Do you want to deploy storage rules? (y/n): "
+read DEPLOY_RULES
+
+if [ "$DEPLOY_RULES" = "y" ]; then
+    echo "Deploying storage rules..."
+    firebase deploy --only storage
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Storage rules deployed successfully!${NC}"
+    else
+        echo -e "${RED}Failed to deploy storage rules.${NC}"
+        echo "Please check your storage.rules file and try again."
+        echo "Continuing anyway since you've already set up the bucket manually..."
+    fi
 else
-    echo -e "${RED}Failed to deploy storage rules.${NC}"
-    echo "Please check your storage.rules file and try again."
-    exit 1
+    echo "Skipping storage rules deployment..."
 fi
 
 echo
 echo "Testing Firebase Storage configuration..."
-echo "Running test script..."
-node -r dotenv/config scripts/test-firebase-storage.cjs
+echo "Do you want to run the storage test script? (y/n): "
+read RUN_TEST
+
+if [ "$RUN_TEST" = "y" ]; then
+    echo "Running test script..."
+    node -r dotenv/config scripts/test-firebase-storage.cjs
+else
+    echo "Skipping storage test..."
+    echo -e "${YELLOW}Assuming storage bucket is already configured correctly.${NC}"
+fi
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}Firebase Storage is configured correctly!${NC}"

@@ -149,10 +149,10 @@ We will migrate to a GCP-based infrastructure:
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
-- ⏳ Resolve Firebase Storage bucket configuration issue
-  - Create default storage bucket in Firebase Console
-  - Deploy storage rules
-  - Verify configuration with test script
+- ✅ Resolve Firebase Storage bucket configuration issue
+  - ✅ Created default storage bucket in Firebase Console
+  - ✅ Created firebase.json configuration file
+  - ✅ Updated setup script to handle missing configuration
 - ⏳ Create Cloud SQL instance and migrate schema from Supabase
 - ⏳ Set up Cloud Storage buckets and migrate files
 - ⏳ Implement Google Workspace email integration
@@ -182,11 +182,11 @@ We will migrate to a GCP-based infrastructure:
 - ✅ Update file upload/download logic
 - ✅ Implement proper access controls and signed URLs
 - ✅ Create test script for Firebase Storage
-- ⏳ Fix Firebase Storage bucket configuration issue
-  - ⏳ Create default storage bucket in Firebase Console
-  - ⏳ Verify bucket name matches configuration (teachnicheofficial.appspot.com)
-  - ⏳ Redeploy storage rules if needed
-  - ⏳ Verify bucket is accessible with test script
+- ✅ Fix Firebase Storage bucket configuration issue
+  - ✅ Created default storage bucket in Firebase Console
+  - ✅ Verified bucket name matches configuration (teachnicheofficial.appspot.com)
+  - ✅ Created firebase.json for storage rules configuration
+  - ✅ Updated setup script to handle missing configuration
 - ⏳ Optimize for performance and cost
 
 ### Email Integration

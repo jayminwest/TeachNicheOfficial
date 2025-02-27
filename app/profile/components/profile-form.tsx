@@ -38,6 +38,17 @@ export function ProfileForm() {
   const { user } = useAuth()
   const router = useRouter()
 
+  // Function to check if user is a creator
+  function isCreator(user: any) {
+    return user?.metadata?.is_creator === true || 
+           user?.app_metadata?.is_creator === true || 
+           user?.is_creator === true;
+  }
+
+  const handleDashboardNavigation = () => {
+    router.push("/dashboard");
+  }
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -140,13 +151,13 @@ export function ProfileForm() {
       </form>
       <div className="border-t pt-6 mt-6">
         <h3 className="text-lg font-medium mb-4">Creator Dashboard</h3>
-        {user?.is_creator ? (
+        {isCreator(user) ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Access your creator dashboard to manage your lessons, view analytics, and track your earnings.
             </p>
             <Button 
-              onClick={() => router.push("/dashboard")}
+              onClick={handleDashboardNavigation}
               className="w-full sm:w-auto"
             >
               Go to Creator Dashboard

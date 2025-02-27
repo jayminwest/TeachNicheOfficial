@@ -46,7 +46,7 @@ export default function EarningsPage() {
                 </TabsList>
                 
                 <TabsContent value="earnings" className="space-y-4 pt-4">
-                  <Card>
+                  <Card data-testid="earnings-summary">
                     <CardHeader>
                       <CardTitle>Earnings Summary</CardTitle>
                       <CardDescription>Overview of your lesson sales earnings</CardDescription>

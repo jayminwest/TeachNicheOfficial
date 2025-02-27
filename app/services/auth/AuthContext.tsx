@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/app/services/supabase'
 
@@ -8,12 +8,14 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   isAuthenticated: boolean
+  isCreator: () => boolean
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAuthenticated: false,
+  isCreator: () => false,
 })
 
 export function AuthProvider({ 

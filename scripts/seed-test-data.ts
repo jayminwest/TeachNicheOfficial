@@ -588,8 +588,21 @@ async function seedTestData() {
       );
     `);
 
+    // Check if purchases table has a fee_percentage column
+    const feePercentageColumnExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'purchases' 
+        AND column_name = 'fee_percentage'
+      );
+    `);
+
     // Generate a fake payment intent ID for test data
     const fakePaymentIntentId = 'pi_' + Math.random().toString(36).substring(2, 15);
+    
+    // Default fee percentage (15%)
+    const feePercentage = 15;
     
     // Check if purchases table has a creator_earnings column
     const creatorEarningsColumnExists = await client.query(`
@@ -611,71 +624,148 @@ async function seedTestData() {
       
       if (creatorIdColumnExists.rows[0].exists && creatorEarningsColumnExists.rows[0].exists) {
         console.log('Found creator_id and creator_earnings columns in purchases table, including them in insert...');
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          creatorId,  // Use the creator ID from the lesson
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          platformFee,
-          creatorEarnings,
-          fakePaymentIntentId
-        ]);
+        
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, creator_id, amount, status,
+              created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            creatorId,  // Use the creator ID from the lesson
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            platformFee,
+            creatorEarnings,
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, creator_id, amount, status,
+              created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            creatorId,  // Use the creator ID from the lesson
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            platformFee,
+            creatorEarnings,
+            fakePaymentIntentId
+          ]);
+        }
       } else if (creatorEarningsColumnExists.rows[0].exists) {
         // If creator_id doesn't exist but creator_earnings does
         console.log('Found creator_earnings column in purchases table, including it in insert...');
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          platformFee,
-          creatorEarnings,
-          fakePaymentIntentId
-        ]);
+        
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            platformFee,
+            creatorEarnings,
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, platform_fee, creator_earnings, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            platformFee,
+            creatorEarnings,
+            fakePaymentIntentId
+          ]);
+        }
       } else {
         // If neither creator_id nor creator_earnings columns exist
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, platform_fee, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          platformFee,
-          fakePaymentIntentId
-        ]);
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, platform_fee, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            platformFee,
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, platform_fee, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            platformFee,
+            fakePaymentIntentId
+          ]);
+        }
       }
     } else {
       // If platform_fee column doesn't exist, check for creator_earnings
@@ -693,89 +783,188 @@ async function seedTestData() {
       
       if (creatorIdColumnExists.rows[0].exists && creatorEarningsColumnExists.rows[0].exists) {
         console.log('Found creator_id and creator_earnings columns in purchases table, including them in insert...');
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          creatorId,  // Use the creator ID from the lesson
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          creatorEarnings,
-          fakePaymentIntentId
-        ]);
+        
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, creator_id, amount, status,
+              created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            creatorId,  // Use the creator ID from the lesson
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            creatorEarnings,
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, creator_id, amount, status,
+              created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            creatorId,  // Use the creator ID from the lesson
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            creatorEarnings,
+            fakePaymentIntentId
+          ]);
+        }
       } else if (creatorEarningsColumnExists.rows[0].exists) {
         // If creator_id doesn't exist but creator_earnings does
         console.log('Found creator_earnings column in purchases table, including it in insert...');
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          creatorEarnings,
-          fakePaymentIntentId
-        ]);
+        
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            creatorEarnings,
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, creator_earnings, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            creatorEarnings,
+            fakePaymentIntentId
+          ]);
+        }
       } else if (creatorIdColumnExists.rows[0].exists) {
         console.log('Found creator_id column in purchases table, including it in insert...');
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, creator_id, amount, status,
-            created_at, updated_at, stripe_session_id, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          creatorId,  // Use the creator ID from the lesson
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          fakePaymentIntentId
-        ]);
+        
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, creator_id, amount, status,
+              created_at, updated_at, stripe_session_id, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            creatorId,  // Use the creator ID from the lesson
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, creator_id, amount, status,
+              created_at, updated_at, stripe_session_id, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            creatorId,  // Use the creator ID from the lesson
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            fakePaymentIntentId
+          ]);
+        }
       } else {
         // If neither creator_id nor creator_earnings columns exist
-        await client.query(`
-          INSERT INTO purchases (
-            id, user_id, lesson_id, amount, status,
-            created_at, updated_at, stripe_session_id, payment_intent_id
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          ON CONFLICT (id) DO NOTHING
-        `, [
-          uuidv4(),
-          testUsers[0].id,
-          lessonId,
-          amount,
-          'completed',
-          new Date(),
-          new Date(),
-          'stripe_session_123',
-          fakePaymentIntentId
-        ]);
+        if (feePercentageColumnExists.rows[0].exists) {
+          console.log('Found fee_percentage column in purchases table, including it in insert...');
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, payment_intent_id, fee_percentage
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            fakePaymentIntentId,
+            feePercentage
+          ]);
+        } else {
+          await client.query(`
+            INSERT INTO purchases (
+              id, user_id, lesson_id, amount, status,
+              created_at, updated_at, stripe_session_id, payment_intent_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            uuidv4(),
+            testUsers[0].id,
+            lessonId,
+            amount,
+            'completed',
+            new Date(),
+            new Date(),
+            'stripe_session_123',
+            fakePaymentIntentId
+          ]);
+        }
       }
     }
     

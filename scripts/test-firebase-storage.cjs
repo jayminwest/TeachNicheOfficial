@@ -50,6 +50,14 @@ if (firebaseConfig.storageBucket === `${firebaseConfig.projectId}.appspot.com`) 
   console.log('Using default Firebase Storage bucket name.');
   console.log('Make sure the Storage service is enabled in the Firebase Console.');
   console.log('Visit: https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage');
+  console.log('IMPORTANT: You need to initialize Firebase Storage in the Firebase Console first.');
+  console.log('1. Go to https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage');
+  console.log('2. Click "Get Started" to create a storage bucket');
+  console.log('3. Select a location (preferably the same as your Firestore database)');
+  console.log('4. Choose appropriate security rules (start with test mode for development)');
+  console.log('5. Click "Done" to create the bucket');
+  console.log('After creating the bucket, run this test script again.');
+  process.exit(0);
 }
 
 class FirebaseStorage {
@@ -76,9 +84,23 @@ class FirebaseStorage {
       // Check if the error is related to permissions or configuration
       if (error.code === 'storage/unauthorized') {
         console.error('ERROR: Unauthorized access. Check Firebase Storage rules and authentication.');
+        console.error('Visit: https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage/rules');
+        console.error('Make sure your rules allow read/write access for testing:');
+        console.error(`
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true; // For testing only, restrict this in production
+    }
+  }
+}
+        `);
       } else if (error.code === 'storage/unknown' && error.status_ === 404) {
         console.error('ERROR: Storage bucket not found or not accessible. Check your storage bucket configuration.');
         console.error('Make sure the bucket exists and is properly configured in Firebase console.');
+        console.error('Visit: https://console.firebase.google.com/project/' + firebaseConfig.projectId + '/storage');
+        console.error('You need to initialize Firebase Storage in the Firebase Console first.');
       }
       
       throw error;

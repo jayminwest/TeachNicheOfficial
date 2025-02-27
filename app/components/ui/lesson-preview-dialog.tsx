@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/app/components/ui/dialog";
 import { StarIcon } from "@radix-ui/react-icons";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
+import { formatPrice } from "@/app/lib/constants";
 
 interface LessonPreviewDialogProps {
   lesson: {

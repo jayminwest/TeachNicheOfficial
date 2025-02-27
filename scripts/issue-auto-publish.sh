@@ -1,11 +1,38 @@
 #!/bin/bash
 
+#!/bin/bash
+
 # Script to automatically publish new issue files to GitHub
 # and update the file with the actual issue number
 
 # Configuration
 ISSUES_DIR="ai_docs/issues"
 ISSUE_PATTERN="[0-9]{4}-[0-9]{2}-[0-9]{2}-([0-9]{3})-.*\.md"
+LOCK_FILE="/tmp/issue_publisher.lock"
+
+# Exit if another instance is running
+if [ -f "$LOCK_FILE" ]; then
+  # Check if the process is still running
+  if ps -p $(cat "$LOCK_FILE") > /dev/null 2>&1; then
+    echo "Another instance is already running. Exiting."
+    exit 1
+  else
+    # Lock file exists but process is not running, remove stale lock
+    rm -f "$LOCK_FILE"
+  fi
+fi
+
+# Create lock file
+echo $$ > "$LOCK_FILE"
+
+# Cleanup function to remove lock file on exit
+cleanup() {
+  rm -f "$LOCK_FILE"
+  echo "Lock file removed."
+}
+
+# Set trap to ensure cleanup on script exit
+trap cleanup EXIT
 
 # Function to create GitHub issue from file
 create_github_issue() {
@@ -55,6 +82,7 @@ create_github_issue() {
 # Check if the issues directory exists
 if [ ! -d "$ISSUES_DIR" ]; then
   echo "Issues directory not found: $ISSUES_DIR"
+  rm -f "$LOCK_FILE"
   exit 1
 fi
 

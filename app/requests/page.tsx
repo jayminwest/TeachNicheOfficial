@@ -76,9 +76,21 @@ export default function RequestsPage() {
               </div>
             </div>
             {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <span className="ml-2">{error}</span>
+              <Alert 
+                variant={error.includes("No lesson requests found") ? "default" : "destructive"} 
+                className="mb-6"
+              >
+                {error.includes("No lesson requests found") ? (
+                  <>
+                    <span className="font-semibold">Congrats! You're first.</span>
+                    <span className="ml-2">Make the first lesson request and start something amazing!</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="ml-2">{error}</span>
+                  </>
+                )}
               </Alert>
             )}
             <RequestGrid 

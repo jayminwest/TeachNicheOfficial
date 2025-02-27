@@ -175,13 +175,15 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created test script for email service
   - ✅ Enabled Gmail API in Google Cloud Console
   - ✅ Successfully tested email service with test-email-service.ts
-- ⚠️ Database schema mismatch
-  - ⚠️ Error in seed-test-data.ts: "column 'username' of relation 'profiles' does not exist"
-  - ⚠️ Need to update seed script to match actual database schema
-  - ⚠️ Need to verify database schema against application expectations
-  - ⚠️ Error: "null value in column 'full_name' of relation 'profiles' violates not-null constraint"
-  - ⚠️ Need to check for and handle full_name column in profiles table
-  - ⚠️ Need to update seed-test-data.ts to handle all required columns in profiles table
+- ✅ Database schema mismatch
+  - ✅ Error in seed-test-data.ts: "column 'username' of relation 'profiles' does not exist"
+  - ✅ Updated seed script to match actual database schema
+  - ✅ Verified database schema against application expectations
+  - ✅ Error: "null value in column 'full_name' of relation 'profiles' violates not-null constraint"
+  - ✅ Added checks for and handling of full_name column in profiles table
+  - ✅ Updated seed-test-data.ts to handle all required columns in profiles table
+  - ✅ Added support for fee_percentage column in purchases table
+  - ✅ Successfully seeded test data with all required columns
 
 ### Next Steps
 - ✅ Fix module resolution in test scripts
@@ -210,7 +212,9 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created fix-schema-mismatch.ts script to fix database schema issues
   - ✅ Updated seed-test-data.ts script to match actual database schema
   - ✅ Successfully fixed username column in profiles table
-  - ⚠️ Need to create auth schema for user tables
+  - ✅ Created auth schema for user tables
+  - ✅ Added support for fee_percentage column in purchases table
+  - ✅ Successfully seeded test data with all required columns
 - ✅ Set up Cloud Storage buckets and migrate files
   - ✅ Created migration script (scripts/migrate-storage.ts)
   - ✅ Fixed Firebase configuration in storage migration script
@@ -390,6 +394,9 @@ The migration to Google Cloud Platform is progressing well. Here's a summary of 
 - ✅ Created comprehensive analysis of Supabase references in codebase
 - ✅ Created auth schema for user tables
 - ✅ Created script to fix profiles table schema (add user_id column)
+- ✅ Updated seed-test-data.ts to handle all required columns in profiles table
+- ✅ Added support for fee_percentage column in purchases table
+- ✅ Successfully seeded test data with all required columns
 
 #### Current Challenges
 - ⚠️ Need to apply automated replacements for Supabase references

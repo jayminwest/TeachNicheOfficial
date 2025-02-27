@@ -75,17 +75,40 @@ async function migrateDatabase() {
   console.log('Starting database migration...');
   
   try {
+    // Check connections
+    try {
+      // Test Supabase connection
+      const { data, error } = await supabase.from('categories').select('count()', { count: 'exact' });
+      if (error) throw new Error(`Supabase connection error: ${error.message}`);
+      console.log('Supabase connection successful');
+      
+      // Test Cloud SQL connection
+      const client = await cloudSqlPool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      console.log('Cloud SQL connection successful');
+    } catch (err) {
+      console.error('Connection test failed:', err);
+      process.exit(1);
+    }
+    
     // Create schema
     await createSchema();
     
     // Migrate data for each table
     for (const table of tables) {
-      await migrateTable(table);
+      const success = await migrateTable(table);
+      if (!success) {
+        console.error(`Migration failed for table ${table}`);
+        process.exit(1);
+      }
     }
     
     console.log('Database migration completed successfully!');
+    process.exit(0);
   } catch (error) {
     console.error('Migration failed:', error);
+    process.exit(1);
   } finally {
     // Close connections
     await cloudSqlPool.end();
@@ -459,101 +482,74 @@ async function insertBatch(tableName: string, records: any[]) {
   await cloudSqlPool.query(query, values);
 }
 
-// Run the migration
-migrateDatabase().catch(console.error);
-
+// Migrate data for a specific table
 async function migrateTable(tableName: string) {
-  console.log(`Migrating table: ${tableName}`);
+  console.log(`Migrating data for table: ${tableName}`);
   
-  // Get data from Supabase
-  const { data, error } = await supabase.from(tableName).select('*');
-  
-  if (error) {
-    console.error(`Error fetching data from ${tableName}:`, error);
-    return false;
-  }
-  
-  if (!data || data.length === 0) {
-    console.log(`No data found in table ${tableName}`);
-    return true;
-  }
-  
-  console.log(`Found ${data.length} rows in ${tableName}`);
-  
-  // Insert data into Cloud SQL
   try {
-    // Begin transaction
-    const client = await cloudSqlPool.connect();
-    try {
-      await client.query('BEGIN');
-      
-      // Clear existing data (optional, remove if you want to preserve existing data)
-      await client.query(`TRUNCATE TABLE ${tableName} CASCADE`);
-      
-      // Generate insert query
-      const columns = Object.keys(data[0]);
-      const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
-      const query = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
-      
-      // Insert each row
-      for (const row of data) {
-        const values = columns.map(col => row[col]);
-        await client.query(query, values);
-      }
-      
-      await client.query('COMMIT');
-      console.log(`Successfully migrated ${data.length} rows to ${tableName}`);
-      return true;
-    } catch (err) {
-      await client.query('ROLLBACK');
-      console.error(`Error inserting data into ${tableName}:`, err);
-      return false;
-    } finally {
-      client.release();
-    }
-  } catch (err) {
-    console.error(`Database connection error:`, err);
-    return false;
-  }
-}
-
-async function migrateDatabase() {
-  console.log('Starting database migration...');
-  
-  // Check connections
-  try {
-    // Test Supabase connection
-    const { data, error } = await supabase.from('categories').select('count()', { count: 'exact' });
-    if (error) throw new Error(`Supabase connection error: ${error.message}`);
-    console.log('Supabase connection successful');
+    // Get data from Supabase
+    const { data, error } = await supabase.from(tableName).select('*');
     
-    // Test Cloud SQL connection
-    const client = await cloudSqlPool.connect();
-    await client.query('SELECT 1');
-    client.release();
-    console.log('Cloud SQL connection successful');
-  } catch (err) {
-    console.error('Connection test failed:', err);
-    process.exit(1);
-  }
-  
-  // Migrate each table
-  for (const table of tables) {
-    const success = await migrateTable(table);
-    if (!success) {
-      console.error(`Migration failed for table ${table}`);
-      process.exit(1);
+    if (error) {
+      console.error(`Error fetching data from ${tableName}:`, error);
+      return false;
     }
+    
+    if (!data || data.length === 0) {
+      console.log(`No data found for table: ${tableName}`);
+      return true;
+    }
+    
+    console.log(`Found ${data.length} rows to migrate for table: ${tableName}`);
+    
+    // Insert data into Cloud SQL in batches
+    const batchSize = 100;
+    for (let i = 0; i < data.length; i += batchSize) {
+      const batch = data.slice(i, i + batchSize);
+      await insertBatch(tableName, batch);
+      console.log(`Migrated batch ${i / batchSize + 1} for table: ${tableName}`);
+    }
+    
+    console.log(`Successfully migrated data for table: ${tableName}`);
+    return true;
+  } catch (error) {
+    console.error(`Error migrating data for table: ${tableName}:`, error);
+    return false;
   }
-  
-  console.log('Database migration completed successfully');
-  process.exit(0);
 }
 
+// Insert a batch of records
+async function insertBatch(tableName: string, records: any[]) {
+  if (records.length === 0) return;
+  
+  // Get column names from the first record
+  const columns = Object.keys(records[0]);
+  
+  // Create a prepared statement
+  const placeholders = records.map((_, recordIndex) => 
+    `(${columns.map((_, colIndex) => `$${recordIndex * columns.length + colIndex + 1}`).join(', ')})`
+  ).join(', ');
+  
+  const query = `
+    INSERT INTO ${tableName} (${columns.join(', ')})
+    VALUES ${placeholders}
+    ON CONFLICT DO NOTHING;
+  `;
+  
+  // Flatten all values into a single array
+  const values = records.flatMap(record => columns.map(col => record[col]));
+  
+  // Execute the query
+  await cloudSqlPool.query(query, values);
+}
+
+// Run the migration
 migrateDatabase().catch(err => {
   console.error('Migration failed:', err);
   process.exit(1);
 });
+
+// This section is already replaced by the previous block
 import { createClient } from '@supabase/supabase-js';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';

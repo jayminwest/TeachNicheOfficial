@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 // Load environment variables
 dotenv.config({ path: '.env.local' });
 
@@ -27,6 +28,10 @@ const buckets = [
   'videos',
   // Add other buckets as needed
 ];
+
+// Get directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Temporary directory for downloaded files
 const tempDir = path.join(__dirname, 'temp');

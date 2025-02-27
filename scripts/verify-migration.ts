@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -25,12 +26,16 @@ const tables = [
   'categories',
   'profiles',
   'lessons',
-  'lesson_categories',
+  'lesson_category',
   'purchases',
   'reviews',
+  'creator_applications',
+  'creator_earnings',
+  'creator_payout_methods',
+  'creator_payouts',
   'lesson_requests',
-  'comments',
-  // Add other tables as needed
+  'lesson_request_votes',
+  'waitlist'
 ];
 
 async function verifyTable(tableName: string) {

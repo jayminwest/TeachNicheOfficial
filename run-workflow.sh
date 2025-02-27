@@ -13,7 +13,7 @@ npm run type-check || echo "Type check failed but continuing"
 
 # Run linting
 echo "Running linting..."
-npm run lint
+npm run lint -- --silent
 
 # Install Playwright browsers
 echo "Installing Playwright browsers..."

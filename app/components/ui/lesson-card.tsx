@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Image from "next/image";
+import { formatPrice } from "@/app/lib/constants";
 import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
 import { LessonPreviewDialog } from "@/app/components/ui/lesson-preview-dialog";
@@ -22,7 +23,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
   return (
     <>
       <Card 
-        className="h-full hover:shadow-md transition-shadow cursor-pointer"
+        className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
         onClick={() => setIsPreviewOpen(true)}
         data-testid="lesson-card"
       >
@@ -34,27 +35,29 @@ export function LessonCard({ lesson }: LessonCardProps) {
             className="object-cover rounded-t-lg"
           />
         </div>
-        <div className="p-6">
-          <h3 className="font-semibold mb-2 line-clamp-2" data-testid="lesson-card-title">
+        <div className="p-4 sm:p-6 flex flex-col flex-grow">
+          <h3 className="font-semibold mb-2 line-clamp-2 text-sm sm:text-base" data-testid="lesson-card-title">
             {lesson.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3" data-testid="lesson-description">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3" data-testid="lesson-description">
             {lesson.description}
           </p>
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium" data-testid="lesson-price">
-              {lesson.price === 0 ? (
+          <div className="flex items-center justify-between mt-auto">
+            {lesson.price > 0 ? (
+              <>
+                <div className="text-sm font-medium" data-testid="lesson-price">
+                  {formatPrice(lesson.price)}
+                </div>
+                <LessonCheckout 
+                  lessonId={lesson.id} 
+                  price={Math.round(lesson.price * 100)} // Convert dollars to cents
+                  searchParams={new URLSearchParams(window.location.search)}
+                />
+              </>
+            ) : (
+              <div className="text-sm font-medium" data-testid="lesson-price">
                 <span className="text-green-600">Free</span>
-              ) : (
-                <span>${lesson.price.toFixed(2)}</span>
-              )}
-            </div>
-            {lesson.price > 0 && (
-              <LessonCheckout 
-                lessonId={lesson.id} 
-                price={Math.round(lesson.price * 100)} // Convert dollars to cents
-                searchParams={new URLSearchParams(window.location.search)}
-              />
+              </div>
             )}
           </div>
         </div>

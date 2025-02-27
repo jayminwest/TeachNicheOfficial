@@ -2,23 +2,22 @@
 
 This document outlines the standardized process for creating and resolving detailed GitHub issues using AI assistance and the GitHub CLI.
 
-> **Recent Example**: See [Pre-Launch Audit and Bug Fix Plan](./issues/2025-02-26-041-pre-launch-audit-and-bug-fix-plan.md) (Issue #41) for a comprehensive audit template.
+> **Recent Example**: See [Pre-Launch Audit and Bug Fix Plan](./issues/2025-02-26-041-pre-launch-audit-and-bug-fix-plan.md) for a comprehensive audit template.
 
 ## Issue File Naming Convention
 
 All issue files should follow this naming convention:
 ```
-YYYY-MM-DD-ISSUE_NUMBER-issue-title-in-kebab-case.md
+YYYY-MM-DD-issue-title-in-kebab-case.md
 ```
 
 Example:
 ```
-2025-02-26-037-transition-to-merchant-of-record-payment-model.md
+2025-02-26-transition-to-merchant-of-record-payment-model.md
 ```
 
 This naming convention ensures:
 - Chronological sorting by date
-- Clear issue number reference
 - Descriptive title for easy identification
 - Consistent formatting with kebab-case
 

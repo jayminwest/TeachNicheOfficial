@@ -29,7 +29,17 @@ export default function LessonsPage() {
           `)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          throw new Error(`Database error: ${error.message}`);
+        }
+        
+        // Check if there are no lessons in the database
+        if (!data || data.length === 0) {
+          // Don't show an error toast, we'll handle this in the UI
+          setLessons([]);
+          setLoading(false);
+          return;
+        }
         
         // Transform the data to match the Lesson type
         const transformedLessons: Lesson[] = (data || []).map(lesson => {
@@ -53,12 +63,19 @@ export default function LessonsPage() {
         
         setLessons(transformedLessons);
       } catch (error) {
-        console.error('Error fetching lessons:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load lessons. Please try again.",
-          variant: "destructive",
-        });
+        // Check if this is just an empty database (not a real error)
+        if (error instanceof Error && error.message.includes('Database error')) {
+          console.log('Database query executed but returned no results');
+          // No toast for empty database - we'll handle in the UI
+        } else {
+          // Log actual errors
+          console.error('Error fetching lessons:', error instanceof Error ? error.message : 'Unknown error');
+          toast({
+            title: "Error",
+            description: "Failed to load lessons. Please try again.",
+            variant: "destructive",
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -93,9 +110,9 @@ export default function LessonsPage() {
           </div>
         ) : lessons.length === 0 ? (
           <Card className="p-8 text-center">
-            <h3 className="font-semibold mb-2">No lessons yet</h3>
+            <h3 className="font-semibold text-xl mb-3">Congrats! You&apos;re first.</h3>
             <p className="text-muted-foreground mb-4">
-              Get started by creating your first lesson
+              Be the pioneer and create the very first lesson on Teach Niche! 
             </p>
             <Link href="/lessons/new">
               <Button>

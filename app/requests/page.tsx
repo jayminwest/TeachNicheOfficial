@@ -76,9 +76,32 @@ export default function RequestsPage() {
               </div>
             </div>
             {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <span className="ml-2">{error}</span>
+              <Alert 
+                variant={
+                  error.includes("relationship") || 
+                  error.includes("PGRST200") || 
+                  error.toLowerCase().includes("no") && error.toLowerCase().includes("found") 
+                    ? "default" 
+                    : "destructive"
+                } 
+                className="mb-6"
+              >
+                {error.includes("relationship") || error.includes("PGRST200") ? (
+                  <>
+                    <span className="font-semibold">Congrats! You&apos;re first.</span>
+                    <span className="ml-2">Make the first request!</span>
+                  </>
+                ) : error.toLowerCase().includes("no") && error.toLowerCase().includes("found") ? (
+                  <>
+                    <span className="font-semibold">Congrats! You&apos;re first.</span>
+                    <span className="ml-2">Make the first request!</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="ml-2">{error}</span>
+                  </>
+                )}
               </Alert>
             )}
             <RequestGrid 

@@ -1,5 +1,5 @@
 import { StorageService } from './interface';
-import { storage } from '@/app/lib/firebase';
+import { storage } from '../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export class FirebaseStorage implements StorageService {

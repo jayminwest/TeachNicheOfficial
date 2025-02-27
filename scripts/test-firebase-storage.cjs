@@ -1,19 +1,18 @@
 /**
- * Firebase Storage Test Script
+ * Firebase Storage Test Script (CommonJS version)
  * 
  * This script tests the Firebase Storage implementation by:
  * 1. Uploading a test file
  * 2. Getting the URL of the uploaded file
  * 3. Deleting the test file
  * 
- * Usage: npx ts-node scripts/test-firebase-storage.ts
+ * Usage: node scripts/test-firebase-storage.cjs
  */
 
-// Use require instead of import to avoid ESM issues
 const { FirebaseStorage } = require('../app/services/storage/firebase-storage');
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 async function testFirebaseStorage() {
   console.log('Testing Firebase Storage implementation...');

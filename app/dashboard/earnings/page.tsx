@@ -48,7 +48,7 @@ export default function EarningsPage() {
                 <TabsContent value="earnings" className="space-y-4 pt-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle data-testid="earnings-summary">Earnings Summary</CardTitle>
+                      <CardTitle>Earnings Summary</CardTitle>
                       <CardDescription>Overview of your lesson sales earnings</CardDescription>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">85% Revenue Share</span>

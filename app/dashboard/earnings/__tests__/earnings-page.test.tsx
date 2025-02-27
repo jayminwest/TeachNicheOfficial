@@ -68,7 +68,7 @@ describe('EarningsPage', () => {
   it('renders the earnings summary section', () => {
     render(<EarningsPage />);
     
-    expect(screen.getByTestId('earnings-summary')).toBeInTheDocument();
+    expect(screen.getByText('Earnings Summary')).toBeInTheDocument();
     expect(screen.getByTestId('total-earnings')).toBeInTheDocument();
     expect(screen.getByText('85% Revenue Share')).toBeInTheDocument();
   });

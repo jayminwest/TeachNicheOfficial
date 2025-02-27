@@ -144,7 +144,7 @@ We will migrate to a GCP-based infrastructure:
   - ⚠️ Resolution steps:
     1. Go to Firebase Console: https://console.firebase.google.com/project/teachnicheofficial/storage
     2. Verify bucket was created successfully
-    3. Check bucket name matches "teachnicheofficial.appspot.com"
+    3. Check bucket name matches "teachnicheofficial.firebasestorage.app"
     4. Ensure Firebase project has billing enabled
     5. Run the new verification script to diagnose specific issues
     6. If needed, delete and recreate the bucket
@@ -186,7 +186,7 @@ We will migrate to a GCP-based infrastructure:
 - ✅ Create test script for Firebase Storage
 - ✅ Fix Firebase Storage bucket configuration issue
   - ✅ Created default storage bucket in Firebase Console
-  - ✅ Verified bucket name matches configuration (teachnicheofficial.appspot.com)
+  - ✅ Verified bucket name matches configuration (teachnicheofficial.firebasestorage.app)
   - ✅ Created firebase.json for storage rules configuration
   - ✅ Updated setup script to handle missing configuration
 - ⏳ Optimize for performance and cost

@@ -124,8 +124,14 @@ if [ "$RUN_TEST" = "y" ]; then
         if ! grep -q "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET" .env; then
             echo -e "${YELLOW}Firebase Storage Bucket not found in .env file.${NC}"
             echo "Adding Firebase Storage Bucket to .env file..."
-            echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.appspot.com" >> .env
+            echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.firebasestorage.app" >> .env
             echo -e "${GREEN}Added NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET to .env file.${NC}"
+        else
+            # Update existing storage bucket value if it's using the old format
+            if grep -q "${PROJECT_ID}.appspot.com" .env; then
+                sed -i '' "s/${PROJECT_ID}.appspot.com/${PROJECT_ID}.firebasestorage.app/g" .env
+                echo -e "${GREEN}Updated NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in .env file.${NC}"
+            fi
         fi
         
         # Ensure other Firebase variables are set

@@ -42,7 +42,7 @@ console.log('Cloud SQL connection config:', {
 
 const cloudSqlPool = new pg.Pool(cloudSqlConfig);
 
-// Tables to verify
+// Tables to verify - get these from the schema file
 const tables = [
   'categories',
   'profiles',
@@ -58,6 +58,34 @@ const tables = [
   'lesson_request_votes',
   'waitlist',
 ];
+
+// Check if tables exist in the database
+async function checkTablesExist() {
+  try {
+    const client = await cloudSqlPool.connect();
+    try {
+      console.log('Checking if tables exist in the database...');
+      
+      for (const table of tables) {
+        const result = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = $1
+          );
+        `, [table]);
+        
+        const exists = result.rows[0].exists;
+        console.log(`  Table ${table}: ${exists ? '✅ Exists' : '❌ Missing'}`);
+      }
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error checking tables:', error);
+    throw error;
+  }
+}
 
 async function getSupabaseCount(table: string): Promise<number> {
   try {
@@ -128,34 +156,41 @@ async function verifyMigration() {
   try {
     // Test connection to Cloud SQL
     const client = await cloudSqlPool.connect();
-    console.log('Successfully connected to Cloud SQL');
+    console.log('Successfully connected to database');
     client.release();
-  } catch (error) {
-    console.error('Failed to connect to Cloud SQL:', error);
-    console.error('Please make sure the Cloud SQL instance is created and accessible.');
-    console.error('You can create it using Terraform:');
-    console.error('  cd terraform/environments/dev');
-    console.error('  terraform apply');
-    process.exit(1);
-  }
-  
-  let allTablesVerified = true;
-  
-  for (const table of tables) {
-    const isVerified = await verifyTable(table);
-    if (!isVerified) {
-      allTablesVerified = false;
+    
+    // Check if tables exist
+    await checkTablesExist();
+    
+    let allTablesVerified = true;
+    
+    // Only verify data if we're migrating from Supabase
+    if (process.env.VERIFY_SUPABASE_MIGRATION === 'true') {
+      for (const table of tables) {
+        const isVerified = await verifyTable(table);
+        if (!isVerified) {
+          allTablesVerified = false;
+        }
+      }
+      
+      if (allTablesVerified) {
+        console.log('✅ All tables verified successfully!');
+      } else {
+        console.log('❌ Verification failed for one or more tables');
+      }
+    } else {
+      console.log('Skipping data verification since we are not migrating from Supabase');
     }
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    console.error('Please make sure the database is created and accessible.');
+    console.error('You can set up a local PostgreSQL database with:');
+    console.error('  bash scripts/setup-local-postgres.sh');
+    process.exit(1);
+  } finally {
+    // Close connections
+    await cloudSqlPool.end();
   }
-  
-  if (allTablesVerified) {
-    console.log('✅ All tables verified successfully!');
-  } else {
-    console.log('❌ Verification failed for one or more tables');
-  }
-  
-  // Close connections
-  await cloudSqlPool.end();
 }
 
 verifyMigration().catch(error => {

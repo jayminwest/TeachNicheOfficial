@@ -437,39 +437,7 @@ async function createWaitlistTable() {
   console.log('Created waitlist table');
 }
 
-// Migrate data for a specific table
-async function migrateTable(tableName: string) {
-  console.log(`Migrating data for table: ${tableName}`);
-  
-  try {
-    // Get data from Supabase
-    const { data, error } = await supabase.from(tableName).select('*');
-    
-    if (error) {
-      throw error;
-    }
-    
-    if (!data || data.length === 0) {
-      console.log(`No data found for table: ${tableName}`);
-      return;
-    }
-    
-    console.log(`Found ${data.length} rows to migrate for table: ${tableName}`);
-    
-    // Insert data into Cloud SQL in batches
-    const batchSize = 100;
-    for (let i = 0; i < data.length; i += batchSize) {
-      const batch = data.slice(i, i + batchSize);
-      await insertBatch(tableName, batch);
-      console.log(`Migrated batch ${i / batchSize + 1} for table: ${tableName}`);
-    }
-    
-    console.log(`Successfully migrated data for table: ${tableName}`);
-  } catch (error) {
-    console.error(`Error migrating data for table: ${tableName}:`, error);
-    throw error;
-  }
-}
+// This function is defined again below - removing this duplicate
 
 // Insert a batch of records
 async function insertBatch(tableName: string, records: any[]) {

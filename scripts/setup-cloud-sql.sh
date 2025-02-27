@@ -24,6 +24,10 @@ if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" &> /dev/n
     gcloud auth login
 fi
 
+# Set up application default credentials for Terraform
+echo "Setting up application default credentials for Terraform..."
+gcloud auth application-default login
+
 # Set the project
 gcloud config set project teachnicheofficial
 

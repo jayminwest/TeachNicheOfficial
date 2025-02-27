@@ -83,8 +83,8 @@ testFirebaseStorage().catch(err => {
   console.error('Firebase Storage test failed:', err);
   process.exit(1);
 });
-// Firebase app should be initialized only once
-// Import already exists elsewhere in the file
+import { initializeApp } from 'firebase/app';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';

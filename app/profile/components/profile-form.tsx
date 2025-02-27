@@ -38,8 +38,16 @@ export function ProfileForm() {
   const { user } = useAuth()
   const router = useRouter()
 
+  // Define a type that covers all possible locations of the is_creator flag
+  type UserWithCreatorFlag = {
+    user_metadata?: { is_creator?: boolean };
+    metadata?: { is_creator?: boolean };
+    app_metadata?: { is_creator?: boolean };
+    is_creator?: boolean;
+  };
+
   // Function to check if user is a creator
-  function isCreator(user: any) {
+  function isCreator(user: UserWithCreatorFlag | null) {
     if (!user) return false;
     
     // Check various possible locations for the is_creator flag

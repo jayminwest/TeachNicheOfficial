@@ -1,16 +1,14 @@
 export interface EmailOptions {
-  to: string | string[];
+  to: string;
   subject: string;
-  body: string;
-  isHtml?: boolean;
-  replyTo?: string;
-  attachments?: Array<{
-    filename: string;
-    content: Buffer | string;
-    contentType?: string;
-  }>;
+  text?: string;
+  html?: string;
+  from?: string;
 }
 
 export interface EmailService {
   sendEmail(options: EmailOptions): Promise<boolean>;
+  sendWelcomeEmail(to: string, name: string): Promise<boolean>;
+  sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean>;
+  sendPurchaseConfirmation(to: string, lessonTitle: string, amount: number): Promise<boolean>;
 }

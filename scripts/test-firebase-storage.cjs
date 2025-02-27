@@ -9,7 +9,55 @@
  * Usage: node scripts/test-firebase-storage.cjs
  */
 
-const { FirebaseStorage } = require('../app/services/storage/firebase-storage');
+// Create a CommonJS compatible version of the Firebase Storage class
+const { storage } = require('../app/lib/firebase');
+const { ref, uploadBytes, getDownloadURL, deleteObject } = require('firebase/storage');
+
+class FirebaseStorage {
+  async uploadFile(path, file) {
+    try {
+      // Create a reference to the file location in Firebase Storage
+      const storageRef = ref(storage, path);
+      
+      // Convert Buffer to Blob if needed
+      let fileData;
+      if (Buffer.isBuffer(file)) {
+        fileData = new Blob([file]);
+      } else {
+        fileData = file;
+      }
+      
+      // Upload the file
+      const snapshot = await uploadBytes(storageRef, fileData);
+      
+      // Get the download URL
+      return getDownloadURL(snapshot.ref);
+    } catch (error) {
+      console.error('Error uploading file to Firebase Storage:', error);
+      throw error;
+    }
+  }
+  
+  async getFileUrl(path) {
+    try {
+      const storageRef = ref(storage, path);
+      return await getDownloadURL(storageRef);
+    } catch (error) {
+      console.error('Error getting file URL from Firebase Storage:', error);
+      throw error;
+    }
+  }
+  
+  async deleteFile(path) {
+    try {
+      const storageRef = ref(storage, path);
+      await deleteObject(storageRef);
+    } catch (error) {
+      console.error('Error deleting file from Firebase Storage:', error);
+      throw error;
+    }
+  }
+}
 const fs = require('fs');
 const path = require('path');
 const os = require('os');

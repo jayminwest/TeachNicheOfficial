@@ -38,28 +38,28 @@ export function ProfileForm() {
   const { user } = useAuth()
   const router = useRouter()
 
-  // Define a type that covers all possible locations of the is_creator flag
-  type UserWithCreatorFlag = {
-    user_metadata?: { is_creator?: boolean };
-    metadata?: { is_creator?: boolean };
-    app_metadata?: { is_creator?: boolean };
-    is_creator?: boolean;
-  };
-
-  // Function to check if user is a creator
-  function isCreator(user: UserWithCreatorFlag | null) {
+  // Function to check if user is a creator - using type assertion to handle the type mismatch
+  function isCreator(user: unknown) {
     if (!user) return false;
+    
+    // Cast to a type that has the properties we want to check
+    const userWithMetadata = user as {
+      user_metadata?: { is_creator?: boolean };
+      metadata?: { is_creator?: boolean };
+      app_metadata?: Record<string, unknown>;
+      is_creator?: boolean;
+    };
     
     // Check various possible locations for the is_creator flag
     return (
       // Check user_metadata
-      user?.user_metadata?.is_creator === true ||
+      userWithMetadata?.user_metadata?.is_creator === true ||
       // Check metadata
-      user?.metadata?.is_creator === true || 
-      // Check app_metadata
-      user?.app_metadata?.is_creator === true || 
+      userWithMetadata?.metadata?.is_creator === true || 
+      // Check app_metadata - using type assertion for this specific check
+      (userWithMetadata?.app_metadata as any)?.is_creator === true || 
       // Check direct property
-      user?.is_creator === true
+      userWithMetadata?.is_creator === true
     );
   }
 

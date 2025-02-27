@@ -1,20 +1,21 @@
-// Create a local mock email service for testing
-// Import dotenv only once
-// Import dotenv only once
+import dotenv from 'dotenv';
+import { GoogleWorkspaceEmail } from '../app/services/email/google-workspace';
+import { EmailOptions } from '../app/services/email/interface';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
+dotenv.config();
 
-// Mock email service for testing
+// Mock email service for testing when Google credentials aren't available
 class MockEmailService {
-  async sendEmail(options: { to: string, subject: string, text: string, html: string }) {
-    console.log(`Sending email to ${options.to}`);
-    console.log(`Subject: ${options.subject}`);
-    console.log(`Text: ${options.text.substring(0, 50)}...`);
+  async sendEmail(options: EmailOptions): Promise<boolean> {
+    console.log(`[MOCK] Sending email to ${options.to}`);
+    console.log(`[MOCK] Subject: ${options.subject}`);
+    console.log(`[MOCK] Text: ${options.text?.substring(0, 50)}...`);
     return true;
   }
   
-  async sendWelcomeEmail(to: string, name: string) {
+  async sendWelcomeEmail(to: string, name: string): Promise<boolean> {
     return this.sendEmail({
       to,
       subject: 'Welcome to Teach Niche',
@@ -23,7 +24,7 @@ class MockEmailService {
     });
   }
   
-  async sendPasswordResetEmail(to: string, resetLink: string) {
+  async sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean> {
     return this.sendEmail({
       to,
       subject: 'Reset Your Password',
@@ -32,7 +33,7 @@ class MockEmailService {
     });
   }
   
-  async sendPurchaseConfirmation(to: string, lessonTitle: string, amount: number) {
+  async sendPurchaseConfirmation(to: string, lessonTitle: string, amount: number): Promise<boolean> {
     return this.sendEmail({
       to,
       subject: 'Purchase Confirmation',
@@ -43,25 +44,35 @@ class MockEmailService {
 }
 
 function createEmailService() {
-  return new MockEmailService();
+  // Check if we have the required Google credentials
+  const hasGoogleCredentials = 
+    process.env.GOOGLE_CLIENT_ID && 
+    process.env.GOOGLE_CLIENT_SECRET && 
+    process.env.GOOGLE_REDIRECT_URI && 
+    process.env.GOOGLE_REFRESH_TOKEN;
+  
+  if (hasGoogleCredentials) {
+    console.log('Using Google Workspace Email service');
+    return new GoogleWorkspaceEmail();
+  } else {
+    console.log('Using Mock Email service (Google credentials not found)');
+    return new MockEmailService();
+  }
 }
 
 async function testEmailService() {
   console.log('Testing email service...');
   
-  // Check for required environment variables in a real implementation
-  console.log('Note: Using mock email service for testing');
-  
   const emailService = createEmailService();
   
   // Test sending a welcome email
-  const testEmail = process.env.TEST_EMAIL || 'your-test-email@example.com';
+  const testEmail = process.env.TEST_EMAIL || process.argv[2] || 'your-test-email@example.com';
   
   if (testEmail === 'your-test-email@example.com') {
-    console.warn('Using default test email. Set TEST_EMAIL in your .env.local for a real test.');
+    console.warn('Using default test email. Set TEST_EMAIL in your .env.local or provide as command line argument for a real test.');
   }
   
-  console.log(`Sending welcome email to ${testEmail}...`);
+  console.log(`\nSending welcome email to ${testEmail}...`);
   
   try {
     const result = await emailService.sendWelcomeEmail(testEmail, 'Test User');
@@ -74,7 +85,7 @@ async function testEmailService() {
     }
     
     // Test sending a password reset email
-    console.log(`Sending password reset email to ${testEmail}...`);
+    console.log(`\nSending password reset email to ${testEmail}...`);
     const resetLink = 'https://teachniche.com/reset-password?token=test-token';
     const resetResult = await emailService.sendPasswordResetEmail(testEmail, resetLink);
     
@@ -86,8 +97,8 @@ async function testEmailService() {
     }
     
     // Test sending a purchase confirmation email
-    console.log(`Sending purchase confirmation email to ${testEmail}...`);
-    const purchaseResult = await emailService.sendPurchaseConfirmation(testEmail, 'Test Lesson', 19.99);
+    console.log(`\nSending purchase confirmation email to ${testEmail}...`);
+    const purchaseResult = await emailService.sendPurchaseConfirmation(testEmail, 'Introduction to Kendama', 29.99);
     
     if (purchaseResult) {
       console.log(`✅ Purchase confirmation email sent successfully to ${testEmail}`);
@@ -96,10 +107,10 @@ async function testEmailService() {
       process.exit(1);
     }
     
-    console.log('✅ Email service tests completed successfully');
+    console.log('\n✅ Email service tests completed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Email service test failed with error:', error);
+    console.error('\n❌ Email service test failed with error:', error);
     process.exit(1);
   }
 }

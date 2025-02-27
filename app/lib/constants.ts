@@ -53,10 +53,13 @@ export function calculateFees(lessonPrice: number) {
  * @returns Formatted price string
  */
 export function formatPrice(amount: number, currency = PAYMENT_CONSTANTS.CURRENCY) {
+  // JPY typically doesn't use decimal places
+  const fractionDigits = currency === 'JPY' ? 0 : 2;
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
   }).format(amount);
 }

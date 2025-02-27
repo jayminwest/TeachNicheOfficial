@@ -125,7 +125,14 @@ We will migrate to a GCP-based infrastructure:
   - ✅ Created firebase-auth.ts to replace supabase-auth.ts
   - ✅ Updated auth-provider.ts and index.ts to reference firebase-auth.ts
   - ✅ Fixed TypeScript and ESLint errors
-  - ⏳ Need to update environment variables in .env files
+  - ✅ Updated environment variables in .env files
+
+### Next Steps
+- ⏳ Create Cloud SQL instance and migrate schema from Supabase
+- ⏳ Set up Cloud Storage buckets and migrate files
+- ⏳ Implement Google Workspace email integration
+- ⏳ Test the abstraction layers with GCP backends
+- ⏳ Update remaining components that might still use Supabase directly
 
 ### Next Steps
 - Remove all Supabase dependencies and references

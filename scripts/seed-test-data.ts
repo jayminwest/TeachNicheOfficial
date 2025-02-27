@@ -483,15 +483,49 @@ async function seedTestData() {
       }
     }
     
+    // Check if categories table has a unique constraint on name
+    const categoryNameConstraintExists = await client.query(`
+      SELECT COUNT(*) > 0 AS exists
+      FROM pg_constraint
+      WHERE conrelid = 'categories'::regclass
+      AND contype = 'u'
+      AND conkey @> ARRAY[
+        (SELECT attnum FROM pg_attribute 
+         WHERE attrelid = 'categories'::regclass 
+         AND attname = 'name')
+      ]::smallint[];
+    `);
+    
+    if (!categoryNameConstraintExists.rows[0].exists) {
+      console.log('Adding unique constraint to categories name column...');
+      try {
+        await client.query(`
+          ALTER TABLE categories 
+          ADD CONSTRAINT categories_name_key UNIQUE (name);
+        `);
+      } catch (error) {
+        console.log('Could not add unique constraint to categories name column. Will use alternative approach.');
+      }
+    }
+    
     // Insert test categories
     console.log('Inserting test categories...');
     const categories = ['Kendama', 'Juggling', 'Yo-yo', 'Skill Toys'];
     for (const category of categories) {
-      await client.query(`
-        INSERT INTO categories (id, name, created_at, updated_at)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (name) DO NOTHING
-      `, [uuidv4(), category, new Date(), new Date()]);
+      try {
+        // First try to insert without ON CONFLICT
+        await client.query(`
+          INSERT INTO categories (id, name, created_at, updated_at)
+          VALUES ($1, $2, $3, $4)
+        `, [uuidv4(), category, new Date(), new Date()]);
+      } catch (error) {
+        // If error is duplicate key, that's fine - category already exists
+        if (error.code === '23505') { // duplicate key error
+          console.log(`Category '${category}' already exists, skipping.`);
+        } else {
+          console.error(`Error inserting category '${category}':`, error);
+        }
+      }
     }
     
     // Insert test lessons

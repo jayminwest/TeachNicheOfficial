@@ -130,11 +130,13 @@ describe('VideoPlayer', () => {
         body: JSON.stringify({ playbackId: 'mock-playback-id' })
       });
       
+      // Use a more robust waitFor that ensures the token is actually set
       await waitFor(() => {
         const tokensElement = screen.getByTestId('tokens');
         const tokens = JSON.parse(tokensElement.textContent || '{}');
+        expect(tokens).toHaveProperty('playback');
         expect(tokens.playback).toBe('mock-jwt-token');
-      });
+      }, { timeout: 3000 });
     });
 
     it('does not fetch JWT token for free content', () => {

@@ -3,7 +3,8 @@ import { loginAsUser } from '../utils/auth-helpers';
 import { setupMocks } from '../utils/test-setup';
 
 test.describe('Earnings Dashboard', () => {
-  test('displays earnings information for creators', async ({ page }) => {
+  // Force the test to run, don't skip
+  test('displays earnings information for creators', { tag: '@earnings' }, async ({ page }) => {
     // Set up mocks first
     await setupMocks(page);
     
@@ -63,7 +64,8 @@ test.describe('Earnings Dashboard', () => {
     await page.screenshot({ path: 'earnings-dashboard.png' });
   });
 
-  test('bank account setup form works correctly', async ({ page }) => {
+  // Force the test to run, don't skip
+  test('bank account setup form works correctly', { tag: '@earnings' }, async ({ page }) => {
     // Set up mocks first
     await setupMocks(page);
     

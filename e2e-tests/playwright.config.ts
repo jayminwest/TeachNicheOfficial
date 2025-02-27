@@ -67,6 +67,8 @@ const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   // Ensure all tests run, including those that might be skipped
   grep: /.*/,
+  // Don't skip any tests
+  grepInvert: null,
   projects: [
     {
       name: 'Chrome',

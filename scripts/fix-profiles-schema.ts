@@ -1,7 +1,10 @@
-import { Pool } from 'pg';
+import pkg from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Extract Pool from pg package (CommonJS module)
+const { Pool } = pkg;
 
 // Load environment variables
 dotenv.config();

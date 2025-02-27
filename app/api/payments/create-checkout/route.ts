@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
+import { calculateFees } from '@/app/lib/constants';
 import Stripe from 'stripe';
 import { z } from 'zod';
 

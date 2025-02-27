@@ -48,8 +48,9 @@ We will migrate to a GCP-based infrastructure:
 - [x] Create GCP project and configure initial IAM permissions (Project: teachnicheofficial)
 - [x] Install necessary dependencies (Google Cloud libraries, Terraform, Google Cloud SDK)
 - [x] Set up authentication with Google account
+- [x] Create service abstraction layers for database, auth, storage, and email
 - [ ] Set up billing alerts and monitoring
-- [ ] Define infrastructure as code with Terraform
+- [x] Define initial infrastructure as code with Terraform
 - [ ] Create development environment in GCP
 
 ### Phase 2: Core Services Migration
@@ -76,12 +77,20 @@ We will migrate to a GCP-based infrastructure:
 - Created dedicated branch `feature/gcp-migration` for the migration work
 - Installed required dependencies:
   ```
-  npm install @google-cloud/storage firebase firebase-admin googleapis google-auth-library
+  npm install @google-cloud/storage firebase firebase-admin googleapis google-auth-library pg @types/pg
   brew install terraform
   brew install --cask google-cloud-sdk
   ```
 - Initialized Google Cloud SDK with `gcloud init`
 - Selected project "teachnicheofficial" as the working project
+- Created service abstraction layers for database, authentication, storage, and email
+- Created initial Terraform configuration files for infrastructure
+
+### Challenges Encountered
+- Permission issues when trying to add Firebase to the GCP project
+  - Error: "The caller does not have permission"
+  - Need to grant additional IAM permissions to the account
+- Billing budget creation requires proper formatting of the command
 
 ### Database Migration
 - Export schema from Supabase

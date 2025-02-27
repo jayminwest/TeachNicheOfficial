@@ -1,5 +1,7 @@
 # Fix: Lesson Card Formatting and Price Display Issues
 
+## Issue #44
+
 ## Issue Description
 
 The lesson cards throughout the application are displaying formatting issues, particularly with price displays. This affects multiple views including the homepage, lesson listings, and search results.

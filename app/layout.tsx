@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Footer } from "@/app/components/ui/footer";
 import { Header } from "@/app/components/ui/header";
 import { Providers } from "@/app/components/providers";
+import { AuthProvider } from "@/app/services/auth/AuthContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,10 +42,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <main className="flex-1">
-            {children}
-          </main>
+          <AuthProvider>
+            <Header />
+            <main className="flex-1">
+              {children}
+            </main>
           <Footer 
             logo={<Image src="/favicon.png" alt="Teach Niche Logo" width={24} height={24} />}
             brandName="Teach Niche"
@@ -82,6 +84,7 @@ export default function RootLayout({
               license: "Released under the MIT License"
             }}
           />
+          </AuthProvider>
         </Providers>
       </body>
     </html>

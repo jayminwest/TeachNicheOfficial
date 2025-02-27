@@ -24,7 +24,7 @@ export class FirebaseAuth implements AuthService {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       // Update profile with name
-      // await updateProfile(userCredential.user, { displayName: name });
+      await updateProfile(userCredential.user, { displayName: name });
       return this.transformUser(userCredential.user);
     } catch (error) {
       console.error('Error signing up:', error);

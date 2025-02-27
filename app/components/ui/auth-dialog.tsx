@@ -15,6 +15,29 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: AuthDialogProps) {
   const [view, setView] = useState<'sign-in' | 'sign-up'>(defaultView)
 
+  // Add these handlers to pass to the sign-in and sign-up components
+  const handleSignIn = async (email: string, password: string) => {
+    try {
+      await authService.signIn(email, password);
+      onOpenChange(false);
+      window.location.reload(); // Refresh to update UI with new auth state
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
+    }
+  };
+
+  const handleSignUp = async (email: string, password: string, name: string) => {
+    try {
+      await authService.signUp(email, password, name);
+      onOpenChange(false);
+      window.location.reload(); // Refresh to update UI with new auth state
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] p-0 bg-background" data-testid="auth-dialog" id="auth-dialog">

@@ -84,30 +84,9 @@ export function AuthProvider({
     };
     
     const cleanup = handleAuthChange();
-    } catch (error) {
-      console.error('Error setting up auth listener:', error)
-      setLoading(false)
-    }
     
-    // Listen for auth changes in other tabs
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'auth_state_change') {
-        // Refresh auth state when another tab changes it
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          setUser(session?.user ?? null);
-        });
-      }
-    };
-    
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handleStorageChange);
-    }
-
     return () => {
-      subscription.unsubscribe();
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('storage', handleStorageChange);
-      }
+      cleanup();
     }
   }, [])
 

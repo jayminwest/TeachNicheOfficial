@@ -139,7 +139,10 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
           <span>{formatPrice(totalBuyerCost)}</span>
         </div>
         <div className="mt-2 text-xs text-muted-foreground">
-          <span>{PAYMENT_CONSTANTS.CREATOR_SHARE_PERCENTAGE * 100}% of the lesson price goes directly to the creator.</span>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{formatPrice(lessonPrice * PAYMENT_CONSTANTS.CREATOR_SHARE_PERCENTAGE)}</span>
+            <span>{PAYMENT_CONSTANTS.CREATOR_SHARE_PERCENTAGE * 100}% of the lesson price goes directly to the creator.</span>
+          </div>
         </div>
       </div>
       

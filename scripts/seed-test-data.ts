@@ -568,45 +568,107 @@ async function seedTestData() {
       );
     `);
     
-    if (creatorIdColumnExists.rows[0].exists) {
-      console.log('Found creator_id column in purchases table, including it in insert...');
-      await client.query(`
-        INSERT INTO purchases (
-          id, user_id, lesson_id, creator_id, amount, status,
-          created_at, updated_at, stripe_session_id
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT (id) DO NOTHING
-      `, [
-        uuidv4(),
-        testUsers[0].id,
-        lessonId,
-        creatorId,  // Use the creator ID from the lesson
-        1999, // $19.99
-        'completed',
-        new Date(),
-        new Date(),
-        'stripe_session_123'
-      ]);
+    // Check if purchases table has a platform_fee column
+    const platformFeeColumnExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'purchases' 
+        AND column_name = 'platform_fee'
+      );
+    `);
+    
+    if (platformFeeColumnExists.rows[0].exists) {
+      console.log('Found platform_fee column in purchases table, including it in insert...');
+      
+      // Calculate platform fee (15% of amount)
+      const amount = 1999; // $19.99
+      const platformFee = Math.round(amount * 0.15); // 15% platform fee
+      
+      if (creatorIdColumnExists.rows[0].exists) {
+        console.log('Found creator_id column in purchases table, including it in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, creator_id, amount, status,
+            created_at, updated_at, stripe_session_id, platform_fee
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          creatorId,  // Use the creator ID from the lesson
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          platformFee
+        ]);
+      } else {
+        // If creator_id column doesn't exist, use the original query plus platform_fee
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, amount, status,
+            created_at, updated_at, stripe_session_id, platform_fee
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          amount,
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123',
+          platformFee
+        ]);
+      }
     } else {
-      // If creator_id column doesn't exist, use the original query
-      await client.query(`
-        INSERT INTO purchases (
-          id, user_id, lesson_id, amount, status,
-          created_at, updated_at, stripe_session_id
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        ON CONFLICT (id) DO NOTHING
-      `, [
-        uuidv4(),
-        testUsers[0].id,
-        lessonId,
-        1999, // $19.99
-        'completed',
-        new Date(),
-        new Date(),
-        'stripe_session_123'
-      ]);
+      // If platform_fee column doesn't exist, use the original queries
+      if (creatorIdColumnExists.rows[0].exists) {
+        console.log('Found creator_id column in purchases table, including it in insert...');
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, creator_id, amount, status,
+            created_at, updated_at, stripe_session_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          creatorId,  // Use the creator ID from the lesson
+          1999, // $19.99
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123'
+        ]);
+      } else {
+        // If creator_id column doesn't exist, use the original query
+        await client.query(`
+          INSERT INTO purchases (
+            id, user_id, lesson_id, amount, status,
+            created_at, updated_at, stripe_session_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          ON CONFLICT (id) DO NOTHING
+        `, [
+          uuidv4(),
+          testUsers[0].id,
+          lessonId,
+          1999, // $19.99
+          'completed',
+          new Date(),
+          new Date(),
+          'stripe_session_123'
+        ]);
+      }
     }
     
     // Commit transaction

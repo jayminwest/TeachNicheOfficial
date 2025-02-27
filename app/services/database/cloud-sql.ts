@@ -1,4 +1,6 @@
-import { Pool, PoolClient } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
+import type { PoolClient } from 'pg';
 import { DatabaseService } from './interface';
 
 export class CloudSqlDatabase implements DatabaseService {

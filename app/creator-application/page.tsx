@@ -7,7 +7,7 @@ import { useState } from "react";
 import { redirect } from "next/navigation";
 
 export default function CreatorApplicationPage() {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   
   // Redirect if not authenticated

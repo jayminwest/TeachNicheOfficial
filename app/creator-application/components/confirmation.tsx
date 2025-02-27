@@ -12,7 +12,7 @@ export function Confirmation() {
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Application Submitted!</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Thank you for applying to become a creator on Teach Niche. We've received your application and will review it shortly.
+          Thank you for applying to become a creator on Teach Niche. We&apos;ve received your application and will review it shortly.
         </p>
       </div>
       
@@ -21,8 +21,8 @@ export function Confirmation() {
           <h3 className="font-medium mb-2">What happens next?</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
             <li>Our team will review your application (typically within 3-5 business days)</li>
-            <li>You'll receive an email notification about your application status</li>
-            <li>If approved, you'll gain access to creator tools and can start publishing lessons</li>
+            <li>You&apos;ll receive an email notification about your application status</li>
+            <li>If approved, you&apos;ll gain access to creator tools and can start publishing lessons</li>
           </ol>
         </div>
       </div>

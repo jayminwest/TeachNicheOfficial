@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import * as colors from 'colors';
+import fetch from 'node-fetch';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -190,6 +191,93 @@ function validateStripeConfig() {
   return isValid;
 }
 
+// Verify Firebase configuration
+async function verifyFirebaseConfiguration(environment: Environment) {
+  console.log(`${colors.cyan}Verifying Firebase configuration for ${environment} environment...${colors.reset}`);
+  
+  // Get environment-specific Firebase configuration
+  let projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  let clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  
+  if (environment === 'production' && process.env.PROD_FIREBASE_PROJECT_ID) {
+    projectId = process.env.PROD_FIREBASE_PROJECT_ID;
+    clientEmail = process.env.PROD_FIREBASE_CLIENT_EMAIL || clientEmail;
+    privateKey = process.env.PROD_FIREBASE_PRIVATE_KEY || privateKey;
+  } else if (environment === 'test' && process.env.TEST_FIREBASE_PROJECT_ID) {
+    projectId = process.env.TEST_FIREBASE_PROJECT_ID;
+    clientEmail = process.env.TEST_FIREBASE_CLIENT_EMAIL || clientEmail;
+    privateKey = process.env.TEST_FIREBASE_PRIVATE_KEY || privateKey;
+  }
+  
+  // Check if required configuration is available
+  if (!projectId || !clientEmail || !privateKey) {
+    console.error(`${colors.red}Missing Firebase configuration for ${environment} environment${colors.reset}`);
+    console.log(`Required environment variables:
+      - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}FIREBASE_PROJECT_ID
+      - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}FIREBASE_CLIENT_EMAIL
+      - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}FIREBASE_PRIVATE_KEY
+    `);
+    return false;
+  }
+  
+  console.log(`${colors.green}Firebase configuration for ${environment} environment is valid${colors.reset}`);
+  return true;
+}
+
+// Verify Mux configuration
+async function verifyMuxConfiguration(environment: Environment) {
+  console.log(`${colors.cyan}Verifying Mux configuration for ${environment} environment...${colors.reset}`);
+  
+  // Get environment-specific Mux configuration
+  let tokenId = process.env.MUX_TOKEN_ID;
+  let tokenSecret = process.env.MUX_TOKEN_SECRET;
+  let webhookSecret = process.env.MUX_WEBHOOK_SECRET;
+  
+  if (environment === 'production' && process.env.PROD_MUX_TOKEN_ID) {
+    tokenId = process.env.PROD_MUX_TOKEN_ID;
+    tokenSecret = process.env.PROD_MUX_TOKEN_SECRET || tokenSecret;
+    webhookSecret = process.env.PROD_MUX_WEBHOOK_SECRET || webhookSecret;
+  } else if (environment === 'test' && process.env.TEST_MUX_TOKEN_ID) {
+    tokenId = process.env.TEST_MUX_TOKEN_ID;
+    tokenSecret = process.env.TEST_MUX_TOKEN_SECRET || tokenSecret;
+    webhookSecret = process.env.TEST_MUX_WEBHOOK_SECRET || webhookSecret;
+  }
+  
+  // Check if required configuration is available
+  if (!tokenId || !tokenSecret) {
+    console.error(`${colors.red}Missing Mux configuration for ${environment} environment${colors.reset}`);
+    console.log(`Required environment variables:
+      - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}MUX_TOKEN_ID
+      - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}MUX_TOKEN_SECRET
+      - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}MUX_WEBHOOK_SECRET (optional)
+    `);
+    return false;
+  }
+  
+  // Validate Mux credentials by making a test API call
+  try {
+    const auth = Buffer.from(`${tokenId}:${tokenSecret}`).toString('base64');
+    const response = await fetch('https://api.mux.com/video/v1/environments', {
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      console.log(`${colors.green}Mux API credentials for ${environment} environment are valid${colors.reset}`);
+      return true;
+    } else {
+      console.error(`${colors.red}Invalid Mux API credentials for ${environment} environment${colors.reset}`);
+      return false;
+    }
+  } catch (error) {
+    console.error(`${colors.red}Error validating Mux API credentials:${colors.reset}`, error);
+    return false;
+  }
+}
+
 // Verify database connection
 async function verifyDatabaseConnection(environment: Environment) {
   console.log(`${colors.cyan}Verifying database connection for ${environment} environment...${colors.reset}`);
@@ -222,6 +310,8 @@ async function main() {
   const args = process.argv.slice(2);
   let createEnv = false;
   let verifyConnection = false;
+  let verifyFirebase = false;
+  let verifyMux = false;
   let targetEnvironment: Environment | 'all' = 'all';
   
   for (const arg of args) {
@@ -229,6 +319,10 @@ async function main() {
       createEnv = true;
     } else if (arg === '--verify' || arg === '-v') {
       verifyConnection = true;
+    } else if (arg === '--verify-firebase' || arg === '-f') {
+      verifyFirebase = true;
+    } else if (arg === '--verify-mux' || arg === '-m') {
+      verifyMux = true;
     } else if (arg === '--dev') {
       targetEnvironment = 'development';
     } else if (arg === '--prod') {
@@ -240,21 +334,25 @@ async function main() {
 Usage: npm run setup-environment -- [options]
 
 Options:
-  --create-env, -e   Create environment-specific .env files
-  --verify, -v       Verify database connection
-  --dev              Target development environment only
-  --prod             Target production environment only
-  --test             Target test environment only
-  --help, -h         Show this help message
+  --create-env, -e       Create environment-specific .env files
+  --verify, -v           Verify database connection
+  --verify-firebase, -f  Verify Firebase configuration
+  --verify-mux, -m       Verify Mux configuration
+  --dev                  Target development environment only
+  --prod                 Target production environment only
+  --test                 Target test environment only
+  --help, -h             Show this help message
       `);
       process.exit(0);
     }
   }
   
   // Default behavior if no options specified
-  if (!createEnv && !verifyConnection) {
+  if (!createEnv && !verifyConnection && !verifyFirebase && !verifyMux) {
     createEnv = true;
     verifyConnection = true;
+    verifyFirebase = true;
+    verifyMux = true;
   }
   
   try {
@@ -277,6 +375,28 @@ Options:
         await verifyDatabaseConnection('test');
       } else {
         await verifyDatabaseConnection(targetEnvironment);
+      }
+    }
+    
+    // Verify Firebase configuration if requested
+    if (verifyFirebase) {
+      if (targetEnvironment === 'all') {
+        await verifyFirebaseConfiguration('development');
+        await verifyFirebaseConfiguration('production');
+        await verifyFirebaseConfiguration('test');
+      } else {
+        await verifyFirebaseConfiguration(targetEnvironment);
+      }
+    }
+    
+    // Verify Mux configuration if requested
+    if (verifyMux) {
+      if (targetEnvironment === 'all') {
+        await verifyMuxConfiguration('development');
+        await verifyMuxConfiguration('production');
+        await verifyMuxConfiguration('test');
+      } else {
+        await verifyMuxConfiguration(targetEnvironment);
       }
     }
     

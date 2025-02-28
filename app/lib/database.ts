@@ -88,6 +88,32 @@ export function getStorageConnection() {
   return storage;
 }
 
+/**
+ * Initializes the appropriate database for the current environment
+ * This function should be called at application startup
+ */
+export async function initializeDatabaseForEnvironment() {
+  const environment = getCurrentEnvironment();
+  console.log(`Initializing database for ${environment} environment`);
+  
+  // Initialize Firebase Admin
+  const { firestore } = initializeFirebaseAdmin();
+  
+  // Apply environment-specific configurations
+  if (environment === 'development') {
+    console.log('Setting up development-specific database configurations');
+    // Additional development-specific setup can go here
+  } else if (environment === 'production') {
+    console.log('Setting up production-specific database configurations');
+    // Additional production-specific setup can go here
+  } else if (environment === 'test') {
+    console.log('Setting up test-specific database configurations');
+    // Additional test-specific setup can go here
+  }
+  
+  return firestore;
+}
+
 // Export a default database instance for the current environment
 const db = getDatabaseConnection();
 export default db;

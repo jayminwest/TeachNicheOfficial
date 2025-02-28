@@ -3,6 +3,7 @@
  * 
  * This script generates realistic test data for the Teach Niche platform.
  * It supports different data volumes and ensures referential integrity.
+ * It can target different environments (development, test, production).
  */
 
 import { firestore } from '../app/lib/firebase';
@@ -11,6 +12,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as colors from 'colors';
+import Mux from '@mux/mux-node';
+import dotenv from 'dotenv';
 
 // Configuration
 interface GenerationConfig {
@@ -76,6 +79,9 @@ interface Lesson {
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
+  mux_asset_id?: string;
+  mux_playback_id?: string;
+  thumbnailUrl?: string;
 }
 
 interface Review {
@@ -164,12 +170,29 @@ async function generateCategories(count: number): Promise<Category[]> {
 async function generateLessons(
   instructors: User[], 
   categories: Category[], 
-  lessonsPerInstructor: number
+  lessonsPerInstructor: number,
+  useMux: boolean = false
 ): Promise<Lesson[]> {
   const totalLessons = instructors.length * lessonsPerInstructor;
   console.log(`${colors.cyan}Generating ${totalLessons} lessons...${colors.reset}`);
   
   const lessons: Lesson[] = [];
+  
+  // Initialize Mux if needed
+  let muxVideo: any = null;
+  if (useMux) {
+    try {
+      const { Video } = new Mux({
+        tokenId: process.env.MUX_TOKEN_ID || '',
+        tokenSecret: process.env.MUX_TOKEN_SECRET || ''
+      });
+      muxVideo = Video;
+      console.log(`${colors.green}Successfully initialized Mux Video API${colors.reset}`);
+    } catch (error) {
+      console.warn(`${colors.yellow}Failed to initialize Mux Video API, continuing without Mux integration${colors.reset}`);
+      console.error(error);
+    }
+  }
   
   for (const instructor of instructors) {
     for (let i = 0; i < lessonsPerInstructor; i++) {
@@ -186,8 +209,29 @@ async function generateLessons(
         content: faker.lorem.paragraphs(10),
         published,
         createdAt: faker.date.past({ years: 1 }),
-        updatedAt: faker.date.recent()
+        updatedAt: faker.date.recent(),
+        thumbnailUrl: faker.image.url({ width: 1280, height: 720 })
       };
+      
+      // Add Mux asset and playback IDs if Mux is available
+      if (muxVideo && published && Math.random() > 0.3) { // Only 70% of published lessons have video
+        try {
+          // Create a placeholder Mux asset (in a real scenario, you'd upload a video)
+          // For test data, we'll just create the asset without actual video content
+          const asset = await muxVideo.Assets.create({
+            input: [{ url: 'https://storage.googleapis.com/muxdemofiles/mux-video-intro.mp4' }],
+            playback_policy: ['public'],
+          });
+          
+          lesson.mux_asset_id = asset.id;
+          lesson.mux_playback_id = asset.playback_ids?.[0]?.id;
+          
+          console.log(`Created Mux asset for lesson: ${lesson.title}`);
+        } catch (error) {
+          console.warn(`${colors.yellow}Failed to create Mux asset for lesson: ${lesson.title}${colors.reset}`);
+          // Continue without Mux integration for this lesson
+        }
+      }
       
       lessons.push(lesson);
     }
@@ -473,11 +517,16 @@ function saveToJson(
 async function main() {
   console.log(`${colors.cyan}Test Data Generation Script${colors.reset}`);
   
+  // Load environment variables from the appropriate .env file
+  dotenv.config({ path: '.env.local' });
+  
   // Parse command line arguments
   const args = process.argv.slice(2);
   let datasetSize = 'small';
   let saveToDb = true;
   let saveToJsonFiles = true;
+  let useMux = false;
+  let targetEnvironment: 'development' | 'production' | 'test' = 'development';
   
   for (const arg of args) {
     if (arg === '--small' || arg === '-s') {
@@ -490,6 +539,14 @@ async function main() {
       saveToDb = false;
     } else if (arg === '--no-json') {
       saveToJsonFiles = false;
+    } else if (arg === '--use-mux' || arg === '-m') {
+      useMux = true;
+    } else if (arg === '--dev') {
+      targetEnvironment = 'development';
+    } else if (arg === '--prod') {
+      targetEnvironment = 'production';
+    } else if (arg === '--test') {
+      targetEnvironment = 'test';
     } else if (arg === '--help' || arg === '-h') {
       console.log(`
 Usage: npm run generate-test-data -- [options]
@@ -500,11 +557,23 @@ Options:
   --large, -l       Generate large dataset
   --no-db           Skip saving to database
   --no-json         Skip saving to JSON files
+  --use-mux, -m     Create real Mux video assets (requires valid Mux credentials)
+  --dev             Target development environment (default)
+  --prod            Target production environment
+  --test            Target test environment
   --help, -h        Show this help message
       `);
       process.exit(0);
     }
   }
+  
+  console.log(`Generating ${datasetSize} dataset for ${targetEnvironment} environment with configuration:`, config);
+
+  // Set the NODE_ENV to ensure the correct database is used
+  process.env.NODE_ENV = targetEnvironment;
+  
+  // Load environment-specific .env file
+  dotenv.config({ path: `.env.${targetEnvironment}` });
   
   // Select configuration based on dataset size
   let config: GenerationConfig;
@@ -526,7 +595,7 @@ Options:
     const users = await generateUsers(config.users);
     const instructors = users.filter(user => user.isInstructor);
     const categories = await generateCategories(config.categories);
-    const lessons = await generateLessons(instructors, categories, config.lessonsPerInstructor);
+    const lessons = await generateLessons(instructors, categories, config.lessonsPerInstructor, useMux);
     const reviews = await generateReviews(lessons, users, config.reviewsPerLesson);
     const payments = await generatePayments(lessons, users, config.paymentsPerUser);
     

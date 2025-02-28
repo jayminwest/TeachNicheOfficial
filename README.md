@@ -167,6 +167,65 @@ We follow strict development standards emphasizing:
 
 Refer to `ai_docs/DEVELOPER_GUIDELINES.md` for comprehensive standards.
 
+### Test Data Generation
+
+The project includes a comprehensive test data generation system to support development, testing, and demonstration environments.
+
+#### Generating Test Data
+
+To generate test data, use the following command:
+
+```bash
+# Generate a small dataset for development environment (default)
+npm run generate-test-data
+
+# Generate a medium dataset for test environment
+npm run generate-test-data -- --medium --test
+
+# Generate a large dataset for production environment
+npm run generate-test-data -- --large --prod
+
+# Generate data with Mux video assets (requires valid Mux credentials)
+npm run generate-test-data -- --use-mux
+
+# Generate data without saving to database (JSON files only)
+npm run generate-test-data -- --no-db
+
+# See all available options
+npm run generate-test-data -- --help
+```
+
+### Environment Configuration
+
+To set up environment-specific configurations, use:
+
+```bash
+# Create environment files and verify connections
+npm run setup-environment
+
+# Create environment files only
+npm run setup-environment -- --create-env
+
+# Verify database connections only
+npm run setup-environment -- --verify
+
+# Verify Firebase configuration only
+npm run setup-environment -- --verify-firebase
+
+# Verify Mux configuration
+npm run setup-environment -- --verify-mux
+
+# Target specific environment
+npm run setup-environment -- --dev
+npm run setup-environment -- --prod
+npm run setup-environment -- --test
+
+# See all available options
+npm run setup-environment -- --help
+```
+
+Each environment (development, test, production) has its own database instance and configuration to ensure proper isolation.
+
 ### Testing
 
 Run the full test suite:

@@ -4,6 +4,7 @@ import { getAuth, User } from 'firebase/auth'
 import { getApp } from 'firebase/app'
 import { firebaseClient } from '@/app/services/firebase-compat'
 
+// Set the runtime to edge
 export const runtime = 'edge'
 
 export async function POST(request: Request) {
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
     });
     
     if (!user || !user.uid) {
-      console.log('API aborting - auth error:', sessionError || 'No user session');
+      console.log('API aborting - auth error: No user session');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }

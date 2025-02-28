@@ -22,7 +22,13 @@ const checkoutSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
     if (!session) {
       return NextResponse.json(
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
     const { 
       lessonId, 
       price, 
-      userId = user.id,
+      userId = user.uid,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -53,7 +59,7 @@ export async function POST(request: NextRequest) {
     } = result.data;
     
     // Verify the user is making a purchase for themselves
-    if (user.id !== userId) {
+    if (user.uid !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized to make this purchase' },
         { status: 403 }
@@ -81,7 +87,8 @@ export async function POST(request: NextRequest) {
       .from('lessons')
       .select('creator_id, title, description')
       .eq('id', lessonId)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
       
     if (lessonError || !lesson) {
       return NextResponse.json(
@@ -95,7 +102,8 @@ export async function POST(request: NextRequest) {
       .from('lessons')
       .select('price')
       .eq('id', lessonId)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
       
     if (!lessonPrice) {
       return NextResponse.json(
@@ -147,7 +155,8 @@ export async function POST(request: NextRequest) {
         }
       })
       .select()
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
       
     if (purchaseError || !purchase) {
       console.error('Purchase creation error:', purchaseError);

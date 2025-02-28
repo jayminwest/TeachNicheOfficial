@@ -28,35 +28,22 @@ describe('AuthContext', () => {
   it('should handle auth state changes', async () => {
     const mockUser = { uid: '123', email: 'test@example.com' };
     
-    // Mock the auth state change to happen after a delay
-    let authCallback: ((user: any) => void) | null = null;
+    // Mock the auth state change
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
-      authCallback = callback;
-      // Don't call the callback immediately
+      // Call the callback with the mock user immediately
+      setTimeout(() => callback(mockUser), 0);
       return () => {};
     });
 
-    // Create a modified AuthProvider that stays in loading state
-    const TestAuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-      return (
-        <AuthProvider initialUser={undefined}>
-          {children}
-        </AuthProvider>
-      );
-    };
-
     render(
-      <TestAuthProvider>
+      <AuthProvider>
         <TestComponent />
-      </TestAuthProvider>
+      </AuthProvider>
     );
-
-    // Skip the loading check since it's unreliable in tests
     
-    // Simulate auth state change
+    // Wait for the auth state to update
     await act(async () => {
-      if (authCallback) authCallback(mockUser);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     // After auth state change, verify user is set

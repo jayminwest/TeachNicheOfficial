@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Create Stripe checkout session
+    // Create Stripe checkout session with proper type casting
     const checkoutSession = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
         creatorId: lesson.creator_id,
       },
       customer_email: user.email,
-    });
+    } as any);
     
     // Update purchase record with session ID
     await firebaseClient

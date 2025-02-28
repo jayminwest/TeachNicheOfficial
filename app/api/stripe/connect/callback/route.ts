@@ -53,24 +53,29 @@ export async function GET(request: Request) {
     if (isComplete) {
       // Update onboarding status only if we have verified everything
       try {
-        // First query to get the profile
-        const profileQuery = firebaseClient.from('profiles');
-        const profileResult = await profileQuery.select();
+        // Query for the profile directly with the right conditions
+        const profilesRef = firebaseClient.from('profiles');
+        const profilesQuery = profilesRef.select();
         
-        // Apply filters after getting the result
-        const filteredProfiles = profileResult.data?.filter(
-          profile => profile.id === user.uid && profile.stripe_account_id === accountId
-        );
+        // Execute the query
+        const profilesResult = await profilesQuery;
         
-        const profile = filteredProfiles && filteredProfiles.length > 0 ? filteredProfiles[0] : null;
-          
-        if (profile) {
-          // Then update if found
-          const updateQuery = firebaseClient.from('profiles');
-          await updateQuery.update(
-            { stripe_onboarding_complete: true },
-            { id: user.uid }
+        // Check if we got results and find the matching profile
+        if (profilesResult && Array.isArray(profilesResult)) {
+          const matchingProfile = profilesResult.find(
+            profile => profile.id === user.uid && profile.stripe_account_id === accountId
           );
+          
+          if (matchingProfile) {
+            // Update the profile if found
+            await firebaseClient.from('profiles').insert(
+              { 
+                id: user.uid,
+                stripe_onboarding_complete: true 
+              },
+              { upsert: true }
+            );
+          }
         }
       } catch (updateError) {
         console.error('Failed to update onboarding status:', updateError);

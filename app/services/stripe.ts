@@ -244,12 +244,17 @@ export const verifyConnectedAccount = async (
 ) => {
   try {
     // Verify the account exists and belongs to this user
-    const profileQuery = supabase.from('profiles');
-    const profileResult = await profileQuery.select();
+    const profilesRef = supabase.from('profiles');
+    const profilesQuery = profilesRef.select();
     
-    // Filter the results manually
-    const profiles = profileResult.data?.filter(p => p.id === userId);
-    const profile = profiles && profiles.length > 0 ? profiles[0] : null;
+    // Execute the query
+    const profilesResult = await profilesQuery;
+    
+    // Check if we got results and find the matching profile
+    let profile = null;
+    if (profilesResult && Array.isArray(profilesResult)) {
+      profile = profilesResult.find(p => p.id === userId);
+    }
     
     if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
       return { verified: false, status: { isComplete: false } };

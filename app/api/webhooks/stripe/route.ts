@@ -61,8 +61,6 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
     return;
   }
   
-  const auth = getAuth()<Database>({ cookies });
-  
   // Extract metadata
   const { purchaseId, lessonId, creatorId, userId } = session.metadata || {};
   
@@ -99,8 +97,6 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
 }
 
 async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  const auth = getAuth()<Database>({ cookies });
-  
   // Get purchase record by payment intent
   const { data: purchase, error: fetchError } = await supabase
     .from('purchases')
@@ -162,7 +158,6 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
 }
 
 async function handleRefund(charge: Stripe.Charge): Promise<void> {
-  const auth = getAuth()<Database>({ cookies });
   const paymentIntentId = charge.payment_intent as string;
   const refundAmount = charge.amount_refunded;
   

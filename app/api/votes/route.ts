@@ -5,7 +5,6 @@ import { voteSchema } from '@/app/lib/schemas/lesson-request'
 
 export async function GET(request: Request) {
   try {
-    const auth = getAuth()({ cookies })
     const { searchParams } = new URL(request.url)
     
     const requestId = searchParams.get('requestId')
@@ -45,7 +44,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = getAuth()({ cookies })
     const { data: { session } } = await firebaseAuth.getSession()
 
     if (!session) {

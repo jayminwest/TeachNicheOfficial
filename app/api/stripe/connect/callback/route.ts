@@ -7,8 +7,6 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const auth = getAuth()({ cookies });
-    
     // Get the session from the cookie
     const { data: { session }, error: sessionError } = await firebaseAuth.getSession();
     

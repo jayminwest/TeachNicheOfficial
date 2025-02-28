@@ -25,7 +25,6 @@ const checkoutSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = getAuth()<Database>({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session) {

@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { getAuth } from 'firebase/auth';
-import { cookies } from "next/headers";
 import { z } from "zod";
 
 // Schema for validation

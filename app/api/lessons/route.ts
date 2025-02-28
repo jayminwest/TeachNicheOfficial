@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getAuth } from 'firebase/auth';
-import { cookies } from 'next/headers';
 import { firebaseClient } from '@/app/services/firebase-compat';
 import { firebaseAuth } from '@/app/services/auth/firebase-auth';
 

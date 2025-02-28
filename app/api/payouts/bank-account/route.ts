@@ -24,9 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Initialize Supabase client
-    const auth = getAuth()<Database>({ cookies });
-    
     // Get the current user
     const { data: { session } } = await firebaseAuth.getSession();
     

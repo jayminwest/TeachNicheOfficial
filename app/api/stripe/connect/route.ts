@@ -127,7 +127,6 @@ export async function POST(request: Request) {
       });
 
       // Store the Stripe account ID in Supabase
-      const auth = getAuth()({ cookies });
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ stripe_account_id: account.id })

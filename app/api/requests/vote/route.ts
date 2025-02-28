@@ -9,9 +9,6 @@ export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
 
-    const cookieStore = cookies()
-    const auth = getAuth()({ cookies: () => cookieStore })
-    
     const { data: { session }, error: sessionError } = await firebaseAuth.getSession()
     
     if (sessionError || !session?.user?.id) {

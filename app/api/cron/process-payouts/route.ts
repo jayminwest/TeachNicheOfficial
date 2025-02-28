@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processScheduledPayouts } from '@/app/services/earnings';
-import { firebaseClient } from '@/app/services/firebase-compat';
+import { databaseService } from '@/app/services/database';
 
 // Secret key to secure the cron endpoint
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Process scheduled payouts using Firebase client
-    const results = await processScheduledPayouts(firebaseClient);
+    // Process scheduled payouts using database service
+    const results = await processScheduledPayouts(databaseService);
     
     return NextResponse.json({
       success: true,

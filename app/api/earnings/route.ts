@@ -41,14 +41,7 @@ export async function GET() {
     // Get creator earnings
     const { data: earnings, error } = await firebaseClient
       .from('creator_earnings')
-      .select(`
-        id,
-        amount,
-        status,
-        created_at,
-        payment_intent_id,
-        lessons(title)
-      `)
+      .select()
       .eq('creator_id', user.uid)
       .order('created_at', { ascending: false });
     
@@ -66,7 +59,8 @@ export async function GET() {
       amount: earning.amount,
       status: earning.status,
       created_at: earning.created_at,
-      lesson_title: earning.lessons?.[0]?.title || 'Unknown lesson'
+      // Adjust for the new data structure - lessons might not be available in the same format
+      lesson_title: earning.lesson_title || 'Unknown lesson'
     }));
     
     return NextResponse.json({ earnings: formattedEarnings });

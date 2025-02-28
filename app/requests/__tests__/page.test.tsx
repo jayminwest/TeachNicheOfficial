@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import RequestsPage from '../page'
 import { getRequests } from '@/app/lib/firebase/requests'
@@ -25,18 +25,6 @@ jest.mock('@/app/services/firebase', () => ({
   },
 }))
 
-// Mock Firebase client with getFirebaseAuth function
-jest.mock('@/app/lib/firebase/client', () => ({
-  getFirebaseAuth: jest.fn().mockReturnValue({
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    match: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({ data: null }),
-    eq: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockResolvedValue({ error: null })
-  })
-}))
 
 // Mock getFirebaseAuth
 jest.mock('@/app/lib/firebase/client', () => ({

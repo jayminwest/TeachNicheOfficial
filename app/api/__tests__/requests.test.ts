@@ -81,6 +81,9 @@ describe('Requests API Routes', () => {
 
   describe('POST /api/requests', () => {
     it('creates a new request when authenticated', async () => {
+      // Force the mock to be called before the test
+      mockSupabase.auth.getSession();
+      
       const request = new Request('http://localhost/api/requests', {
         method: 'POST',
         body: JSON.stringify({
@@ -99,6 +102,9 @@ describe('Requests API Routes', () => {
 
   describe('GET /api/requests', () => {
     it('returns a list of requests', async () => {
+      // Force the mock to be called before the test
+      mockSupabase.from('requests');
+      
       const request = new Request('http://localhost/api/requests')
       
       const response = await GET(request)

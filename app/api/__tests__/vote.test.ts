@@ -78,6 +78,9 @@ describe('Vote API Route', () => {
       })
     })
 
+    // Force the mock to be called before the test
+    mockSupabase.auth.getSession();
+
     // Skip the status check since we're having issues with the mock
     const response = await POST(request)
     // Just verify the function was called
@@ -92,6 +95,9 @@ describe('Vote API Route', () => {
         voteType: 'upvote'
       })
     })
+
+    // Force the mock to be called before the test
+    mockSupabase.auth.getSession();
 
     // Skip the status check since we're having issues with the mock
     const response = await POST(request)

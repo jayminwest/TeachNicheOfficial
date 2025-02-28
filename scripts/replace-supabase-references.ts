@@ -559,3 +559,135 @@ function main() {
 }
 
 main();
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const rootDir = path.join(__dirname, '..');
+const excludeDirs = ['node_modules', '.git', '.next', 'out', 'scripts'];
+const fileExtensions = ['.ts', '.tsx', '.js', '.jsx'];
+
+const replacements = [
+  {
+    pattern: /import\s+.*from\s+['"]@\/app\/lib\/supabase['"]/g,
+    replacement: "import { getApp } from 'firebase/app'"
+  },
+  {
+    pattern: /import\s+.*from\s+['"]@supabase\/.*['"]/g,
+    replacement: "import { getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';\nimport { getAuth } from 'firebase/auth';\nimport { getStorage } from 'firebase/storage';"
+  },
+  {
+    pattern: /const\s+supabase\s+=\s+createClient.*/g,
+    replacement: "const app = getApp();\nconst db = getFirestore(app);\nconst auth = getAuth(app);\nconst storage = getStorage(app);"
+  },
+  {
+    pattern: /supabase\.auth\.signUp\(\s*\{\s*email\s*:\s*([^,]+),\s*password\s*:\s*([^,]+)(?:,\s*options\s*:\s*\{\s*data\s*:\s*\{\s*full_name\s*:\s*([^}]+)\s*\}\s*\})?\s*\}\s*\)/g,
+    replacement: "createUserWithEmailAndPassword(auth, $1, $2).then(userCredential => {\n  return updateProfile(userCredential.user, { displayName: $3 || '' });\n})"
+  },
+  {
+    pattern: /supabase\.auth\.signInWithPassword\(\s*\{\s*email\s*:\s*([^,]+),\s*password\s*:\s*([^}]+)\s*\}\s*\)/g,
+    replacement: "signInWithEmailAndPassword(auth, $1, $2)"
+  },
+  {
+    pattern: /supabase\.auth\.signOut\(\)/g,
+    replacement: "signOut(auth)"
+  },
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)/g,
+    replacement: "getDocs(collection(db, '$1')).then(snapshot => snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))"
+  },
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.insert\(\s*(\{[^}]+\}|\[[^\]]+\])\s*\)/g,
+    replacement: "addDoc(collection(db, '$1'), $2)"
+  },
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.update\(\s*(\{[^}]+\})\s*\)\.eq\(['"]id['"],\s*([^)]+)\)/g,
+    replacement: "updateDoc(doc(db, '$1', $3), $2)"
+  },
+  {
+    pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.delete\(\)\.eq\(['"]id['"],\s*([^)]+)\)/g,
+    replacement: "deleteDoc(doc(db, '$1', $2))"
+  },
+  {
+    pattern: /supabase\.storage\.from\(['"]([^'"]+)['"]\)\.upload\((['"][^'"]*['"],\s*[^,]+)(?:,\s*\{[^}]*\})?\)/g,
+    replacement: "uploadBytes(ref(storage, '$1/' + $2))"
+  },
+  {
+    pattern: /supabase\.storage\.from\(['"]([^'"]+)['"]\)\.getPublicUrl\((['"][^'"]*['"])\)/g,
+    replacement: "getDownloadURL(ref(storage, '$1/' + $2))"
+  },
+  {
+    pattern: /supabase\.storage\.from\(['"]([^'"]+)['"]\)\.remove\(\[(['"][^'"]*['"])\]\)/g,
+    replacement: "deleteObject(ref(storage, '$1/' + $2))"
+  }
+];
+
+async function processFile(filePath: string, dryRun: boolean): Promise<boolean> {
+  try {
+    let content = fs.readFileSync(filePath, 'utf8');
+    let originalContent = content;
+    
+    for (const { pattern, replacement } of replacements) {
+      content = content.replace(pattern, replacement);
+    }
+    
+    if (content !== originalContent) {
+      console.log(`[${dryRun ? 'DRY RUN' : 'REPLACING'}] ${filePath}`);
+      if (!dryRun) {
+        fs.writeFileSync(filePath, content, 'utf8');
+      }
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`Error processing file ${filePath}:`, error);
+    return false;
+  }
+}
+
+async function walkDir(dir: string, dryRun: boolean): Promise<{ totalFiles: number, changedFiles: number }> {
+  let totalFiles = 0;
+  let changedFiles = 0;
+  
+  const files = fs.readdirSync(dir);
+  
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    
+    if (stat.isDirectory()) {
+      if (excludeDirs.includes(file)) continue;
+      const result = await walkDir(filePath, dryRun);
+      totalFiles += result.totalFiles;
+      changedFiles += result.changedFiles;
+    } else if (stat.isFile() && fileExtensions.includes(path.extname(file))) {
+      totalFiles++;
+      const hasChanges = await processFile(filePath, dryRun);
+      if (hasChanges) changedFiles++;
+    }
+  }
+  
+  return { totalFiles, changedFiles };
+}
+
+async function main() {
+  const dryRun = process.argv.includes('--dry-run');
+  
+  console.log(`Starting ${dryRun ? 'dry run' : 'replacement'}...`);
+  const result = await walkDir(rootDir, dryRun);
+  
+  console.log(`\nSummary:\nScanned: ${result.totalFiles}\nModified: ${result.changedFiles}`);
+  if (dryRun) {
+    console.log(`\nDry run complete. Run without --dry-run to apply changes.`);
+  } else {
+    console.log(`\nMigration complete.`);
+  }
+}
+
+main().catch(error => {
+  console.error('Error:', error);
+  process.exit(1);
+});

@@ -107,3 +107,51 @@ updatePackageJson().catch(error => {
   console.error('Unhandled error:', error);
   process.exit(1);
 });
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJsonPath = path.join(__dirname, '..', 'package.json');
+
+const dependenciesToRemove = [
+  '@supabase/auth-helpers-nextjs',
+  '@supabase/auth-helpers-react',
+  '@supabase/supabase-js'
+];
+
+const dependenciesToAdd = {
+  'firebase': '^10.7.0',
+  'firebase-admin': '^11.11.0',
+  '@firebase/app': '^0.9.25',
+  '@firebase/auth': '^1.5.0',
+  '@firebase/firestore': '^4.4.0',
+  '@firebase/storage': '^0.12.0'
+};
+
+function updatePackageJson() {
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    
+    for (const dep of dependenciesToRemove) {
+      if (packageJson.dependencies[dep]) {
+        console.log(`Removing: ${dep}`);
+        delete packageJson.dependencies[dep];
+      }
+    }
+    
+    for (const [dep, version] of Object.entries(dependenciesToAdd)) {
+      console.log(`Adding: ${dep}@${version}`);
+      packageJson.dependencies[dep] = version;
+    }
+    
+    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8');
+    console.log('package.json updated. Run "npm install"');
+  } catch (error) {
+    console.error('Error:', error);
+    process.exit(1);
+  }
+}
+
+updatePackageJson();

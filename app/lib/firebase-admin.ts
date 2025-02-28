@@ -16,7 +16,7 @@ export async function initializeFirebaseAdmin() {
       firebaseAdminInitialized = true;
     } catch (error: unknown) {
       // App might already be initialized
-      if (!/already exists/i.test(error.message)) {
+      if (!/already exists/i.test((error as Error).message)) {
         console.error('Firebase admin initialization error', error);
       }
     }

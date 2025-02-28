@@ -12,3 +12,38 @@ module.exports = {
   // Add a comment to remind the team to fix these issues later
   // TODO: Remove these rule modifications after GCP migration is complete and fix all linting issues
 }
+module.exports = {
+  extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
+  rules: {
+    // Disable the no-unused-vars rule for variables prefixed with underscore
+    '@typescript-eslint/no-unused-vars': ['error', { 
+      'argsIgnorePattern': '^_',
+      'varsIgnorePattern': '^_',
+      'caughtErrorsIgnorePattern': '^_'
+    }],
+    // Allow some explicit any usage in specific files
+    '@typescript-eslint/no-explicit-any': ['error', {
+      'ignoreRestArgs': true
+    }]
+  },
+  overrides: [
+    {
+      // Disable specific rules for test files
+      files: ['**/__tests__/**/*', '**/*.test.*'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off'
+      }
+    },
+    {
+      // Disable specific rules for API routes
+      files: ['app/api/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': ['error', { 
+          'argsIgnorePattern': '^_',
+          'varsIgnorePattern': '^_',
+          'caughtErrorsIgnorePattern': '^_'
+        }]
+      }
+    }
+  ]
+}

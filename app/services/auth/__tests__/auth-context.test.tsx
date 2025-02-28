@@ -108,8 +108,9 @@ describe('AuthContext', () => {
     
     // Simulate initial signed in state
     await act(async () => {
-      const { __simulateAuthStateChange } = require('firebase/auth');
-      __simulateAuthStateChange({ uid: '123', email: 'test@example.com' });
+      // Import the mock module
+      const firebaseAuthMock = jest.requireMock('firebase/auth');
+      firebaseAuthMock.__simulateAuthStateChange({ uid: '123', email: 'test@example.com' });
     });
     
     // Verify user is signed in

@@ -30,6 +30,6 @@ setup.beforeEach(async ({ context }) => {
 
   // Set emulator flags in browser context
   await context.addInitScript(() => {
-    window.FIREBASE_USE_EMULATORS = true;
+    (window as any).FIREBASE_USE_EMULATORS = true;
   });
 });

@@ -1,37 +1,39 @@
 import { stripe, createConnectSession, getStripe } from '@/app/services/stripe';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getAuth, getApp } from 'firebase/app';
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: Request) {
   // First try cookie-based session
-  const {
-    data: { session }
-  } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
+  const sessionData = await new Promise<{ user: any } | null>(resolve => {
+    const auth = getAuth(getApp());
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      unsubscribe();
+      resolve(user ? { user } : null);
+    });
   });
-});
 
-  if (session?.user) {
-    return { user: user };
+  if (sessionData?.user) {
+    return { user: sessionData.user };
   }
 
   // If no cookie session, check Authorization header
   const authHeader = request.headers.get('Authorization');
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    const { data: { user }, error } = await firebaseAuth.getUser(token);
-    
-    if (error || !user) {
-      return { error: error || new Error('No user found') };
+    try {
+      // Use Firebase Admin SDK to verify the token
+      const decodedToken = await firebaseClient.auth.verifyIdToken(token);
+      if (decodedToken.uid) {
+        return { user: { uid: decodedToken.uid, email: decodedToken.email } };
+      }
+    } catch (error) {
+      return { error: error instanceof Error ? error : new Error('Token verification failed') };
     }
-    
-    return { user };
   }
 
   return { error: new Error('No session found') };
@@ -128,13 +130,14 @@ export async function POST(request: Request) {
         type: 'account_onboarding'
       });
 
-      // Store the Stripe account ID in Supabase
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ stripe_account_id: account.id })
-        .eq('id', user.uid);
+      // Store the Stripe account ID in our database
+      try {
+        await firebaseClient
+          .from('profiles')
+          .update({ stripe_account_id: account.id })
+          .eq('id', user.uid);
+      } catch (updateError) {
 
-      if (updateError) {
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {
           await (stripeInstance as unknown as Stripe).accounts.del(account.id);

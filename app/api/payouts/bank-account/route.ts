@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { stripeConfig } from '@/app/services/stripe';
+import { getAuth, User } from 'firebase/auth';
+import { getApp } from 'firebase/app';
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {
@@ -21,16 +24,16 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Get the current user
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    // Get the current user using the route handler client
+    const user = await new Promise<User | null>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user);
+      });
+    });
     
-    if (!session || user.uid !== userId) {
+    if (!user || user.uid !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -51,9 +54,9 @@ export async function POST(request: NextRequest) {
     });
     
     // Store the bank account token in the database
-    const { error } = await supabase
+    const { error } = await firebaseClient
       .from('creator_payout_methods')
-      .upsert({
+      .update({
         creator_id: userId,
         bank_account_token: bankAccount.id,
         last_four: bankAccount.bank_account?.last4 || '0000',
@@ -62,9 +65,7 @@ export async function POST(request: NextRequest) {
         is_default: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'creator_id',
-      });
+      }, { eq: ['creator_id', userId] });
     
     if (error) {
       console.error('Error storing bank account:', error);

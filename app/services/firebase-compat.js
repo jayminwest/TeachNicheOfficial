@@ -387,3 +387,6 @@ export const firebaseClient = {
     }
   }
 };
+
+// Add default export for compatibility with import statements
+export default firebaseClient;

@@ -6,7 +6,7 @@
  * Helper to convert mock requests to the Request type expected by route handlers
  * Fixes TS2345 errors in test files
  */
-export function asRequest(mockRequest: any): Request {
+export function asRequest(mockRequest: Record<string, unknown>): Request {
   return mockRequest as unknown as Request;
 }
 
@@ -33,7 +33,7 @@ export function hasCreatorProfile(metadata: UserMetadata | undefined): boolean {
  * Type guard for objects with data.session structure
  * Fixes TS18046 errors for unknown types
  */
-export function hasDataSession(obj: unknown): obj is { data: { session: any } } {
+export function hasDataSession(obj: unknown): obj is { data: { session: unknown } } {
   return obj !== null && 
          typeof obj === 'object' && 
          'data' in obj && 

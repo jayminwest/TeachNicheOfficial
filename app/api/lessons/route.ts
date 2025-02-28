@@ -110,7 +110,7 @@ async function getLessonsHandler(request: Request) {
     const lessonsRef = firebaseClient.from('lessons');
     
     // Build query parameters
-    const queryParams: Record<string, any> = {};
+    const queryParams: Record<string, string | boolean | number> = {};
     
     if (category) {
       queryParams.category = category;

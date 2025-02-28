@@ -4,6 +4,14 @@ import { getAuth, User } from "firebase/auth";
 import { getApp } from "firebase/app";
 import { firebaseClient } from '@/app/services/firebase-compat';
 
+// Define interface for application data
+interface CreatorApplication {
+  id: string;
+  status: string;
+  user_id: string;
+  [key: string]: any; // Allow other properties
+}
+
 // Schema for validation
 const applicationSchema = z.object({
   motivation: z.string().min(100),
@@ -69,8 +77,9 @@ export async function POST(request: Request) {
     }
     
     if (existingApplications && existingApplications.length > 0) {
-      // Define the type for application to include status
-      const application = existingApplications.find((app: { status?: string }) => 
+      // Cast the existingApplications to the proper type
+      const typedApplications = existingApplications as CreatorApplication[];
+      const application = typedApplications.find(app => 
         app.status === 'pending' || app.status === 'approved'
       );
       

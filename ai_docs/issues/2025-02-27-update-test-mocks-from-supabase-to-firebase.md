@@ -53,6 +53,48 @@ jest.mock('firebase/firestore', () => ({
   });
   ```
 
+## Files Requiring Updates
+
+### Test Files with Supabase Mocks
+1. `./app/requests/components/__tests__/request-card.test.tsx` - Mocks `@supabase/auth-helpers-nextjs`
+2. `./app/requests/components/__tests__/request-dialog.test.tsx` - Mocks `@/app/lib/supabase/requests`
+3. `./app/requests/components/__tests__/request-grid.test.tsx` - Mocks `@/app/lib/supabase/requests` and `@supabase/auth-helpers-nextjs`
+4. `./app/requests/__tests__/page.test.tsx` - Mocks `@/app/lib/supabase/requests`
+5. `./app/components/ui/__tests__/sign-in.test.tsx` - Mocks `@/app/services/auth/supabaseAuth`
+6. `./app/components/ui/__tests__/header.test.tsx` - Mocks `@/app/services/supabase`
+7. `./app/components/ui/__tests__/sign-up.test.tsx` - Mocks `@/app/services/auth/supabaseAuth`
+8. `./app/profile/__tests__/page.test.tsx` - Mocks `@/app/services/supabase`
+9. `./app/api/mux/__tests__/mux.test.ts` - Mocks `../../../lib/supabase/client`
+10. `./app/api/__tests__/requests.test.ts` - Mocks `@supabase/auth-helpers-nextjs`
+11. `./app/api/__tests__/vote.test.ts` - Mocks `@supabase/auth-helpers-nextjs`
+12. `./app/api/lessons/__tests__/lessons.test.ts` - Mocks `../../../lib/supabase/client`
+
+### Files Using createClient
+1. `./app/api/mux/__tests__/mux.test.ts`
+2. `./app/api/lessons/__tests__/lessons.test.ts`
+
+### Additional Test Files That May Need Updates
+1. `./app/__tests__/components/ui/lesson-access-gate.test.tsx`
+2. `./app/about/__tests__/page.test.tsx`
+3. `./app/api/checkout/__tests__/checkout.test.ts`
+4. `./app/components/ui/__tests__/earnings-link-integration.test.tsx`
+5. `./app/components/ui/__tests__/lesson-card.test.tsx`
+6. `./app/components/ui/__tests__/lesson-form.test.tsx`
+7. `./app/components/ui/__tests__/markdown-editor.test.tsx`
+8. `./app/components/ui/__tests__/video-player.test.tsx`
+9. `./app/components/ui/__tests__/video-status.test.tsx`
+10. `./app/components/ui/card/__tests__/card.test.tsx`
+11. `./app/components/ui/dialog/__tests__/dialog.test.tsx`
+12. `./app/components/ui/earnings-link.test.tsx`
+13. `./app/components/ui/lesson-card/__tests__/lesson-card.test.tsx`
+14. `./app/components/ui/lesson-grid/__tests__/lesson-grid.test.tsx`
+15. `./app/components/ui/lesson-preview-dialog/__tests__/lesson-preview-dialog.test.tsx`
+16. `./app/dashboard/__tests__/dashboard-page.test.tsx`
+17. `./app/dashboard/earnings/__tests__/earnings-page.test.tsx`
+18. `./app/lib/__tests__/constants.test.ts`
+19. `./app/profile/components/__tests__/profile-form.test.tsx`
+20. `./app/requests/components/__tests__/request-sidebar.test.tsx`
+
 ## Implementation Steps
 
 1. Create new `firebase-mocks.ts` utility module
@@ -69,6 +111,7 @@ jest.mock('firebase/firestore', () => ({
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2025-02-27 | Testing Team | Initial migration plan |
+| 1.1 | 2025-02-27 | Testing Team | Added comprehensive list of files requiring updates |
 
 ## Cross-References
 - [ARCHITECTURE.md](../core/ARCHITECTURE.md) - Storage and authentication architecture

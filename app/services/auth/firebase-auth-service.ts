@@ -365,7 +365,7 @@ export async function signInWithGoogle() {
     
     const userCredential = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(userCredential);
-    const token = credential ? (credential as any).accessToken : null;
+    const token = credential ? (credential as { accessToken?: string }).accessToken : null;
     
     return { 
       user: transformUser(userCredential.user), 

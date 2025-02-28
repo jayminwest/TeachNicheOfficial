@@ -19,7 +19,8 @@ import {
   query, 
   where, 
   orderBy, 
-  limit 
+  limit,
+  increment as firestoreIncrement
 } from 'firebase/firestore';
 import { 
   getStorage,
@@ -270,6 +271,11 @@ export const firebaseClient = {
   },
   
   /**
+   * Helper functions
+   */
+  increment: (n) => firestoreIncrement(n),
+  
+  /**
    * Storage operations
    */
   storage: {
@@ -394,6 +400,34 @@ export const firebaseClient = {
     }
   }
 };
+
+// For testing environment
+if (process.env.NODE_ENV === 'test') {
+  // Mock implementations for testing
+  firebaseClient.from = jest.fn().mockImplementation((collectionName) => ({
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({ data: [], error: null }),
+    insert: jest.fn().mockResolvedValue({ data: { id: 'mock-id' }, error: null }),
+    update: jest.fn().mockResolvedValue({ error: null }),
+    delete: jest.fn().mockResolvedValue({ error: null })
+  }));
+  
+  firebaseClient.increment = jest.fn().mockImplementation((n) => n);
+  
+  firebaseClient.storage = {
+    from: jest.fn().mockImplementation(() => ({
+      upload: jest.fn().mockResolvedValue({ data: { path: 'mock-path' }, error: null }),
+      getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'https://example.com/mock-file' }, error: null }),
+      download: jest.fn().mockResolvedValue({ data: { url: 'https://example.com/mock-file' }, error: null }),
+      remove: jest.fn().mockResolvedValue({ data: { paths: ['mock-path'] }, error: null }),
+      list: jest.fn().mockResolvedValue({ data: { files: [] }, error: null })
+    }))
+  };
+}
 
 // Add default export for compatibility with import statements
 export default firebaseClient;

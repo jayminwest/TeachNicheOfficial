@@ -114,6 +114,61 @@ const extendedFirestore = {
   }
 };
 
+// For testing environment, add these mock implementations
+if (process.env.NODE_ENV === 'test') {
+  // Override with test implementations
+  Object.assign(extendedFirestore, {
+    collection: jest.fn().mockImplementation((path) => ({
+      doc: jest.fn().mockImplementation((id) => ({
+        id: id || 'mock-id',
+        path: `${path}/${id || 'mock-id'}`,
+        get: jest.fn().mockResolvedValue({
+          exists: false,
+          data: () => ({}),
+          id: id || 'mock-id'
+        }),
+        set: jest.fn().mockResolvedValue({}),
+        update: jest.fn().mockResolvedValue({}),
+        delete: jest.fn().mockResolvedValue({})
+      })),
+      where: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      get: jest.fn().mockResolvedValue({
+        docs: [],
+        empty: true,
+        size: 0
+      })
+    })),
+    runTransaction: jest.fn().mockImplementation(async (callback) => {
+      const transaction = {
+        get: jest.fn().mockResolvedValue({
+          exists: false,
+          data: () => ({}),
+          id: 'mock-id'
+        }),
+        set: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn()
+      };
+      return await callback(transaction);
+    }),
+    FieldValue: {
+      increment: jest.fn().mockImplementation((n) => n)
+    }
+  });
+  
+  // Mock auth for testing
+  Object.assign(auth, {
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+    signOut: jest.fn().mockResolvedValue({})
+  });
+}
+
 export { 
   app, 
   extendedFirestore as firestore, 

@@ -50,6 +50,9 @@ const DialogContent = React.forwardRef<
         return React.Children.toArray(props.children).some(
           (headerChild) => React.isValidElement(headerChild) && 
             typeof headerChild.type === 'function' && 
+            headerChild.type && 
+            typeof headerChild.type === 'object' && 
+            'displayName' in headerChild.type && 
             headerChild.type.displayName === DialogTitle.displayName
         );
       }

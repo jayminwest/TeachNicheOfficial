@@ -66,3 +66,14 @@ export interface MockedFunctionWithOptions<T extends (...args: unknown[]) => unk
   invocationCallOrder: jest.MockedFunction<T>['mock']['invocationCallOrder'];
   results: jest.MockedFunction<T>['mock']['results'];
 }
+
+/**
+ * Type guard for checking if an object is a File
+ * This helps with the TS2358 error in storage services
+ */
+export function isFile(obj: unknown): obj is File {
+  return (
+    typeof File !== 'undefined' && 
+    obj instanceof File
+  );
+}

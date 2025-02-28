@@ -32,12 +32,17 @@
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
     "useUnknownInCatchVariables": false,
-    "exactOptionalPropertyTypes": false
+    "exactOptionalPropertyTypes": false,
+    "types": [
+      "jest",
+      "@testing-library/jest-dom"
+    ]
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "app/types/global.d.ts",
+    "app/types/jest.d.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
     "types/**/*.ts",

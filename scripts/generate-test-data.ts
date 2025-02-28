@@ -236,6 +236,45 @@ async function initDatabase() {
 }
 
 /**
+ * Verify database schema and create tables if needed
+ */
+async function verifyDatabaseSchema() {
+  if (dryRun) return true;
+  
+  try {
+    const client = await pool.connect();
+    
+    // Check which tables exist
+    const { rows } = await client.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    `);
+    
+    const tables = rows.map(row => row.table_name);
+    console.log(`${colors.cyan}Found tables in database:${colors.reset}`, tables);
+    
+    // Check if all required tables exist
+    const requiredTables = ['users', 'categories', 'lessons', 'reviews', 'payments', 'purchases'];
+    const missingTables = requiredTables.filter(table => !tables.includes(table));
+    
+    if (missingTables.length > 0) {
+      console.log(`${colors.yellow}Missing tables: ${missingTables.join(', ')}${colors.reset}`);
+      console.log(`${colors.cyan}Creating missing tables...${colors.reset}`);
+      await createDatabaseTables();
+    } else {
+      console.log(`${colors.green}All required tables exist${colors.reset}`);
+    }
+    
+    client.release();
+    return true;
+  } catch (error) {
+    console.error(`${colors.red}Failed to verify database schema:${colors.reset}`, error);
+    return false;
+  }
+}
+
+/**
  * Create database tables if they don't exist
  */
 async function createDatabaseTables() {

@@ -48,7 +48,14 @@ try {
 } catch (error) {
   // If error is about duplicate app, get the existing instance
   if (error.code === 'app/duplicate-app') {
-    app = initializeApp();
+    // Get the existing app by name
+    const { getApp } = require('firebase/app');
+    try {
+      app = getApp();
+    } catch (innerError) {
+      // If getApp fails, initialize with config again as fallback
+      app = initializeApp(firebaseConfig, 'teach-niche-app');
+    }
   } else {
     // Re-throw if it's a different error
     throw error;

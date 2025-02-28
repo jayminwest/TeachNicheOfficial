@@ -10,15 +10,18 @@ interface FileConstructor {
 
 declare var File: FileConstructor;
 
+// Make File available for instanceof checks
+interface File extends Blob {
+  readonly lastModified: number;
+  readonly name: string;
+  readonly webkitRelativePath: string;
+}
+
 // Extended alert variant types
 declare module "@/app/components/ui/alert" {
-  export interface AlertProps {
+  export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: "default" | "destructive" | "warning";
   }
-  
-  export const Alert: React.ForwardRefExoticComponent<AlertProps & React.RefAttributes<HTMLDivElement>>;
-  export const AlertTitle: React.ForwardRefExoticComponent<React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>>;
-  export const AlertDescription: React.ForwardRefExoticComponent<React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>>;
 }
 
 // Firebase client mock for tests
@@ -57,7 +60,7 @@ type PayoutStatus = "pending" | "paid" | "failed" | "canceled";
 // Firebase types
 interface EligibleCreator {
   creator_id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // User type extensions

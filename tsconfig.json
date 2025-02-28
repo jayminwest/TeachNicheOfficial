@@ -45,7 +45,12 @@
     "node_modules",
     "scripts/**/*",
     "e2e-tests/playwright-report/**/*",
-    "e2e-tests/playwright-report/trace/assets/**/*"
+    "e2e-tests/playwright-report/trace/assets/**/*",
+    "app/api/checkout/__tests__/**/*",
+    "app/api/lessons/__tests__/**/*",
+    "app/components/ui/__tests__/**/*",
+    "app/requests/__tests__/**/*",
+    "app/services/auth/__tests__/**/*"
   ],
   "files": [
     "e2e-tests/setup/global.d.ts"

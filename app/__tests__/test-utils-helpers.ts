@@ -53,6 +53,19 @@ export interface FirebaseUserWithMetadata {
 /**
  * Type assertion for jest mocked functions
  */
-export interface MockedFunctionWithOptions<T extends (...args: any[]) => any> extends jest.MockedFunction<T> {
-  lastCallOptions?: any;
+export interface MockedFunctionWithOptions<T extends (...args: any[]) => any> {
+  lastCallOptions?: Record<string, unknown>;
+  mockImplementation: jest.MockedFunction<T>['mockImplementation'];
+  mockReturnValue: jest.MockedFunction<T>['mockReturnValue'];
+  mockResolvedValue: jest.MockedFunction<T>['mockResolvedValue'];
+  mockRejectedValue: jest.MockedFunction<T>['mockRejectedValue'];
+  mockClear: jest.MockedFunction<T>['mockClear'];
+  mockReset: jest.MockedFunction<T>['mockReset'];
+  mockRestore: jest.MockedFunction<T>['mockRestore'];
+  getMockName: jest.MockedFunction<T>['getMockName'];
+  mock: jest.MockedFunction<T>['mock'];
+  calls: jest.MockedFunction<T>['mock']['calls'];
+  instances: jest.MockedFunction<T>['mock']['instances'];
+  invocationCallOrder: jest.MockedFunction<T>['mock']['invocationCallOrder'];
+  results: jest.MockedFunction<T>['mock']['results'];
 }

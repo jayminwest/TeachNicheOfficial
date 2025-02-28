@@ -1,6 +1,6 @@
 module.exports = {
   extends: 'next/core-web-vitals',
-  ignorePatterns: ['**/*.js', '**/*.ts', '**/*.tsx'],
+  // Remove ignorePatterns as it's ignoring all TypeScript files
   rules: {
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-explicit-any': 'off',

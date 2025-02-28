@@ -5,9 +5,40 @@
  * It implements similar interfaces and methods but uses Firebase under the hood.
  */
 
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  limit, 
+  orderBy, 
+  DocumentData,
+  QueryDocumentSnapshot,
+  CollectionReference,
+  DocumentReference,
+  Query
+} from 'firebase/firestore';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL, 
+  deleteObject, 
+  StorageReference 
+} from 'firebase/storage';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut,
+  UserCredential,
+  User
+} from 'firebase/auth';
 import { app } from '@/app/lib/firebase';
 
 // Initialize Firebase services
@@ -16,43 +47,70 @@ const storage = getStorage(app);
 const auth = getAuth(app);
 
 // Define types for error handling
-type FirebaseError = {
+interface FirebaseError {
   code?: string;
   message: string;
-};
+}
 
 // Define types for query values
 type QueryValue = string | number | boolean | null;
+
+// Define response types
+interface AuthResponse<T = User | null> {
+  data: { user: T };
+  error: FirebaseError | null;
+}
+
+interface DataResponse<T = any> {
+  data: T | null;
+  error: FirebaseError | null;
+}
+
+interface ErrorResponse {
+  error: FirebaseError | null;
+}
+
+interface StorageResponse {
+  data: { 
+    path?: string;
+    url?: string;
+    publicUrl?: string;
+  } | null;
+  error: FirebaseError | null;
+}
 
 // Create a compatibility layer that mimics Supabase client structure
 export const firebaseClient = {
   // Auth compatibility
   auth: {
-    signIn: async ({ email, password }: { email: string; password: string }) => {
+    signIn: async ({ email, password }: { email: string; password: string }): Promise<AuthResponse> => {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential: UserCredential = await signInWithEmailAndPassword(auth, email, password);
         return { data: { user: userCredential.user }, error: null };
-      } catch (error) {
-        return { data: { user: null }, error };
+      } catch (error: unknown) {
+        const firebaseError = error as FirebaseError;
+        return { data: { user: null }, error: firebaseError };
       }
     },
-    signUp: async ({ email, password }: { email: string; password: string }) => {
+    signUp: async ({ email, password }: { email: string; password: string }): Promise<AuthResponse> => {
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
         return { data: { user: userCredential.user }, error: null };
-      } catch (error) {
-        return { data: { user: null }, error };
+      } catch (error: unknown) {
+        const firebaseError = error as FirebaseError;
+        return { data: { user: null }, error: firebaseError };
       }
     },
-    signOut: async () => {
+    signOut: async (): Promise<ErrorResponse> => {
       try {
         await signOut(auth);
         return { error: null };
-      } catch (error) {
-        return { error };
+      } catch (error: unknown) {
+        const firebaseError = error as FirebaseError;
+        return { error: firebaseError };
       }
     },
-    getUser: () => {
+    getUser: (): AuthResponse => {
       const user = auth.currentUser;
       return { data: { user }, error: null };
     }
@@ -60,20 +118,24 @@ export const firebaseClient = {
   
   // Firestore compatibility (mimicking Supabase's .from().select() pattern)
   from: (tableName: string) => {
-    const collectionRef = collection(firestore, tableName);
+    const collectionRef: CollectionReference = collection(firestore, tableName);
     
     return {
       select: () => {
         // In Firebase, we don't need to specify columns to select
         return {
-          eq: async (column: string, value: QueryValue) => {
+          eq: async (column: string, value: QueryValue): Promise<DataResponse<DocumentData[]>> => {
             try {
-              const q = query(collectionRef, where(column, '==', value));
+              const q: Query = query(collectionRef, where(column, '==', value));
               const querySnapshot = await getDocs(q);
-              const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              const data = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({ 
+                id: doc.id, 
+                ...doc.data() 
+              }));
               return { data, error: null };
-            } catch (error) {
-              return { data: null, error };
+            } catch (error: unknown) {
+              const firebaseError = error as FirebaseError;
+              return { data: null, error: firebaseError };
             }
           },
           
@@ -83,19 +145,23 @@ export const firebaseClient = {
             return {
               limit: (limitCount: number) => {
                 return {
-                  eq: async (column: string, value: QueryValue) => {
+                  eq: async (column: string, value: QueryValue): Promise<DataResponse<DocumentData[]>> => {
                     try {
-                      const q = query(
+                      const q: Query = query(
                         collectionRef, 
                         where(column, '==', value),
                         orderBy(column, direction as 'asc' | 'desc'),
                         limit(limitCount)
                       );
                       const querySnapshot = await getDocs(q);
-                      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                      const data = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({ 
+                        id: doc.id, 
+                        ...doc.data() 
+                      }));
                       return { data, error: null };
-                    } catch (error) {
-                      return { data: null, error };
+                    } catch (error: unknown) {
+                      const firebaseError = error as FirebaseError;
+                      return { data: null, error: firebaseError };
                     }
                   }
                 };
@@ -105,21 +171,22 @@ export const firebaseClient = {
         };
       },
       
-      insert: async (data: Record<string, unknown>) => {
+      insert: async (data: Record<string, unknown>): Promise<DataResponse> => {
         try {
           // Generate a new document ID
-          const newDocRef = doc(collectionRef);
+          const newDocRef: DocumentReference = doc(collectionRef);
           await setDoc(newDocRef, { ...data, id: newDocRef.id });
           return { data: { id: newDocRef.id, ...data }, error: null };
-        } catch (error) {
-          return { data: null, error };
+        } catch (error: unknown) {
+          const firebaseError = error as FirebaseError;
+          return { data: null, error: firebaseError };
         }
       },
       
-      update: async (data: Record<string, unknown>, { eq }: { eq: [string, QueryValue] }) => {
+      update: async (data: Record<string, unknown>, { eq }: { eq: [string, QueryValue] }): Promise<DataResponse> => {
         try {
           const [column, value] = eq;
-          const q = query(collectionRef, where(column, '==', value));
+          const q: Query = query(collectionRef, where(column, '==', value));
           const querySnapshot = await getDocs(q);
           
           if (querySnapshot.empty) {
@@ -127,21 +194,22 @@ export const firebaseClient = {
           }
           
           // Update all matching documents
-          const updatePromises = querySnapshot.docs.map(doc => 
+          const updatePromises = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => 
             updateDoc(doc.ref, data)
           );
           
           await Promise.all(updatePromises);
           return { data, error: null };
-        } catch (error) {
-          return { data: null, error };
+        } catch (error: unknown) {
+          const firebaseError = error as FirebaseError;
+          return { data: null, error: firebaseError };
         }
       },
       
-      delete: async ({ eq }: { eq: [string, QueryValue] }) => {
+      delete: async ({ eq }: { eq: [string, QueryValue] }): Promise<ErrorResponse> => {
         try {
           const [column, value] = eq;
-          const q = query(collectionRef, where(column, '==', value));
+          const q: Query = query(collectionRef, where(column, '==', value));
           const querySnapshot = await getDocs(q);
           
           if (querySnapshot.empty) {
@@ -149,14 +217,15 @@ export const firebaseClient = {
           }
           
           // Delete all matching documents
-          const deletePromises = querySnapshot.docs.map(doc => 
+          const deletePromises = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => 
             deleteDoc(doc.ref)
           );
           
           await Promise.all(deletePromises);
           return { error: null };
-        } catch (error) {
-          return { error };
+        } catch (error: unknown) {
+          const firebaseError = error as FirebaseError;
+          return { error: firebaseError };
         }
       }
     };
@@ -166,18 +235,19 @@ export const firebaseClient = {
   storage: {
     from: (bucketName: string) => {
       return {
-        upload: async (path: string, file: File | Blob | Buffer) => {
+        upload: async (path: string, file: File | Blob | ArrayBuffer): Promise<StorageResponse> => {
           try {
-            const fileRef = ref(storage, `${bucketName}/${path}`);
+            const fileRef: StorageReference = ref(storage, `${bucketName}/${path}`);
             await uploadBytes(fileRef, file);
             const url = await getDownloadURL(fileRef);
             return { data: { path, url }, error: null };
-          } catch (error) {
-            return { data: null, error };
+          } catch (error: unknown) {
+            const firebaseError = error as FirebaseError;
+            return { data: null, error: firebaseError };
           }
         },
         
-        getPublicUrl: (path: string) => {
+        getPublicUrl: (path: string): StorageResponse => {
           try {
             return { 
               data: { 
@@ -185,22 +255,24 @@ export const firebaseClient = {
               }, 
               error: null 
             };
-          } catch (error) {
-            return { data: null, error };
+          } catch (error: unknown) {
+            const firebaseError = error as FirebaseError;
+            return { data: null, error: firebaseError };
           }
         },
         
-        remove: async (paths: string[]) => {
+        remove: async (paths: string[]): Promise<StorageResponse> => {
           try {
             const deletePromises = paths.map(path => {
-              const fileRef = ref(storage, `${bucketName}/${path}`);
+              const fileRef: StorageReference = ref(storage, `${bucketName}/${path}`);
               return deleteObject(fileRef);
             });
             
             await Promise.all(deletePromises);
             return { data: null, error: null };
-          } catch (error) {
-            return { data: null, error };
+          } catch (error: unknown) {
+            const firebaseError = error as FirebaseError;
+            return { data: null, error: firebaseError };
           }
         }
       };
@@ -215,182 +287,3 @@ export function getFirebaseCompat() {
 
 // Default export for backward compatibility
 export default firebaseClient;
-/**
- * Firebase Compatibility Layer for Supabase
- * 
- * This file provides a compatibility layer that mimics the Supabase client API
- * but uses Firebase services under the hood. This allows for a gradual migration
- * from Supabase to Firebase without requiring extensive code changes.
- */
-
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { app } from '@/app/lib/firebase';
-
-// Initialize Firebase services
-const firestore = getFirestore(app);
-const storage = getStorage(app);
-const auth = getAuth(app);
-
-// Define types for error handling
-type FirebaseError = {
-  code?: string;
-  message: string;
-};
-
-// Define types for query values
-type QueryValue = string | number | boolean | null;
-
-// Compatibility layer for Supabase client
-export const supabase = {
-  auth: {
-    signUp: async ({ email, password }: { email: string; password: string }) => {
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        return { data: { user: userCredential.user }, error: null };
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseError;
-        return { data: null, error: { message: firebaseError.message } };
-      }
-    },
-    signIn: async ({ email, password }: { email: string; password: string }) => {
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        return { data: { user: userCredential.user }, error: null };
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseError;
-        return { data: null, error: { message: firebaseError.message } };
-      }
-    },
-    signInWithGoogle: async () => {
-      try {
-        const provider = new GoogleAuthProvider();
-        const userCredential = await signInWithPopup(auth, provider);
-        return { data: { user: userCredential.user }, error: null };
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseError;
-        return { data: null, error: { message: firebaseError.message } };
-      }
-    },
-    signOut: async () => {
-      try {
-        await signOut(auth);
-        return { error: null };
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseError;
-        return { error: { message: firebaseError.message } };
-      }
-    },
-    getUser: async () => {
-      const user = auth.currentUser;
-      if (user) {
-        return { data: { user }, error: null };
-      }
-      return { data: { user: null }, error: null };
-    }
-  },
-  from: (tableName: string) => {
-    return {
-      select: () => {
-        return {
-          eq: async (column: string, value: QueryValue) => {
-            try {
-              const q = query(collection(firestore, tableName), where(column, '==', value));
-              const snapshot = await getDocs(q);
-              const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              return { data, error: null };
-            } catch (error: unknown) {
-              const firebaseError = error as FirebaseError;
-              return { data: null, error: { message: firebaseError.message } };
-            }
-          },
-          order: (column: string, { ascending = true } = {}) => {
-            return {
-              limit: async (count: number) => {
-                try {
-                  const q = query(
-                    collection(firestore, tableName), 
-                    orderBy(column, ascending ? 'asc' : 'desc'),
-                    limit(count)
-                  );
-                  const snapshot = await getDocs(q);
-                  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                  return { data, error: null };
-                } catch (error: unknown) {
-                  const firebaseError = error as FirebaseError;
-                  return { data: null, error: { message: firebaseError.message } };
-                }
-              }
-            };
-          }
-        };
-      },
-      insert: async (data: Record<string, unknown>) => {
-        try {
-          const docRef = doc(collection(firestore, tableName));
-          await setDoc(docRef, { ...data, created_at: new Date().toISOString() });
-          return { data: { id: docRef.id, ...data }, error: null };
-        } catch (error: unknown) {
-          const firebaseError = error as FirebaseError;
-          return { data: null, error: { message: firebaseError.message } };
-        }
-      },
-      update: async (data: Record<string, unknown>, { id }: { id: string }) => {
-        try {
-          const docRef = doc(firestore, tableName, id);
-          await updateDoc(docRef, { ...data, updated_at: new Date().toISOString() });
-          return { data, error: null };
-        } catch (error: unknown) {
-          const firebaseError = error as FirebaseError;
-          return { data: null, error: { message: firebaseError.message } };
-        }
-      },
-      delete: async ({ id }: { id: string }) => {
-        try {
-          const docRef = doc(firestore, tableName, id);
-          await deleteDoc(docRef);
-          return { error: null };
-        } catch (error: unknown) {
-          const firebaseError = error as FirebaseError;
-          return { error: { message: firebaseError.message } };
-        }
-      }
-    };
-  },
-  storage: {
-    from: (bucketName: string) => {
-      return {
-        upload: async (path: string, file: File | Blob | ArrayBuffer) => {
-          try {
-            const fileRef = ref(storage, `${bucketName}/${path}`);
-            await uploadBytes(fileRef, file);
-            const url = await getDownloadURL(fileRef);
-            return { data: { path, url }, error: null };
-          } catch (error: unknown) {
-            const firebaseError = error as FirebaseError;
-            return { data: null, error: { message: firebaseError.message } };
-          }
-        },
-        getPublicUrl: (path: string) => {
-          return { publicUrl: `https://firebasestorage.googleapis.com/v0/b/${storage.app.options.storageBucket}/o/${encodeURIComponent(`${bucketName}/${path}`)}?alt=media` };
-        },
-        remove: async (paths: string[]) => {
-          try {
-            const promises = paths.map(path => {
-              const fileRef = ref(storage, `${bucketName}/${path}`);
-              return deleteObject(fileRef);
-            });
-            await Promise.all(promises);
-            return { data: null, error: null };
-          } catch (error: unknown) {
-            const firebaseError = error as FirebaseError;
-            return { data: null, error: { message: firebaseError.message } };
-          }
-        }
-      };
-    }
-  }
-};
-
-export default supabase;

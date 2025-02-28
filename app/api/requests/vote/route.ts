@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { voteSchema } from '@/app/lib/schemas/lesson-request'
+import { getAuth, User } from 'firebase/auth'
+import { getApp } from 'firebase/app'
+import { firebaseClient } from '@/app/services/firebase-compat'
 
 export const runtime = 'edge'
 
@@ -7,15 +10,16 @@ export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
 
-    const { data: { session }, error: sessionError } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-})
+    // Get the current user using the route handler client
+    const user = await new Promise<User | null>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user);
+      });
+    });
     
-    if (sessionError || !session?.user?.id) {
+    if (!user || !user.uid) {
       console.log('API aborting - auth error:', sessionError || 'No user session');
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -28,34 +32,31 @@ export async function POST(request: Request) {
     const { requestId, voteType } = voteSchema.parse(body)
 
     // Check for existing vote
-    const { data: existingVote } = await supabase
+    const { data: existingVote } = await firebaseClient
       .from('lesson_request_votes')
       .select()
-      .match({ 
-        request_id: requestId,
-        user_id: user.uid 
-      })
-      .single()
+      .eq('request_id', requestId)
+      .eq('user_id', user.uid)
+      .get()
     console.log('Existing vote check:', existingVote);
 
     if (existingVote) {
       console.log('Deleting existing vote');
       // Delete existing vote if it exists
-      await supabase
+      await firebaseClient
         .from('lesson_request_votes')
-        .delete()
-        .match({ id: existingVote.id })
+        .delete({ eq: ['id', existingVote.id] })
     }
 
     // Insert new vote
     console.log('Inserting new vote');
-    const { error: voteError } = await supabase
+    const { error: voteError } = await firebaseClient
       .from('lesson_request_votes')
-      .insert([{
+      .insert({
         request_id: requestId,
         user_id: user.uid,
         vote_type: voteType
-      }])
+      })
 
     if (voteError) {
       console.error('Vote insert error:', voteError);
@@ -64,8 +65,27 @@ export async function POST(request: Request) {
 
     // Update vote count
     console.log('Updating vote count');
-    const { error: updateError } = await supabase
-      .rpc('update_vote_count', { request_id: requestId })
+    // Since we don't have RPC in Firebase, we need to implement the vote count update directly
+    const { data: request } = await firebaseClient
+      .from('lesson_requests')
+      .select()
+      .eq('id', requestId)
+      .get();
+      
+    if (request && request.length > 0) {
+      // Calculate the new vote count
+      const { data: votes } = await firebaseClient
+        .from('lesson_request_votes')
+        .select()
+        .eq('request_id', requestId)
+        .get();
+        
+      const voteCount = votes ? votes.length : 0;
+      
+      // Update the request with the new vote count
+      const { error: updateError } = await firebaseClient
+        .from('lesson_requests')
+        .update({ vote_count: voteCount }, { eq: ['id', requestId] });
 
     if (updateError) {
       console.error('Vote count update error:', updateError);

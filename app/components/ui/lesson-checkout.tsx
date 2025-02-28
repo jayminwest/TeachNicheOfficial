@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
-import { getAuth } from 'firebase/auth';
-import { getApp } from 'firebase/app';;
 import { useRouter } from 'next/navigation';
 import { calculateFees, formatPrice, PAYMENT_CONSTANTS } from '@/app/lib/constants';
 
@@ -36,12 +34,23 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
 
       // Check auth status
       const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+        // Dynamically import Firebase auth to avoid SSR issues
+        import('firebase/auth').then(({ getAuth, onAuthStateChanged }) => {
+          import('firebase/app').then(({ getApp }) => {
+            const auth = getAuth(getApp());
+            const unsubscribe = onAuthStateChanged(auth, user => {
+              unsubscribe();
+              resolve({ data: { session: user ? { user } : null }, error: null });
+            });
+          }).catch(error => {
+            console.error('Error importing Firebase app:', error);
+            resolve({ data: { session: null }, error: null });
+          });
+        }).catch(error => {
+          console.error('Error importing Firebase auth:', error);
+          resolve({ data: { session: null }, error: null });
+        });
+      });
       
       if (!session) {
         setError('Please sign in to purchase this lesson');

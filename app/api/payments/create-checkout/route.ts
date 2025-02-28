@@ -153,7 +153,25 @@ export async function POST(request: NextRequest) {
       category?: string;
     }
     
-    const lesson = lessons && lessons.length > 0 ? lessons[0] as Lesson : null;
+    // Helper function to safely convert a record to Lesson type
+    const toLessonType = (record: Record<string, unknown>): Lesson => {
+      return {
+        id: String(record.id || ''),
+        title: String(record.title || ''),
+        price: Number(record.price || 0),
+        creator_id: String(record.creator_id || ''),
+        description: record.description ? String(record.description) : undefined,
+        status: record.status ? String(record.status) : undefined,
+        content: record.content ? String(record.content) : undefined,
+        mux_asset_id: record.mux_asset_id ? String(record.mux_asset_id) : undefined,
+        mux_playback_id: record.mux_playback_id ? String(record.mux_playback_id) : undefined,
+        created_at: record.created_at ? String(record.created_at) : undefined,
+        updated_at: record.updated_at ? String(record.updated_at) : undefined,
+        category: record.category ? String(record.category) : undefined,
+      };
+    };
+    
+    const lesson = lessons && lessons.length > 0 ? toLessonType(lessons[0]) : null;
       
     if (lessonError || !lesson) {
       return NextResponse.json(

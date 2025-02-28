@@ -41,6 +41,7 @@ const DialogContent = React.forwardRef<
       React.isValidElement(child) && 
       (child.type === DialogTitle || 
        (child.type === DialogHeader && 
+        React.isValidElement(child) && 'children' in child.props &&
         React.Children.toArray(child.props.children).some(
           (headerChild) => React.isValidElement(headerChild) && headerChild.type === DialogTitle
         ))

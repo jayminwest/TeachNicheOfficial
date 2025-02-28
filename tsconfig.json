@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,7 +23,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
@@ -28,11 +34,18 @@
     "useUnknownInCatchVariables": false,
     "exactOptionalPropertyTypes": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
   "exclude": [
-    "node_modules", 
+    "node_modules",
     "scripts/**/*",
     "e2e-tests/playwright-report/**/*"
   ],
-  "files": ["e2e-tests/setup/global.d.ts"]
+  "files": [
+    "e2e-tests/setup/global.d.ts"
+  ]
 }

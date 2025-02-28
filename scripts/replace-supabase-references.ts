@@ -60,7 +60,7 @@ const replacements = [
   },
   {
     pattern: /supabase\.auth\.signUp\(\s*{\s*email\s*:\s*([^,}]+),\s*password\s*:\s*([^,}]+)(?:,\s*options\s*:\s*{\s*data\s*:\s*{\s*([^}]+)\s*}\s*})?\s*}\s*\)/g,
-    replacement: (match, email, password, data) => {
+    replacement: (match: string, email: string, password: string, data?: string) => {
       if (data) {
         return `auth.createUserWithEmailAndPassword(${email}, ${password}).then(userCredential => {
           return firestore.collection('profiles').doc(userCredential.user.uid).set({
@@ -120,7 +120,7 @@ const replacements = [
   },
   {
     pattern: /supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)\.order\(['"]([^'"]+)['"]\s*(?:,\s*{\s*ascending\s*:\s*(true|false)\s*})?\)/g,
-    replacement: (match, table, select, orderField, ascending) => {
+    replacement: (match: string, table: string, select: string, orderField: string, ascending: string) => {
       const direction = ascending === 'false' ? 'desc' : 'asc';
       return `firestore.collection('${table}').orderBy('${orderField}', '${direction}').get().then(snapshot => snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })))`;
     },
@@ -135,7 +135,7 @@ const replacements = [
   // Complex patterns for destructured query results
   {
     pattern: /const\s+{\s*data\s*(?::\s*([a-zA-Z0-9_]+))?\s*,\s*error\s*}\s*=\s*await\s+supabase\.from\(['"]([^'"]+)['"]\)\.select\((['"][^'"]*['"])\)\.eq\(['"]([^'"]+)['"]\s*,\s*([^)]+)\)/g,
-    replacement: (match, dataVar, table, select, field, value) => {
+    replacement: (match: string, dataVar: string, table: string, select: string, field: string, value: string) => {
       const dataVarName = dataVar || 'data';
       return `let ${dataVarName} = null;\nlet error = null;\ntry {\n  const snapshot = await firestore.collection('${table}').where('${field}', '==', ${value}).get();\n  ${dataVarName} = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));\n} catch (e) {\n  error = e;\n}`;
     },
@@ -194,7 +194,7 @@ function processFile(filePath: string): void {
         
         if (typeof replacement === 'function') {
           // For function-based replacements
-          newContent = newContent.replace(pattern, (...args) => {
+          newContent = newContent.replace(pattern, (...args: any[]) => {
             hasChanges = true;
             return replacement(...args);
           });

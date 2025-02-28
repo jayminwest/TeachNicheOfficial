@@ -69,31 +69,30 @@ export const firebaseClient = {
       select: () => {
         let queryRef = collectionRef;
         const filters = [];
-        
-        return {
+        const queryBuilder = {
           eq: (field, value) => {
             filters.push(where(field, '==', value));
-            return this;
+            return queryBuilder;
           },
           
           gt: (field, value) => {
             filters.push(where(field, '>', value));
-            return this;
+            return queryBuilder;
           },
           
           lt: (field, value) => {
             filters.push(where(field, '<', value));
-            return this;
+            return queryBuilder;
           },
           
           orderBy: (field, direction = 'asc') => {
             filters.push(orderBy(field, direction));
-            return this;
+            return queryBuilder;
           },
           
           limit: (count) => {
             filters.push(limit(count));
-            return this;
+            return queryBuilder;
           },
           
           execute: async () => {

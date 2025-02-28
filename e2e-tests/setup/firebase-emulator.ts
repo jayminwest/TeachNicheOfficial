@@ -1,4 +1,4 @@
-import { test as setup } from '@playwright/test';
+import { test as setup, BrowserContext } from '@playwright/test';
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import fs from 'fs';
 
@@ -23,10 +23,10 @@ setup.afterAll(async () => {
   await testEnv.cleanup();
 });
 
-setup.beforeEach(async ({ context }) => {
+setup.beforeEach(async ({ context }: { context: BrowserContext }) => {
   // Clear all emulator data between tests
-  await testEnv.clearFirestore();
-  await testEnv.clearAuthentication();
+  await testEnv?.clearFirestore();
+  await testEnv?.clearAuthentication();
 
   // Set emulator flags in browser context
   await context.addInitScript(() => {

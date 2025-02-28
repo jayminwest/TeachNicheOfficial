@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { firebaseClient } from '@/app/services/firebase-compat';
-import { getAuth } from 'firebase/auth';
+import { getAuth, User } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 
 interface LessonData {
@@ -18,7 +18,7 @@ interface LessonData {
 async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const user = await new Promise(resolve => {
+    const user = await new Promise<User | null>(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();
@@ -143,7 +143,7 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const user = await new Promise(resolve => {
+    const user = await new Promise<User | null>(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();
@@ -208,7 +208,7 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const user = await new Promise(resolve => {
+    const user = await new Promise<User | null>(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();

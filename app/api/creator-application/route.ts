@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuth } from "firebase/auth";
+import { getAuth, User } from "firebase/auth";
 import { getApp } from "firebase/app";
 import { firebaseClient } from '@/app/services/firebase-compat';
 
@@ -25,7 +25,7 @@ const applicationSchema = z.object({
 export async function POST(request: Request) {
   try {
     // Get the current user
-    const user = await new Promise(resolve => {
+    const user = await new Promise<User | null>(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();

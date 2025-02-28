@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuth } from "firebase/auth";
 import { getApp } from "firebase/app";
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 // Schema for validation
 const applicationSchema = z.object({
@@ -54,9 +55,9 @@ export async function POST(request: Request) {
     }
     
     // Check if user already has a pending or approved application
-    const { data: existingApplications, error: queryError } = await supabase
+    const { data: existingApplications, error: queryError } = await firebaseClient
       .from('creator_applications')
-      .select('id, status')
+      .select()
       .eq('user_id', user.uid)
       .in('status', ['pending', 'approved']);
     
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     }
     
     // Insert the application into the database
-    const { data: application, error: insertError } = await supabase
+    const { data: application, error: insertError } = await firebaseClient
       .from('creator_applications')
       .insert({
         user_id: user.uid,

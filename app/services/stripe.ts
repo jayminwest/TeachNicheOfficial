@@ -247,7 +247,7 @@ export const verifyConnectedAccount = async (
     const profiles = await databaseService.list('profiles', { id: userId });
     
     // Check if we got results
-    let profile = profiles && profiles.length > 0 ? profiles[0] : null;
+    const profile = profiles && profiles.length > 0 ? profiles[0] : null;
     
     if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
       return { verified: false, status: { isComplete: false } };

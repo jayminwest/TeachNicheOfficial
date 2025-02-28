@@ -180,7 +180,7 @@ export class FirestoreDatabase implements DatabaseService {
       if (value instanceof Timestamp) {
         result[key] = value.toDate();
       } else if (value && typeof value === 'object') {
-        result[key] = this.convertTimestamps(value as any);
+        result[key] = this.convertTimestamps(value as Record<string, unknown>);
       }
     });
     

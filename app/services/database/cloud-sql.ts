@@ -59,7 +59,7 @@ export class CloudSqlDatabase implements DatabaseService {
     return rows;
   }
   
-  async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}): Promise<any[]> {
+  async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}): Promise<Record<string, unknown>[]> {
     let query = 'SELECT * FROM lessons WHERE 1=1';
     const params: (string | number | boolean)[] = [];
     let paramIndex = 1;

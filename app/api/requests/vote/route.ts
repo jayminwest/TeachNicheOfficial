@@ -7,7 +7,13 @@ export async function POST(request: Request) {
   console.log('Vote API route called');
   try {
 
-    const { data: { session }, error: sessionError } = await firebaseAuth.getSession()
+    const { data: { session }, error: sessionError } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+})
     
     if (sessionError || !session?.user?.id) {
       console.log('API aborting - auth error:', sessionError || 'No user session');
@@ -27,7 +33,7 @@ export async function POST(request: Request) {
       .select()
       .match({ 
         request_id: requestId,
-        user_id: user.id 
+        user_id: user.uid 
       })
       .single()
     console.log('Existing vote check:', existingVote);
@@ -47,7 +53,7 @@ export async function POST(request: Request) {
       .from('lesson_request_votes')
       .insert([{
         request_id: requestId,
-        user_id: user.id,
+        user_id: user.uid,
         vote_type: voteType
       }])
 

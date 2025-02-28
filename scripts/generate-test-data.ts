@@ -21,7 +21,8 @@
 
 import * as dotenv from 'dotenv';
 import { randomUUID } from 'crypto';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { faker } from '@faker-js/faker';
 import * as fs from 'fs';
 import * as path from 'path';

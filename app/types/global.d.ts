@@ -30,7 +30,7 @@ declare global {
     eq: (column: string, value: unknown) => SupabaseQueryBuilder;
     order: (column: string, options?: { ascending?: boolean }) => SupabaseQueryBuilder;
     match: (query: Record<string, unknown>) => SupabaseQueryBuilder;
-    single: () => Promise<{ data: any; error: any }>;
+    single: () => Promise<{ data: unknown; error: unknown }>;
     limit: (count: number) => SupabaseQueryBuilder;
     data: unknown[];
     error: unknown;

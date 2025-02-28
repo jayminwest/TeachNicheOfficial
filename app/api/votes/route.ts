@@ -80,10 +80,20 @@ export async function POST(request: Request) {
       { field: 'user_id', operator: '==', value: user.uid }
     ]);
     
+    // Define the vote interface
+    interface Vote {
+      id: string;
+      request_id: string;
+      user_id: string;
+      vote_type: string;
+      created_at: string;
+      updated_at?: string;
+    }
+    
     const existingVotes = existingVoteResult && Array.isArray(existingVoteResult.rows) ? existingVoteResult.rows : [];
-    const existingVote = existingVotes.length > 0 ? existingVotes[0] : null;
+    const existingVote = existingVotes.length > 0 ? existingVotes[0] as Vote : null;
 
-    if (existingVote && 'id' in existingVote) {
+    if (existingVote && existingVote.id) {
       // Update existing vote
       try {
         const updatedVote = await db.update('lesson_request_votes', existingVote.id, { 

@@ -287,7 +287,9 @@ export class FirebaseAuthService implements AuthService {
       avatarUrl: user.photoURL || '',
       metadata: {
         createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || ''
+        lastSignInTime: user.metadata.lastSignInTime || '',
+        provider: user.providerData?.[0]?.providerId || 'firebase',
+        emailVerified: user.emailVerified || false
       }
     };
   }
@@ -363,7 +365,7 @@ export async function signInWithGoogle() {
     
     const userCredential = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(userCredential);
-    const token = credential?.accessToken;
+    const token = credential ? (credential as any).accessToken : null;
     
     return { 
       user: transformUser(userCredential.user), 
@@ -413,7 +415,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
           unsubscribe();
           resolve(user ? transformUser(user) : null);
-        }, (error) => {
+        }, (error: Error) => {
           console.error('Error in onAuthStateChanged:', error);
           unsubscribe();
           resolve(null);
@@ -437,7 +439,7 @@ function transformUser(firebaseUser: FirebaseUser): AuthUser {
     avatarUrl: firebaseUser.photoURL || '',
     metadata: {
       provider: firebaseUser.providerData?.[0]?.providerId || 'firebase',
-      emailVerified: firebaseUser.emailVerified,
+      emailVerified: firebaseUser.emailVerified || false,
       createdAt: firebaseUser.metadata?.creationTime || '',
       lastSignInTime: firebaseUser.metadata?.lastSignInTime || ''
     }

@@ -111,7 +111,9 @@ export function getCurrentUser(): Promise<AuthUser | null> {
       avatarUrl: user.photoURL || '',
       metadata: {
         createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || ''
+        lastSignInTime: user.metadata.lastSignInTime || '',
+        provider: user.providerData?.[0]?.providerId || 'firebase',
+        emailVerified: user.emailVerified || false
       }
     });
   });

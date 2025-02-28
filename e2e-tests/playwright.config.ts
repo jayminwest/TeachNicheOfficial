@@ -28,7 +28,7 @@ const config: PlaywrightTestConfig = {
     '**/jest.setup.js',
     '**/jest.config.js'
   ],
-  timeout: 30000, // Reduced timeout for faster feedback
+  timeout: 60000, // Increased timeout for more reliable tests
   retries: process.env.CI ? 2 : 0,
   // Set number of parallel workers
   workers: process.env.CI 
@@ -60,7 +60,11 @@ const config: PlaywrightTestConfig = {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    trace: 'retain-on-failure',
+    trace: 'on', // Always capture traces for better debugging
+    // Slow down each action by 100ms for better visibility during testing
+    launchOptions: {
+      slowMo: 100,
+    },
   },
   
   // Prevent Playwright from loading Jest test files

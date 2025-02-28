@@ -32,3 +32,21 @@ setup('setup firebase emulators', async ({ page }) => {
   
   console.log('Firebase emulator setup complete');
 });
+import { test as setup } from '@playwright/test';
+
+/**
+ * Setup file for Firebase emulator integration
+ * This runs before tests that need Firebase emulator access
+ */
+setup('setup firebase emulators', async () => {
+  console.log('Setting up Firebase emulator environment...');
+  
+  // Set environment variables for emulator use
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
+  
+  // You could also start the emulators here if they're not already running
+  // This would require the firebase-tools package to be installed
+  
+  console.log('Firebase emulator environment setup complete');
+});

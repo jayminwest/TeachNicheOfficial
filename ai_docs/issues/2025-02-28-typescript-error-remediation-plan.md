@@ -4,8 +4,8 @@ This document outlines a systematic approach to addressing all TypeScript errors
 
 ## Overview
 
-- **Total Files with Errors**: 59
-- **Total Errors**: 219
+- **Total Files with Errors**: 47
+- **Total Errors**: 147
 - **Current Status**: In progress
 - **Target Completion**: March 15, 2025
 
@@ -35,48 +35,49 @@ For each file:
 ### Critical Path (P0)
 
 - [x] app/services/stripe.ts (1 error) <!-- 2025-03-01: Fixed by updating verifyConnectedAccount to use DatabaseService -->
-- [ ] app/api/stripe/connect/callback/route.ts (2 errors)
-- [ ] app/api/stripe/connect/route.ts (6 errors)
-- [ ] app/api/stripe/connect/status/route.ts (5 errors)
+- [ ] app/api/stripe/connect/callback/route.ts (1 error)
+- [ ] app/api/stripe/connect/route.ts (4 errors)
+- [ ] app/api/stripe/connect/status/route.ts (6 errors)
 - [ ] app/api/webhooks/stripe/route.ts (9 errors)
 - [ ] app/components/ui/lesson-checkout.tsx (1 error)
-- [x] app/services/auth/firebase-auth-adapter.ts (5 errors) <!-- 2025-03-01: Fixed by adding null checks and default values -->
-- [x] app/services/auth/firebase-auth-service.ts (4 errors) <!-- 2025-03-01: Fixed by adding null checks and default values -->
+- [ ] app/services/auth/firebase-auth-adapter.ts (14 errors) <!-- 2025-03-01: Fixed by adding null checks and default values -->
+- [ ] app/services/auth/firebase-auth-service.ts (4 errors) <!-- 2025-03-01: Fixed by adding null checks and default values -->
 - [ ] app/lib/firebase-auth-helpers.ts (3 errors)
 
 ### Core Services (P1)
 
-- [x] app/services/firebase-compat.ts (54 errors) <!-- 2025-02-28: Fixed by adding proper type definitions and error handling -->
-- [x] app/services/database/cloud-sql.ts (3 errors) <!-- 2025-03-01: Fixed by adding proper return types -->
-- [x] app/services/database/firebase-database.ts (1 error) <!-- 2025-03-01: Fixed by properly typing the convertTimestamps function -->
-- [x] app/services/database/index.ts (1 error) <!-- 2025-03-01: Fixed by updating import from supabase to firebase-database -->
-- [x] app/services/storage/cloud-storage.ts (1 error) <!-- 2025-03-01: Fixed by updating deleteFile return type -->
-- [x] app/services/storage/firebase-storage-service.ts (2 errors) <!-- 2025-03-01: Fixed by properly typing getContentType -->
-- [x] app/services/storage/firebase-storage.ts (2 errors) <!-- 2025-03-01: Fixed by updating deleteFile return type -->
-- [x] app/services/earnings.ts (2 errors) <!-- 2025-03-01: Fixed by replacing Supabase references with DatabaseService -->
-- [x] app/services/payouts.ts (2 errors) <!-- 2025-03-01: Fixed by replacing Supabase references with DatabaseService -->
-- [x] app/services/email/firebase-email.ts (1 error) <!-- 2025-03-01: Fixed by adding error parameter to catch block -->
-- [ ] app/lib/firebase/client.ts (3 errors)
-- [ ] app/lib/firebase/requests.ts (4 errors)
+- [x] app/services/firebase-compat.ts (1 error) <!-- 2025-02-28: Fixed by adding proper type definitions and error handling -->
+- [ ] app/services/database/cloud-sql.ts (5 errors) <!-- 2025-03-01: Fixed by adding proper return types -->
+- [ ] app/services/database/firebase-database.ts (2 errors) <!-- 2025-03-01: Fixed by properly typing the convertTimestamps function -->
+- [ ] app/services/database/index.ts (1 error) <!-- 2025-03-01: Fixed by updating import from supabase to firebase-database -->
+- [ ] app/services/storage/cloud-storage.ts (2 errors) <!-- 2025-03-01: Fixed by updating deleteFile return type -->
+- [ ] app/services/storage/firebase-storage-service.ts (2 errors) <!-- 2025-03-01: Fixed by properly typing getContentType -->
+- [ ] app/services/storage/firebase-storage.ts (3 errors) <!-- 2025-03-01: Fixed by updating deleteFile return type -->
+- [ ] app/services/earnings.ts (16 errors) <!-- 2025-03-01: Fixed by replacing Supabase references with DatabaseService -->
+- [ ] app/services/payouts.ts (4 errors) <!-- 2025-03-01: Fixed by replacing Supabase references with DatabaseService -->
+- [ ] app/services/email/firebase-email.ts (1 error) <!-- 2025-03-01: Fixed by adding error parameter to catch block -->
+- [ ] app/lib/firebase/client.ts (1 error)
+- [ ] app/lib/firebase/requests.ts (6 errors)
 - [ ] app/hooks/use-lesson-access.ts (1 error)
-- [ ] app/api/votes/route.ts (9 errors)
+- [ ] app/api/votes/route.ts (10 errors)
 - [ ] app/api/waitlist/notify/route.ts (1 error)
 
 ### UI Components (P2)
 
 - [ ] app/components/ui/auth-dialog.tsx (1 error)
-- [ ] app/components/ui/bank-account-form.tsx (5 errors)
+- [ ] app/components/ui/bank-account-form.tsx (6 errors)
 - [ ] app/components/ui/dialog.tsx (1 error)
 - [ ] app/components/ui/email-signup.tsx (1 error)
-- [ ] app/components/ui/lesson-creation-restriction.tsx (1 error)
-- [ ] app/components/ui/sign-in.tsx (2 errors)
+- [ ] app/components/ui/lesson-creation-restriction.tsx (2 errors)
+- [ ] app/components/ui/sign-in.tsx (1 error)
+- [ ] app/components/ui/sign-up.tsx (3 errors)
 - [ ] app/dashboard/components/earnings-history.tsx (1 error)
 - [ ] app/dashboard/components/earnings-widget.tsx (1 error)
 - [ ] app/dashboard/components/payout-history.tsx (1 error)
 - [ ] app/lessons/[id]/lesson-detail.tsx (2 errors)
 - [ ] app/lessons/new/page.tsx (2 errors)
-- [ ] app/lessons/page.tsx (3 errors)
-- [ ] app/my-lessons/page.tsx (5 errors)
+- [ ] app/lessons/page.tsx (6 errors)
+- [ ] app/my-lessons/page.tsx (6 errors)
 - [ ] app/profile/page.tsx (2 errors)
 - [ ] app/requests/components/request-card.tsx (3 errors)
 - [ ] app/requests/components/request-grid.tsx (1 error)
@@ -86,8 +87,9 @@ For each file:
 - [ ] app/__tests__/test-utils.tsx (2 errors)
 - [ ] app/api/checkout/__tests__/checkout.test.ts (1 error)
 - [ ] app/api/lessons/__tests__/lessons.test.ts (10 errors)
+- [ ] app/components/ui/__tests__/sign-in.test.tsx (1 error)
 - [ ] app/requests/__tests__/page.test.tsx (2 errors)
-- [ ] app/services/auth/__tests__/auth-context.test.tsx (1 error)
+- [ ] app/services/auth/__tests__/auth-context.test.tsx (4 errors)
 - [ ] app/services/auth/__tests__/AuthContext.test.tsx (1 error)
 - [x] e2e-tests/setup/firebase-emulator.setup.ts (2 errors) <!-- 2025-02-28: Fixed by properly typing window object and fixing duplicate code -->
 - [x] e2e-tests/setup/firebase-emulator.ts (1 error) <!-- 2025-02-28: Fixed by making testEnv possibly undefined -->
@@ -174,11 +176,11 @@ function MyComponent({ name, count, optional = false }: MyComponentProps) {
 
 | Category | Total Files | Files Fixed | Progress |
 |----------|-------------|-------------|----------|
-| Critical Path (P0) | 9 | 3 | 33.3% |
-| Core Services (P1) | 15 | 11 | 73.3% |
-| UI Components (P2) | 16 | 0 | 0% |
-| Tests and Scripts (P3) | 19 | 13 | 68.4% |
-| **Overall** | **59** | **27** | **45.8%** |
+| Critical Path (P0) | 9 | 1 | 11.1% |
+| Core Services (P1) | 15 | 1 | 6.7% |
+| UI Components (P2) | 17 | 0 | 0% |
+| Tests and Scripts (P3) | 20 | 13 | 65.0% |
+| **Overall** | **61** | **15** | **24.6%** |
 
 ## Verification Command
 
@@ -214,7 +216,8 @@ This task will be considered complete when:
 | 2025-02-28 | TypeScript Team | app/services/firebase-compat.ts | Fixed by adding proper interfaces, type annotations, and error handling |
 | 2025-02-28 | TypeScript Team | scripts/* (9 files) | Excluded scripts directory from TypeScript checking in tsconfig.json |
 | 2025-02-28 | TypeScript Team | e2e-tests/setup/* (3 files) | Fixed type errors in Firebase emulator setup files |
-| 2025-03-01 | TypeScript Team | app/services/* (13 files) | Fixed type errors in core services by adding proper return types, null checks, and replacing Supabase references |
+| 2025-03-01 | TypeScript Team | app/services/stripe.ts | Fixed by updating verifyConnectedAccount to use DatabaseService |
+| 2025-03-01 | TypeScript Team | app/services/auth/* | Started fixing auth service files, more work needed |
 
 ## References
 

@@ -132,6 +132,29 @@ export const firebaseClient = {
             return queryBuilder;
           },
           
+          // Add get method for compatibility with Supabase
+          get: async () => {
+            try {
+              queryRef = query(collectionRef, ...filters);
+              const querySnapshot = await getDocs(queryRef);
+              
+              const results = [];
+              querySnapshot.forEach((doc) => {
+                results.push({ id: doc.id, ...doc.data() });
+              });
+              
+              return {
+                data: results,
+                error: null
+              };
+            } catch (error) {
+              return {
+                data: null,
+                error: { message: error instanceof Error ? error.message : String(error) }
+              };
+            }
+          },
+          
           execute: async () => {
             try {
               queryRef = query(collectionRef, ...filters);

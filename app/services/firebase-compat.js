@@ -149,7 +149,7 @@ export const firebaseClient = {
               };
             } catch (error) {
               return {
-                data: null,
+                data: [], // Return empty array instead of null
                 error: { message: error instanceof Error ? error.message : String(error) }
               };
             }
@@ -171,7 +171,7 @@ export const firebaseClient = {
               };
             } catch (error) {
               return {
-                data: null,
+                data: [], // Return empty array instead of null
                 error: { message: error instanceof Error ? error.message : String(error) }
               };
             }
@@ -198,7 +198,7 @@ export const firebaseClient = {
           
           if (querySnapshot.empty) {
             return {
-              data: null,
+              data: [], // Return empty array instead of null
               error: { message: 'Document not found' }
             };
           }
@@ -239,7 +239,7 @@ export const firebaseClient = {
           
           if (querySnapshot.empty) {
             return {
-              data: null,
+              data: [], // Return empty array instead of null
               error: { message: 'Document not found' }
             };
           }

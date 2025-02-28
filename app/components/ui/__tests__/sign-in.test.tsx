@@ -11,13 +11,15 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Create a mock function for signInWithGoogle
-const mockSignInWithGoogle = jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' });
-
 // Mock the firebase-auth module
-jest.mock('@/app/services/auth/firebase-auth', () => ({
-  signInWithGoogle: mockSignInWithGoogle
-}));
+jest.mock('@/app/services/auth/firebase-auth', () => {
+  return {
+    signInWithGoogle: jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' })
+  };
+});
+
+// Get the mocked function for use in tests
+const mockSignInWithGoogle = jest.requireMock('@/app/services/auth/firebase-auth').signInWithGoogle;
 
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn(),

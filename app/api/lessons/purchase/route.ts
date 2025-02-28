@@ -40,11 +40,13 @@ export async function POST(request: Request) {
     }
 
     // Get lesson and creator details
-    const { data: lesson, error: lessonError } = await firebaseClient
+    const { data: lessons, error: lessonError } = await firebaseClient
       .from('lessons')
       .select()
-      .eq('id', lessonId)
-      .single()
+      .eq('id', lessonId);
+    
+    // Get the single lesson from the array
+    const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
 
     if (lessonError || !lesson) {
       console.error('Lesson fetch error:', lessonError)

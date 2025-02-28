@@ -88,7 +88,6 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('[data-testid="sign-in-button"]')).toBeVisible();
   });
 });
-import { test, expect } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
   test('should allow user to sign in', async ({ page }) => {

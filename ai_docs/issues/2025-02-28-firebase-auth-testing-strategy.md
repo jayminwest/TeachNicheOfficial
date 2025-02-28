@@ -327,16 +327,15 @@ We've made significant progress implementing the testing strategy for Firebase a
 
 ### E2E Tests: Authentication Flow
 **File:** `e2e-tests/tests/auth-flow.spec.ts`
-- ❌ Tests failing due to URL configuration issues
-  1. Sign in
-  2. Invalid credentials
-  3. Sign up
-  4. Sign out
+- ❌ Tests failing due to syntax errors and configuration issues
+  1. Duplicate declaration of `test` import
+  2. Navigation failing with "Cannot navigate to invalid URL" error
+  3. Need to configure proper test environment and server
 
 **Key Issues Identified:**
-- Navigation failing with "Cannot navigate to invalid URL" error
-- Updated tests to use absolute URLs (`http://localhost:3000/`)
-- Need to configure proper test environment and server
+- Import structure needs to be fixed to avoid duplicate declarations
+- Tests need to use absolute URLs (`http://localhost:3000/`)
+- Development server must be running during tests
 
 ### Firebase Emulator Integration
 **File:** `e2e-tests/setup/firebase-emulator.setup.ts`
@@ -359,6 +358,7 @@ We've made significant progress implementing the testing strategy for Firebase a
    - ✅ Add defensive coding in `mapFirebaseUserToAuthUser` to handle missing properties
 
 2. **Complete E2E Test Setup:**
+   - Fix duplicate import issues in E2E test files
    - Configure development server for E2E tests
    - Ensure Firebase emulator is running during tests
    - Update Playwright configuration to use correct base URL

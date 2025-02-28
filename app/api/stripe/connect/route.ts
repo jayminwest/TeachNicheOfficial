@@ -1,7 +1,8 @@
 import { stripe, createConnectSession, getStripe } from '@/app/services/stripe';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getAuth, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';
 import { firebaseClient } from '@/app/services/firebase-compat';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: Request) {
   // First try cookie-based session
-  const sessionData = await new Promise<{ user: any } | null>(resolve => {
+  const sessionData = await new Promise<{ user: { uid: string; email: string } } | null>(resolve => {
     const auth = getAuth(getApp());
     const unsubscribe = auth.onAuthStateChanged(user => {
       unsubscribe();
@@ -136,7 +137,7 @@ export async function POST(request: Request) {
           .from('profiles')
           .update({ stripe_account_id: account.id })
           .eq('id', user.uid);
-      } catch (updateError) {
+      } catch (error) {
 
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {

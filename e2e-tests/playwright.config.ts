@@ -119,6 +119,15 @@ const config: PlaywrightTestConfig = {
   // Global setup to run before tests
   globalSetup: './setup/test-setup.ts',
   
+  // Add setup for Firebase emulators
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    ...config.projects || [],
+  ],
+  
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.05,

@@ -69,7 +69,8 @@ export async function POST(request: Request) {
     }
     
     if (existingApplications && existingApplications.length > 0) {
-      const application = existingApplications.find(app => 
+      // Define the type for application to include status
+      const application = existingApplications.find((app: { status?: string }) => 
         app.status === 'pending' || app.status === 'approved'
       );
       

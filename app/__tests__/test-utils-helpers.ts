@@ -1,7 +1,4 @@
 import { UserMetadata } from 'firebase/auth';
-import type { NextRequest } from 'next/server';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
 
 /**
  * Extended user metadata interface to handle custom properties
@@ -16,7 +13,7 @@ export interface ExtendedUserMetadata extends UserMetadata {
  * Helper function to convert mock requests to Request objects for API route handlers
  * This solves the common TS2345 error in tests where MockRequest is not assignable to Request
  */
-export function asRequest(mockRequest: Record<string, unknown> | any): Request {
+export function asRequest(mockRequest: Record<string, unknown> | unknown): Request {
   return mockRequest as unknown as Request;
 }
 
@@ -35,10 +32,10 @@ export function hasDataSession(obj: unknown): obj is { data: { session: unknown 
 /**
  * Type for MockRequest used in tests
  */
-export type MockRequest<T = any> = T & {
-  [key: string]: any;
+export type MockRequest<T = unknown> = T & {
+  [key: string]: unknown;
   _setParameter: (key: string, value?: string) => void;
-  _addBody: (key: string, value?: any) => void;
+  _addBody: (key: string, value?: unknown) => void;
 };
 
 /**
@@ -53,7 +50,7 @@ export interface FirebaseUserWithMetadata {
 /**
  * Type assertion for jest mocked functions
  */
-export interface MockedFunctionWithOptions<T extends (...args: any[]) => any> {
+export interface MockedFunctionWithOptions<T extends (...args: unknown[]) => unknown> {
   lastCallOptions?: Record<string, unknown>;
   mockImplementation: jest.MockedFunction<T>['mockImplementation'];
   mockReturnValue: jest.MockedFunction<T>['mockReturnValue'];

@@ -8,7 +8,7 @@ interface FileConstructor {
   prototype: File;
 }
 
-declare var File: FileConstructor;
+declare let File: FileConstructor;
 
 // Make File available for instanceof checks
 interface File extends Blob {
@@ -32,23 +32,23 @@ declare module "@/app/lib/firebase" {
 // Supabase compatibility layer
 declare global {
   interface Window {
-    supabase: any;
+    supabase: unknown;
   }
   
-  var supabase: {
-    from: (table: string) => any;
-    storage: any;
+  let supabase: {
+    from: (table: string) => unknown;
+    storage: unknown;
   };
   
   // Firebase Auth types
-  var getAuth: () => any;
-  var getApp: () => any;
-  var getFirebaseAuth: () => any;
+  let getAuth: () => unknown;
+  let getApp: () => unknown;
+  let getFirebaseAuth: () => unknown;
   
   // Jest extensions
   namespace jest {
-    interface MockedFunction<T extends (...args: any[]) => any> {
-      lastCallOptions?: any;
+    interface MockedFunction<T extends (...args: unknown[]) => unknown> {
+      lastCallOptions?: unknown;
     }
   }
 }

@@ -244,12 +244,12 @@ export const verifyConnectedAccount = async (
 ) => {
   try {
     // Verify the account exists and belongs to this user
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('stripe_account_id')
-      .eq('id', userId)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+    const profileQuery = supabase.from('profiles');
+    const profileResult = await profileQuery.select();
+    
+    // Filter the results manually
+    const profiles = profileResult.data?.filter(p => p.id === userId);
+    const profile = profiles && profiles.length > 0 ? profiles[0] : null;
     
     if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
       return { verified: false, status: { isComplete: false } };

@@ -71,9 +71,8 @@ export async function GET(request: Request) {
             await firebaseClient.from('profiles').update(
               { 
                 stripe_onboarding_complete: true 
-              },
-              { id: user.uid }
-            );
+              }
+            ).eq('id', user.uid);
           }
         }
       } catch (updateError) {

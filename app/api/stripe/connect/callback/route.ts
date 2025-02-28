@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     }
 
     // Verify the connected account using our utility
-    const { verified, status } = await verifyConnectedAccount(user.uid, accountId);
+    const { verified, status } = await verifyConnectedAccount(user.uid, accountId, firebaseClient);
 
     if (!verified) {
       return NextResponse.redirect(

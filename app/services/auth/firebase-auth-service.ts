@@ -30,12 +30,17 @@ export class FirebaseAuthService implements AuthService {
   private auth;
 
   constructor() {
-    // Always use the imported auth instance to ensure consistency
-    this.auth = auth;
-    
-    if (!this.auth) {
-      console.error('Firebase auth is not initialized');
-      throw new Error('Firebase auth is not initialized');
+    try {
+      // Always use the imported auth instance to ensure consistency
+      this.auth = auth;
+      
+      if (!this.auth) {
+        console.error('Firebase auth is not initialized');
+        throw new Error('Firebase auth is not initialized');
+      }
+    } catch (error) {
+      console.error('Error initializing Firebase Auth service:', error);
+      throw new Error('Failed to initialize Firebase Auth service. Check your Firebase configuration.');
     }
   }
 

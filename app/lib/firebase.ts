@@ -55,17 +55,19 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Always provide fallback configuration if env vars are missing
+// Only provide fallback configuration if env vars are missing
 // This ensures Firebase will initialize even without environment variables
-console.warn('Using fallback Firebase configuration');
-Object.assign(firebaseConfig, {
-  apiKey: firebaseConfig.apiKey || "AIzaSyBmNSa2Wd_RuUTVSwUMxbxgUI2BfA-2gxM",
-  authDomain: firebaseConfig.authDomain || "teachnicheofficial.firebaseapp.com",
-  projectId: firebaseConfig.projectId || "teachnicheofficial",
-  storageBucket: firebaseConfig.storageBucket || "teachnicheofficial.appspot.com",
-  messagingSenderId: firebaseConfig.messagingSenderId || "1234567890",
-  appId: firebaseConfig.appId || "1:1234567890:web:abcdef1234567890",
-});
+if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+  console.warn('Using fallback Firebase configuration');
+  Object.assign(firebaseConfig, {
+    apiKey: firebaseConfig.apiKey || "AIzaSyBmNSa2Wd_RuUTVSwUMxbxgUI2BfA-2gxM",
+    authDomain: firebaseConfig.authDomain || "teachnicheofficial.firebaseapp.com",
+    projectId: firebaseConfig.projectId || "teachnicheofficial",
+    storageBucket: firebaseConfig.storageBucket || "teachnicheofficial.appspot.com",
+    messagingSenderId: firebaseConfig.messagingSenderId || "1234567890",
+    appId: firebaseConfig.appId || "1:1234567890:web:abcdef1234567890",
+  });
+}
 
 // Initialize Firebase only once
 let app: FirebaseApp;
@@ -75,6 +77,11 @@ let storage: FirebaseStorage;
 let functions: Functions;
 
 try {
+  // Check if we have the minimum required configuration
+  if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+    throw new Error('Missing required Firebase configuration. Check your environment variables.');
+  }
+
   // Initialize Firebase
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   
@@ -84,13 +91,7 @@ try {
   storage = getStorage(app);
   functions = getFunctions(app);
   
-  console.log('Firebase initialized successfully with config:', 
-    JSON.stringify({
-      apiKey: firebaseConfig.apiKey ? '***' : undefined,
-      authDomain: firebaseConfig.authDomain,
-      projectId: firebaseConfig.projectId,
-    })
-  );
+  console.log('Firebase initialized successfully with project:', firebaseConfig.projectId);
   
   // Connect to emulators in development if FIREBASE_USE_EMULATORS is set
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {

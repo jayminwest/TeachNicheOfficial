@@ -2,6 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { RequestGrid } from '@/app/requests/components/request-grid'
 import { getRequests } from '@/app/lib/firebase/requests'
 
+// Mock Firebase initialization
+jest.mock('@/app/lib/firebase', () => ({
+  initializeFirebaseApp: jest.fn().mockReturnValue({
+    name: '[DEFAULT]',
+    options: {}
+  })
+}));
+
 // Mock Firebase app and services
 jest.mock('firebase/app', () => {
   const mockApp = { name: '[DEFAULT]', options: {} };

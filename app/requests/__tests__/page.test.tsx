@@ -5,6 +5,14 @@ import { getRequests } from '@/app/lib/firebase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 
+// Mock Firebase initialization
+jest.mock('@/app/lib/firebase', () => ({
+  initializeFirebaseApp: jest.fn().mockReturnValue({
+    name: '[DEFAULT]',
+    options: {}
+  })
+}));
+
 // Mock Firebase app and services
 jest.mock('firebase/app', () => {
   const mockApp = { name: '[DEFAULT]', options: {} };

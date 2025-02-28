@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 import { TextEncoder, TextDecoder } from 'util'
 import { jest } from '@jest/globals'
+import React from 'react'
 
 // Enable new JSX transform
 jest.unstable_mockModule('react/jsx-runtime', () => ({
@@ -121,8 +122,6 @@ jest.mock('@stripe/stripe-js', () => ({
   }),
 }))
 
-// Import React for JSX in mock components
-import React from 'react';
 
 // Mock MUX
 jest.mock('@mux/mux-player-react', () => ({

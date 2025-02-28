@@ -214,13 +214,13 @@ async function updateLessonHandler(request: Request) {
 
     // Check if user has permission to update this lesson
     // Use Firebase client with proper method chaining
-    const queryBuilder = firebaseClient
+    let queryBuilder = firebaseClient
       .from('lessons')
-      .select();
+      .select() as unknown as QueryBuilder;
       
-    const { data: lessons, error: queryError } = await queryBuilder
-      .eq('id', id)
-      .get();
+    // Apply filter and get results
+    queryBuilder = queryBuilder.eq('id', id);
+    const { data: lessons, error: queryError } = await queryBuilder.get();
       
     if (queryError) {
       return NextResponse.json(
@@ -312,11 +312,25 @@ async function deleteLessonHandler(request: Request) {
     }
 
     // Use Firebase client
-    const { data: lessons } = await firebaseClient
+    let queryBuilder = firebaseClient
       .from('lessons')
-      .select()
-      .eq('id', id)
-      .get();
+      .select() as unknown as QueryBuilder;
+      
+    // Apply filter and get results
+    queryBuilder = queryBuilder.eq('id', id);
+    const { data: lessons, error: queryError } = await queryBuilder.get();
+    
+    if (queryError) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to fetch lesson',
+          details: typeof queryError === 'object' && queryError !== null && 'message' in queryError 
+            ? String(queryError.message) 
+            : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
     
     const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
 
@@ -336,10 +350,21 @@ async function deleteLessonHandler(request: Request) {
       );
     }
 
-    await firebaseClient
+    const { error: deleteError } = await firebaseClient
       .from('lessons')
-      .delete()
-      .eq('id', id)
+      .delete({ eq: ['id', id] });
+      
+    if (deleteError) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to delete lesson',
+          details: typeof deleteError === 'object' && deleteError !== null && 'message' in deleteError 
+            ? String(deleteError.message) 
+            : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

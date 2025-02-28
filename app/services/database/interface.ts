@@ -9,6 +9,15 @@ export interface DatabaseResponse<T> {
   error: Error | null;
 }
 
+// Define a type for the select result that includes the eq method
+export interface SelectResult {
+  eq: (column: string, value: unknown) => Promise<DatabaseResponse<unknown>>;
+  match: (queryParams: Record<string, unknown>) => {
+    maybeSingle: () => Promise<DatabaseResponse<unknown>>;
+  };
+  maybeSingle: () => Promise<DatabaseResponse<unknown>>;
+}
+
 export interface DatabaseService {
   query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }>;
   
@@ -23,13 +32,7 @@ export interface DatabaseService {
   create<T = unknown>(table: string, data: Record<string, unknown>): Promise<T | string>;
   
   from(table: string): {
-    select: (columns?: string) => {
-      eq: (column: string, value: unknown) => Promise<DatabaseResponse<unknown>>;
-      match: (queryParams: Record<string, unknown>) => {
-        maybeSingle: () => Promise<DatabaseResponse<unknown>>;
-      };
-      maybeSingle: () => Promise<DatabaseResponse<unknown>>;
-    };
+    select: (columns?: string) => SelectResult;
     insert: (data: unknown) => Promise<DatabaseResponse<unknown>>;
     update: (data: unknown, options?: { eq: [string, unknown][] }) => Promise<DatabaseResponse<unknown>>;
     delete: (options?: { eq: [string, unknown][] }) => Promise<DatabaseResponse<unknown>>;
@@ -65,7 +68,7 @@ export const databaseService: DatabaseService = {
   },
   
   from: (_table: string) => ({
-    select: (_columns?: string) => ({
+    select: (_columns?: string): SelectResult => ({
       eq: async (_column: string, _value: unknown): Promise<DatabaseResponse<unknown>> => ({
         data: null,
         error: null

@@ -255,49 +255,23 @@ test.describe('Authentication Flow', () => {
 });
 ```
 
-### 5. Firebase Emulator Tests
+### 5. Firebase Emulator Integration
 
 For tests that need to interact with Firebase services without using production resources:
 
 ```typescript
-// Example setup for Firebase emulator tests
+// Example setup for Firebase emulator integration
 import { test, expect } from '@playwright/test';
-import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
 
-let testEnv;
-
+// Configure the test to use Firebase emulators
 test.beforeAll(async () => {
-  // Set up the Firebase emulator environment
-  testEnv = await initializeTestEnvironment({
-    projectId: 'test-project',
-    firestore: {
-      host: 'localhost',
-      port: 8080
-    },
-    auth: {
-      host: 'localhost',
-      port: 9099
-    }
-  });
-  
-  // Create test user
-  await testEnv.withSecurityRulesDisabled(async (context) => {
-    const auth = context.auth();
-    await auth.createUser({
-      uid: 'testuser',
-      email: 'test@example.com',
-      password: 'testpassword'
-    });
-  });
-});
-
-test.afterAll(async () => {
-  // Clean up
-  await testEnv.cleanup();
+  // Set environment variables for emulator use
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
 });
 
 test('should authenticate with emulator', async ({ page }) => {
-  // Set environment variable to use emulators
+  // Set environment variable to use emulators in the browser context
   await page.addInitScript(() => {
     window.FIREBASE_USE_EMULATORS = true;
   });
@@ -315,7 +289,7 @@ test('should authenticate with emulator', async ({ page }) => {
 
 ## Testing Tools
 
-1. **Vitest/Jest**: For unit and integration tests
+1. **Vitest**: For unit and integration tests
 2. **React Testing Library**: For component testing
 3. **Playwright**: For end-to-end tests
 4. **Firebase Emulators**: For testing against Firebase services
@@ -326,7 +300,7 @@ test('should authenticate with emulator', async ({ page }) => {
 1. **Week 1**: Set up testing infrastructure and write unit tests
 2. **Week 2**: Implement integration tests
 3. **Week 3**: Implement end-to-end tests with Playwright
-4. **Week 4**: Set up Firebase emulator tests and finalize test coverage
+4. **Week 4**: Set up Firebase emulator integration and finalize test coverage
 
 ## Success Criteria
 
@@ -341,6 +315,10 @@ test('should authenticate with emulator', async ({ page }) => {
 2. **Environment Variables**: Properly manage environment variables for different test environments
 3. **Test Performance**: Optimize tests to run efficiently in CI
 4. **Security**: Ensure test credentials are properly secured
+
+## Firebase Version Compatibility
+
+This testing strategy is designed to work with Firebase v10.14.1, which is the version currently used in the project. If upgrading to Firebase v11+ in the future, additional testing capabilities may become available.
 
 ## Resources
 

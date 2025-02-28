@@ -23,7 +23,7 @@ export class FirebaseStorageService implements StorageService {
       let fileData: File | Blob;
       if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
-      } else if (file instanceof Blob || file instanceof File) {
+      } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File)) {
         fileData = file;
       } else {
         throw new Error('Unsupported file type');

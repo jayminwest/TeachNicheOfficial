@@ -10,13 +10,15 @@ export class FirebaseStorage implements StorageService {
       const storage = getStorage(getApp());
       
       // Create a reference to the file location in Firebase Storage
-      const storageRef = ref(storage, path);
+      // Import storage from firebase/storage
+      import { getStorage } from 'firebase/storage';
+      const storageRef = ref(getStorage(), path);
       
       // Convert Buffer to Blob if needed
       let fileData: File | Blob;
       if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
-      } else if (file instanceof Blob || file instanceof File) {
+      } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File)) {
         fileData = file;
       } else {
         throw new Error('Unsupported file type');
@@ -35,7 +37,7 @@ export class FirebaseStorage implements StorageService {
   
   async getFileUrl(path: string): Promise<string> {
     try {
-      const storageRef = ref(storage, path);
+      const storageRef = ref(getStorage(), path);
       return await getDownloadURL(storageRef);
     } catch (error) {
       console.error('Error getting file URL from Firebase Storage:', error);

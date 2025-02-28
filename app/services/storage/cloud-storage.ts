@@ -19,7 +19,7 @@ export class CloudStorage implements StorageService {
     
     if (Buffer.isBuffer(file)) {
       fileBuffer = file;
-    } else if (file instanceof Blob || file instanceof File) {
+    } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File)) {
       const arrayBuffer = await file.arrayBuffer();
       fileBuffer = Buffer.from(arrayBuffer);
     } else {

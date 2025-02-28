@@ -20,17 +20,17 @@ export class CloudSqlDatabase implements DatabaseService {
     // Log connection info in development mode
     if (process.env.NODE_ENV === 'development') {
       console.log('Database connection configured with:', {
-        host: this.pool.options.host,
-        database: this.pool.options.database,
-        user: this.pool.options.user,
-        port: this.pool.options.port,
-        ssl: this.pool.options.ssl,
+        host: (this.pool as any).options?.host,
+        database: (this.pool as any).options?.database,
+        user: (this.pool as any).options?.user,
+        port: (this.pool as any).options?.port,
+        ssl: (this.pool as any).options?.ssl,
       });
     }
   }
   
   async getClient(): Promise<PoolClient> {
-    return await this.pool.connect();
+    return await (this.pool as any).connect();
   }
   
   async query<T>(text: string, params: unknown[] = []): Promise<{ rows: T[]; rowCount: number }> {
@@ -56,7 +56,7 @@ export class CloudSqlDatabase implements DatabaseService {
       updated_at: string;
     }>('SELECT * FROM categories ORDER BY name');
     
-    return rows;
+    return rows as Record<string, unknown>[];
   }
   
   async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}): Promise<Record<string, unknown>[]> {

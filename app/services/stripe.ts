@@ -252,7 +252,8 @@ export const verifyConnectedAccount = async (
     // Check if we got results
     const profile = profiles && profiles.length > 0 ? profiles[0] : null;
     
-    if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
+    const typedProfile = profile as { stripe_account_id?: string };
+    if (!typedProfile?.stripe_account_id || typedProfile.stripe_account_id !== accountId) {
       return { verified: false, status: { isComplete: false } };
     }
     

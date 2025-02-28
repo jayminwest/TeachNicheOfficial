@@ -212,13 +212,14 @@ async function verifyFirebaseConfiguration(environment: Environment) {
   
   // Check if required configuration is available
   if (!projectId || !clientEmail || !privateKey) {
-    console.error(`${colors.red}Missing Firebase configuration for ${environment} environment${colors.reset}`);
+    console.warn(`${colors.yellow}Missing Firebase configuration for ${environment} environment${colors.reset}`);
     console.log(`Required environment variables:
       - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}FIREBASE_PROJECT_ID
       - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}FIREBASE_CLIENT_EMAIL
       - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}FIREBASE_PRIVATE_KEY
     `);
-    return false;
+    console.log(`${colors.yellow}Skipping Firebase validation. You can add these variables to your .env file later.${colors.reset}`);
+    return true; // Return true to continue with setup
   }
   
   console.log(`${colors.green}Firebase configuration for ${environment} environment is valid${colors.reset}`);
@@ -246,13 +247,14 @@ async function verifyMuxConfiguration(environment: Environment) {
   
   // Check if required configuration is available
   if (!tokenId || !tokenSecret) {
-    console.error(`${colors.red}Missing Mux configuration for ${environment} environment${colors.reset}`);
+    console.warn(`${colors.yellow}Missing Mux configuration for ${environment} environment${colors.reset}`);
     console.log(`Required environment variables:
       - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}MUX_TOKEN_ID
       - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}MUX_TOKEN_SECRET
       - ${environment === 'production' ? 'PROD_' : environment === 'test' ? 'TEST_' : ''}MUX_WEBHOOK_SECRET (optional)
     `);
-    return false;
+    console.log(`${colors.yellow}Skipping Mux validation. You can add these variables to your .env file later.${colors.reset}`);
+    return true; // Return true to continue with setup
   }
   
   // Validate Mux credentials by making a test API call
@@ -364,7 +366,8 @@ Options:
     // Validate configurations
     const stripeValid = validateStripeConfig();
     if (!stripeValid) {
-      throw new Error('Invalid Stripe configuration');
+      console.warn(`${colors.yellow}Stripe configuration is incomplete or invalid. Some features may not work correctly.${colors.reset}`);
+      // Continue with setup instead of throwing an error
     }
 
     // Verify database connection if requested

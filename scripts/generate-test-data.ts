@@ -6,8 +6,10 @@
  * It can target different environments (development, test, production).
  */
 
-import { firestore } from '../app/lib/firebase';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { faker } from '@faker-js/faker';
+import * as mockFirebase from './mock-firebase';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -385,6 +387,8 @@ async function saveToFirestore(
 ) {
   console.log(`${colors.cyan}Saving data to Firestore...${colors.reset}`);
   
+  const firestore = getFirestore();
+  
   // Create batch operations for better performance
   const batchSize = 500; // Firestore limit is 500 operations per batch
   let operationCount = 0;
@@ -513,6 +517,67 @@ function saveToJson(
   console.log(`${colors.green}Successfully saved all data to JSON files in ${outputDir}!${colors.reset}`);
 }
 
+// Initialize Firebase Admin
+function initializeFirebase() {
+  // Only initialize if not already initialized
+  if (getApps().length === 0) {
+    // Get environment-specific configuration
+    const environment = process.env.NODE_ENV as 'development' | 'production' | 'test' || 'development';
+    
+    let projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    let clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    
+    // Override with environment-specific values if available
+    if (environment === 'production' && process.env.PROD_FIREBASE_PROJECT_ID) {
+      projectId = process.env.PROD_FIREBASE_PROJECT_ID;
+      clientEmail = process.env.PROD_FIREBASE_CLIENT_EMAIL || clientEmail;
+      privateKey = process.env.PROD_FIREBASE_PRIVATE_KEY || privateKey;
+    } else if (environment === 'test' && process.env.TEST_FIREBASE_PROJECT_ID) {
+      projectId = process.env.TEST_FIREBASE_PROJECT_ID;
+      clientEmail = process.env.TEST_FIREBASE_CLIENT_EMAIL || clientEmail;
+      privateKey = process.env.TEST_FIREBASE_PRIVATE_KEY || privateKey;
+    }
+    
+    // Check if we have the required Firebase credentials
+    if (!projectId || !clientEmail || !privateKey) {
+      console.warn(`${colors.yellow}Missing Firebase credentials. Using mock implementation instead.${colors.reset}`);
+      return mockFirebase.getFirestore();
+    }
+    
+    // Replace escaped newlines with actual newlines
+    if (privateKey) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+    
+    // Initialize the app with environment-specific configuration
+    try {
+      initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      });
+      console.log(`${colors.green}Successfully initialized Firebase Admin${colors.reset}`);
+      return getFirestore();
+    } catch (error) {
+      console.error(`${colors.red}Error initializing Firebase Admin:${colors.reset}`, error);
+      console.log(`${colors.yellow}Falling back to mock implementation${colors.reset}`);
+      return mockFirebase.getFirestore();
+    }
+  }
+  
+  try {
+    return getFirestore();
+  } catch (error) {
+    console.error(`${colors.red}Error getting Firestore:${colors.reset}`, error);
+    console.log(`${colors.yellow}Falling back to mock implementation${colors.reset}`);
+    return mockFirebase.getFirestore();
+  }
+}
+
 // Main function
 async function main() {
   console.log(`${colors.cyan}Test Data Generation Script${colors.reset}`);
@@ -603,9 +668,18 @@ Options:
     if (saveToJsonFiles) {
       saveToJson(users, categories, lessons, reviews, payments);
     }
-    
+  
     if (saveToDb) {
-      await saveToFirestore(users, categories, lessons, reviews, payments);
+      try {
+        const firestore = initializeFirebase();
+        await saveToFirestore(users, categories, lessons, reviews, payments);
+      } catch (error) {
+        console.error(`${colors.red}Error saving to Firestore:${colors.reset}`, error);
+        console.log(`${colors.yellow}Saving to JSON files only${colors.reset}`);
+        if (!saveToJsonFiles) {
+          saveToJson(users, categories, lessons, reviews, payments);
+        }
+      }
     }
     
     console.log(`${colors.green}Test data generation completed successfully!${colors.reset}`);

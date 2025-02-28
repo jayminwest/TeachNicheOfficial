@@ -68,10 +68,17 @@ export async function GET(request: Request) {
           
           if (matchingProfile) {
             // Update the profile if found
-            await firebaseClient
+            const { data, error } = await firebaseClient
               .from('profiles')
               .update({ stripe_onboarding_complete: true })
-              .match({ id: user.uid });
+              .eq('id', user.uid);
+              
+            if (error) {
+              console.error('Failed to update profile:', error);
+              return NextResponse.redirect(
+                `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
+              );
+            }
           }
         }
       } catch (updateError) {

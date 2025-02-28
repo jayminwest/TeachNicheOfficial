@@ -5,8 +5,22 @@ jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: () => ({ user: null })
 }))
 
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  getFirebaseAuth: () => ({})
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+  },
+  firestore: {
+    collection: jest.fn().mockReturnThis(),
+    doc: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({
+      data: () => ({}),
+      exists: true,
+    }),
+  },
 }))
 
 describe('RequestCard', () => {

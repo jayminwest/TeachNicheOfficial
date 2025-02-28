@@ -1,7 +1,7 @@
 import { POST, GET } from '../requests/route'
 
 // Mock dependencies
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
+jest.mock('@/app/lib/firebase/client', () => ({
   createRouteHandlerClient: jest.fn()
 }))
 

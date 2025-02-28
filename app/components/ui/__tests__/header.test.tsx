@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/app/services/auth/AuthContext'
 
-// Mock the supabase client before importing Header
+// Mock the firebase client before importing Header
 jest.mock('@/app/services/firebase', () => ({
   auth: {
     signOut: jest.fn().mockResolvedValue({}),

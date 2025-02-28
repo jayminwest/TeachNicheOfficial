@@ -72,21 +72,22 @@ jest.mock('../components/content-management', () => ({
   ContentManagement: () => <div data-testid="content-management">Content Management</div>,
 }))
 
-// Mock Supabase client
-jest.mock('@/app/services/supabase', () => ({
-  supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({
-      data: {},
-      error: null,
+// Mock Firebase client
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
     }),
-    auth: {
-      getSession: jest.fn().mockResolvedValue({
-        data: { session: null },
-      }),
-    },
+  },
+  firestore: {
+    collection: jest.fn().mockReturnThis(),
+    doc: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({
+      data: () => ({}),
+      exists: true,
+    }),
   },
 }))
 

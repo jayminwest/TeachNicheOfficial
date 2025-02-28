@@ -21,7 +21,7 @@ const mockRequest = (url: string, init?: RequestInit) => ({
 global.Request = jest.fn().mockImplementation(mockRequest) as unknown as typeof Request;
 
 // Mock dependencies
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
+jest.mock('@/app/lib/firebase/client', () => ({
   createRouteHandlerClient: jest.fn()
 }))
 

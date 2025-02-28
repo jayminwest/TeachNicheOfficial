@@ -23,7 +23,7 @@ jest.mock('../../../../app/services/mux', () => ({
 }));
 
 // Mock the database client
-jest.mock('../../../lib/supabase/client', () => ({
+jest.mock('../../../lib/firebase/client', () => ({
   createClient: jest.fn().mockReturnValue({
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),

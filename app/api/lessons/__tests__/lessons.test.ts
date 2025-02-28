@@ -4,7 +4,7 @@ import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
 import { NextResponse } from 'next/server';
 
 // Mock the database client
-jest.mock('../../../lib/supabase/client', () => {
+jest.mock('../../../lib/firebase/client', () => {
   const mockClient = {
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),

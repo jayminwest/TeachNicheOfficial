@@ -2,11 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestDialog } from '../request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { createRequest, updateRequest, deleteRequest } from '@/app/lib/supabase/requests'
+import { createRequest, updateRequest, deleteRequest } from '@/app/lib/firebase/requests'
 
 // Mock dependencies
 jest.mock('@/app/services/auth/AuthContext')
-jest.mock('@/app/lib/supabase/requests')
+jest.mock('@/app/lib/firebase/requests')
 
 const mockChildren = <div>Trigger Content</div>
 const mockRequest = {

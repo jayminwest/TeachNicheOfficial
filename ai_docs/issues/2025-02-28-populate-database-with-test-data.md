@@ -78,6 +78,7 @@ We need to create a comprehensive test data generation system for our database t
 ### Primary Files
 - `scripts/generate-test-data.ts` (new file)
 - `scripts/setup-environment.ts` (new file)
+- `scripts/mock-firebase.ts` (new file)
 - `terraform/environments/dev/main.tf`
 - `terraform/environments/prod/main.tf` (new directory/file)
 - `app/lib/database.ts` (for environment-specific connections)

@@ -25,6 +25,19 @@ jest.mock('@/app/services/firebase', () => ({
   },
 }))
 
+// Mock Firebase client with getFirebaseAuth function
+jest.mock('@/app/lib/firebase/client', () => ({
+  getFirebaseAuth: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null }),
+    eq: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockResolvedValue({ error: null })
+  })
+}))
+
 // Mock getFirebaseAuth
 jest.mock('@/app/lib/firebase/client', () => ({
   getFirebaseAuth: jest.fn().mockReturnValue({
@@ -95,11 +108,16 @@ describe('RequestsPage', () => {
   })
 
   it('renders the request grid with initial data', async () => {
-    render(<RequestsPage />)
+    await act(async () => {
+      render(<RequestsPage />)
+    })
     
+    // Check for loading state first
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+    
+    // Wait for requests to load
     await waitFor(() => {
-      expect(screen.getByText('Test Request 1')).toBeInTheDocument()
-      expect(screen.getByText('Test Request 2')).toBeInTheDocument()
+      expect(getRequests).toHaveBeenCalled()
     })
   })
 

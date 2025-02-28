@@ -21,7 +21,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
   const [hasVoted, setHasVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(request.vote_count)
   const [showAuth, setShowAuth] = useState(false)
-  const supabase = getFirebaseAuth()
+  const supabase = getFirebaseAuth ? getFirebaseAuth() : null
   const { user } = useAuth();
 
   // Fetch current vote count from Supabase

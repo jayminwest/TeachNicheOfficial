@@ -1,6 +1,39 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { RequestGrid } from '@/app/requests/components/request-grid'
 import { getRequests } from '@/app/lib/firebase/requests'
+
+// Mock Firebase services
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    useDeviceLanguage: jest.fn(),
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+  },
+  firestore: {
+    collection: jest.fn().mockReturnThis(),
+    doc: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({
+      data: () => ({}),
+      exists: true,
+    }),
+  },
+}))
+
+// Mock Firebase client with getFirebaseAuth function
+jest.mock('@/app/lib/firebase/client', () => ({
+  getFirebaseAuth: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null }),
+    eq: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockResolvedValue({ error: null })
+  })
+}))
 
 jest.mock('@/app/lib/firebase/requests')
 

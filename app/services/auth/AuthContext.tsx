@@ -38,18 +38,8 @@ export function AuthProvider({
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         // Convert Firebase user to User format for compatibility
-        setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          user_metadata: {
-            full_name: firebaseUser.displayName || '',
-            avatar_url: firebaseUser.photoURL || ''
-          },
-          app_metadata: {
-            provider: 'firebase',
-            providers: ['firebase']
-          }
-        } as User);
+        // Use the Firebase User directly
+        setUser(firebaseUser);
       } else {
         setUser(null);
       }
@@ -61,9 +51,10 @@ export function AuthProvider({
   }, [])
 
   const isCreator = useCallback(() => {
-    return user?.metadata?.is_creator === true || 
-           user?.metadata?.is_creator === true;
-  }, [user?.metadata?.is_creator, user?.metadata?.is_creator]);
+    // Check if the user has a creator profile in their custom claims or metadata
+    return user?.metadata?.creatorProfile === true || 
+           user?.customClaims?.is_creator === true;
+  }, [user?.metadata?.creatorProfile, user?.customClaims?.is_creator]);
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated, isCreator }}>

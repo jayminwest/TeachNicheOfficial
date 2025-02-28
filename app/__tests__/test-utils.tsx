@@ -4,20 +4,25 @@ import { AuthContext } from '@/app/services/auth/AuthContext'
 import { User } from 'firebase/auth'
 
 // Mock user for testing
-const mockUser: User = {
-  id: 'test-user-id',
+const mockUser = {
+  uid: 'test-user-id',
   email: 'test@example.com',
-  app_metadata: {
-    provider: 'email',
-    providers: ['email']
+  metadata: {
+    is_creator: true
   },
-  user_metadata: {
-    full_name: 'Test User',
-    avatar_url: 'https://example.com/avatar.png'
-  },
-  aud: 'authenticated',
-  created_at: new Date().toISOString()
-}
+  displayName: 'Test User',
+  photoURL: 'https://example.com/avatar.png',
+  emailVerified: true,
+  isAnonymous: false,
+  providerData: [{
+    providerId: 'email',
+    uid: 'test@example.com',
+    displayName: 'Test User',
+    email: 'test@example.com',
+    phoneNumber: null,
+    photoURL: 'https://example.com/avatar.png'
+  }]
+} as User
 
 interface AuthProviderProps {
   user?: User | null
@@ -51,7 +56,7 @@ export function renderWithAuth(
             user: user as User | null, // Force the correct type
             loading: loading as boolean,
             isAuthenticated: isAuthenticated as boolean,
-            isCreator: () => Boolean(user?.metadata?.is_creator)
+            isCreator: () => Boolean(user?.metadata?.creatorProfile)
           }}
         >
           {children}

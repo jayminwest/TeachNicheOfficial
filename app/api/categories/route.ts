@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { getAuth } from 'firebase/auth'
 import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
     const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const auth = getAuth()({ cookies: () => cookieStore })
     
     const { data: categories, error } = await supabase
       .from('categories')

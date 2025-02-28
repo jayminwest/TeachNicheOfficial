@@ -9,7 +9,7 @@ jest.mock('next/server', () => ({
 }));
 
 // Set up test environment
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { getAuth } from 'firebase/auth'
 import { POST } from '../requests/vote/route'
 
 // Mock Request globally

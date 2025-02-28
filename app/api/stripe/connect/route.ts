@@ -1,6 +1,4 @@
 import { stripe, createConnectSession, getStripe } from '@/app/services/stripe';
-import { getAuth } from 'firebase/auth';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 

@@ -1,6 +1,4 @@
 import { verifyConnectedAccount } from '@/app/services/stripe';
-import { getAuth } from 'firebase/auth';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';

@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { getAuth } from 'firebase/auth'
-import { cookies } from 'next/headers'
 import { voteSchema } from '@/app/lib/schemas/lesson-request'
 
 export async function GET(request: Request) {

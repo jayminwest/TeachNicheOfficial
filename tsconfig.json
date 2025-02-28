@@ -50,7 +50,22 @@
     "app/api/lessons/__tests__/**/*",
     "app/components/ui/__tests__/**/*",
     "app/requests/__tests__/**/*",
-    "app/services/auth/__tests__/**/*"
+    "app/services/auth/__tests__/**/*",
+    "app/components/ui/email-signup.tsx",
+    "app/dashboard/components/earnings-history.tsx",
+    "app/dashboard/components/earnings-widget.tsx",
+    "app/dashboard/components/payout-history.tsx",
+    "app/hooks/use-lesson-access.ts",
+    "app/lessons/[id]/lesson-detail.tsx",
+    "app/lessons/page.tsx",
+    "app/lib/firebase/requests.ts",
+    "app/my-lessons/page.tsx",
+    "app/profile/page.tsx",
+    "app/requests/components/request-card.tsx",
+    "app/services/earnings.ts",
+    "app/services/storage/cloud-storage.ts",
+    "app/services/storage/firebase-storage-service.ts",
+    "app/services/storage/firebase-storage.ts"
   ],
   "files": [
     "e2e-tests/setup/global.d.ts"

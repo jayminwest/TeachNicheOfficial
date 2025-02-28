@@ -4,15 +4,14 @@ import '@testing-library/jest-dom'
 import { useAuth } from '@/app/services/auth/AuthContext'
 
 // Mock the supabase client before importing Header
-jest.mock('@/app/services/supabase', () => ({
-  supabase: {
-    auth: {
-      signOut: jest.fn().mockResolvedValue({}),
-      getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: jest.fn().mockReturnValue({ 
-        data: { subscription: { unsubscribe: jest.fn() } }
-      })
-    }
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    signOut: jest.fn().mockResolvedValue({}),
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+    currentUser: null
   }
 }));
 

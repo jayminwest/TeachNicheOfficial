@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignUpPage } from '../sign-up';
-import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
+import { signInWithGoogle } from '@/app/services/auth/firebase-auth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 
@@ -11,7 +11,7 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock('@/app/services/auth/supabaseAuth', () => ({
+jest.mock('@/app/services/auth/firebase-auth', () => ({
   signInWithGoogle: jest.fn(),
 }));
 

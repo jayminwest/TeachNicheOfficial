@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent } from './dialog'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
@@ -14,6 +15,7 @@ interface AuthDialogProps {
 
 export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: AuthDialogProps) {
   const [view, setView] = useState<'sign-in' | 'sign-up'>(defaultView)
+  const router = useRouter()
 
   // Add these handlers to pass to the sign-in and sign-up components
   const handleSignIn = async (email: string, password: string) => {
@@ -23,7 +25,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
         throw result.error;
       }
       onOpenChange(false);
-      window.location.reload(); // Refresh to update UI with new auth state
+      router.push('/dashboard');
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -37,7 +39,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
         throw result.error;
       }
       onOpenChange(false);
-      window.location.reload(); // Refresh to update UI with new auth state
+      router.push('/dashboard');
     } catch (error) {
       console.error('Sign up error:', error);
       throw error;

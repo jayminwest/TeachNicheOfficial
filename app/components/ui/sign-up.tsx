@@ -92,7 +92,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
                   className="w-full"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  data-testid="email-input"
+                  data-testid="google-sign-up"
                 >
                   {isLoading ? (
                     <Icons.spinner data-testid="spinner" className="mr-2 h-4 w-4 animate-spin" />
@@ -102,7 +102,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
                   Sign up with Google
                 </Button>
                 {error && (
-                  <p className="text-sm text-red-500 text-center" data-testid="password-input">{error}</p>
+                  <p className="text-sm text-red-500 text-center" data-testid="auth-error">{error}</p>
                 )}
                 <div className="text-center">
                   <Button

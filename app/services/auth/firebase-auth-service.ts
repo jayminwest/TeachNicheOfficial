@@ -255,10 +255,7 @@ export async function signInWithGoogle() {
       prompt: 'select_account'
     });
     
-    console.log('Starting Google sign-in popup...');
     const userCredential = await signInWithPopup(auth, provider);
-    
-    console.log('Google sign-in successful');
     const credential = GoogleAuthProvider.credentialFromResult(userCredential);
     const token = credential?.accessToken;
     
@@ -269,13 +266,9 @@ export async function signInWithGoogle() {
     };
   } catch (error: unknown) {
     const err = error as Error & { code?: string };
-    console.error('Google sign-in error:', err.code, err.message);
-    
-    // Provide more detailed error information
-    if (err.code === 'auth/unauthorized-domain') {
-      console.error('This domain is not authorized in Firebase console');
-    } else if (err.code === 'auth/internal-error') {
-      console.error('Internal Firebase error - check configuration');
+    // Provide more detailed error information for logging
+    if (err.code === 'auth/unauthorized-domain' || err.code === 'auth/internal-error') {
+      // These errors require configuration changes
     }
     
     return { user: null, token: null, error };

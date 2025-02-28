@@ -32,15 +32,11 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         window.signInWithGoogleCalled = true;
       }
       
-      console.log('Starting Google sign-in process...');
       const result = await signInWithGoogle()
       
       if (result?.error) {
-        console.error('Google sign-in returned error:', result.error);
         throw result.error
       }
-      
-      console.log('Google sign-in successful, redirecting to dashboard');
       
       // Check if we're in a test environment
       if (typeof window !== 'undefined' && window.localStorage.getItem('auth-test-success')) {
@@ -51,7 +47,6 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         router.push('/dashboard');
       }
     } catch (err: unknown) {
-      console.error('Google sign-in error:', err);
       
       // Provide more specific error messages based on error code
       if (typeof err === 'object' && err !== null && 'code' in err) {
@@ -121,7 +116,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
                   Sign in with Google
                 </Button>
                 {error && (
-                  <p className="text-sm text-red-500 text-center" data-testid="password-input">{error}</p>
+                  <p className="text-sm text-red-500 text-center" data-testid="auth-error">{error}</p>
                 )}
                 <div className="text-center">
                   <Button

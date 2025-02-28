@@ -244,7 +244,7 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       creator_id: string;
       lesson_id: string;
       status: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }
     
     const typedPurchase = purchase as Purchase;

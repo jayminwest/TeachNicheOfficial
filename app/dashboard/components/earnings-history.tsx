@@ -6,7 +6,6 @@ import { EarningsHistoryItem, getEarningsHistory } from '@/app/services/earnings
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { formatCurrency } from '@/app/lib/utils';
-import { firebaseClient } from '@/app/services/firebase-compat';
 import { databaseService } from '@/app/services/database';
 
 export default function EarningsHistory() {

@@ -10,7 +10,7 @@ interface FileConstructor {
 
 declare global {
   // Make File available globally for instanceof checks
-  var File: FileConstructor;
+  let File: FileConstructor;
   
   interface File extends Blob {
     readonly lastModified: number;
@@ -27,13 +27,13 @@ declare global {
   
   interface SupabaseQueryBuilder {
     select: (columns?: string) => SupabaseQueryBuilder;
-    eq: (column: string, value: any) => SupabaseQueryBuilder;
+    eq: (column: string, value: unknown) => SupabaseQueryBuilder;
     order: (column: string, options?: { ascending?: boolean }) => SupabaseQueryBuilder;
     match: (query: Record<string, unknown>) => SupabaseQueryBuilder;
     single: () => Promise<{ data: any; error: any }>;
     limit: (count: number) => SupabaseQueryBuilder;
-    data: any[];
-    error: any;
+    data: unknown[];
+    error: unknown;
   }
   
   // Firebase Auth type extensions

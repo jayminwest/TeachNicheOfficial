@@ -42,11 +42,11 @@ export default function LessonsPage() {
         }
         
         // Transform the data to match the Lesson type
-        const transformedLessons: Lesson[] = (data || []).map((lesson: any) => {
-          const reviews = lesson.reviews || [];
+        const transformedLessons: Lesson[] = (data || []).map((lesson: Record<string, unknown>) => {
+          const reviews = (lesson.reviews as Array<Record<string, unknown>>) || [];
           const totalRatings = reviews.length;
           const averageRating = totalRatings > 0 
-            ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / totalRatings 
+            ? reviews.reduce((sum: number, review: Record<string, unknown>) => sum + (review.rating as number), 0) / totalRatings 
             : 0;
 
           return {

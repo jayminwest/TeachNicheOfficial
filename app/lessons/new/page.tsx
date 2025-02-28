@@ -35,7 +35,7 @@ export default function NewLessonPage() {
         return;
       }
 
-      const session = await new Promise<{data: {session: {user: any} | null}, error: null | Error}>(resolve => {
+      const session = await new Promise<{data: {session: {user: Record<string, unknown>} | null}, error: null | Error}>(resolve => {
   const auth = getAuth(getApp());
   const unsubscribe = auth.onAuthStateChanged(user => {
     unsubscribe();

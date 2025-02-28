@@ -174,7 +174,7 @@ export async function getUserVotes(userId: string): Promise<string[]> {
         .eq('user_id', userId);
       
       const votes = queryResult.data || [];
-      return votes ? votes.map((vote: any) => vote.request_id) : [];
+      return votes ? votes.map((vote: Record<string, unknown>) => vote.request_id as string) : [];
     } catch (error) {
       console.error('Error getting user votes:', error);
       return [];

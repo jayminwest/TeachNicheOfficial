@@ -14,4 +14,4 @@ interface File extends Blob {
   readonly webkitRelativePath: string;
 }
 
-declare var File: FileConstructor;
+declare const File: FileConstructor;

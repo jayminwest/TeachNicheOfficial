@@ -41,9 +41,9 @@ export default function MyLessonsPage() {
         setIsLoading(true);
         
         // Check if user is authenticated
-        const authResult = await new Promise<{data: {session: any | null}, error: null | Error}>(resolve => {
+        const authResult = await new Promise<{data: {session: {user: Record<string, unknown>} | null}, error: null | Error}>(resolve => {
   const auth = getAuth();
-  const unsubscribe = auth.onAuthStateChanged((user: any) => {
+  const unsubscribe = auth.onAuthStateChanged((user: unknown) => {
     unsubscribe();
     resolve({ data: { session: user ? { user } : null }, error: null });
   });

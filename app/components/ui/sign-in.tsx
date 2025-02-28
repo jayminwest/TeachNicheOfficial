@@ -30,7 +30,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
         // Set a flag for testing
-        (window as any).signInWithGoogleCalled = true;
+        (window as Window & { signInWithGoogleCalled?: boolean }).signInWithGoogleCalled = true;
       }
       
       // Check if we're in a test environment with a mock implementation

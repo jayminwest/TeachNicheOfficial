@@ -1,7 +1,13 @@
 import React from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { AuthContext } from '@/app/services/auth/AuthContext'
-import { User } from 'firebase/auth'
+import { User, UserMetadata } from 'firebase/auth'
+
+// Extended user metadata interface
+interface ExtendedUserMetadata extends UserMetadata {
+  creatorProfile?: boolean;
+  is_creator?: boolean;
+}
 
 // Mock user for testing
 const mockUser = {
@@ -63,8 +69,9 @@ export function renderWithAuth(
             loading: loading as boolean,
             isAuthenticated: isAuthenticated as boolean,
             isCreator: () => Boolean(
-              (user?.metadata as any)?.creatorProfile || 
-              (user?.metadata as any)?.is_creator
+              user?.metadata && 
+              ((user.metadata as ExtendedUserMetadata)?.creatorProfile || 
+               (user.metadata as ExtendedUserMetadata)?.is_creator)
             )
           }}
         >

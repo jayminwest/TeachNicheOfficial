@@ -11,14 +11,14 @@ export interface ExtendedUserMetadata extends UserMetadata {
 /**
  * Helper function to convert mock requests to Request objects for API route handlers
  */
-export function asRequest(mockRequest: any): Request {
+export function asRequest(mockRequest: Record<string, unknown>): Request {
   return mockRequest as unknown as Request;
 }
 
 /**
  * Type guard for session objects
  */
-export function hasDataSession(obj: unknown): obj is { data: { session: any } } {
+export function hasDataSession(obj: unknown): obj is { data: { session: unknown } } {
   return obj !== null && 
          typeof obj === 'object' && 
          'data' in obj && 

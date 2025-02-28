@@ -116,7 +116,7 @@ export function BankAccountForm({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          // Use user.uid instead of access_token for authorization
         },
         credentials: 'include',
         body: JSON.stringify({ 

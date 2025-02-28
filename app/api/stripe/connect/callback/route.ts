@@ -1,6 +1,7 @@
 import { verifyConnectedAccount } from '@/app/services/stripe';
 import { NextResponse } from 'next/server';
-import { getAuth, getApp } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';
 import { firebaseClient } from '@/app/services/firebase-compat';
 
 export const dynamic = 'force-dynamic';
@@ -8,7 +9,10 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     // Get the session from the cookie
-    const { session, error: sessionError } = await new Promise<{ session: { user: any } | null, error: any }>(resolve => {
+    const { session, error: sessionError } = await new Promise<{ 
+      session: { user: { uid: string } } | null, 
+      error: Error | null 
+    }>(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();

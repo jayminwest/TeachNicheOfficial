@@ -25,7 +25,7 @@ type QueryBuilder = {
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {
-  apiVersion: '2025-01-27',
+  apiVersion: '2025-01-27.acacia',
 });
 
 // Validate the request body

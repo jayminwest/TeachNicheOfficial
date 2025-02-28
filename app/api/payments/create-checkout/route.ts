@@ -25,7 +25,7 @@ type QueryBuilder = {
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {
-  apiVersion: stripeConfig.apiVersion,
+  apiVersion: '2025-01-27',
 });
 
 // Validate the request body
@@ -192,7 +192,6 @@ export async function POST(request: NextRequest) {
     
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {

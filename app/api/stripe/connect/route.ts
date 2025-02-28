@@ -137,8 +137,9 @@ export async function POST(request: Request) {
           .from('profiles')
           .update({ stripe_account_id: account.id })
           .eq('id', user.uid);
-      } catch (error) {
-
+      } catch (dbError) {
+        console.error('Database update error:', dbError);
+        
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {
           await (stripeInstance as unknown as Stripe).accounts.del(account.id);

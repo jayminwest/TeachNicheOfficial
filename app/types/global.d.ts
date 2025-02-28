@@ -16,6 +16,29 @@ declare global {
     readonly lastModified: number;
     readonly name: string;
     readonly webkitRelativePath: string;
+    readonly type: string;
+  }
+  
+  // Add type definitions for Supabase compatibility layer
+  interface SupabaseClient {
+    from: (table: string) => SupabaseQueryBuilder;
+    storage: unknown;
+  }
+  
+  interface SupabaseQueryBuilder {
+    select: (columns?: string) => SupabaseQueryBuilder;
+    eq: (column: string, value: any) => SupabaseQueryBuilder;
+    order: (column: string, options?: { ascending?: boolean }) => SupabaseQueryBuilder;
+    match: (query: Record<string, unknown>) => SupabaseQueryBuilder;
+    single: () => Promise<{ data: any; error: any }>;
+    limit: (count: number) => SupabaseQueryBuilder;
+    data: any[];
+    error: any;
+  }
+  
+  // Firebase Auth type extensions
+  interface FirebaseAuth {
+    onAuthStateChanged: (callback: (user: unknown) => void) => () => void;
   }
 }
 

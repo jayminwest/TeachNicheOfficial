@@ -16,7 +16,7 @@ export class FirebaseStorage implements StorageService {
       let fileData: File | Blob;
       if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
-      } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File)) {
+      } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File as any)) {
         fileData = file as Blob;
       } else {
         throw new Error('Unsupported file type');

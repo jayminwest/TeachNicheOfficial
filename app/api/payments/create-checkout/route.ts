@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
         purchaseId: purchase.id,
         creatorId: lesson.creator_id,
       },
-      customer_email: user.email,
+      customer_email: user.email || undefined,
     };
     
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);

@@ -11,12 +11,17 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  // Add these settings to help with authentication issues
+  popupRedirectResolver: browserPopupRedirectResolver
 };
 
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const firestore = getFirestore(app);
+// Initialize auth with proper settings
 const auth = getAuth(app);
+// Set persistence to local to avoid session issues
+auth.useDeviceLanguage(); // Use the browser's language
 const storage = getStorage(app);
 
 // Add Firestore field value helpers

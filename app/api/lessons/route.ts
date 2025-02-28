@@ -77,7 +77,9 @@ async function createLessonHandler(request: Request) {
       return NextResponse.json(
         { 
           error: 'Failed to create lesson',
-          details: error.message || 'Unknown error'
+          details: typeof error === 'object' && error !== null && 'message' in error 
+            ? String(error.message) 
+            : 'Unknown error'
         },
         { status: 500 }
       );

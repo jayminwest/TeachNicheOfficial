@@ -8,8 +8,6 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: Request) {
-  const auth = getAuth()({ cookies });
-  
   // First try cookie-based session
   const {
     data: { session }

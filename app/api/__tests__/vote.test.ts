@@ -10,6 +10,7 @@ jest.mock('next/server', () => ({
 
 // Set up test environment
 import { POST } from '../requests/vote/route'
+import { createRouteHandlerClient } from '@/app/lib/firebase/client'
 
 // Mock Request globally
 const mockRequest = (url: string, init?: RequestInit) => ({

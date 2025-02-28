@@ -91,6 +91,16 @@ jest.mock('@/app/services/firebase', () => ({
   },
 }))
 
+// Mock supabase
+jest.mock('@/app/lib/firebase/client', () => ({
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: {}, error: null })
+  }
+}))
+
 // Add jest-axe matcher
 expect.extend({
   toHaveNoViolations: (received) => {

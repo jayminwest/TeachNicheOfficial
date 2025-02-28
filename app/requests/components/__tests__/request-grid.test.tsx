@@ -3,7 +3,6 @@ import { RequestGrid } from '@/app/requests/components/request-grid'
 import { getRequests } from '@/app/lib/firebase/requests'
 
 jest.mock('@/app/lib/firebase/requests')
-jest.mock('@supabase/auth-helpers-nextjs')
 
 describe('RequestGrid', () => {
   const mockRequests = [

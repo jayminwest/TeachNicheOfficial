@@ -4,6 +4,26 @@ import { RequestDialog } from '../request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest, updateRequest, deleteRequest } from '@/app/lib/firebase/requests'
 
+// Mock Firebase auth
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    useDeviceLanguage: jest.fn(),
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+  },
+  firestore: {
+    collection: jest.fn().mockReturnThis(),
+    doc: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({
+      data: () => ({}),
+      exists: true,
+    }),
+  },
+}))
+
 // Mock dependencies
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/lib/firebase/requests')

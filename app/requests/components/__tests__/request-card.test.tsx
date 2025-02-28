@@ -1,6 +1,16 @@
 import { render } from '@testing-library/react'
 import { RequestCard } from '../request-card'
 
+// Mock getFirebaseAuth
+jest.mock('@/app/lib/firebase/client', () => ({
+  getFirebaseAuth: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null })
+  })
+}))
+
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: () => ({ user: null })
 }))

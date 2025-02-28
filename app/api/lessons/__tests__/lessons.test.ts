@@ -38,6 +38,40 @@ jest.mock('../../../lib/firebase/client', () => {
   };
 });
 
+// Mock Supabase client
+jest.mock('../../../lib/supabase/client', () => {
+  const mockClient = {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    single: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    data: null,
+    error: null,
+    auth: {
+      getSession: jest.fn().mockResolvedValue({
+        data: {
+          session: {
+            user: {
+              id: 'user-123',
+              email: 'test@example.com'
+            }
+          }
+        }
+      })
+    }
+  };
+  
+  return {
+    createClient: jest.fn().mockReturnValue(mockClient)
+  };
+});
+
 // Mock NextResponse
 jest.mock('next/server', () => {
   return {
@@ -65,8 +99,8 @@ jest.mock('next/headers', () => ({
 
 // Get the mock client for setting up test data
 const getMockSupabase = () => {
-  const { createClient } = jest.requireMock('../../../lib/supabase/client');
-  return createClient();
+  const { createRouteHandlerClient } = jest.requireMock('../../../lib/firebase/client');
+  return createRouteHandlerClient();
 };
 
 // Mock auth

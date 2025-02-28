@@ -2,6 +2,26 @@ import { render, screen } from '@testing-library/react'
 import { RequestSidebar } from '../request-sidebar'
 import { useCategories } from '@/app/hooks/useCategories'
 
+// Mock Firebase auth
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    useDeviceLanguage: jest.fn(),
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+  },
+  firestore: {
+    collection: jest.fn().mockReturnThis(),
+    doc: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({
+      data: () => ({}),
+      exists: true,
+    }),
+  },
+}))
+
 // Mock the useCategories hook
 jest.mock('@/app/hooks/useCategories')
 

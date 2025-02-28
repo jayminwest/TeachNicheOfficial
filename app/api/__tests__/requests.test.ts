@@ -1,4 +1,5 @@
 import { POST, GET } from '../requests/route'
+import { createRouteHandlerClient } from '@/app/lib/firebase/client'
 
 // Mock dependencies
 jest.mock('@/app/lib/firebase/client', () => ({

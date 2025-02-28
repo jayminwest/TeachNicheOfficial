@@ -11,8 +11,8 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock('@/app/services/auth/firebase-auth', () => ({
-  signInWithGoogle: jest.fn(),
+jest.mock('@/app/services/auth/firebase-auth-service', () => ({
+  signInWithGoogle: jest.fn().mockImplementation(() => Promise.resolve({})),
 }));
 
 jest.mock('@/app/services/auth/AuthContext', () => ({

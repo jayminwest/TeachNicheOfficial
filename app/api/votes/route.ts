@@ -49,7 +49,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { data: { session } } = await new Promise(resolve => {
+    const { data: { session } } = await new Promise<{ 
+      data: { session: { user: { uid: string } } | null }, 
+      error: null 
+    }>(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = onAuthStateChanged(auth, user => {
         unsubscribe();

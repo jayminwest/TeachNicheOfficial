@@ -7,7 +7,7 @@ import { firebaseClient } from '@/app/services/firebase-compat'
 // Set the runtime to edge
 export const runtime = 'edge'
 
-export async function POST(request: Request) {
+export async function POST(request: Request) { // eslint-disable-line @typescript-eslint/no-unused-vars
   console.log('Vote API route called');
   try {
 

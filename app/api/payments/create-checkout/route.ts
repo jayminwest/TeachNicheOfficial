@@ -7,6 +7,26 @@ import { getAuth, User } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 import { firebaseClient } from '@/app/services/firebase-compat';
 
+// Define types for Stripe checkout session parameters
+interface StripeCheckoutSessionParams {
+  line_items: Array<{
+    price_data: {
+      currency: string;
+      product_data: {
+        name: string;
+        description?: string;
+      };
+      unit_amount: number;
+    };
+    quantity: number;
+  }>;
+  mode: 'payment' | 'subscription' | 'setup';
+  success_url: string;
+  cancel_url: string;
+  metadata?: Record<string, string>;
+  customer_email?: string;
+}
+
 // Define a type for the query builder that matches the firebase-compat implementation
 type QueryBuilder = {
   eq: (field: string, value: string | boolean | number) => QueryBuilder;
@@ -190,8 +210,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Create Stripe checkout session with proper type casting
-    const checkoutSession = await stripe.checkout.sessions.create({
+    // Create Stripe checkout session with proper typing
+    const sessionParams: StripeCheckoutSessionParams = {
       line_items: [
         {
           price_data: {
@@ -215,7 +235,9 @@ export async function POST(request: NextRequest) {
         creatorId: lesson.creator_id,
       },
       customer_email: user.email,
-    } as any);
+    };
+    
+    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     
     // Update purchase record with session ID
     await firebaseClient

@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getAuth } from 'firebase/auth'
 import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
     // Auth is initialized but not used - this is intentional for future use
     
     const { data: categories, error } = await supabase

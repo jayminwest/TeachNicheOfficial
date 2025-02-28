@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    // Initialize Supabase client
-    const auth = getAuth()({ cookies });
-    
     // Get the current user
     const { data: { session } } = await firebaseAuth.getSession();
     

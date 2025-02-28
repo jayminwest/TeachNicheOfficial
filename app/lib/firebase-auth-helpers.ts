@@ -44,9 +44,10 @@ export async function signInWithSession(email: string, password: string) {
     
     // Create a session cookie (this would be called from an API route)
     return { user: userCredential.user, idToken }
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error signing in:', error)
-    return { error: error.message || 'Failed to sign in' }
+    const errorMessage = error instanceof Error ? error.message : 'Failed to sign in'
+    return { error: errorMessage }
   }
 }
 
@@ -61,9 +62,10 @@ export async function signUpWithSession(email: string, password: string) {
     
     // Create a session cookie (this would be called from an API route)
     return { user: userCredential.user, idToken }
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error signing up:', error)
-    return { error: error.message || 'Failed to sign up' }
+    const errorMessage = error instanceof Error ? error.message : 'Failed to sign up'
+    return { error: errorMessage }
   }
 }
 

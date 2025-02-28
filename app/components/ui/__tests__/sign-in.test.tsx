@@ -2,16 +2,17 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage } from '../sign-in';
-import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
+import { signInWithGoogle } from '@/app/services/auth/firebase-auth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
+import { mockUserData } from '__mocks__/firebase';
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock('@/app/services/auth/supabaseAuth', () => ({
+jest.mock('@/app/services/auth/firebase-auth', () => ({
   signInWithGoogle: jest.fn(),
 }));
 
@@ -72,7 +73,7 @@ describe('SignInPage', () => {
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
     const user = userEvent.setup();
-    (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
+    (signInWithGoogle as jest.Mock).mockResolvedValue(mockUserData);
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     

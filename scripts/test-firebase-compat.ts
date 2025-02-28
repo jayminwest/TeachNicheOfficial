@@ -33,7 +33,8 @@ async function testFirebaseCompat() {
     console.log('\nQuerying test document...');
     const queryResult = await firebaseClient.from('test_collection')
       .select()
-      .eq('id', docId);
+      .eq('id', docId)
+      .execute();
     
     if (queryResult.error) {
       throw new Error(`Query failed: ${queryResult.error.message}`);
@@ -56,7 +57,8 @@ async function testFirebaseCompat() {
     console.log('\nVerifying update...');
     const verifyResult = await firebaseClient.from('test_collection')
       .select()
-      .eq('id', docId);
+      .eq('id', docId)
+      .execute();
     
     if (verifyResult.error) {
       throw new Error(`Verification query failed: ${verifyResult.error.message}`);

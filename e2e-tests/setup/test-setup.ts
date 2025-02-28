@@ -1,4 +1,4 @@
-import { FullConfig, chromium } from '@playwright/test';
+import { FullConfig, chromium, BrowserContext, Browser, Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
@@ -26,16 +26,16 @@ export default async function globalSetup(config: FullConfig) {
   
   try {
     // Create a browser instance to verify everything is working
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
+    const browser: Browser = await chromium.launch();
+    const context: BrowserContext = await browser.newContext();
+    const page: Page = await context.newPage();
     
     // Add test-specific properties to the browser context
     await context.addInitScript(() => {
       // These are for testing purposes
-      (window as any).PLAYWRIGHT_TEST_MODE = true;
-      (window as any).mockGoogleSignInError = false;
-      (window as any).signInWithGoogleCalled = false;
+      window.PLAYWRIGHT_TEST_MODE = true;
+      window.mockGoogleSignInError = false;
+      window.signInWithGoogleCalled = false;
     });
     
     // Basic verification that browser launches correctly

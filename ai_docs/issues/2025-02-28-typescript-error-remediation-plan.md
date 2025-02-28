@@ -107,9 +107,9 @@ For each file:
 
 ## Common Error Patterns and Solutions
 
-Based on the latest error distribution, here are common patterns and solutions:
+Based on the latest error scan, here are the most common patterns and solutions:
 
-### 1. Supabase to Firebase Migration Issues (37 errors)
+### 1. Supabase to Firebase Migration Issues (25 errors)
 
 **Problem**: References to Supabase client that no longer exists
 **Solution**: Replace with Firebase/DatabaseService equivalents
@@ -120,10 +120,10 @@ const { data, error } = await supabase.from('lessons').select('*');
 
 // After
 import { databaseService } from '@/app/services/database';
-const { rows: data, rowCount } = await databaseService.query('SELECT * FROM lessons');
+const { rows: data, rowCount } = await databaseService.query<LessonRecord[]>('SELECT * FROM lessons');
 ```
 
-### 2. Firebase Import Issues (15 errors)
+### 2. Firebase Import Issues (12 errors)
 
 **Problem**: Missing or incorrect Firebase imports
 **Solution**: Add proper imports from Firebase packages
@@ -137,21 +137,18 @@ import { getAuth, getApp } from 'firebase/auth';
 const auth = getAuth(getApp());
 ```
 
-### 3. Type Mismatch in Storage Services (7 errors)
+### 3. Type Assertion for Unknown Types (8 errors)
 
-**Problem**: Return type mismatch in deleteFile methods
-**Solution**: Standardize return types across implementations
+**Problem**: Variables with 'unknown' type being accessed
+**Solution**: Use type assertions or type guards
 
 ```typescript
 // Before
-async deleteFile(path: string): Promise<boolean> {
-  // implementation
-}
+if (session.data.session) { // 'session' is of type 'unknown'
 
 // After
-async deleteFile(path: string): Promise<void> {
-  // implementation
-  // Don't return boolean
+if ((session as { data: { session: any } }).data.session) {
+  // Now TypeScript knows the structure
 }
 ```
 
@@ -168,37 +165,39 @@ const result = await routeModule.POST(req);
 const result = await routeModule.POST(req as unknown as Request);
 ```
 
-### 5. Implicit Any Types (20 errors)
+### 5. Implicit Any Types (7 errors)
 
 **Problem**: Variables without explicit types defaulting to 'any'
 **Solution**: Add explicit type annotations
 
 ```typescript
 // Before
-function processData(data) {
+.map(lesson => {
   // ...
-}
+})
 
 // After
-function processData(data: DataType): ResultType {
+.map((lesson: LessonRecord) => {
   // ...
-}
+})
 ```
 
-### 6. Property Access on Possibly Undefined Objects (13 errors)
+### 6. Extended User Metadata (4 errors)
 
-**Problem**: Accessing properties on objects that might be undefined
-**Solution**: Add null checks, optional chaining, or type guards
+**Problem**: Accessing custom properties on Firebase UserMetadata
+**Solution**: Create extended interface for user metadata
 
 ```typescript
 // Before
-const updatedVote = await db.update('lesson_request_votes', existingVote.id, {});
+user?.metadata?.creatorProfile
 
 // After
-if (!existingVote) {
-  throw new Error('Vote not found');
+interface ExtendedUserMetadata extends UserMetadata {
+  creatorProfile?: boolean;
+  is_creator?: boolean;
 }
-const updatedVote = await db.update('lesson_request_votes', existingVote.id, {});
+
+(user?.metadata as ExtendedUserMetadata)?.creatorProfile
 ```
 
 ## Progress Tracking

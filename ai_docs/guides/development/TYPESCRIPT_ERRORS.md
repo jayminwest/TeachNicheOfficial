@@ -56,6 +56,26 @@ interface ExtendedUserMetadata extends UserMetadata {
 (user?.metadata as ExtendedUserMetadata)?.creatorProfile
 ```
 
+For Firebase User vs. Custom User types:
+
+```typescript
+// Error in app/__tests__/test-utils.tsx
+isCreator: () => Boolean(user?.metadata?.creatorProfile || user?.metadata?.is_creator)
+
+// Solution
+import { UserMetadata } from 'firebase/auth';
+
+interface ExtendedUserMetadata extends UserMetadata {
+  creatorProfile?: boolean;
+  is_creator?: boolean;
+}
+
+isCreator: () => Boolean(
+  ((user?.metadata as ExtendedUserMetadata)?.creatorProfile || 
+   (user?.metadata as ExtendedUserMetadata)?.is_creator)
+)
+```
+
 ### TS7006: Parameter 'X' implicitly has an 'any' type
 
 This error occurs when a function parameter doesn't have a type annotation.

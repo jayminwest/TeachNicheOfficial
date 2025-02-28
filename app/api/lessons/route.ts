@@ -131,18 +131,18 @@ async function getLessonsHandler(request: Request) {
     }
     
     // Build query using Firebase client methods
-    let query = lessonsRef.select();
+    const queryBuilder = lessonsRef.select();
     
     // Add filters
     Object.entries(queryParams).forEach(([key, value]) => {
-      query = query.eq(key, value);
+      queryBuilder.eq(key, value);
     });
     
     // Add sorting
-    query = query.order(sortField, { ascending: sortDirection === 'asc' });
+    queryBuilder.order(sortField, { ascending: sortDirection === 'asc' });
     
     // Execute the query
-    const { data: lessons, error } = await query.get();
+    const { data: lessons, error } = await queryBuilder.get();
     
     if (error) {
       return NextResponse.json(

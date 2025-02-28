@@ -11,9 +11,12 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock('@/app/services/auth/firebase-auth', () => ({
-  signInWithGoogle: jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' }),
-}));
+// Mock the firebase-auth module
+jest.mock('@/app/services/auth/firebase-auth', () => {
+  return {
+    signInWithGoogle: jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' }),
+  };
+});
 
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn(),
@@ -89,19 +92,33 @@ describe('SignInPage', () => {
 
   it('shows loading state during Google sign-in', async () => {
     const user = userEvent.setup();
-    // Make the sign-in function wait
-    (firebaseAuth.signInWithGoogle as jest.Mock).mockImplementation(() => new Promise(resolve => {
-      setTimeout(resolve, 100);
-    }));
-
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
+    // Create a mock implementation that doesn't resolve immediately
+    let resolvePromise: (value: any) => void;
+    const mockPromise = new Promise(resolve => {
+      resolvePromise = resolve;
+    });
+    
+    // Override the mock to use our controlled promise
+    firebaseAuth.signInWithGoogle.mockImplementation(() => mockPromise);
+    
+    // Render the component
+    const { rerender } = render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    
+    // Get the button and click it
     const signInButton = screen.getByTestId('google-sign-in');
     await user.click(signInButton);
     
-    // Check for loading state on the button itself instead of looking for a spinner
-    expect(signInButton).toBeDisabled();
-    expect(signInButton).toBeDisabled();
+    // Force a re-render to ensure state updates are applied
+    rerender(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    
+    // Now check if the button is disabled
+    await waitFor(() => {
+      expect(screen.getByTestId('google-sign-in')).toHaveAttribute('disabled');
+    });
+    
+    // Resolve the promise to clean up
+    resolvePromise({ uid: 'test-user-id', email: 'test@example.com' });
   });
 
   it('displays error message when Google sign-in fails', async () => {

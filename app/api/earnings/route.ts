@@ -38,6 +38,16 @@ export async function GET() {
 
     const user = session.user;
     
+    // Define the earnings type
+    interface EarningRecord {
+      id: string;
+      amount: number;
+      status: string;
+      created_at: string;
+      lesson_title?: string;
+      payment_intent_id?: string;
+    }
+
     // Get creator earnings
     const { data: earnings, error } = await firebaseClient
       .from('creator_earnings')
@@ -46,9 +56,9 @@ export async function GET() {
     
     // Sort the earnings by created_at in descending order
     const sortedEarnings = earnings ? 
-      [...earnings].sort((a, b) => 
+      [...earnings].sort((a: EarningRecord, b: EarningRecord) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ) : 
+      ) as EarningRecord[] : 
       [];
     
     if (error) {

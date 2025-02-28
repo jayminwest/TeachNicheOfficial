@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import RequestsPage from '../page'
-import { getRequests } from '@/app/lib/supabase/requests'
+import { getRequests } from '@/app/lib/firebase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 
 // Mock dependencies
-jest.mock('@/app/lib/supabase/requests')
+jest.mock('@/app/lib/firebase/requests')
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/hooks/useCategories')
 

@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     const existingVotes = existingVoteResult && Array.isArray(existingVoteResult.rows) ? existingVoteResult.rows : [];
     const existingVote = existingVotes.length > 0 ? existingVotes[0] : null;
 
-    if (existingVote) {
+    if (existingVote && 'id' in existingVote) {
       // Update existing vote
       try {
         const updatedVote = await db.update('lesson_request_votes', existingVote.id, { 

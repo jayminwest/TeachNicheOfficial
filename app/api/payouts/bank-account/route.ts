@@ -22,9 +22,15 @@ export async function POST(request: NextRequest) {
     }
     
     // Get the current user
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
-    if (!session || user.id !== userId) {
+    if (!session || user.uid !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

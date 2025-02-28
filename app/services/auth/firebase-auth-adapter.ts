@@ -26,7 +26,9 @@ export async function signInWithGoogle(): Promise<AuthUser> {
       avatarUrl: user.photoURL || '',
       metadata: {
         createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || ''
+        lastSignInTime: user.metadata.lastSignInTime || '',
+        provider: user.providerData?.[0]?.providerId || 'firebase',
+        emailVerified: user.emailVerified || false
       }
     };
   } catch (error) {
@@ -47,7 +49,9 @@ export async function signInWithEmail(email: string, password: string): Promise<
       avatarUrl: user.photoURL || '',
       metadata: {
         createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || ''
+        lastSignInTime: user.metadata.lastSignInTime || '',
+        provider: user.providerData?.[0]?.providerId || 'firebase',
+        emailVerified: user.emailVerified || false
       }
     };
   } catch (error) {
@@ -68,7 +72,9 @@ export async function createUser(email: string, password: string): Promise<AuthU
       avatarUrl: user.photoURL || '',
       metadata: {
         createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || ''
+        lastSignInTime: user.metadata.lastSignInTime || '',
+        provider: user.providerData?.[0]?.providerId || 'firebase',
+        emailVerified: user.emailVerified || false
       }
     };
   } catch (error) {

@@ -13,7 +13,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from 'firebase/auth';
-import { getApp } from 'firebase/app';
+import { getApp, initializeApp } from 'firebase/app';
 import { AuthService, AuthUser } from './interface';
 import { auth } from '@/app/lib/firebase';
 
@@ -30,8 +30,15 @@ export class FirebaseAuthService implements AuthService {
   private auth;
 
   constructor() {
-    const app = getApp();
-    this.auth = getAuth(app);
+    try {
+      // Try to get the existing app
+      const app = getApp();
+      this.auth = getAuth(app);
+    } catch (error) {
+      // If no app exists, use the imported auth instance
+      console.warn('Using imported auth instance as getApp() failed');
+      this.auth = auth;
+    }
   }
 
   async signUp(email: string, password: string, name: string): Promise<AuthUser> {
@@ -218,6 +225,11 @@ export async function signOut() {
 }
 
 export async function getCurrentUser() {
+  if (!auth) {
+    console.error('Auth instance is not initialized');
+    return null;
+  }
+  
   return new Promise<AuthUser | null>((resolve) => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       unsubscribe();

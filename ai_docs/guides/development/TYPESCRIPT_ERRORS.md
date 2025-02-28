@@ -149,6 +149,20 @@ const storageService: StorageService = new FirebaseStorage();
 // Fix the implementation to match the interface exactly
 ```
 
+For component prop type errors, you may need to update the component's interface:
+
+```typescript
+// Error
+<Alert variant="warning"> // Type '"warning"' is not assignable to type '"default" | "destructive"'
+
+// Solution
+// Update the Alert component's interface to include the new variant
+interface AlertProps {
+  variant?: "default" | "destructive" | "warning";
+  // other props...
+}
+```
+
 ### TS2554: Expected X arguments, but got Y
 
 This error occurs when you're calling a function with the wrong number of arguments.

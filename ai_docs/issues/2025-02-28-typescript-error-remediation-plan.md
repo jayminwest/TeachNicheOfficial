@@ -42,7 +42,7 @@ For each file:
 - [x] app/components/ui/lesson-checkout.tsx (1 error) <!-- 2025-02-28: Fixed by properly typing searchParams -->
 - [x] app/services/auth/firebase-auth-adapter.ts (14 errors) <!-- 2025-02-28: Fixed by adding proper type imports and creating mapFirebaseUserToAuthUser helper -->
 - [x] app/services/auth/firebase-auth-service.ts (4 errors) <!-- 2025-02-28: Fixed by adding proper return type for signInWithGoogle -->
-- [x] app/lib/firebase-auth-helpers.ts (2 errors) <!-- 2025-02-28: Fixed by adding await to cookie operations -->
+- [x] app/lib/firebase-auth-helpers.ts (2 errors) <!-- 2025-03-01: Fixed by properly awaiting cookieStore operations -->
 
 ### Core Services (P1)
 
@@ -84,7 +84,7 @@ For each file:
 
 ### Tests and Scripts (P3)
 
-- [ ] app/__tests__/test-utils.tsx (2 errors)
+- [x] app/__tests__/test-utils.tsx (2 errors) <!-- 2025-03-01: Fixed by adding type assertions for user metadata -->
 - [ ] app/api/checkout/__tests__/checkout.test.ts (1 error)
 - [ ] app/api/lessons/__tests__/lessons.test.ts (10 errors)
 - [ ] app/components/ui/__tests__/sign-in.test.tsx (1 error)
@@ -261,12 +261,14 @@ This task will be considered complete when:
 | 2025-03-01 | TypeScript Team | app/services/stripe.ts | Fixed by updating verifyConnectedAccount to use DatabaseService |
 | 2025-02-28 | TypeScript Team | app/services/auth/firebase-auth-adapter.ts | Fixed by adding proper type imports and creating mapFirebaseUserToAuthUser helper |
 | 2025-02-28 | TypeScript Team | app/services/auth/firebase-auth-service.ts | Fixed by adding proper return type for signInWithGoogle |
-| 2025-02-28 | TypeScript Team | app/lib/firebase-auth-helpers.ts | Fixed by removing unnecessary type annotations |
+| 2025-03-01 | TypeScript Team | app/lib/firebase-auth-helpers.ts | Fixed by properly awaiting cookieStore operations |
 | 2025-02-28 | TypeScript Team | app/api/stripe/connect/callback/route.ts | Fixed by properly typing accountId parameter |
 | 2025-02-28 | TypeScript Team | app/api/stripe/connect/route.ts | Fixed by properly typing getAuthenticatedUser function |
 | 2025-02-28 | TypeScript Team | app/api/stripe/connect/status/route.ts | Fixed by adding proper Firebase database queries |
 | 2025-02-28 | TypeScript Team | app/api/webhooks/stripe/route.ts | Fixed by replacing Supabase with Firebase database operations |
 | 2025-02-28 | TypeScript Team | app/components/ui/lesson-checkout.tsx | Fixed by properly typing searchParams |
+| 2025-03-01 | TypeScript Team | app/__tests__/test-utils.tsx | Fixed by adding type assertions for user metadata |
+| 2025-03-01 | TypeScript Team | app/__tests__/test-utils-helpers.ts | Created helper file with type utilities for tests |
 
 ## References
 

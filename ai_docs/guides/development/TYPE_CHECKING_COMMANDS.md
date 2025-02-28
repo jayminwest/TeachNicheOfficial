@@ -82,10 +82,8 @@ npm install --save-dev @types/jest
 For test files with Request type errors:
 
 ```typescript
-// Add this helper function to your test utilities
-function asRequest(mockRequest: any): Request {
-  return mockRequest as unknown as Request;
-}
+// Import the helper from test-utils-helpers.ts
+import { asRequest } from '@/app/__tests__/test-utils-helpers';
 
 // Then use it in tests
 const response = await POST(asRequest(req));

@@ -142,7 +142,7 @@ async function getLessonsHandler(request: Request) {
     queryBuilder = queryBuilder.order(sortField, { ascending: sortDirection === 'asc' });
     
     // Execute the query
-    const { data: lessons, error } = await queryBuilder.execute();
+    const { data: lessons, error } = await queryBuilder.get();
     
     if (error) {
       return NextResponse.json(

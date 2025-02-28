@@ -30,8 +30,10 @@ async function getAuthenticatedUser(request: Request): Promise<{
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     try {
-      // Use Firebase Admin SDK to verify the token
-      const decodedToken = await firebaseClient.auth.verifyIdToken(token);
+      // Use Firebase Admin to verify the token
+      // Import firebase-admin dynamically to avoid issues with Next.js
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(token);
       if (decodedToken.uid) {
         return { user: { uid: decodedToken.uid, email: decodedToken.email || '' } };
       }

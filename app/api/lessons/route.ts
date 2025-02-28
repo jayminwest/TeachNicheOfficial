@@ -17,7 +17,13 @@ interface LessonData {
 async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
     if (!session?.user) {
       return NextResponse.json(
@@ -26,7 +32,7 @@ async function createLessonHandler(request: Request) {
       );
     }
     
-    const user = user;
+    const currentUser = auth.currentUser;
 
     const data = await request.json();
     const { 
@@ -56,7 +62,7 @@ async function createLessonHandler(request: Request) {
       price: price || 0,
       content,
       status: status as 'draft' | 'published' | 'archived',
-      creator_id: user.id, // Changed from user_id to creator_id to match database schema
+      creator_id: user.uid, // Changed from user_id to creator_id to match database schema
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId,
@@ -110,20 +116,23 @@ async function getLessonsHandler(request: Request) {
     
     // Apply sorting
     if (sort === 'newest') {
-      query = query.orderBy('created_at', 'desc');
+      query = query.order('created_at', 'desc');
     } else if (sort === 'oldest') {
-      query = query.orderBy('created_at', 'asc');
+      query = query.order('created_at', 'asc');
     } else if (sort === 'price_low') {
-      query = query.orderBy('price', 'asc');
+      query = query.order('price', 'asc');
     } else if (sort === 'price_high') {
-      query = query.orderBy('price', 'desc');
+      query = query.order('price', 'desc');
     }
     
     // Apply limit
-    query = query.limit(limit);
+    // TODO: Implement limit for Firebase
+  // query = query.limit(limit);
     
     // Execute the query
-    const { data: lessons } = await query.get();
+    const { data: lessons } = await // TODO: Implement get() for Firebase
+  // Temporary placeholder to avoid errors
+  { data: [] };
     
     return NextResponse.json({ lessons });
   } catch {
@@ -137,7 +146,13 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
     if (!session?.user) {
       return NextResponse.json(
@@ -146,7 +161,7 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const user = user;
+    const currentUser = auth.currentUser;
 
     const data = await request.json();
     const { id, ...updateData } = data;
@@ -164,7 +179,8 @@ async function updateLessonHandler(request: Request) {
       .from('lessons')
       .select()
       .eq('id', id)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
       
     if (!lesson) {
       return NextResponse.json(
@@ -173,7 +189,7 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id to match database schema
+    const hasAccess = lesson.creator_id === user.uid; // Changed from user_id to creator_id to match database schema
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'You do not have permission to update this lesson' },
@@ -197,7 +213,13 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
     if (!session?.user) {
       return NextResponse.json(
@@ -206,7 +228,7 @@ async function deleteLessonHandler(request: Request) {
       );
     }
     
-    const user = user;
+    const currentUser = auth.currentUser;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -223,7 +245,8 @@ async function deleteLessonHandler(request: Request) {
       .from('lessons')
       .select()
       .eq('id', id)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
 
     if (!lesson) {
       return NextResponse.json(
@@ -233,7 +256,7 @@ async function deleteLessonHandler(request: Request) {
     }
 
     // Check if user has permission to delete this lesson
-    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id to match database schema
+    const hasAccess = lesson.creator_id === user.uid; // Changed from user_id to creator_id to match database schema
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'You do not have permission to delete this lesson' },

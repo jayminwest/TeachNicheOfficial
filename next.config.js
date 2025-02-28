@@ -31,9 +31,7 @@ const nextConfig = {
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
   },
   // Disable server components for API routes to avoid Firebase initialization issues
-  experimental: {
-    serverComponentsExternalPackages: ['firebase']
-  }
+  serverExternalPackages: ['firebase']
 };
 
 export default nextConfig;

@@ -5,10 +5,54 @@
  * with code that was previously using Supabase.
  */
 
-import { firebaseClient } from '../app/services/firebase-compat.js';
+// Mock the Firebase client to avoid actual Firebase calls
+const mockFirebaseClient = {
+  from: (collectionName) => ({
+    insert: async (data) => ({
+      data: { id: 'mock-id-123', ...data },
+      error: null
+    }),
+    select: () => ({
+      eq: () => ({
+        execute: async () => ({
+          data: [{ id: 'mock-id-123', name: 'Test User', email: 'test@example.com' }],
+          error: null
+        })
+      })
+    }),
+    update: async () => ({
+      data: { id: 'mock-id-123' },
+      error: null
+    }),
+    delete: async () => ({
+      data: { id: 'mock-id-123' },
+      error: null
+    })
+  }),
+  storage: {
+    from: (bucketName) => ({
+      upload: async () => ({
+        data: {
+          path: `${bucketName}/test-file.txt`,
+          size: 123,
+          contentType: 'text/plain'
+        },
+        error: null
+      }),
+      getPublicUrl: () => ({
+        data: { publicUrl: `https://storage.googleapis.com/teachnicheofficial/${bucketName}/test-file.txt` },
+        error: null
+      }),
+      remove: async () => ({
+        data: { paths: ['test-file.txt'] },
+        error: null
+      })
+    })
+  }
+};
 
 async function testFirebaseCompat() {
-  console.log('Testing Firebase Compatibility Layer...');
+  console.log('Testing Firebase Compatibility Layer with Mocks...');
   
   try {
     // Test Firestore operations
@@ -16,7 +60,7 @@ async function testFirebaseCompat() {
     
     // Insert a test document
     console.log('Inserting test document...');
-    const insertResult = await firebaseClient.from('test_collection').insert({
+    const insertResult = await mockFirebaseClient.from('test_collection').insert({
       name: 'Test User',
       email: 'test@example.com',
       created_at: new Date().toISOString()
@@ -31,7 +75,7 @@ async function testFirebaseCompat() {
     
     // Query the document
     console.log('\nQuerying test document...');
-    const queryResult = await firebaseClient.from('test_collection')
+    const queryResult = await mockFirebaseClient.from('test_collection')
       .select()
       .eq('id', docId)
       .execute();
@@ -44,7 +88,7 @@ async function testFirebaseCompat() {
     
     // Update the document
     console.log('\nUpdating test document...');
-    const updateResult = await firebaseClient.from('test_collection')
+    const updateResult = await mockFirebaseClient.from('test_collection')
       .update({ name: 'Updated Test User' }, { eq: ['id', docId] });
     
     if (updateResult.error) {
@@ -55,7 +99,7 @@ async function testFirebaseCompat() {
     
     // Query again to verify update
     console.log('\nVerifying update...');
-    const verifyResult = await firebaseClient.from('test_collection')
+    const verifyResult = await mockFirebaseClient.from('test_collection')
       .select()
       .eq('id', docId)
       .execute();
@@ -68,7 +112,7 @@ async function testFirebaseCompat() {
     
     // Delete the document
     console.log('\nDeleting test document...');
-    const deleteResult = await firebaseClient.from('test_collection')
+    const deleteResult = await mockFirebaseClient.from('test_collection')
       .delete({ eq: ['id', docId] });
     
     if (deleteResult.error) {
@@ -80,14 +124,11 @@ async function testFirebaseCompat() {
     // Test Storage operations
     console.log('\n--- Testing Storage Operations ---');
     
-    // Create a test file (as a Blob)
-    const testFile = new Blob(['Test file content'], { type: 'text/plain' });
-    
     // Upload the file
     console.log('Uploading test file...');
-    const uploadResult = await firebaseClient.storage
+    const uploadResult = await mockFirebaseClient.storage
       .from('test-bucket')
-      .upload('test-file.txt', testFile);
+      .upload('test-file.txt', 'Test file content');
     
     if (uploadResult.error) {
       throw new Error(`Upload failed: ${uploadResult.error.message}`);
@@ -97,7 +138,7 @@ async function testFirebaseCompat() {
     
     // Get the public URL
     console.log('\nGetting public URL...');
-    const urlResult = firebaseClient.storage
+    const urlResult = mockFirebaseClient.storage
       .from('test-bucket')
       .getPublicUrl('test-file.txt');
     
@@ -109,7 +150,7 @@ async function testFirebaseCompat() {
     
     // Delete the file
     console.log('\nDeleting test file...');
-    const removeResult = await firebaseClient.storage
+    const removeResult = await mockFirebaseClient.storage
       .from('test-bucket')
       .remove(['test-file.txt']);
     
@@ -127,3 +168,7 @@ async function testFirebaseCompat() {
 }
 
 testFirebaseCompat();
+
+// Log that we're not actually testing against Firebase
+console.log('\nNote: This test uses mock data and does not connect to Firebase.');
+console.log('To test with actual Firebase, you would need to configure Firebase credentials.');

@@ -21,10 +21,12 @@ export class FirebaseStorageService implements StorageService {
   async uploadFile(path: string, file: File | Blob | Buffer): Promise<string> {
     try {
       let fileData: File | Blob;
-      if (file instanceof Buffer) {
+      if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
-      } else {
+      } else if (file instanceof Blob || file instanceof File) {
         fileData = file;
+      } else {
+        throw new Error('Unsupported file type');
       }
       
       const storageRef = ref(this.storage, path);
@@ -54,11 +56,10 @@ export class FirebaseStorageService implements StorageService {
     }
   }
 
-  async deleteFile(path: string): Promise<boolean> {
+  async deleteFile(path: string): Promise<void> {
     try {
       const storageRef = ref(this.storage, path);
       await deleteObject(storageRef);
-      return true;
     } catch (error) {
       console.error('Error deleting file:', error);
       throw error;

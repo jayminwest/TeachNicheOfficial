@@ -61,7 +61,7 @@ interface AuthResponse<T = User | null> {
   error: FirebaseError | null;
 }
 
-interface DataResponse<T = any> {
+interface DataResponse<T = unknown> {
   data: T | null;
   error: FirebaseError | null;
 }

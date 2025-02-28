@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     // We already have the lesson from the previous query
     const lessonPrice = lesson.price;
       
-    if (lessonPrice === undefined) {
+    if (lessonPrice === undefined || lessonPrice === null) {
       return NextResponse.json(
         { error: 'Failed to verify lesson price' },
         { status: 500 }
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Calculate expected total price with fees
-    const { totalBuyerCost: expectedPrice } = calculateFees(lessonPrice);
+    const { totalBuyerCost: expectedPrice } = calculateFees(Number(lessonPrice));
     const expectedPriceInCents = Math.round(expectedPrice * 100);
     
     // Validate the price (allow small rounding differences)

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { db, auth, storage } from '@/app/lib/firebase'
 import type { LessonAccess, PurchaseStatus } from '@/types/purchase'
 
 interface AccessCacheEntry {

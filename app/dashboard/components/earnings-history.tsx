@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { db, auth, storage } from '@/app/lib/firebase';
 import { EarningsHistoryItem, getEarningsHistory } from '@/app/services/earnings';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';

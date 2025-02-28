@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getAuth } from 'firebase/auth';
-import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

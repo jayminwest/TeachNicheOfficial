@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
-import { db, auth, storage } from '@/app/lib/firebase';
+import { firebaseAuth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { calculateFees, formatPrice, PAYMENT_CONSTANTS } from '@/app/lib/constants';
 

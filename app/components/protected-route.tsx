@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

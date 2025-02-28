@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { db, auth, storage } from '@/app/lib/firebase';
 import { EarningsSummary, getEarningsSummary } from '@/app/services/earnings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';

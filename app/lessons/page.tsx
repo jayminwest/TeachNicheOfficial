@@ -26,8 +26,8 @@ export default function LessonsPage() {
         const queryResult = await queryRef.select();
         
         // Mock data structure to match expected format
-        const data = queryResult.data || [];
-        const error = queryResult.error;
+        const data = queryResult && 'data' in queryResult ? queryResult.data : [];
+        const error = queryResult && 'error' in queryResult ? queryResult.error : null;
 
         if (error) {
           throw new Error(`Database error: ${error.message}`);

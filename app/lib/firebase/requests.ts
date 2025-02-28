@@ -68,15 +68,22 @@ export async function createRequest(data: LessonRequestFormData): Promise<{ id: 
       created_at: new Date().toISOString()
     };
     
-    const { data: newRequest, error } = await firebaseClient
+    const result = await firebaseClient
       .from('lesson_requests')
       .insert(requestData);
     
+    const error = result && 'error' in result ? result.error : null;
+    const newRequest = result && 'data' in result ? result.data : null;
+    
     if (error) {
-      throw new Error(error.message);
+      throw new Error(typeof error === 'object' && error !== null && 'message' in error 
+        ? String(error.message) 
+        : 'Unknown error');
     }
     
-    return { id: newRequest?.id || 'new-request-id' };
+    return { id: newRequest && typeof newRequest === 'object' && newRequest !== null && 'id' in newRequest 
+      ? String(newRequest.id) 
+      : 'new-request-id' };
   } catch (error) {
     console.error('Error creating request:', error);
     throw error;

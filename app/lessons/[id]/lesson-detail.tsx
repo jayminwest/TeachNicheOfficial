@@ -45,12 +45,14 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
   }
 
   try {
-    const { data: lesson, error } = await supabase
+    // Import database service
+    const { databaseService } = await import('@/app/services/database');
+    
+    const { data: lesson, error } = await databaseService
       .from('lessons')
       .select('*')
       .eq('id', id)
       .eq('status', 'published')
-      .is('deleted_at', null)
       .maybeSingle();
 
     if (error && error.code !== 'PGRST116') {
@@ -97,10 +99,12 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
     
     if (response.ok && result.playbackId) {
       lesson.mux_playback_id = result.playbackId;
-      await supabase
+      // Import database service
+      const { databaseService } = await import('@/app/services/database');
+      
+      await databaseService
         .from('lessons')
-        .update({ mux_playback_id: result.playbackId })
-        .eq('id', lesson.id);
+        .update({ mux_playback_id: result.playbackId }, { eq: ['id', lesson.id] });
     }
   }
 

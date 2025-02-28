@@ -33,11 +33,13 @@ export default function ProfilePage() {
     async function fetchProfile() {
       if (!user?.id) return;
       
-      const { data, error } = await supabase
+      // Import database service
+      const { databaseService } = await import('@/app/services/database');
+      
+      const { data, error } = await databaseService
         .from('profiles')
         .select('*')
-        .eq('id', user.uid)
-        ;
+        .eq('id', user.uid);
 // TODO: Implement equivalent of single() for Firebase
 
       if (error) {

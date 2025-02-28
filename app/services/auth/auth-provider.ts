@@ -46,9 +46,50 @@ export function onAuthStateChange(callback: (user: FirebaseUser | null) => void)
   return onAuthStateChanged(auth, callback);
 }
 
+// Import the interface
+import { AuthService } from './interface';
+
+// Create a class that implements AuthService
+class FirebaseAuthService implements AuthService {
+  private firebaseAuth: FirebaseAuth;
+  
+  constructor() {
+    this.firebaseAuth = new FirebaseAuth();
+  }
+  
+  async signIn(email: string, password: string): Promise<any> {
+    // Implement signIn method
+    console.warn('signIn not implemented');
+    return null;
+  }
+  
+  async signUp(email: string, password: string): Promise<any> {
+    // Implement signUp method
+    console.warn('signUp not implemented');
+    return null;
+  }
+  
+  // Delegate other methods to FirebaseAuth
+  async signInWithGoogle() {
+    return this.firebaseAuth.signInWithGoogle();
+  }
+  
+  async signOut() {
+    return this.firebaseAuth.signOut();
+  }
+  
+  onAuthStateChanged(callback: (user: any) => void) {
+    return this.firebaseAuth.onAuthStateChanged(callback);
+  }
+  
+  get currentUser() {
+    return this.firebaseAuth.currentUser;
+  }
+}
+
 export function getAuthService(): AuthService {
   // Always use Firebase auth now that we've migrated
-  return new FirebaseAuth();
+  return new FirebaseAuthService();
 }
 
 // Create a singleton instance

@@ -70,8 +70,11 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       })
 
       try {
+        // Import database service
+        const { databaseService } = await import('@/app/services/database');
+        
         const result = await Promise.race([
-          supabase
+          databaseService
             .from('purchases')
             .select('status, purchase_date')
             .eq('user_id', user.uid)

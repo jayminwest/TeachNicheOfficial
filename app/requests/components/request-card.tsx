@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card'
@@ -25,7 +25,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
   const { user } = useAuth();
   
   // More robust handling of getFirebaseAuth
-  const supabase = React.useMemo(() => {
+  const supabase = useMemo(() => {
     return typeof getFirebaseAuth === 'function' 
       ? getFirebaseAuth() 
       : {
@@ -37,10 +37,21 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
         };
   }, []);
 
-  // Fetch current vote count from Supabase
+  // Import database service
+  const { databaseService } = useMemo(() => {
+    try {
+      return require('@/app/services/database');
+    } catch (e) {
+      return { databaseService: null };
+    }
+  }, []);
+
+  // Fetch current vote count from database
   const updateVoteCount = useCallback(async () => {
     try {
-      const { count, error } = await supabase
+      if (!databaseService) return;
+      
+      const { count, error } = await databaseService
         .from('lesson_request_votes')
         .select('*', { count: 'exact', head: true })
         .eq('request_id', request.id);
@@ -52,7 +63,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
     } catch (error) {
       console.error('Error fetching vote count:', error);
     }
-  }, [supabase, request.id]);
+  }, [databaseService, request.id]);
 
   // Update vote count on mount and after votes
   useEffect(() => {
@@ -61,21 +72,19 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
 
   useEffect(() => {
     async function checkVoteStatus() {
-      if (!user) return;
+      if (!user || !databaseService) return;
       
-      const { data } = await supabase
+      const { data } = await databaseService
         .from('lesson_request_votes')
         .select()
         .eq('request_id', request.id)
-        .eq('user_id', user.uid)
-        ;
-// TODO: Implement equivalent of single() for Firebase
+        .eq('user_id', user.uid);
       
       setHasVoted(!!data);
     }
 
     checkVoteStatus();
-  }, [user, request.id, supabase]);
+  }, [user, request.id, databaseService]);
 
   const handleVote = async () => {
     try {
@@ -86,8 +95,12 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
 
       setIsVoting(true);
       
+      if (!databaseService) {
+        throw new Error('Database service not available');
+      }
+      
       // Check if vote exists
-      const { data: existingVote, error: queryError } = await supabase
+      const { data: existingVote, error: queryError } = await databaseService
         .from('lesson_request_votes')
         .select()
         .match({ request_id: request.id, user_id: user.uid })
@@ -97,11 +110,9 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
 
       if (existingVote) {
         // Remove vote if it exists
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await databaseService
           .from('lesson_request_votes')
-          .delete()
-          .eq('request_id', request.id)
-          .eq('user_id', user.uid);
+          .delete({ eq: ['request_id', request.id], eq: ['user_id', user.uid] });
 
         if (deleteError) throw deleteError;
         
@@ -114,7 +125,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
         });
       } else {
         // Add vote if it doesn't exist
-        const { error: insertError } = await supabase
+        const { error: insertError } = await databaseService
           .from('lesson_request_votes')
           .insert({
             request_id: request.id,

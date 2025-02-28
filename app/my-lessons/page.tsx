@@ -42,12 +42,19 @@ export default function MyLessonsPage() {
         
         // Check if user is authenticated
         const authResult = await new Promise<{data: {session: {user: Record<string, unknown>} | null}, error: null | Error}>(resolve => {
-  const auth = getAuth();
-  const unsubscribe = auth.onAuthStateChanged((user: unknown) => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+          // Import Firebase auth
+          import('firebase/auth').then(({ getAuth }) => {
+            const auth = getAuth();
+            const unsubscribe = auth.onAuthStateChanged((user: unknown) => {
+              unsubscribe();
+              // Convert user to Record<string, unknown>
+              const userRecord = user ? Object.assign({}, user) as Record<string, unknown> : null;
+              resolve({ data: { session: userRecord ? { user: userRecord } : null }, error: null });
+            });
+          }).catch(err => {
+            resolve({ data: { session: null }, error: err instanceof Error ? err : new Error(String(err)) });
+          });
+        });
         const { data: { session } } = authResult;
         
         if (!session) {
@@ -58,8 +65,11 @@ export default function MyLessonsPage() {
         
         console.log('Session found, fetching purchased lessons');
         
+        // Import database service
+        const { databaseService } = await import('@/app/services/database');
+        
         // Fetch purchased lessons
-        const { data, error } = await supabase
+        const { data, error } = await databaseService
           .from('purchases')
           .select(`
             lesson_id,

@@ -177,7 +177,7 @@ Our storage is organized into the following buckets:
 - Document attachments
 - Backup storage
 
-#### For detailed information, see [CLOUD_STORAGE.md](../reference/CLOUD_STORAGE.md)
+#### For detailed information, see [Storage Guide](../guides/development/STORAGE.md)
 
 ### Cloud Functions
 

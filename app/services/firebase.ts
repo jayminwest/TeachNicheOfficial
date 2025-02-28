@@ -184,3 +184,35 @@ export {
   storage,
   browserPopupRedirectResolver 
 };
+/**
+ * Server-safe Firebase service exports
+ * 
+ * This file provides a safe way to access Firebase services in both client and server environments.
+ * It uses dynamic imports to ensure Firebase client SDKs are only loaded in the browser.
+ */
+
+import { app } from '@/app/lib/firebase';
+
+// Flag to check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Create a placeholder auth object for server-side rendering
+const serverAuth = {
+  currentUser: null,
+  onAuthStateChanged: () => () => {}, // Returns a no-op unsubscribe function
+  signOut: async () => {},
+  signInWithEmailAndPassword: async () => ({ user: null }),
+  createUserWithEmailAndPassword: async () => ({ user: null }),
+  sendPasswordResetEmail: async () => {},
+};
+
+// Export a safe auth object that works in both environments
+export const auth = isBrowser 
+  ? null  // Will be initialized on the client side
+  : serverAuth;
+
+// Export other Firebase services
+export { app };
+
+// Export a function to check if we're in a browser environment
+export const isClientSide = () => isBrowser;

@@ -1,58 +1,121 @@
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut as firebaseSignOut,
-  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
-  updateProfile,
-  updateEmail as firebaseUpdateEmail,
-  updatePassword as firebaseUpdatePassword,
+import { AuthService, AuthUser } from './interface';
+import type { 
   User as FirebaseUser,
   UserCredential,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider
+  Auth
 } from 'firebase/auth';
-import { AuthService, AuthUser } from './interface';
-import { auth } from '@/app/services/firebase';
+
+// Flag to check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Dynamically import auth-related modules only on the client side
+const getFirebaseAuth = async (): Promise<{
+  auth: Auth | null;
+  createUserWithEmailAndPassword: Function;
+  signInWithEmailAndPassword: Function;
+  signOut: Function;
+  sendPasswordResetEmail: Function;
+  updateProfile: Function;
+  updateEmail: Function;
+  updatePassword: Function;
+  onAuthStateChanged: Function;
+  signInWithPopup: Function;
+  GoogleAuthProvider: any;
+}> => {
+  if (!isBrowser) {
+    return {
+      auth: null,
+      createUserWithEmailAndPassword: () => Promise.reject(new Error('Not available on server')),
+      signInWithEmailAndPassword: () => Promise.reject(new Error('Not available on server')),
+      signOut: () => Promise.reject(new Error('Not available on server')),
+      sendPasswordResetEmail: () => Promise.reject(new Error('Not available on server')),
+      updateProfile: () => Promise.reject(new Error('Not available on server')),
+      updateEmail: () => Promise.reject(new Error('Not available on server')),
+      updatePassword: () => Promise.reject(new Error('Not available on server')),
+      onAuthStateChanged: () => () => {}, // Return a no-op unsubscribe function
+      signInWithPopup: () => Promise.reject(new Error('Not available on server')),
+      GoogleAuthProvider: class MockGoogleAuthProvider {
+        static credentialFromResult() { return null; }
+        addScope() { return this; }
+        setCustomParameters() { return this; }
+      }
+    };
+  }
+
+  try {
+    // Import Firebase modules dynamically
+    const firebaseAuth = await import('firebase/auth');
+    const { getAuth } = firebaseAuth;
+    
+    // Import Firebase app
+    const { app } = await import('@/app/lib/firebase');
+    
+    // Get auth instance
+    const auth = getAuth(app);
+    
+    return {
+      auth,
+      createUserWithEmailAndPassword: firebaseAuth.createUserWithEmailAndPassword,
+      signInWithEmailAndPassword: firebaseAuth.signInWithEmailAndPassword,
+      signOut: firebaseAuth.signOut,
+      sendPasswordResetEmail: firebaseAuth.sendPasswordResetEmail,
+      updateProfile: firebaseAuth.updateProfile,
+      updateEmail: firebaseAuth.updateEmail,
+      updatePassword: firebaseAuth.updatePassword,
+      onAuthStateChanged: firebaseAuth.onAuthStateChanged,
+      signInWithPopup: firebaseAuth.signInWithPopup,
+      GoogleAuthProvider: firebaseAuth.GoogleAuthProvider
+    };
+  } catch (error) {
+    console.error('Error loading Firebase auth:', error);
+    return {
+      auth: null,
+      createUserWithEmailAndPassword: () => Promise.reject(error),
+      signInWithEmailAndPassword: () => Promise.reject(error),
+      signOut: () => Promise.reject(error),
+      sendPasswordResetEmail: () => Promise.reject(error),
+      updateProfile: () => Promise.reject(error),
+      updateEmail: () => Promise.reject(error),
+      updatePassword: () => Promise.reject(error),
+      onAuthStateChanged: () => () => {}, // Return a no-op unsubscribe function
+      signInWithPopup: () => Promise.reject(error),
+      GoogleAuthProvider: class MockGoogleAuthProvider {
+        static credentialFromResult() { return null; }
+        addScope() { return this; }
+        setCustomParameters() { return this; }
+      }
+    };
+  }
+};
 
 export class FirebaseAuthService implements AuthService {
-  private auth;
+  private authPromise: Promise<Auth | null>;
 
   constructor() {
+    // Initialize auth lazily
+    this.authPromise = this.initializeAuth();
+  }
+
+  private async initializeAuth(): Promise<Auth | null> {
     try {
-      // Always use the imported auth instance to ensure consistency
-      this.auth = auth;
-      
-      // Check if we're in a browser environment
-      const isBrowser = typeof window !== 'undefined';
-      
-      // Only validate auth in browser environment
-      if (isBrowser && !this.auth) {
-        console.error('Firebase auth is not initialized');
-        throw new Error('Firebase auth is not initialized');
-      }
-      
-      // In server environment, we'll use a placeholder
-      if (!isBrowser) {
-        console.log('Server-side auth initialization - using placeholder');
-      }
+      const { auth } = await getFirebaseAuth();
+      return auth;
     } catch (error) {
       console.error('Error initializing Firebase Auth service:', error);
-      // Don't throw in server environment
-      if (typeof window !== 'undefined') {
-        throw new Error('Failed to initialize Firebase Auth service. Check your Firebase configuration.');
-      }
+      return null;
     }
   }
 
   async signUp(email: string, password: string, name: string): Promise<AuthUser> {
     try {
-      if (!this.auth) {
+      const { auth, createUserWithEmailAndPassword, updateProfile } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
       const userCredential: UserCredential = await createUserWithEmailAndPassword(
-        this.auth, 
+        auth, 
         email, 
         password
       );
@@ -68,12 +131,14 @@ export class FirebaseAuthService implements AuthService {
 
   async signIn(email: string, password: string): Promise<AuthUser> {
     try {
-      if (!this.auth) {
+      const { auth, signInWithEmailAndPassword } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
       const userCredential: UserCredential = await signInWithEmailAndPassword(
-        this.auth, 
+        auth, 
         email, 
         password
       );
@@ -87,11 +152,13 @@ export class FirebaseAuthService implements AuthService {
 
   async signOut(): Promise<void> {
     try {
-      if (!this.auth) {
+      const { auth, signOut } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
-      await firebaseSignOut(this.auth);
+      await signOut(auth);
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
@@ -99,30 +166,39 @@ export class FirebaseAuthService implements AuthService {
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
-    if (!this.auth) {
-      console.error('Firebase auth is not initialized');
+    try {
+      const { auth, onAuthStateChanged } = await getFirebaseAuth();
+      
+      if (!auth) {
+        console.error('Firebase auth is not initialized');
+        return null;
+      }
+      
+      return new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          unsubscribe();
+          if (user) {
+            resolve(this.mapFirebaseUserToAuthUser(user));
+          } else {
+            resolve(null);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error getting current user:', error);
       return null;
     }
-    
-    return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(this.auth, (user) => {
-        unsubscribe();
-        if (user) {
-          resolve(this.mapFirebaseUserToAuthUser(user));
-        } else {
-          resolve(null);
-        }
-      });
-    });
   }
 
   async updateProfile(userId: string, data: { name?: string; avatarUrl?: string }): Promise<void> {
     try {
-      if (!this.auth) {
+      const { auth, updateProfile } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
-      const user = this.auth.currentUser;
+      const user = auth.currentUser;
       if (!user) {
         throw new Error('No user is currently signed in');
       }
@@ -146,16 +222,18 @@ export class FirebaseAuthService implements AuthService {
 
   async updateEmail(userId: string, email: string): Promise<void> {
     try {
-      if (!this.auth) {
+      const { auth, updateEmail } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
-      const user = this.auth.currentUser;
+      const user = auth.currentUser;
       if (!user) {
         throw new Error('No user is currently signed in');
       }
       
-      await firebaseUpdateEmail(user, email);
+      await updateEmail(user, email);
     } catch (error) {
       console.error('Error updating email:', error);
       throw error;
@@ -164,16 +242,18 @@ export class FirebaseAuthService implements AuthService {
 
   async updatePassword(userId: string, password: string): Promise<void> {
     try {
-      if (!this.auth) {
+      const { auth, updatePassword } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
-      const user = this.auth.currentUser;
+      const user = auth.currentUser;
       if (!user) {
         throw new Error('No user is currently signed in');
       }
       
-      await firebaseUpdatePassword(user, password);
+      await updatePassword(user, password);
     } catch (error) {
       console.error('Error updating password:', error);
       throw error;
@@ -182,11 +262,13 @@ export class FirebaseAuthService implements AuthService {
 
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
-      if (!this.auth) {
+      const { auth, sendPasswordResetEmail } = await getFirebaseAuth();
+      
+      if (!auth) {
         throw new Error('Firebase auth is not initialized');
       }
       
-      await firebaseSendPasswordResetEmail(this.auth, email);
+      await sendPasswordResetEmail(auth, email);
     } catch (error) {
       console.error('Error sending password reset email:', error);
       throw error;
@@ -210,6 +292,9 @@ export class FirebaseAuthService implements AuthService {
 // Helper functions for backward compatibility
 export async function signInWithEmail(email: string, password: string) {
   try {
+    const { auth, signInWithEmailAndPassword } = await getFirebaseAuth();
+    if (!auth) throw new Error('Auth not initialized');
+    
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return { user: transformUser(userCredential.user), error: null };
   } catch (error) {
@@ -219,6 +304,9 @@ export async function signInWithEmail(email: string, password: string) {
 
 export async function signUpWithEmail(email: string, password: string) {
   try {
+    const { auth, createUserWithEmailAndPassword } = await getFirebaseAuth();
+    if (!auth) throw new Error('Auth not initialized');
+    
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     return { user: transformUser(userCredential.user), error: null };
   } catch (error) {
@@ -228,6 +316,9 @@ export async function signUpWithEmail(email: string, password: string) {
 
 export async function signUp(email: string, password: string, name: string) {
   try {
+    const { auth, createUserWithEmailAndPassword, updateProfile } = await getFirebaseAuth();
+    if (!auth) throw new Error('Auth not initialized');
+    
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: name });
     return { user: transformUser(userCredential.user), error: null };
@@ -238,6 +329,17 @@ export async function signUp(email: string, password: string, name: string) {
 
 export async function signInWithGoogle() {
   try {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined') {
+      throw new Error('Google sign-in is not available on the server');
+    }
+    
+    const { 
+      auth, 
+      signInWithPopup, 
+      GoogleAuthProvider 
+    } = await getFirebaseAuth();
+    
     // Check if auth is initialized
     if (!auth) {
       console.error('Firebase auth is not initialized');
@@ -277,6 +379,9 @@ export async function signInWithGoogle() {
 
 export async function signOut() {
   try {
+    const { auth, signOut: firebaseSignOut } = await getFirebaseAuth();
+    if (!auth) throw new Error('Auth not initialized');
+    
     await firebaseSignOut(auth);
     return { error: null };
   } catch (error) {
@@ -291,39 +396,46 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null;
   }
   
-  if (!auth) {
-    console.error('Auth instance is not initialized');
+  try {
+    const { auth, onAuthStateChanged } = await getFirebaseAuth();
+    
+    if (!auth) {
+      console.error('Auth instance is not initialized');
+      return null;
+    }
+    
+    return new Promise<AuthUser | null>((resolve) => {
+      try {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          unsubscribe();
+          resolve(user ? transformUser(user) : null);
+        }, (error) => {
+          console.error('Error in onAuthStateChanged:', error);
+          unsubscribe();
+          resolve(null);
+        });
+      } catch (error) {
+        console.error('Error setting up auth state listener:', error);
+        resolve(null);
+      }
+    });
+  } catch (error) {
+    console.error('Error getting current user:', error);
     return null;
   }
-  
-  return new Promise<AuthUser | null>((resolve) => {
-    try {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        unsubscribe();
-        resolve(user ? transformUser(user) : null);
-      }, (error) => {
-        console.error('Error in onAuthStateChanged:', error);
-        unsubscribe();
-        resolve(null);
-      });
-    } catch (error) {
-      console.error('Error setting up auth state listener:', error);
-      resolve(null);
-    }
-  });
 }
 
-function transformUser(firebaseUser: FirebaseUser): AuthUser {
+function transformUser(firebaseUser: any): AuthUser {
   return {
     id: firebaseUser.uid,
     email: firebaseUser.email,
     name: firebaseUser.displayName,
     avatarUrl: firebaseUser.photoURL,
     metadata: {
-      provider: firebaseUser.providerData[0]?.providerId || 'firebase',
+      provider: firebaseUser.providerData?.[0]?.providerId || 'firebase',
       emailVerified: firebaseUser.emailVerified,
-      createdAt: firebaseUser.metadata.creationTime,
-      lastSignInTime: firebaseUser.metadata.lastSignInTime
+      createdAt: firebaseUser.metadata?.creationTime,
+      lastSignInTime: firebaseUser.metadata?.lastSignInTime
     }
   };
 }

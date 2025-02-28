@@ -65,8 +65,9 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
         .from('lesson_request_votes')
         .select()
         .eq('request_id', request.id)
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.uid)
+        ;
+// TODO: Implement equivalent of single() for Firebase
       
       setHasVoted(!!data);
     }
@@ -87,7 +88,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
       const { data: existingVote, error: queryError } = await supabase
         .from('lesson_request_votes')
         .select()
-        .match({ request_id: request.id, user_id: user.id })
+        .match({ request_id: request.id, user_id: user.uid })
         .maybeSingle();
 
       if (queryError) throw queryError;
@@ -98,7 +99,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
           .from('lesson_request_votes')
           .delete()
           .eq('request_id', request.id)
-          .eq('user_id', user.id);
+          .eq('user_id', user.uid);
 
         if (deleteError) throw deleteError;
         
@@ -115,7 +116,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
           .from('lesson_request_votes')
           .insert({
             request_id: request.id,
-            user_id: user.id,
+            user_id: user.uid,
             vote_type: 'up' as const
           });
 

@@ -9,7 +9,14 @@ interface CreatorApplication {
   id: string;
   status: string;
   user_id: string;
-  [key: string]: any; // Allow other properties
+  motivation?: string;
+  sample_lesson_title?: string;
+  sample_lesson_content?: string;
+  teaching_approach?: string;
+  instagram_handle?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: string | null | undefined; // More specific index signature
 }
 
 // Schema for validation

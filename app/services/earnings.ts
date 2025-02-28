@@ -106,8 +106,7 @@ export const recordCreatorEarnings = async (
     // Calculate fees
     const { platformFee, creatorEarnings } = calculateFees(amount);
     
-    // @ts-expect-error - DatabaseService interface needs to be updated
-    await (databaseService as DatabaseService).create('creator_earnings', {
+    await databaseService.create('creator_earnings', {
       creator_id: creatorId,
       payment_intent_id: paymentIntentId,
       amount: creatorEarnings,

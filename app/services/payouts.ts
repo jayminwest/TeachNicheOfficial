@@ -1,5 +1,4 @@
-import { EnhancedSupabaseClient } from '@/app/lib/types/supabase-rpc';
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
+import { DatabaseService } from './database/interface';
 import { getStripe, stripeConfig } from './stripe';
 import Stripe from 'stripe';
 
@@ -22,18 +21,18 @@ export interface PayoutResult {
 export const processCreatorPayout = async (
   creatorId: string,
   amount: number,
-  supabaseClient: TypedSupabaseClient
+  databaseService: DatabaseService
 ): Promise<PayoutResult> => {
   try {
     // Get creator's bank account information
-    const { data: bankInfo, error: bankError } = await supabaseClient
-      .from('creator_payout_methods')
-      .select('bank_account_token, last_four')
-      .eq('creator_id', creatorId)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+    const bankInfo = await databaseService.list('creator_payout_methods', 
+      { creator_id: creatorId },
+      undefined,
+      undefined,
+      1
+    );
 
-    if (bankError || !bankInfo?.bank_account_token) {
+    if (!bankInfo || bankInfo.length === 0 || !bankInfo[0].bank_account_token) {
       console.error('Bank account fetch failed:', bankError);
       return {
         success: false,
@@ -55,17 +54,15 @@ export const processCreatorPayout = async (
     });
 
     // Record the payout in our database
-    const { error: payoutError } = await supabaseClient
-      .from('creator_payouts')
-      .insert({
+    try {
+      await databaseService.create('creator_payouts', {
         creator_id: creatorId,
         amount,
         status: payout.status as 'pending' | 'paid' | 'failed' | 'canceled',
         payout_id: payout.id,
-        destination_last_four: bankInfo.last_four
+        destination_last_four: bankInfo[0].last_four
       });
-
-    if (payoutError) {
+    } catch (payoutError) {
       console.error('Failed to record payout:', payoutError);
       // We don't throw here because the payout was successful in Stripe
       // This is a database recording issue that can be fixed later
@@ -94,32 +91,24 @@ export const processCreatorPayout = async (
  * @returns Array of payout results
  */
 export const processAllEligiblePayouts = async (
-  supabaseClient: EnhancedSupabaseClient
+  databaseService: DatabaseService
 ): Promise<PayoutResult[]> => {
   const results: PayoutResult[] = [];
   
   try {
     // Get all creators with pending earnings above the minimum threshold
-    const { data: eligibleCreators, error } = await supabaseClient.rpc(
-      'get_creators_eligible_for_payout',
-      { minimum_amount: stripeConfig.minimumPayoutAmount }
-    ) as {
-      data: Array<{
-        creator_id: string;
-        pending_amount: number;
-      }> | null;
-      error: Error | null;
-    };
-    
-    if (error) throw error;
+    // This is a simplified version - in a real implementation, you would need to
+    // create a custom query or function to get eligible creators
+    const eligibleCreators = await databaseService.list('creator_earnings_summary', 
+      { pending_amount_gte: stripeConfig.minimumPayoutAmount }
+    );
     
     // Process payouts for each eligible creator
     for (const creator of (eligibleCreators || [])) {
-      // Cast to TypedSupabaseClient since processCreatorPayout expects that type
       const result = await processCreatorPayout(
         creator.creator_id,
         creator.pending_amount,
-        supabaseClient as unknown as TypedSupabaseClient
+        databaseService
       );
       
       results.push(result);

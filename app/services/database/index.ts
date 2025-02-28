@@ -1,9 +1,9 @@
 import { DatabaseService } from './interface';
-import { FirebaseDatabase } from './supabase';
+import { FirestoreDatabase } from './firebase-database';
 
 // Factory function to create the appropriate database service
 export function createDatabaseService(): DatabaseService {
-  return new FirebaseDatabase();
+  return new FirestoreDatabase();
 }
 
 // For backward compatibility

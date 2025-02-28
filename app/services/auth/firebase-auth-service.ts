@@ -282,12 +282,12 @@ export class FirebaseAuthService implements AuthService {
   private mapFirebaseUserToAuthUser(user: FirebaseUser): AuthUser {
     return {
       id: user.uid,
-      email: user.email,
-      name: user.displayName,
-      avatarUrl: user.photoURL,
+      email: user.email || '',
+      name: user.displayName || '',
+      avatarUrl: user.photoURL || '',
       metadata: {
-        createdAt: user.metadata.creationTime,
-        lastSignInTime: user.metadata.lastSignInTime
+        createdAt: user.metadata.creationTime || '',
+        lastSignInTime: user.metadata.lastSignInTime || ''
       }
     };
   }
@@ -432,14 +432,14 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 function transformUser(firebaseUser: FirebaseUser): AuthUser {
   return {
     id: firebaseUser.uid,
-    email: firebaseUser.email,
-    name: firebaseUser.displayName,
-    avatarUrl: firebaseUser.photoURL,
+    email: firebaseUser.email || '',
+    name: firebaseUser.displayName || '',
+    avatarUrl: firebaseUser.photoURL || '',
     metadata: {
       provider: firebaseUser.providerData?.[0]?.providerId || 'firebase',
       emailVerified: firebaseUser.emailVerified,
-      createdAt: firebaseUser.metadata?.creationTime,
-      lastSignInTime: firebaseUser.metadata?.lastSignInTime
+      createdAt: firebaseUser.metadata?.creationTime || '',
+      lastSignInTime: firebaseUser.metadata?.lastSignInTime || ''
     }
   };
 }

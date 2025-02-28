@@ -37,10 +37,11 @@ export class FirebaseStorage implements StorageService {
     }
   }
   
-  async deleteFile(path: string): Promise<void> {
+  async deleteFile(path: string): Promise<boolean> {
     try {
       const storageRef = ref(storage, path);
       await deleteObject(storageRef);
+      return true;
     } catch (error) {
       console.error('Error deleting file from Firebase Storage:', error);
       throw error;

@@ -21,12 +21,12 @@ export async function signInWithGoogle(): Promise<AuthUser> {
     
     return {
       id: user.uid,
-      email: user.email,
-      name: user.displayName,
-      avatarUrl: user.photoURL,
+      email: user.email || '',
+      name: user.displayName || '',
+      avatarUrl: user.photoURL || '',
       metadata: {
-        createdAt: user.metadata.creationTime,
-        lastSignInTime: user.metadata.lastSignInTime
+        createdAt: user.metadata.creationTime || '',
+        lastSignInTime: user.metadata.lastSignInTime || ''
       }
     };
   } catch (error) {
@@ -42,12 +42,12 @@ export async function signInWithEmail(email: string, password: string): Promise<
     
     return {
       id: user.uid,
-      email: user.email,
-      name: user.displayName,
-      avatarUrl: user.photoURL,
+      email: user.email || '',
+      name: user.displayName || '',
+      avatarUrl: user.photoURL || '',
       metadata: {
-        createdAt: user.metadata.creationTime,
-        lastSignInTime: user.metadata.lastSignInTime
+        createdAt: user.metadata.creationTime || '',
+        lastSignInTime: user.metadata.lastSignInTime || ''
       }
     };
   } catch (error) {
@@ -63,12 +63,12 @@ export async function createUser(email: string, password: string): Promise<AuthU
     
     return {
       id: user.uid,
-      email: user.email,
-      name: user.displayName,
-      avatarUrl: user.photoURL,
+      email: user.email || '',
+      name: user.displayName || '',
+      avatarUrl: user.photoURL || '',
       metadata: {
-        createdAt: user.metadata.creationTime,
-        lastSignInTime: user.metadata.lastSignInTime
+        createdAt: user.metadata.creationTime || '',
+        lastSignInTime: user.metadata.lastSignInTime || ''
       }
     };
   } catch (error) {
@@ -106,12 +106,12 @@ export function getCurrentUser(): Promise<AuthUser | null> {
     
     resolve({
       id: user.uid,
-      email: user.email,
-      name: user.displayName,
-      avatarUrl: user.photoURL,
+      email: user.email || '',
+      name: user.displayName || '',
+      avatarUrl: user.photoURL || '',
       metadata: {
-        createdAt: user.metadata.creationTime,
-        lastSignInTime: user.metadata.lastSignInTime
+        createdAt: user.metadata.creationTime || '',
+        lastSignInTime: user.metadata.lastSignInTime || ''
       }
     });
   });

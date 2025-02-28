@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
+import { DatabaseService } from './database/interface';
 
 // Error handling types
 export type StripeErrorCode = 
@@ -240,21 +240,14 @@ export const getAccountStatus = async (accountId: string) => {
 export const verifyConnectedAccount = async (
   userId: string,
   accountId: string,
-  supabase: TypedSupabaseClient
+  databaseService: DatabaseService
 ) => {
   try {
     // Verify the account exists and belongs to this user
-    const profilesRef = supabase.from('profiles');
-    const profilesQuery = profilesRef.select();
+    const profiles = await databaseService.list('profiles', { id: userId });
     
-    // Execute the query
-    const profilesResult = await profilesQuery;
-    
-    // Check if we got results and find the matching profile
-    let profile = null;
-    if (profilesResult && Array.isArray(profilesResult)) {
-      profile = profilesResult.find(p => p.id === userId);
-    }
+    // Check if we got results
+    let profile = profiles && profiles.length > 0 ? profiles[0] : null;
     
     if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
       return { verified: false, status: { isComplete: false } };

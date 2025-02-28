@@ -41,10 +41,12 @@ export class CloudStorage implements StorageService {
     return `https://storage.googleapis.com/${this.bucket}/${path}`;
   }
   
-  async deleteFile(path: string): Promise<void> {
+  async deleteFile(path: string): Promise<boolean> {
     await this.storage
       .bucket(this.bucket)
       .file(path)
       .delete();
+    
+    return true;
   }
 }

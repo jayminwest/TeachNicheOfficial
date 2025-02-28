@@ -1,5 +1,4 @@
-import { EnhancedSupabaseClient } from '@/app/lib/types/supabase-rpc';
-import { TypedSupabaseClient } from '@/app/lib/types/supabase';
+import { DatabaseService } from './database/interface';
 import { formatCurrency } from '@/app/lib/utils';
 import { stripeConfig } from '@/app/services/stripe';
 
@@ -91,26 +90,24 @@ export const recordCreatorEarnings = async (
     amount: number;
     lessonId: string;
     purchaseId: string;
-    supabaseClient: TypedSupabaseClient;
+    databaseService: DatabaseService;
   }
 ): Promise<void> => {
-  const { paymentIntentId, creatorId, amount, lessonId, purchaseId, supabaseClient } = params;
+  const { paymentIntentId, creatorId, amount, lessonId, purchaseId, databaseService } = params;
   
   try {
     // Calculate fees
     const { platformFee, creatorEarnings } = calculateFees(amount);
     
-    await supabaseClient
-      .from('creator_earnings')
-      .insert({
-        creator_id: creatorId,
-        payment_intent_id: paymentIntentId,
-        amount: creatorEarnings,
-        lesson_id: lessonId,
-        purchase_id: purchaseId,
-        platform_fee: platformFee,
-        status: 'pending'
-      });
+    await databaseService.create('creator_earnings', {
+      creator_id: creatorId,
+      payment_intent_id: paymentIntentId,
+      amount: creatorEarnings,
+      lesson_id: lessonId,
+      purchase_id: purchaseId,
+      platform_fee: platformFee,
+      status: 'pending'
+    });
   } catch (error) {
     console.error('Failed to record creator earnings:', error);
     // We log but don't throw here to prevent payment confirmation issues

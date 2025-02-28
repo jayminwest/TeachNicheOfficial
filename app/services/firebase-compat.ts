@@ -235,7 +235,7 @@ export const firebaseClient = {
   storage: {
     from: (bucketName: string) => {
       return {
-        upload: async (path: string, file: File | Blob | ArrayBuffer): Promise<StorageResponse> => {
+        upload: async (path: string, file: File | Blob | ArrayBuffer | Buffer): Promise<StorageResponse> => {
           try {
             const fileRef: StorageReference = ref(storage, `${bucketName}/${path}`);
             await uploadBytes(fileRef, file);

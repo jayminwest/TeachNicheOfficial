@@ -43,7 +43,12 @@ export class CloudSqlDatabase implements DatabaseService {
     }
   }
   
-  async getCategories() {
+  async getCategories(): Promise<{
+    id: string;
+    name: string;
+    created_at: string;
+    updated_at: string;
+  }[]> {
     const { rows } = await this.query<{
       id: string;
       name: string;
@@ -54,7 +59,7 @@ export class CloudSqlDatabase implements DatabaseService {
     return rows;
   }
   
-  async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}) {
+  async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}): Promise<any[]> {
     let query = 'SELECT * FROM lessons WHERE 1=1';
     const params: (string | number | boolean)[] = [];
     let paramIndex = 1;

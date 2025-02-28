@@ -73,9 +73,11 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         // Import database service
         const { databaseService } = await import('@/app/services/database');
         
+        // Get database reference first to avoid chaining issues
+        const purchasesRef = databaseService.from('purchases');
+        
         const result = await Promise.race([
-          databaseService
-            .from('purchases')
+          purchasesRef
             .select('status, purchase_date')
             .eq('user_id', user.uid)
             .eq('lesson_id', lessonId)

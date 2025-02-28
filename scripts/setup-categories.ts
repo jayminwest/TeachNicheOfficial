@@ -86,15 +86,26 @@ async function createCategories(db: any) {
     
     console.log(`${colors.blue}Creating categories in Firestore...${colors.reset}`);
     
+    let successCount = 0;
+    
     // Check if we have permission issues
     try {
       for (const category of mockCategories) {
-        await addDoc(categoriesRef, category);
-        console.log(`  - Created category: ${category.name}`);
+        try {
+          await addDoc(categoriesRef, category);
+          console.log(`  - Created category: ${category.name}`);
+          successCount++;
+        } catch (categoryError: any) {
+          console.error(`  - Failed to create category ${category.name}: ${categoryError.message}`);
+        }
       }
       
-      console.log(`${colors.green}Successfully created ${mockCategories.length} categories!${colors.reset}`);
-    } catch (permissionError) {
+      if (successCount > 0) {
+        console.log(`${colors.green}Successfully created ${successCount} categories!${colors.reset}`);
+      } else {
+        throw new Error("Failed to create any categories");
+      }
+    } catch (permissionError: any) {
       if (permissionError.code === 'permission-denied') {
         console.error(`${colors.red}Permission denied error:${colors.reset}`, permissionError);
         console.log(`${colors.yellow}You need to update your Firestore security rules to allow writes to the categories collection.${colors.reset}`);
@@ -116,6 +127,17 @@ service cloud.firestore {
 }
         `);
         console.log(`3. Click "Publish" and then run this script again.`);
+        
+        // Run the deploy:firestore-rules command
+        console.log(`${colors.yellow}Attempting to deploy Firestore rules automatically...${colors.reset}`);
+        try {
+          const { execSync } = require('child_process');
+          execSync('npm run deploy:firestore-rules', { stdio: 'inherit' });
+          console.log(`${colors.green}Firestore rules deployed successfully. Please run this script again.${colors.reset}`);
+        } catch (deployError) {
+          console.error(`${colors.red}Failed to deploy Firestore rules automatically:${colors.reset}`, deployError);
+          console.log(`${colors.yellow}Please run 'npm run deploy:firestore-rules' manually.${colors.reset}`);
+        }
       } else {
         console.error(`${colors.red}Error creating categories:${colors.reset}`, permissionError);
       }
@@ -144,18 +166,23 @@ async function main() {
   
   if (existingCount > 0) {
     console.log(`${colors.yellow}Found ${existingCount} existing categories.${colors.reset}`);
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
     
-    rl.question(`${colors.yellow}Do you want to add the mock categories anyway? (y/n)${colors.reset} `, async (answer: string) => {
-      if (answer.toLowerCase() === 'y') {
-        await createCategories(db);
-      } else {
-        console.log(`${colors.blue}Skipping category creation.${colors.reset}`);
-      }
-      rl.close();
+    // Use promise to handle async readline
+    return new Promise<void>((resolve) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      
+      rl.question(`${colors.yellow}Do you want to add the mock categories anyway? (y/n)${colors.reset} `, async (answer: string) => {
+        if (answer.toLowerCase() === 'y') {
+          await createCategories(db);
+        } else {
+          console.log(`${colors.blue}Skipping category creation.${colors.reset}`);
+        }
+        rl.close();
+        resolve();
+      });
     });
   } else if (existingCount === 0) {
     // No existing categories, create them
@@ -166,6 +193,5 @@ async function main() {
 // Run the script
 main().catch(error => {
   console.error(`${colors.red}Unhandled error:${colors.reset}`, error);
-  // Ensure we exit properly
-  setTimeout(() => process.exit(1), 100);
+  process.exit(1);
 });

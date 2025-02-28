@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { voteSchema } from '@/app/lib/schemas/lesson-request'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { getApp } from 'firebase/app'
+import { FirestoreDatabase } from '@/app/services/database/firebase-database'
 
 export async function GET(request: Request) {
   try {
@@ -15,22 +18,26 @@ export async function GET(request: Request) {
       )
     }
 
-    const { data, error } = await supabase
-      .from('lesson_request_votes')
-      .select('id, request_id, user_id, vote_type, created_at')
-      .eq('request_id', requestId)
-      .eq('user_id', userId)
-      .single()
-
-    if (error && error.code !== 'PGRST116') { // Not found is ok
-      console.error('Error fetching vote:', error)
+    // Use Firebase instead of Supabase
+    const db = new FirestoreDatabase()
+    
+    try {
+      const result = await db.query('lesson_request_votes', [
+        { field: 'request_id', operator: '==', value: requestId },
+        { field: 'user_id', operator: '==', value: userId }
+      ])
+      
+      const votes = result && Array.isArray(result.rows) ? result.rows : []
+      const vote = votes.length > 0 ? votes[0] : null
+      
+      return NextResponse.json(vote)
+    } catch (queryError) {
+      console.error('Error fetching vote:', queryError)
       return NextResponse.json(
         { error: 'Failed to fetch vote' },
         { status: 500 }
       )
     }
-
-    return NextResponse.json(data || null)
   } catch (error) {
     console.error('Error in votes endpoint:', error)
     return NextResponse.json(
@@ -43,61 +50,65 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-})
+      const auth = getAuth(getApp());
+      const unsubscribe = onAuthStateChanged(auth, user => {
+        unsubscribe();
+        resolve({ data: { session: user ? { user } : null }, error: null });
+      });
+    })
 
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
+    
+    const user = session.user;
 
     const body = await request.json()
     const validatedData = voteSchema.parse(body)
 
+    const db = new FirestoreDatabase();
+    
     // First check if vote already exists
-    const { data: existingVote } = await supabase
-      .from('lesson_request_votes')
-      .select('*')
-      .eq('request_id', validatedData.requestId)
-      .eq('user_id', user.uid)
-      .single()
+    const existingVoteResult = await db.query('lesson_request_votes', [
+      { field: 'request_id', operator: '==', value: validatedData.requestId },
+      { field: 'user_id', operator: '==', value: user.uid }
+    ]);
+    
+    const existingVotes = existingVoteResult && Array.isArray(existingVoteResult.rows) ? existingVoteResult.rows : [];
+    const existingVote = existingVotes.length > 0 ? existingVotes[0] : null;
 
     if (existingVote) {
       // Update existing vote
-      const { data, error } = await supabase
-        .from('lesson_request_votes')
-        .update({ 
+      try {
+        const updatedVote = await db.update('lesson_request_votes', existingVote.id, { 
           vote_type: validatedData.voteType,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', existingVote.id)
-        .select()
-        .single()
-
-      if (error) throw error
-      return NextResponse.json(data)
+        });
+        
+        return NextResponse.json(updatedVote);
+      } catch (updateError) {
+        console.error('Error updating vote:', updateError);
+        throw updateError;
+      }
     }
 
     // Create new vote
-    const { data, error } = await supabase
-      .from('lesson_request_votes')
-      .insert([{
+    try {
+      const newVote = await db.create('lesson_request_votes', {
         request_id: validatedData.requestId,
         user_id: user.uid,
         vote_type: validatedData.voteType,
         created_at: new Date().toISOString()
-      }])
-      .select()
-      .single()
-
-    if (error) throw error
-    return NextResponse.json(data)
+      });
+      
+      return NextResponse.json(newVote);
+    } catch (createError) {
+      console.error('Error creating vote:', createError);
+      throw createError;
+    }
   } catch (error) {
     console.error('Error in votes endpoint:', error)
     return NextResponse.json(

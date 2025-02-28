@@ -66,13 +66,19 @@ export async function POST(request: Request) {
       )
     }
 
+    // Define the creator type
+    interface Creator {
+      id: string;
+      stripe_account_id?: string;
+    }
+
     // Get creator details
     const { data: creators, error: creatorError } = await firebaseClient
       .from('profiles')
       .select()
       .eq('id', lesson.creator_id);
     
-    const creator = creators && creators.length > 0 ? creators[0] : null;
+    const creator = creators && creators.length > 0 ? creators[0] as Creator : null;
 
     if (creatorError || !creator) {
       console.error('Creator fetch error:', creatorError)

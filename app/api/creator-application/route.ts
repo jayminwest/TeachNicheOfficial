@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     }
     
     // Insert the application into the database
-    const { data: application, error: insertError } = await firebaseClient
+    const { data: insertResult, error: insertError } = await firebaseClient
       .from('creator_applications')
       .insert({
         user_id: user.uid,
@@ -118,8 +118,7 @@ export async function POST(request: Request) {
         status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      })
-      .select();
+      });
     
     if (insertError) {
       console.error('Error inserting application:', insertError);
@@ -133,7 +132,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         message: "Application submitted successfully", 
-        applicationId: application?.[0]?.id 
+        applicationId: insertResult?.id 
       },
       { status: 201 }
     );

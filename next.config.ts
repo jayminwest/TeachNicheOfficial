@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import webpack from 'webpack';
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -21,6 +22,16 @@ const nextConfig: NextConfig = {
       ...config.resolve.fallback,
       process: require.resolve('process/browser'),
     };
+    
+    // Add plugin to handle node: protocol
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^node:/, 
+        (resource) => {
+          resource.request = resource.request.replace(/^node:/, '');
+        }
+      )
+    );
     
     return config;
   },

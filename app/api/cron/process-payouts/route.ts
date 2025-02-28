@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { processScheduledPayouts } from '@/app/services/earnings';
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Initialize Supabase client
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const auth = getAuth()<Database>({ cookies });
     
     // Add RPC capabilities to the client
     const extendedClient = addRpcToClient(supabase);

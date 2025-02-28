@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 
 interface LessonData {
@@ -18,7 +18,7 @@ interface LessonData {
 async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const supabase = createRouteHandlerClient({ cookies });
+    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
@@ -28,7 +28,7 @@ async function createLessonHandler(request: Request) {
       );
     }
     
-    const user = session.user;
+    const user = user;
 
     const data = await request.json();
     const { 
@@ -102,7 +102,7 @@ async function getLessonsHandler(request: Request) {
   const sort = searchParams.get('sort') || 'newest';
   
   try {
-    const supabase = createClient();
+    // Firebase is already initialized in @/app/lib/firebase;
     
     // Call from directly on the supabase client to match test expectations
     let query = supabase
@@ -142,7 +142,7 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const supabase = createRouteHandlerClient({ cookies });
+    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
@@ -152,7 +152,7 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const user = session.user;
+    const user = user;
 
     const data = await request.json();
     const { id, ...updateData } = data;
@@ -208,7 +208,7 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const supabase = createRouteHandlerClient({ cookies });
+    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
@@ -218,7 +218,7 @@ async function deleteLessonHandler(request: Request) {
       );
     }
     
-    const user = session.user;
+    const user = user;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

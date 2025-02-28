@@ -30,14 +30,12 @@ export class FirebaseAuthService implements AuthService {
   private auth;
 
   constructor() {
-    try {
-      // Try to get the existing app
-      const app = getApp();
-      this.auth = getAuth(app);
-    } catch (error) {
-      // If no app exists, use the imported auth instance
-      console.warn('Using imported auth instance as getApp() failed');
-      this.auth = auth;
+    // Always use the imported auth instance to ensure consistency
+    this.auth = auth;
+    
+    if (!this.auth) {
+      console.error('Firebase auth is not initialized');
+      throw new Error('Firebase auth is not initialized');
     }
   }
 
@@ -231,10 +229,19 @@ export async function getCurrentUser() {
   }
   
   return new Promise<AuthUser | null>((resolve) => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      unsubscribe();
-      resolve(user ? transformUser(user) : null);
-    });
+    try {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        resolve(user ? transformUser(user) : null);
+      }, (error) => {
+        console.error('Error in onAuthStateChanged:', error);
+        unsubscribe();
+        resolve(null);
+      });
+    } catch (error) {
+      console.error('Error setting up auth state listener:', error);
+      resolve(null);
+    }
   });
 }
 

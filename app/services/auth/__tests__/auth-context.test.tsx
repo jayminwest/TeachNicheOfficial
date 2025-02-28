@@ -105,16 +105,11 @@ describe('AuthContext', () => {
     // Arrange - start with signed in user
     const mockUser = { uid: '123', email: 'test@example.com' };
     
-    // Create a container to ensure we're replacing the content
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    
     // Render with initialUser to bypass the auth state listener
-    const { unmount } = render(
+    const { rerender } = render(
       <AuthProvider initialUser={mockUser}>
         <TestComponent />
-      </AuthProvider>,
-      { container }
+      </AuthProvider>
     );
     
     // Wait for component to stabilize
@@ -125,15 +120,11 @@ describe('AuthContext', () => {
     // Verify user is signed in
     expect(screen.getByTestId('authenticated').textContent).toBe('Authenticated');
     
-    // Clean up the previous render
-    unmount();
-    
     // Act - manually update the AuthContext by re-rendering with null user
-    render(
+    rerender(
       <AuthProvider initialUser={null}>
         <TestComponent />
-      </AuthProvider>,
-      { container }
+      </AuthProvider>
     );
     
     // Wait for state update to propagate
@@ -145,8 +136,5 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('loading').textContent).toBe('Not Loading');
     expect(screen.getByTestId('user').textContent).toBe('No User');
     expect(screen.getByTestId('authenticated').textContent).toBe('Not Authenticated');
-    
-    // Clean up
-    document.body.removeChild(container);
   });
 });

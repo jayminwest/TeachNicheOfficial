@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
       type: 'webassembly/async',
     });
     
+    // Handle node: protocol imports
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      process: require.resolve('process/browser'),
+    };
+    
     return config;
   },
 };

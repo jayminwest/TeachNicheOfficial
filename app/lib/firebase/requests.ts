@@ -1,4 +1,4 @@
-import { firestore } from '@/app/services/firebase';
+// Import only what we use
 import { firebaseClient } from '@/app/services/firebase-compat';
 import { LessonRequestFormData } from '@/app/lib/schemas/lesson-request';
 
@@ -24,7 +24,7 @@ export interface RequestOptions {
 
 export async function getRequests(options: RequestOptions = {}): Promise<LessonRequest[]> {
   try {
-    const { category, sortBy = 'popular', status = 'open', limit = 50 } = options;
+    const { category, sortBy = 'popular', status = 'open' } = options;
     
     // Use firebaseClient for compatibility with existing code
     let query = firebaseClient
@@ -48,11 +48,9 @@ export async function getRequests(options: RequestOptions = {}): Promise<LessonR
     
     // Apply limit
     // TODO: Implement limit for Firebase
-  // query = query.limit(limit);
     
-    const { data } = await // TODO: Implement get() for Firebase
-  // Temporary placeholder to avoid errors
-  { data: [] };
+    // Temporary placeholder to avoid errors
+    const { data } = await Promise.resolve({ data: [] });
     return data as LessonRequest[];
   } catch (error) {
     console.error('Error fetching requests:', error);

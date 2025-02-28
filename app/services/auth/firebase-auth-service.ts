@@ -1,5 +1,4 @@
 import { 
-  getAuth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut as firebaseSignOut,
@@ -13,7 +12,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from 'firebase/auth';
-import { getApp, initializeApp } from 'firebase/app';
 import { AuthService, AuthUser } from './interface';
 import { auth } from '@/app/services/firebase';
 
@@ -270,12 +268,12 @@ export async function signInWithGoogle() {
       error: null 
     };
   } catch (error: any) {
-    console.error('Google sign-in error:', error.code, error.message);
+    console.error('Google sign-in error:', err.code, err.message);
     
     // Provide more detailed error information
-    if (error.code === 'auth/unauthorized-domain') {
+    if (err.code === 'auth/unauthorized-domain') {
       console.error('This domain is not authorized in Firebase console');
-    } else if (error.code === 'auth/internal-error') {
+    } else if (err.code === 'auth/internal-error') {
       console.error('Internal Firebase error - check configuration');
     }
     
@@ -339,7 +337,7 @@ function transformUser(firebaseUser: FirebaseUser): AuthUser {
 // For testing environment
 if (process.env.NODE_ENV === 'test') {
   // Mock implementations for testing
-  // @ts-ignore - for testing purposes
+  // @ts-expect-error - for testing purposes
   signInWithGoogle = jest.fn().mockImplementation(async () => {
     return { 
       user: { 

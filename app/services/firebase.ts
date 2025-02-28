@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth, browserPopupRedirectResolver } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
@@ -50,11 +50,11 @@ const extendedFirestore = {
             id: docRef.id
           };
         },
-        set: async (data: any) => {
+        set: async (data: Record<string, unknown>) => {
           // Implement document set logic
           console.log(`Setting document at ${docRef.path}:`, data);
         },
-        update: async (data: any) => {
+        update: async (data: Record<string, unknown>) => {
           // Implement document update logic
           console.log(`Updating document at ${docRef.path}:`, data);
         },
@@ -64,16 +64,19 @@ const extendedFirestore = {
         }
       };
     },
-    where: (field: string, operator: string, value: any) => {
+    where: (field: string, operator: string, value: unknown) => {
       // Implement where query logic
+      console.log(`Query where ${field} ${operator}`, value);
       return extendedFirestore.collection(path);
     },
     orderBy: (field: string, direction?: 'asc' | 'desc') => {
       // Implement orderBy query logic
+      console.log(`Query orderBy ${field} ${direction || 'asc'}`);
       return extendedFirestore.collection(path);
     },
     limit: (n: number) => {
       // Implement limit query logic
+      console.log(`Query limit ${n}`);
       return extendedFirestore.collection(path);
     },
     get: async () => {
@@ -85,10 +88,15 @@ const extendedFirestore = {
       };
     }
   }),
-  runTransaction: async (callback: (transaction: any) => Promise<any>) => {
+  runTransaction: async <T>(callback: (transaction: {
+    get: (docRef: { id: string; path: string }) => Promise<{ exists: boolean; data: () => Record<string, unknown>; id: string }>;
+    set: (docRef: { id: string; path: string }, data: Record<string, unknown>) => Promise<void>;
+    update: (docRef: { id: string; path: string }, data: Record<string, unknown>) => Promise<void>;
+    delete: (docRef: { id: string; path: string }) => Promise<void>;
+  }) => Promise<T>) => {
     // Implement transaction logic
     const transaction = {
-      get: async (docRef: any) => {
+      get: async (docRef: { id: string; path: string }) => {
         // Implement transaction get logic
         return {
           exists: false,
@@ -96,15 +104,15 @@ const extendedFirestore = {
           id: docRef.id
         };
       },
-      set: async (docRef: any, data: any) => {
+      set: async (docRef: { id: string; path: string }, data: Record<string, unknown>) => {
         // Implement transaction set logic
         console.log(`Transaction setting document at ${docRef.path}:`, data);
       },
-      update: async (docRef: any, data: any) => {
+      update: async (docRef: { id: string; path: string }, data: Record<string, unknown>) => {
         // Implement transaction update logic
         console.log(`Transaction updating document at ${docRef.path}:`, data);
       },
-      delete: async (docRef: any) => {
+      delete: async (docRef: { id: string; path: string }) => {
         // Implement transaction delete logic
         console.log(`Transaction deleting document at ${docRef.path}`);
       }

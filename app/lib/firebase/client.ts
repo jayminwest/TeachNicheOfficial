@@ -4,7 +4,7 @@ export function createClient() {
   return {
     firestore,
     auth,
-    from: (collection: string) => ({
+    from: (collectionPath: string) => ({
       select: () => ({
         eq: () => ({
           single: async () => ({
@@ -45,10 +45,8 @@ export function createRouteHandlerClient() {
 // For testing environment
 if (process.env.NODE_ENV === 'test') {
   // Mock implementations for testing
-  const originalCreateClient = createClient;
-  const originalCreateRouteHandlerClient = createRouteHandlerClient;
   
-  // @ts-ignore - for testing purposes
+  // @ts-expect-error - for testing purposes
   global.createClient = jest.fn().mockImplementation(() => ({
     from: jest.fn().mockReturnValue({
       select: jest.fn().mockReturnThis(),
@@ -72,6 +70,6 @@ if (process.env.NODE_ENV === 'test') {
     }
   }));
   
-  // @ts-ignore - for testing purposes
+  // @ts-expect-error - for testing purposes
   global.createRouteHandlerClient = jest.fn().mockImplementation(() => global.createClient());
 }

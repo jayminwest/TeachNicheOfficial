@@ -20,16 +20,20 @@ import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/st
 import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Only import Auth in client components
-let Auth: any;
-let getAuth: any;
-let connectAuthEmulator: any;
+let Auth: typeof import('firebase/auth').Auth | undefined;
+let getAuth: typeof import('firebase/auth').getAuth | undefined;
+let connectAuthEmulator: typeof import('firebase/auth').connectAuthEmulator | undefined;
 
 // Dynamically import auth in client-side only
 if (typeof window !== 'undefined') {
-  const authModule = require('firebase/auth');
-  Auth = authModule.Auth;
-  getAuth = authModule.getAuth;
-  connectAuthEmulator = authModule.connectAuthEmulator;
+  // Using dynamic import with type safety
+  import('firebase/auth').then((authModule) => {
+    Auth = authModule.Auth;
+    getAuth = authModule.getAuth;
+    connectAuthEmulator = authModule.connectAuthEmulator;
+  }).catch(error => {
+    console.error('Failed to load auth module:', error);
+  });
 }
 
 // Check for required environment variables
@@ -96,7 +100,7 @@ console.log('Firebase configuration:', {
 
 // Initialize Firebase only once
 let app: FirebaseApp;
-let auth: any = null;
+let auth: import('firebase/auth').Auth | null = null;
 let firestore: Firestore;
 let storage: FirebaseStorage;
 let functions: Functions;

@@ -1,12 +1,19 @@
-// Global setup file for Playwright tests
-import { chromium } from '@playwright/test';
+import { FullConfig, chromium } from '@playwright/test';
 
 /**
- * This setup runs before all tests
+ * Global setup file for Playwright tests
+ * This runs once before all tests
  */
-export default async function globalSetup() {
-  // Set up any global test environment needs here
-  console.log('Setting up Playwright test environment...');
+export default async function globalSetup(config: FullConfig) {
+  console.log('Starting global test setup...');
+  
+  // Ensure environment variables are set
+  process.env.PLAYWRIGHT_TEST_BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+  
+  // Log configuration for debugging
+  console.log(`Using test base URL: ${process.env.PLAYWRIGHT_TEST_BASE_URL}`);
+  console.log(`Test directory: ${config.testDir}`);
+  console.log(`Projects: ${config.projects.map(p => p.name).join(', ')}`);
   
   try {
     // Create a browser instance to verify everything is working
@@ -17,8 +24,8 @@ export default async function globalSetup() {
     await page.goto('about:blank');
     console.log('Browser launched successfully');
     
-    // You could set up authentication state here
-    // await page.goto('http://localhost:3000');
+    // You could set up authentication state here if needed
+    // await page.goto(process.env.PLAYWRIGHT_TEST_BASE_URL);
     // await page.fill('[data-testid="email-input"]', 'test@example.com');
     // await page.fill('[data-testid="password-input"]', 'password123');
     // await page.click('[data-testid="login-button"]');
@@ -30,5 +37,5 @@ export default async function globalSetup() {
     // Don't fail the setup, let the tests run and potentially fail
   }
   
-  console.log('Playwright test environment setup complete');
+  console.log('Global test setup complete');
 }

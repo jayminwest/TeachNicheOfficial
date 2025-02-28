@@ -9,7 +9,6 @@ import { LessonRequest } from '@/app/lib/schemas/lesson-request'
 import { RequestDialog } from './request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
-import { getAuth } from 'firebase/auth'
 
 interface RequestCardProps {
   request: LessonRequest

@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { User } from 'firebase/auth'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { app } from '@/app/lib/firebase'
-import authService from './auth-provider'
 
 interface AuthContextType {
   user: User | null

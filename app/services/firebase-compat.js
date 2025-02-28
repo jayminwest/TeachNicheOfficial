@@ -253,7 +253,6 @@ export const firebaseClient = {
          */
         getPublicUrl: (path) => {
           try {
-            const storageRef = ref(storage, `${bucketName}/${path}`);
             const publicUrl = `https://storage.googleapis.com/${storage.app.options.storageBucket}/${bucketName}/${path}`;
             
             return {

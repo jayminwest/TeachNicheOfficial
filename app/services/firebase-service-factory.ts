@@ -2,7 +2,7 @@ import { FirebaseAuthService } from './auth/firebase-auth-service';
 import { FirestoreDatabase } from './database/firebase-database';
 import { FirebaseStorageService } from './storage/firebase-storage-service';
 import { FirebaseEmail } from './email/firebase-email';
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

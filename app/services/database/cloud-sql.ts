@@ -33,7 +33,7 @@ export class CloudSqlDatabase implements DatabaseService {
     return await this.pool.connect();
   }
   
-  async query<T>(text: string, params: any[] = []): Promise<{ rows: T[]; rowCount: number }> {
+  async query<T>(text: string, params: unknown[] = []): Promise<{ rows: T[]; rowCount: number }> {
     const client = await this.getClient();
     try {
       const result = await client.query(text, params);
@@ -54,9 +54,9 @@ export class CloudSqlDatabase implements DatabaseService {
     return rows;
   }
   
-  async getLessons(limit = 10, offset = 0, filters: Record<string, any> = {}) {
+  async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}) {
     let query = 'SELECT * FROM lessons WHERE 1=1';
-    const params: any[] = [];
+    const params: (string | number | boolean)[] = [];
     let paramIndex = 1;
     
     // Add filters

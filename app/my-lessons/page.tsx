@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db, auth, storage } from '@/app/lib/firebase';
 import { LessonCard } from '@/app/components/ui/lesson-card';
 import { Button } from '@/app/components/ui/button';
 import Link from 'next/link';

@@ -12,7 +12,6 @@ import {
   orderBy, 
   limit, 
   startAfter,
-  DocumentData,
   QueryConstraint,
   Timestamp,
   serverTimestamp
@@ -28,7 +27,7 @@ export class FirestoreDatabase implements DatabaseService {
     this.db = getFirestore(app);
   }
 
-  async create<T extends Record<string, any>>(
+  async create<T extends Record<string, unknown>>(
     table: string, 
     data: T, 
     id?: string
@@ -76,7 +75,7 @@ export class FirestoreDatabase implements DatabaseService {
     }
   }
 
-  async update<T extends Record<string, any>>(
+  async update<T extends Record<string, unknown>>(
     table: string, 
     id: string, 
     data: Partial<T>
@@ -112,7 +111,7 @@ export class FirestoreDatabase implements DatabaseService {
 
   async list<T>(
     table: string,
-    filters?: Record<string, any>,
+    filters?: Record<string, string | number | boolean | null>,
     sortField?: string,
     sortDirection?: 'asc' | 'desc',
     pageSize?: number,
@@ -161,7 +160,7 @@ export class FirestoreDatabase implements DatabaseService {
 
   async count(
     table: string,
-    filters?: Record<string, any>
+    filters?: Record<string, string | number | boolean | null>
   ): Promise<number> {
     try {
       const result = await this.list(table, filters);
@@ -175,7 +174,7 @@ export class FirestoreDatabase implements DatabaseService {
   private convertTimestamps<T>(data: T): T {
     if (!data) return data;
     
-    const result = { ...data } as any;
+    const result = { ...data } as Record<string, unknown>;
     
     Object.entries(result).forEach(([key, value]) => {
       if (value instanceof Timestamp) {

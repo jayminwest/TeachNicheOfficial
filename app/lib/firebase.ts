@@ -70,16 +70,29 @@ const firebaseConfig = {
 // Only provide fallback configuration if env vars are missing
 // This ensures Firebase will initialize even without environment variables
 if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-  console.warn('Using fallback Firebase configuration');
-  Object.assign(firebaseConfig, {
-    apiKey: firebaseConfig.apiKey || "AIzaSyBmNSa2Wd_RuUTVSwUMxbxgUI2BfA-2gxM",
-    authDomain: firebaseConfig.authDomain || "teachnicheofficial.firebaseapp.com",
-    projectId: firebaseConfig.projectId || "teachnicheofficial",
-    storageBucket: firebaseConfig.storageBucket || "teachnicheofficial.appspot.com",
-    messagingSenderId: firebaseConfig.messagingSenderId || "1234567890",
-    appId: firebaseConfig.appId || "1:1234567890:web:abcdef1234567890",
-  });
+  console.warn('Using fallback Firebase configuration - this may cause authentication issues');
+  // Don't use fallback values for production - they won't work for authentication
+  if (process.env.NODE_ENV === 'production') {
+    console.error('Missing Firebase configuration in production environment');
+  } else {
+    Object.assign(firebaseConfig, {
+      apiKey: firebaseConfig.apiKey || "AIzaSyBmNSa2Wd_RuUTVSwUMxbxgUI2BfA-2gxM",
+      authDomain: firebaseConfig.authDomain || "teachnicheofficial.firebaseapp.com",
+      projectId: firebaseConfig.projectId || "teachnicheofficial",
+      storageBucket: firebaseConfig.storageBucket || "teachnicheofficial.appspot.com",
+      messagingSenderId: firebaseConfig.messagingSenderId || "1234567890",
+      appId: firebaseConfig.appId || "1:1234567890:web:abcdef1234567890",
+    });
+  }
 }
+
+// Log the configuration being used (without sensitive values)
+console.log('Firebase configuration:', {
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId,
+  storageBucket: firebaseConfig.storageBucket,
+  usingEmulators: process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true'
+});
 
 // Initialize Firebase only once
 let app: FirebaseApp;

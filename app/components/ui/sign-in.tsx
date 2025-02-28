@@ -24,16 +24,23 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
+    setError(null) // Clear any previous errors
+    
     try {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
         window.signInWithGoogleCalled = true;
       }
       
+      console.log('Starting Google sign-in process...');
       const result = await signInWithGoogle()
+      
       if (result?.error) {
+        console.error('Google sign-in returned error:', result.error);
         throw result.error
       }
+      
+      console.log('Google sign-in successful, redirecting to dashboard');
       
       // Check if we're in a test environment
       if (typeof window !== 'undefined' && window.localStorage.getItem('auth-test-success')) {
@@ -43,8 +50,23 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         // In real environment, use the router
         router.push('/dashboard');
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      
+      // Provide more specific error messages based on error code
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain is not authorized for sign-in. Please contact support.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in was cancelled. Please try again.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        setError('Sign-in request was cancelled.');
+      } else if (err.code === 'auth/internal-error') {
+        setError('An internal error occurred. Please try again later.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+      }
     } finally {
       setIsLoading(false)
     }

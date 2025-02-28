@@ -216,16 +216,45 @@ export async function signUp(email: string, password: string, name: string) {
 
 export async function signInWithGoogle() {
   try {
+    // Check if auth is initialized
+    if (!auth) {
+      console.error('Firebase auth is not initialized');
+      throw new Error('Authentication service is not available');
+    }
+    
     const provider = new GoogleAuthProvider();
+    
+    // Add scopes for better user info
+    provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+    provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+    
+    // Set custom parameters for better UX
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
+    console.log('Starting Google sign-in popup...');
     const userCredential = await signInWithPopup(auth, provider);
+    
+    console.log('Google sign-in successful');
     const credential = GoogleAuthProvider.credentialFromResult(userCredential);
     const token = credential?.accessToken;
+    
     return { 
       user: transformUser(userCredential.user), 
       token,
       error: null 
     };
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Google sign-in error:', error.code, error.message);
+    
+    // Provide more detailed error information
+    if (error.code === 'auth/unauthorized-domain') {
+      console.error('This domain is not authorized in Firebase console');
+    } else if (error.code === 'auth/internal-error') {
+      console.error('Internal Firebase error - check configuration');
+    }
+    
     return { user: null, token: null, error };
   }
 }

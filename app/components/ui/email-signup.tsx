@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "./button";
 import { Input } from "./input";
 import { motion } from "framer-motion";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
 
 export function EmailSignup() {
   const [email, setEmail] = useState("");
@@ -15,15 +17,17 @@ export function EmailSignup() {
     setStatus("loading");
 
     try {
-      await supabase
-        .from("waitlist")
-        .insert([{ email, signed_up_at: new Date().toISOString() }])
-        .throwOnError();
+      // Add email to Firebase waitlist collection
+      await addDoc(collection(db, "waitlist"), {
+        email,
+        signed_up_at: new Date().toISOString()
+      });
 
       setStatus("success");
       setMessage("Thanks for joining our waitlist! We'll keep you updated.");
       setEmail("");
-    } catch {
+    } catch (error) {
+      console.error("Error adding to waitlist:", error);
       setStatus("error");
       setMessage("Something went wrong. Please try again.");
     }

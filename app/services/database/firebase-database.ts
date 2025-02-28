@@ -7,7 +7,7 @@ import {
   getDocs, 
   updateDoc, 
   deleteDoc, 
-  query, 
+  query as firestoreQuery, 
   where, 
   orderBy, 
   limit, 
@@ -185,5 +185,37 @@ export class FirestoreDatabase implements DatabaseService {
     });
     
     return result as T;
+  }
+
+  // Implement required DatabaseService methods
+  async query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }> {
+    console.warn('Firestore does not support raw SQL queries. Using alternative implementation.');
+    // This is a simplified implementation to satisfy the interface
+    const [collection, limit] = text.split(' LIMIT ');
+    const collectionName = collection.replace('SELECT * FROM ', '').trim();
+    
+    const results = await this.list(collectionName);
+    return {
+      rows: results as unknown as T[],
+      rowCount: results.length
+    };
+  }
+
+  async getCategories(): Promise<{ id: string; name: string; created_at: string; updated_at: string; }[]> {
+    const categories = await this.list<{ id: string; name: string; created_at: string; updated_at: string; }>('categories');
+    return categories.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}): Promise<Record<string, unknown>[]> {
+    const lessons = await this.list<Record<string, unknown>>('lessons', filters);
+    // Sort by created_at in descending order
+    const sorted = lessons.sort((a, b) => {
+      const dateA = a.created_at instanceof Date ? a.created_at : new Date(a.created_at as string);
+      const dateB = b.created_at instanceof Date ? b.created_at : new Date(b.created_at as string);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    // Apply pagination
+    return sorted.slice(offset, offset + limit);
   }
 }

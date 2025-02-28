@@ -5,7 +5,6 @@ import { SignInPage } from '../sign-in';
 import { signInWithGoogle } from '@/app/services/auth/firebase-auth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { mockUserData } from '__mocks__/firebase';
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
@@ -73,7 +72,8 @@ describe('SignInPage', () => {
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
     const user = userEvent.setup();
-    (signInWithGoogle as jest.Mock).mockResolvedValue(mockUserData);
+    const mockUser = { uid: 'test-user-id', email: 'test@example.com' };
+    (signInWithGoogle as jest.Mock).mockResolvedValue(mockUser);
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     

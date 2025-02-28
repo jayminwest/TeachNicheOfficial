@@ -8,8 +8,6 @@
  * - Firebase Storage
  */
 
-import { jest } from '@jest/globals';
-
 // Mock data
 export const mockUserData = {
   uid: 'test-user-id',
@@ -79,22 +77,22 @@ export const mockRequestData = [
 
 // Firebase Authentication Mocks
 export const mockFirebaseAuth = {
-  getAuth: jest.fn().mockReturnValue({
+  getAuth: () => ({
     currentUser: mockUserData,
-    onAuthStateChanged: jest.fn(callback => {
+    onAuthStateChanged: (callback) => {
       callback(mockUserData);
-      return jest.fn(); // Unsubscribe function
-    }),
-    signInWithEmailAndPassword: jest.fn().mockResolvedValue({
+      return () => {}; // Unsubscribe function
+    },
+    signInWithEmailAndPassword: () => Promise.resolve({
       user: mockUserData
     }),
-    createUserWithEmailAndPassword: jest.fn().mockResolvedValue({
+    createUserWithEmailAndPassword: () => Promise.resolve({
       user: mockUserData
     }),
-    signOut: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined)
+    signOut: () => Promise.resolve(undefined),
+    sendPasswordResetEmail: () => Promise.resolve(undefined)
   }),
-  getSession: jest.fn().mockResolvedValue({
+  getSession: () => Promise.resolve({
     data: {
       session: {
         user: mockUserData
@@ -106,66 +104,69 @@ export const mockFirebaseAuth = {
 
 // Firestore Mocks
 export const mockFirestore = {
-  getFirestore: jest.fn(),
-  collection: jest.fn().mockReturnThis(),
-  doc: jest.fn().mockReturnThis(),
-  getDoc: jest.fn().mockResolvedValue({
-    exists: jest.fn().mockReturnValue(true),
-    data: jest.fn().mockReturnValue(mockUserData)
+  getFirestore: () => ({}),
+  collection: () => ({}),
+  doc: () => ({}),
+  getDoc: () => Promise.resolve({
+    exists: () => true,
+    data: () => mockUserData
   }),
-  getDocs: jest.fn().mockResolvedValue({
+  getDocs: () => Promise.resolve({
     docs: mockLessonData,
     empty: false
   }),
-  query: jest.fn().mockReturnThis(),
-  where: jest.fn().mockReturnThis(),
-  orderBy: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnThis(),
-  startAfter: jest.fn().mockReturnThis(),
-  addDoc: jest.fn().mockResolvedValue({ id: 'new-doc-id' }),
-  setDoc: jest.fn().mockResolvedValue(undefined),
-  updateDoc: jest.fn().mockResolvedValue(undefined),
-  deleteDoc: jest.fn().mockResolvedValue(undefined),
-  serverTimestamp: jest.fn().mockReturnValue('2025-02-27T00:00:00Z')
+  query: () => ({}),
+  where: () => ({}),
+  orderBy: () => ({}),
+  limit: () => ({}),
+  startAfter: () => ({}),
+  addDoc: () => Promise.resolve({ id: 'new-doc-id' }),
+  setDoc: () => Promise.resolve(undefined),
+  updateDoc: () => Promise.resolve(undefined),
+  deleteDoc: () => Promise.resolve(undefined),
+  serverTimestamp: () => '2025-02-27T00:00:00Z'
 };
 
 // Firebase Storage Mocks
 export const mockStorage = {
-  getStorage: jest.fn(),
-  ref: jest.fn().mockReturnThis(),
-  uploadBytes: jest.fn().mockResolvedValue({
+  getStorage: () => ({}),
+  ref: () => ({}),
+  uploadBytes: () => Promise.resolve({
     ref: {
       fullPath: 'uploads/test-file.jpg'
     }
   }),
-  uploadString: jest.fn().mockResolvedValue({
+  uploadString: () => Promise.resolve({
     ref: {
       fullPath: 'uploads/test-file.jpg'
     }
   }),
-  getDownloadURL: jest.fn().mockResolvedValue('https://example.com/download-url'),
-  deleteObject: jest.fn().mockResolvedValue(undefined)
+  getDownloadURL: () => Promise.resolve('https://example.com/download-url'),
+  deleteObject: () => Promise.resolve(undefined)
 };
 
-// Helper function to setup all Firebase mocks
-export function setupFirebaseMocks() {
-  // Auth mocks
-  jest.mock('firebase/auth', () => mockFirebaseAuth);
-  jest.mock('@/app/services/auth/firebase-auth', () => ({
-    firebaseAuth: {
-      getSession: mockFirebaseAuth.getSession,
-      signIn: jest.fn().mockResolvedValue(mockUserData),
-      signUp: jest.fn().mockResolvedValue(mockUserData),
-      signOut: jest.fn().mockResolvedValue(undefined),
-      resetPassword: jest.fn().mockResolvedValue(undefined)
-    }
-  }));
+// Pre-configured mock functions for use in tests
+export const mockAuthFunctions = {
+  getSession: () => Promise.resolve({
+    data: {
+      session: {
+        user: mockUserData
+      }
+    },
+    error: null
+  }),
+  signIn: () => Promise.resolve(mockUserData),
+  signUp: () => Promise.resolve(mockUserData),
+  signOut: () => Promise.resolve(undefined),
+  resetPassword: () => Promise.resolve(undefined)
+};
 
-  // Firestore mocks
-  jest.mock('firebase/firestore', () => mockFirestore);
-  
-  // Storage mocks
-  jest.mock('firebase/storage', () => mockStorage);
+// Helper function for documentation purposes
+export function setupFirebaseMocks() {
+  console.warn(
+    'setupFirebaseMocks() should not be called directly in tests. ' +
+    'Instead, mock the modules in your test file using the mock objects exported from this file.'
+  );
 }
 
 // Helper to create custom mock responses
@@ -178,3 +179,8 @@ export function createMockQuerySnapshot(data: any[]) {
     empty: data.length === 0
   };
 }
+
+// Export mock implementation factories for use in jest.mock
+export const mockFirebaseAuthModule = () => mockFirebaseAuth;
+export const mockFirestoreModule = () => mockFirestore;
+export const mockStorageModule = () => mockStorage;

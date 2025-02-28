@@ -55,7 +55,7 @@ jest.mock('firebase/auth', () => {
     signOut: jest.fn().mockResolvedValue(undefined),
     onAuthStateChanged: jest.fn()
   }
-}));
+});
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => {
@@ -86,7 +86,7 @@ jest.mock('firebase/firestore', () => {
     orderBy: jest.fn().mockReturnValue({}),
     limit: jest.fn().mockReturnValue({})
   };
-}));
+});
 
 // Mock Firebase Storage
 jest.mock('firebase/storage', () => {
@@ -97,7 +97,7 @@ jest.mock('firebase/storage', () => {
     getDownloadURL: jest.fn().mockResolvedValue('https://test-storage-url.com/test-file.jpg'),
     deleteObject: jest.fn().mockResolvedValue(undefined)
   };
-}));
+});
 
 // Mock next/navigation
 const mockRouter = {

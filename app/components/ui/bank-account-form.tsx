@@ -93,7 +93,16 @@ export function BankAccountForm({
         const auth = getAuth(getApp());
         const unsubscribe = auth.onAuthStateChanged(user => {
           unsubscribe();
-          resolve({ data: { session: user ? { user } : null }, error: null });
+          resolve({ 
+            data: { 
+              session: user ? { 
+                user: { 
+                  uid: user.uid 
+                } 
+              } : null 
+            }, 
+            error: null 
+          });
         });
       });
       if (result.error) {

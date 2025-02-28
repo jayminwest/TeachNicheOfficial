@@ -95,7 +95,7 @@ export const processCreatorPayout = async (
 /**
  * Process payouts for all eligible creators
  * 
- * @param supabaseClient Supabase client instance
+ * @param databaseService Database service instance
  * @returns Array of payout results
  */
 export const processAllEligiblePayouts = async (
@@ -107,7 +107,12 @@ export const processAllEligiblePayouts = async (
     // Get all creators with pending earnings above the minimum threshold
     // This is a simplified version - in a real implementation, you would need to
     // create a custom query or function to get eligible creators
-    const { rows: eligibleCreators } = await databaseService.query(`
+    interface EligibleCreator {
+      creator_id: string;
+      pending_amount: number;
+    }
+    
+    const { rows: eligibleCreators } = await databaseService.query<EligibleCreator>(`
       SELECT 
         creator_id, 
         SUM(amount) as pending_amount
@@ -123,14 +128,9 @@ export const processAllEligiblePayouts = async (
     
     // Process payouts for each eligible creator
     for (const creator of (eligibleCreators || [])) {
-      interface EligibleCreator {
-        creator_id: string;
-        pending_amount: number;
-      }
-      
       const result = await processCreatorPayout(
-        (creator as EligibleCreator).creator_id,
-        (creator as EligibleCreator).pending_amount,
+        creator.creator_id,
+        creator.pending_amount,
         databaseService
       );
       

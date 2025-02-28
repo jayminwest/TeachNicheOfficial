@@ -22,10 +22,10 @@ export async function GET(request: Request) {
     const db = new FirestoreDatabase()
     
     try {
-      const result = await db.query('lesson_request_votes', [
-        { field: 'request_id', operator: '==', value: requestId },
-        { field: 'user_id', operator: '==', value: userId }
-      ])
+      const result = await db.query<{ id: string; request_id: string; user_id: string; vote_type: string; }>(`
+        SELECT * FROM lesson_request_votes 
+        WHERE request_id = $1 AND user_id = $2
+      `, [requestId, userId]);
       
       const votes = result && Array.isArray(result.rows) ? result.rows : []
       const vote = votes.length > 0 ? votes[0] : null
@@ -56,7 +56,16 @@ export async function POST(request: Request) {
       const auth = getAuth(getApp());
       const unsubscribe = onAuthStateChanged(auth, user => {
         unsubscribe();
-        resolve({ data: { session: user ? { user } : null }, error: null });
+        resolve({ 
+          data: { 
+            session: user ? { 
+              user: { 
+                uid: user.uid 
+              } 
+            } : null 
+          }, 
+          error: null 
+        });
       });
     })
 
@@ -74,12 +83,6 @@ export async function POST(request: Request) {
 
     const db = new FirestoreDatabase();
     
-    // First check if vote already exists
-    const existingVoteResult = await db.query('lesson_request_votes', [
-      { field: 'request_id', operator: '==', value: validatedData.requestId },
-      { field: 'user_id', operator: '==', value: user.uid }
-    ]);
-    
     // Define the vote interface
     interface Vote {
       id: string;
@@ -90,8 +93,14 @@ export async function POST(request: Request) {
       updated_at?: string;
     }
     
+    // First check if vote already exists
+    const existingVoteResult = await db.query<Vote>(`
+      SELECT * FROM lesson_request_votes 
+      WHERE request_id = $1 AND user_id = $2
+    `, [validatedData.requestId, user.uid]);
+    
     const existingVotes = existingVoteResult && Array.isArray(existingVoteResult.rows) ? existingVoteResult.rows : [];
-    const existingVote = existingVotes.length > 0 ? existingVotes[0] as Vote : null;
+    const existingVote = existingVotes.length > 0 ? existingVotes[0] : null;
 
     if (existingVote && existingVote.id) {
       // Update existing vote

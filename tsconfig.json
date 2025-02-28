@@ -35,17 +35,18 @@
     "exactOptionalPropertyTypes": false
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "app/types/global.d.ts"
+    "app/types/global.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "types/**/*.ts",
+    "types/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
     "scripts/**/*",
-    "e2e-tests/playwright-report/**/*",
-    "e2e-tests/playwright-report/trace/assets/**/*",
+    "e2e-tests/**/*",
     "app/api/checkout/__tests__/**/*",
     "app/api/lessons/__tests__/**/*",
     "app/components/ui/__tests__/**/*",

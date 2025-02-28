@@ -15,10 +15,12 @@ export function LessonCreationRestriction({ className }: LessonCreationRestricti
   const [timeRemaining, setTimeRemaining] = useState<{ hours: number, minutes: number } | null>(null);
   
   useEffect(() => {
-    if (!user?.metadata?.creationTime) return;
+    if (!user?.metadata) return;
+    
+    const creationTime = user.metadata.creationTime;
+    if (!creationTime) return;
     
     const updateTimeRemaining = () => {
-      const creationTime = user.metadata.creationTime || new Date().toISOString();
       const remaining = getTimeUntilCanCreateLesson(creationTime);
       setTimeRemaining(remaining);
     };
@@ -30,7 +32,7 @@ export function LessonCreationRestriction({ className }: LessonCreationRestricti
     const interval = setInterval(updateTimeRemaining, 60000);
     
     return () => clearInterval(interval);
-  }, [user?.metadata?.creationTime]);
+  }, [user?.metadata]);
   
   if (!timeRemaining) return null;
   

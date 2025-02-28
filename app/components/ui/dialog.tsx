@@ -48,7 +48,9 @@ const DialogContent = React.forwardRef<
         if (!props.children) return false;
         
         return React.Children.toArray(props.children).some(
-          (headerChild) => React.isValidElement(headerChild) && headerChild.type === DialogTitle
+          (headerChild) => React.isValidElement(headerChild) && 
+            typeof headerChild.type === 'function' && 
+            headerChild.type.displayName === DialogTitle.displayName
         );
       }
       

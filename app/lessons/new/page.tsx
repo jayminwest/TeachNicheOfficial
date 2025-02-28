@@ -39,7 +39,7 @@ export default function NewLessonPage() {
   const auth = getAuth(getApp());
   const unsubscribe = auth.onAuthStateChanged(user => {
     unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
+    resolve({ data: { session: user ? { user: user as unknown as Record<string, unknown> } : null }, error: null });
   });
 });
       if (!session?.data?.session) {

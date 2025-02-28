@@ -7,11 +7,10 @@ export class FirebaseStorage implements StorageService {
   async uploadFile(path: string, file: File | Blob | Buffer): Promise<string> {
     try {
       // Get storage instance
-      const storage = getStorage(getApp());
+      const storageInstance = getStorage(getApp());
       
       // Create a reference to the file location in Firebase Storage
-      const storage = getStorage();
-      const storageRef = ref(storage, path);
+      const storageRef = ref(storageInstance, path);
       
       // Convert Buffer to Blob if needed
       let fileData: File | Blob;

@@ -24,7 +24,7 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
       setIsLoading(true)
       const data = await getRequests({ category, sortBy })
       setRequests(data)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to load requests:', error)
       onError?.(error instanceof Error ? error : new Error('Failed to load requests'))
     } finally {

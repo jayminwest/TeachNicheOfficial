@@ -33,7 +33,7 @@ export class CloudSqlDatabase implements DatabaseService {
     return await this.pool.connect();
   }
   
-  async query<T>(text: string, params: unknown[] = []): Promise<{ rows: T[]; rowCount: number }> {
+  async query<T = unknown>(text: string, params: unknown[] = []): Promise<{ rows: T[]; rowCount: number }> {
     const client = await this.getClient();
     try {
       const result = await client.query(text, params);

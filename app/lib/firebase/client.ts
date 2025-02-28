@@ -8,13 +8,13 @@ export function createClient() {
       select: () => ({
         eq: () => ({
           single: async () => ({
-            data: {},
+            data: { id: 'mock-id' },
             error: null
           })
         }),
         match: () => ({
           single: async () => ({
-            data: {},
+            data: { id: 'mock-id' },
             error: null
           })
         }),

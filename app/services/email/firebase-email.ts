@@ -21,7 +21,7 @@ export class FirebaseEmail implements EmailService {
       console.log(`Sending email to ${options.to}`);
       console.log(`Subject: ${options.subject}`);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
       return false;
     }

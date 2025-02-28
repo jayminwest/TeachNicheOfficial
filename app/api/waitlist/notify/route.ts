@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     // Send the email
     const emailService = createEmailService();
     // Format the data as a string for the email template
-    const emailData = JSON.stringify({ name, inviteLink });
+    const emailData = name;
     const success = await emailService.sendWelcomeEmail(email, emailData);
     
     if (!success) {

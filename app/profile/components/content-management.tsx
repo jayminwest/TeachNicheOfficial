@@ -7,8 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/components/ui/card"
+import { useAuth } from "@/app/services/auth/AuthContext"
+import { canCreateLesson } from "@/app/services/user-restrictions"
+import { LessonCreationRestriction } from "@/app/components/ui/lesson-creation-restriction"
 
 export function ContentManagement() {
+  const { user } = useAuth();
+  const canCreate = user?.metadata?.creationTime 
+    ? canCreateLesson(user.metadata.creationTime) 
+    : false;
+    
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -16,10 +24,14 @@ export function ContentManagement() {
           <h2 className="text-2xl font-bold">Your Content</h2>
           <p className="text-muted-foreground">Manage your lessons and courses</p>
         </div>
-        <Button asChild>
+        <Button asChild disabled={!canCreate}>
           <Link href="/lessons/new">Create New Lesson</Link>
         </Button>
       </div>
+      
+      {!canCreate && (
+        <LessonCreationRestriction className="mb-4" />
+      )}
 
       <Card>
         <CardHeader>

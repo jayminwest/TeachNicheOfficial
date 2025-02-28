@@ -68,7 +68,7 @@ export async function GET(request: Request) {
           
           if (matchingProfile) {
             // Update the profile if found
-            const { data, error } = await firebaseClient
+            const { data: _data, error } = await firebaseClient
               .from('profiles')
               .update({ stripe_onboarding_complete: true })
               .eq('id', user.uid);

@@ -7,7 +7,7 @@ import { firebaseClient } from '@/app/services/firebase-compat'
 // Set the runtime to edge
 export const runtime = 'edge'
 
-export async function POST(request: Request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+export async function POST(req: Request) { // eslint-disable-line @typescript-eslint/no-unused-vars
   console.log('Vote API route called');
   try {
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) { // eslint-disable-line @typescrip
       )
     }
 
-    const body = await request.json()
+    const body = await req.json()
     console.log('Vote request body:', body);
     const { requestId, voteType } = voteSchema.parse(body)
 
@@ -67,13 +67,13 @@ export async function POST(request: Request) { // eslint-disable-line @typescrip
     // Update vote count
     console.log('Updating vote count');
     // Since we don't have RPC in Firebase, we need to implement the vote count update directly
-    const { data: request } = await firebaseClient
+    const { data: requestData } = await firebaseClient
       .from('lesson_requests')
       .select()
       .eq('id', requestId)
       .get();
       
-    if (request && request.length > 0) {
+    if (requestData && requestData.length > 0) {
       // Calculate the new vote count
       const { data: votes } = await firebaseClient
         .from('lesson_request_votes')

@@ -1,7 +1,7 @@
 import { verifyConnectedAccount } from '@/app/services/stripe';
 import { NextResponse } from 'next/server';
 import { getAuth, getApp } from 'firebase/auth';
-import { createClient } from '@supabase/supabase-js';
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,13 +35,8 @@ export async function GET(request: Request) {
       );
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
     // Verify the connected account using our utility
-    const { verified, status } = await verifyConnectedAccount(user.uid, accountId, supabase);
+    const { verified, status } = await verifyConnectedAccount(user.uid, accountId);
 
     if (!verified) {
       return NextResponse.redirect(
@@ -53,15 +48,12 @@ export async function GET(request: Request) {
 
     if (isComplete) {
       // Update onboarding status only if we have verified everything
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-          stripe_onboarding_complete: true 
-        })
-        .eq('id', user.uid)
-        .eq('stripe_account_id', accountId); // Additional safety check
-
-      if (updateError) {
+      try {
+        await firebaseClient.from('profiles').update(
+          { stripe_onboarding_complete: true },
+          { id: user.uid, stripe_account_id: accountId }
+        );
+      } catch (updateError) {
         console.error('Failed to update onboarding status:', updateError);
         return NextResponse.redirect(
           `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`

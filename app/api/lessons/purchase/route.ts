@@ -4,7 +4,13 @@ import { calculateFees } from '@/app/lib/utils'
 
 export async function POST(request: Request) {
   try {
-    const { data: { session } } = await firebaseAuth.getSession()
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+})
 
     if (!session?.user) {
       return NextResponse.json(
@@ -87,7 +93,7 @@ export async function POST(request: Request) {
       },
       metadata: {
         lessonId,
-        userId: user.id,
+        userId: user.uid,
         creatorId: lesson.creator_id,
         version: '1'
       }
@@ -101,7 +107,7 @@ export async function POST(request: Request) {
       .from('purchases')
       .insert({
         id: purchaseId,
-        user_id: user.id,
+        user_id: user.uid,
         lesson_id: lessonId,
         creator_id: lesson.creator_id,
         stripe_session_id: checkoutSession.id,

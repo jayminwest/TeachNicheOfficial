@@ -267,7 +267,8 @@ export async function signInWithGoogle() {
       token,
       error: null 
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as Error & { code?: string };
     console.error('Google sign-in error:', err.code, err.message);
     
     // Provide more detailed error information

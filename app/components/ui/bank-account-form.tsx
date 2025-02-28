@@ -5,6 +5,8 @@ import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/components/ui/use-toast';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { stripeConfig } from '@/app/services/stripe';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';
 import {
   Card,
   CardContent,
@@ -85,12 +87,12 @@ export function BankAccountForm({
       
       // Get the current session
       const result = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+        const auth = getAuth(getApp());
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve({ data: { session: user ? { user } : null }, error: null });
+        });
+      });
       if (result.error) {
         throw new Error('Failed to get session');
       }

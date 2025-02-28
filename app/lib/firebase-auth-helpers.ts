@@ -1,4 +1,4 @@
-import { getAuth, User as FirebaseUser } from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth'
 import { cookies } from 'next/headers'
 

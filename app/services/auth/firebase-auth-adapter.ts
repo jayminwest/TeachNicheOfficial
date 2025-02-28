@@ -6,9 +6,7 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   browserPopupRedirectResolver,
-  User as FirebaseUser,
-  UserCredential,
-  Auth
+  User as FirebaseUser
 } from 'firebase/auth';
 import { auth } from '@/app/services/firebase';
 import { AuthUser } from './interface';

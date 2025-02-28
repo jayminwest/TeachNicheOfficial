@@ -1,3 +1,4 @@
+/** @type {import('jest').Config} */
 const customJestConfig = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
@@ -79,4 +80,4 @@ const customJestConfig = {
   moduleDirectories: ['node_modules', '<rootDir>']
 }
 
-module.exports = customJestConfig
+export default customJestConfig;

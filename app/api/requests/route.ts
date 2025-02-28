@@ -3,7 +3,13 @@ import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
 
 export async function POST(request: Request) {
   try {
-    const { data: { session } } = await firebaseAuth.getSession()
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+})
 
     if (!session) {
       return NextResponse.json(
@@ -21,7 +27,7 @@ export async function POST(request: Request) {
       .from('lesson_requests')
       .insert([{ 
         ...validatedData,
-        user_id: user.id,
+        user_id: user.uid,
         status: 'open',
         vote_count: 0,
         created_at: new Date().toISOString()

@@ -12,13 +12,13 @@ jest.mock('firebase/auth', () => {
   const authStateListeners = new Set();
   let currentUser = null;
   
-  return {
+  const mockModule = {
     getAuth: jest.fn(),
     onAuthStateChanged: jest.fn((auth, callback) => {
       // Store the callback to simulate auth state changes
       authStateListeners.add(callback);
       // Immediately call with current user
-      callback(currentUser);
+      setTimeout(() => callback(currentUser), 0);
       
       // Return unsubscribe function
       return () => {
@@ -31,6 +31,8 @@ jest.mock('firebase/auth', () => {
       authStateListeners.forEach(callback => callback(user));
     }
   };
+  
+  return mockModule;
 });
 
 // Test component that uses the auth context
@@ -82,14 +84,15 @@ describe('AuthContext', () => {
     
     // Wait for initial auth state
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 100));
     });
     
     // Act - simulate user sign in
     await act(async () => {
-      // Import the mock module
       const firebaseAuthMock = jest.requireMock('firebase/auth');
       firebaseAuthMock.__simulateAuthStateChange({ uid: '123', email: 'test@example.com' });
+      // Wait for state update to propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
     });
     
     // Assert - user is now signed in
@@ -100,17 +103,21 @@ describe('AuthContext', () => {
   
   it('should update when user signs out', async () => {
     // Arrange - start with signed in user
+    const mockUser = { uid: '123', email: 'test@example.com' };
+    
+    // Pre-set the mock user before rendering
+    const firebaseAuthMock = jest.requireMock('firebase/auth');
+    firebaseAuthMock.__simulateAuthStateChange(mockUser);
+    
     render(
-      <AuthProvider>
+      <AuthProvider initialUser={mockUser}>
         <TestComponent />
       </AuthProvider>
     );
     
-    // Simulate initial signed in state
+    // Wait for component to stabilize
     await act(async () => {
-      // Import the mock module
-      const firebaseAuthMock = jest.requireMock('firebase/auth');
-      firebaseAuthMock.__simulateAuthStateChange({ uid: '123', email: 'test@example.com' });
+      await new Promise(resolve => setTimeout(resolve, 100));
     });
     
     // Verify user is signed in
@@ -118,9 +125,9 @@ describe('AuthContext', () => {
     
     // Act - simulate user sign out
     await act(async () => {
-      // Import the mock module
-      const firebaseAuthMock = jest.requireMock('firebase/auth');
       firebaseAuthMock.__simulateAuthStateChange(null);
+      // Wait for state update to propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
     });
     
     // Assert - user is now signed out

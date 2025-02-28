@@ -38,6 +38,13 @@ export function AuthProvider({
       return () => {};
     }
     
+    // For tests with initialUser, skip the auth initialization
+    if (initialUser !== null) {
+      setUser(initialUser);
+      setLoading(false);
+      return () => {};
+    }
+    
     // Dynamically import Firebase auth to avoid server-side issues
     const initializeAuth = async () => {
       try {
@@ -48,7 +55,6 @@ export function AuthProvider({
         if (!authInstance) {
           const { getAuth } = await import('firebase/auth');
           authInstance = getAuth(app);
-          auth = authInstance; // Store for future use
         }
         
         // Set up auth state change listener

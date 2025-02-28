@@ -81,7 +81,7 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
       { field: 'id', operator: '==', value: purchaseId }
     ]);
     
-    if (purchaseSnapshot.length === 0) {
+    if (!purchaseSnapshot || purchaseSnapshot.length === 0) {
       console.error('Purchase not found:', purchaseId);
       return;
     }
@@ -110,7 +110,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     { field: 'payment_intent_id', operator: '==', value: paymentIntent.id }
   ]);
   
-  if (purchaseSnapshot.length === 0) {
+  if (!purchaseSnapshot || purchaseSnapshot.length === 0) {
     console.error('Purchase not found for payment intent:', paymentIntent.id);
     return;
   }
@@ -170,7 +170,7 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
     { field: 'payment_intent_id', operator: '==', value: paymentIntentId }
   ]);
   
-  if (purchaseSnapshot.length === 0) {
+  if (!purchaseSnapshot || purchaseSnapshot.length === 0) {
     console.error('Purchase not found for refund:', paymentIntentId);
     return;
   }
@@ -200,7 +200,7 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       { field: 'payment_intent_id', operator: '==', value: paymentIntentId }
     ]);
     
-    if (earningsSnapshot.length === 0) {
+    if (!earningsSnapshot || earningsSnapshot.length === 0) {
       console.error('Earnings not found for refund:', paymentIntentId);
       return;
     }

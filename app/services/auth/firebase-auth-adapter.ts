@@ -15,7 +15,7 @@ export async function signInWithGoogle(): Promise<AuthUser> {
   try {
     const provider = new GoogleAuthProvider();
     // Use browserPopupRedirectResolver to fix the "requested action is invalid" error
-    const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
+    const result = await signInWithPopup(firebaseAuth, provider, browserPopupRedirectResolver);
     
     // Get user information
     const user = result.user;
@@ -29,7 +29,7 @@ export async function signInWithGoogle(): Promise<AuthUser> {
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthUser> {
   try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
+    const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
     const user = result.user;
     
     return mapFirebaseUserToAuthUser(user);
@@ -41,7 +41,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
 
 export async function createUser(email: string, password: string): Promise<AuthUser> {
   try {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
+    const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
     const user = result.user;
     
     return mapFirebaseUserToAuthUser(user);
@@ -53,7 +53,7 @@ export async function createUser(email: string, password: string): Promise<AuthU
 
 export async function resetPassword(email: string): Promise<void> {
   try {
-    await sendPasswordResetEmail(auth, email);
+    await sendPasswordResetEmail(firebaseAuth, email);
   } catch (error) {
     console.error('Error resetting password:', error);
     throw new Error(`Password reset failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -62,7 +62,7 @@ export async function resetPassword(email: string): Promise<void> {
 
 export async function signOut(): Promise<void> {
   try {
-    await firebaseSignOut(auth);
+    await firebaseSignOut(firebaseAuth);
   } catch (error) {
     console.error('Error signing out:', error);
     throw new Error(`Sign out failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -71,7 +71,7 @@ export async function signOut(): Promise<void> {
 
 export function getCurrentUser(): Promise<AuthUser | null> {
   return new Promise((resolve) => {
-    const user = auth.currentUser;
+    const user = firebaseAuth.currentUser;
     
     if (!user) {
       resolve(null);

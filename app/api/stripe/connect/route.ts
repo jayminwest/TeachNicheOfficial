@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     }
 
     // Verify the user ID matches
-    if (user.uid !== body.userId) {
+    if (user && user.uid !== body.userId) {
       console.error('User ID mismatch:', { sessionId: user.uid, requestId: body.userId });
       return NextResponse.json({ 
         error: 'Authentication error',
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     }
 
     // Verify email matches
-    if (user.email !== body.email) {
+    if (user && user.email !== body.email) {
       console.error('Email mismatch:', { sessionEmail: user.email, requestEmail: body.email });
       return NextResponse.json({ 
         error: 'Authentication error',
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
       }, { status: 401 });
     }
 
-    console.log('Creating Stripe Connect account for:', { userId: user.uid, email: user.email });
+    console.log('Creating Stripe Connect account for:', { userId: user?.uid, email: user?.email });
     
     // Get the Stripe instance
     const stripeInstance = getStripe();
@@ -111,9 +111,9 @@ export async function POST(request: Request) {
       // Create Stripe Connect account with international support
       const account = await (stripeInstance as unknown as Stripe).accounts.create({
         type: 'standard',
-        email: user.email,
+        email: user?.email || body.email,
         metadata: {
-          user_id: user.uid
+          user_id: user?.uid || body.userId
         },
         capabilities: {
           card_payments: { requested: true },
@@ -138,10 +138,14 @@ export async function POST(request: Request) {
 
       // Store the Stripe account ID in our database
       try {
-        await firebaseClient
-          .from('profiles')
-          .update({ stripe_account_id: account.id })
-          .eq('id', user.uid);
+        // Create a database service
+        const db = new FirestoreDatabase();
+        
+        // Update the profile with the Stripe account ID
+        await db.update('profiles', user?.uid || body.userId, { 
+          stripe_account_id: account.id,
+          updated_at: new Date().toISOString()
+        });
       } catch (dbError) {
         console.error('Database update error:', dbError);
         

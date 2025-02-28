@@ -369,7 +369,7 @@ export async function signInWithGoogle(): Promise<{
     
     const userCredential = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(userCredential);
-    const token = credential ? (credential as { accessToken?: string }).accessToken : null;
+    const token = credential ? (credential as { accessToken?: string }).accessToken || null : null;
     
     return { 
       user: transformUser(userCredential.user), 

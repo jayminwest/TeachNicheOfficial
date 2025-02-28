@@ -31,7 +31,7 @@ export async function GET() {
       { field: 'id', operator: '==', value: userId }
     ]);
     
-    const profile = profilesSnapshot.length > 0 ? profilesSnapshot[0] : null;
+    const profile = profilesSnapshot && profilesSnapshot.length > 0 ? profilesSnapshot[0] : null;
 
     if (!profile?.stripe_account_id) {
       return NextResponse.json({ error: 'No Stripe account found' }, { status: 404 });

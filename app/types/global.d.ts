@@ -26,7 +26,7 @@ declare module "@/app/components/ui/alert" {
 
 // Firebase client mock for tests
 declare module "@/app/lib/firebase" {
-  export const db: any;
+  export const db: unknown;
 }
 
 // Supabase compatibility layer

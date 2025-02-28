@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage } from '../sign-in';
-import * as firebaseAuth from '@/app/services/auth/firebase-auth';
+import * as firebaseAuth from '@/app/services/auth/firebase-auth-service';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 
@@ -11,7 +11,7 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock the firebase-auth-service module (note the correct path)
+// Mock the firebase-auth-service module
 jest.mock('@/app/services/auth/firebase-auth-service', () => ({
   signInWithGoogle: jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' })
 }));
@@ -201,7 +201,9 @@ describe('SignInPage', () => {
   it('announces errors to screen readers', async () => {
     const user = userEvent.setup();
     const errorMessage = 'Failed to authenticate with Google';
-    (firebaseAuth.signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
+    
+    // Use the mockSignInWithGoogle variable that we already set up
+    mockSignInWithGoogle.mockRejectedValueOnce(new Error(errorMessage));
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     

@@ -7,7 +7,7 @@ import {
   getDocs, 
   updateDoc, 
   deleteDoc, 
-  query as firestoreQuery, 
+  query, 
   where, 
   orderBy, 
   limit, 
@@ -188,11 +188,11 @@ export class FirestoreDatabase implements DatabaseService {
   }
 
   // Implement required DatabaseService methods
-  async query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }> {
+  async query<T = unknown>(text: string, _params?: unknown[]): Promise<{ rows: T[]; rowCount: number }> {
     console.warn('Firestore does not support raw SQL queries. Using alternative implementation.');
     // This is a simplified implementation to satisfy the interface
-    const [collection, limit] = text.split(' LIMIT ');
-    const collectionName = collection.replace('SELECT * FROM ', '').trim();
+    const [collectionPart, _limitPart] = text.split(' LIMIT ');
+    const collectionName = collectionPart.replace('SELECT * FROM ', '').trim();
     
     const results = await this.list(collectionName);
     return {

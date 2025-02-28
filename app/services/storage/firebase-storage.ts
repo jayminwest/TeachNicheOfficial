@@ -1,56 +1,123 @@
-import { StorageService } from './interface';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { getStorage } from 'firebase/storage';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL, 
+  deleteObject,
+  listAll,
+  UploadMetadata
+} from 'firebase/storage';
 import { getApp } from 'firebase/app';
+import { StorageService } from './interface';
 
 export class FirebaseStorage implements StorageService {
+  private storage;
+
+  constructor() {
+    const app = getApp();
+    this.storage = getStorage(app);
+  }
+
   async uploadFile(path: string, file: File | Blob | Buffer): Promise<string> {
     try {
-      // Get storage instance
-      const storageInstance = getStorage(getApp());
-      
-      // Create a reference to the file location in Firebase Storage
-      const storageRef = ref(storageInstance, path);
-      
-      // Convert Buffer to Blob if needed
       let fileData: File | Blob;
       if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
-      } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File as any)) {
+      } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof (File as any))) {
         fileData = file as Blob;
       } else {
         throw new Error('Unsupported file type');
       }
       
-      // Upload the file
-      const snapshot = await uploadBytes(storageRef, fileData);
+      const storageRef = ref(this.storage, path);
+      const metadata: UploadMetadata = {
+        contentType: this.getContentType(path, fileData),
+        customMetadata: {
+          uploadedAt: new Date().toISOString()
+        }
+      };
       
-      // Get the download URL
-      return getDownloadURL(snapshot.ref);
+      const snapshot = await uploadBytes(storageRef, fileData, metadata);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
     } catch (error) {
-      console.error('Error uploading file to Firebase Storage:', error);
+      console.error('Error uploading file:', error);
       throw error;
     }
   }
-  
+
   async getFileUrl(path: string): Promise<string> {
     try {
-      const storageRef = ref(getStorage(), path);
+      const storageRef = ref(this.storage, path);
       return await getDownloadURL(storageRef);
     } catch (error) {
-      console.error('Error getting file URL from Firebase Storage:', error);
+      console.error('Error getting file URL:', error);
       throw error;
     }
   }
-  
+
   async deleteFile(path: string): Promise<void> {
     try {
-      const storage = getStorage();
-      const storageRef = ref(storage, path);
+      const storageRef = ref(this.storage, path);
       await deleteObject(storageRef);
     } catch (error) {
-      console.error('Error deleting file from Firebase Storage:', error);
+      console.error('Error deleting file:', error);
       throw error;
+    }
+  }
+
+  async listFiles(directory: string): Promise<string[]> {
+    try {
+      const storageRef = ref(this.storage, directory);
+      const result = await listAll(storageRef);
+      
+      const fileUrls: string[] = [];
+      for (const itemRef of result.items) {
+        const url = await getDownloadURL(itemRef);
+        fileUrls.push(url);
+      }
+      
+      return fileUrls;
+    } catch (error) {
+      console.error('Error listing files:', error);
+      throw error;
+    }
+  }
+
+  private getContentType(path: string, file: File | Blob): string {
+    // Check if file is a File object with type property
+    if (typeof File !== 'undefined' && file instanceof (File as any) && (file as File).type) {
+      return (file as File).type;
+    }
+    
+    const extension = path.split('.').pop()?.toLowerCase();
+    
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'svg':
+        return 'image/svg+xml';
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'xls':
+        return 'application/vnd.ms-excel';
+      case 'xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mp3':
+        return 'audio/mpeg';
+      default:
+        return 'application/octet-stream';
     }
   }
 }

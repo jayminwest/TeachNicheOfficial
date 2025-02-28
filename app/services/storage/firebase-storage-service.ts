@@ -86,8 +86,8 @@ export class FirebaseStorageService implements StorageService {
 
   private getContentType(path: string, file: File | Blob): string {
     // Check if file is a File object with type property
-    if (typeof File !== 'undefined' && file instanceof File as any && (file as File).type) {
-      return file.type;
+    if (typeof File !== 'undefined' && file instanceof (File as any) && (file as File).type) {
+      return (file as File).type;
     }
     
     const extension = path.split('.').pop()?.toLowerCase();

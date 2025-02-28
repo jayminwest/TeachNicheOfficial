@@ -37,12 +37,12 @@ For each file:
 - [x] app/services/stripe.ts (1 error) <!-- 2025-03-01: Fixed by updating verifyConnectedAccount to use DatabaseService -->
 - [x] app/api/stripe/connect/callback/route.ts (1 error) <!-- 2025-02-28: Fixed by properly typing accountId parameter -->
 - [x] app/api/stripe/connect/route.ts (4 errors) <!-- 2025-02-28: Fixed by properly typing getAuthenticatedUser function -->
-- [x] app/api/stripe/connect/status/route.ts (6 errors) <!-- 2025-02-28: Fixed by adding proper Firebase database queries -->
-- [x] app/api/webhooks/stripe/route.ts (9 errors) <!-- 2025-02-28: Fixed by replacing Supabase with Firebase database operations -->
+- [x] app/api/stripe/connect/status/route.ts (2 errors) <!-- 2025-02-28: Fixed by using typedProfile instead of profile -->
+- [x] app/api/webhooks/stripe/route.ts (6 errors) <!-- 2025-02-28: Fixed by adding type assertion for purchase object -->
 - [x] app/components/ui/lesson-checkout.tsx (1 error) <!-- 2025-02-28: Fixed by properly typing searchParams -->
 - [x] app/services/auth/firebase-auth-adapter.ts (14 errors) <!-- 2025-02-28: Fixed by adding proper type imports and creating mapFirebaseUserToAuthUser helper -->
 - [x] app/services/auth/firebase-auth-service.ts (4 errors) <!-- 2025-02-28: Fixed by adding proper return type for signInWithGoogle -->
-- [x] app/lib/firebase-auth-helpers.ts (3 errors) <!-- 2025-02-28: Fixed by removing unnecessary type annotations -->
+- [x] app/lib/firebase-auth-helpers.ts (2 errors) <!-- 2025-02-28: Fixed by adding await to cookie operations -->
 
 ### Core Services (P1)
 

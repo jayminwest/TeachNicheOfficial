@@ -190,7 +190,19 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
   
   // Update purchase status
   try {
-    await db.update('purchases', purchase.id, {
+    // Type assertion for purchase since we know the structure
+    interface Purchase {
+      id: string;
+      amount: number;
+      creator_id: string;
+      lesson_id: string;
+      status: string;
+      metadata?: Record<string, any>;
+    }
+    
+    const typedPurchase = purchase as Purchase;
+    
+    await db.update('purchases', typedPurchase.id, {
       status: 'refunded',
       updated_at: new Date().toISOString(),
       metadata: {
@@ -225,8 +237,20 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
     
     const earnings = earningsSnapshot.rows[0] as Earnings;
     
+    // Type assertion for purchase since we know the structure
+    interface Purchase {
+      id: string;
+      amount: number;
+      creator_id: string;
+      lesson_id: string;
+      status: string;
+      metadata?: Record<string, any>;
+    }
+    
+    const typedPurchase = purchase as Purchase;
+    
     // Calculate refunded earnings amount (proportional to refund amount)
-    const refundRatio = refundAmount / purchase.amount;
+    const refundRatio = refundAmount / typedPurchase.amount;
     const refundedEarnings = Math.round(earnings.amount * refundRatio);
     
     if (earnings.status === 'pending') {
@@ -243,11 +267,11 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
     } else if (earnings.status === 'paid') {
       // If earnings were already paid, create a negative adjustment
       await db.create('creator_earnings', {
-        creator_id: purchase.creator_id,
+        creator_id: typedPurchase.creator_id,
         payment_intent_id: `${paymentIntentId}_refund`,
         amount: -refundedEarnings, // Negative amount
-        lesson_id: purchase.lesson_id,
-        purchase_id: purchase.id,
+        lesson_id: typedPurchase.lesson_id,
+        purchase_id: typedPurchase.id,
         status: 'pending',
         created_at: new Date().toISOString(),
         metadata: {
@@ -258,7 +282,7 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       });
     }
     
-    console.log('Refund processed for purchase:', purchase.id);
+    console.log('Refund processed for purchase:', typedPurchase.id);
   } catch (error) {
     console.error('Failed to handle earnings for refund:', error);
     // Continue processing - this is not critical for the refund flow

@@ -2,6 +2,13 @@ import { DatabaseService } from './database/interface';
 import { formatCurrency } from '@/app/lib/utils';
 import { stripeConfig } from '@/app/services/stripe';
 
+// Define EligibleCreator interface
+export interface EligibleCreator {
+  creator_id: string;
+  pending_amount: number;
+  [key: string]: unknown;
+}
+
 export interface EarningsSummary {
   totalEarnings: number;
   pendingEarnings: number;

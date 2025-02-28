@@ -8,13 +8,15 @@ interface FileConstructor {
   prototype: File;
 }
 
-declare let File: FileConstructor;
-
-// Make File available for instanceof checks
-interface File extends Blob {
-  readonly lastModified: number;
-  readonly name: string;
-  readonly webkitRelativePath: string;
+declare global {
+  // Make File available globally for instanceof checks
+  var File: FileConstructor;
+  
+  interface File extends Blob {
+    readonly lastModified: number;
+    readonly name: string;
+    readonly webkitRelativePath: string;
+  }
 }
 
 // Extended alert variant types

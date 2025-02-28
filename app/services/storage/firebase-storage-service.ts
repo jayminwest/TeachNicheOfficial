@@ -24,7 +24,7 @@ export class FirebaseStorageService implements StorageService {
       if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
       } else if (file instanceof Blob || (typeof File !== 'undefined' && file instanceof File)) {
-        fileData = file;
+        fileData = file as Blob;
       } else {
         throw new Error('Unsupported file type');
       }
@@ -85,7 +85,8 @@ export class FirebaseStorageService implements StorageService {
   }
 
   private getContentType(path: string, file: File | Blob): string {
-    if (file instanceof File && file.type) {
+    // Check if file is a File object with type property
+    if (typeof File !== 'undefined' && file instanceof File && file.type) {
       return file.type;
     }
     

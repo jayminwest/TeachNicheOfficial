@@ -41,6 +41,8 @@ export function AuthProvider({
     // For tests with initialUser, update the user state
     if (initialUser !== undefined) {
       setUser(initialUser);
+      // Only set loading to false if initialUser is not undefined
+      // This allows tests to control the loading state
       setLoading(false);
       // If initialUser is provided, we don't need to set up the auth listener
       if (initialUser !== null) {

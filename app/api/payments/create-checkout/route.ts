@@ -137,7 +137,17 @@ export async function POST(request: NextRequest) {
     // Execute the query
     const { data: lessons, error: lessonError } = await lessonQueryBuilder.get();
       
-    const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
+    // Define a type for the lesson
+    interface Lesson {
+      id: string;
+      title: string;
+      description?: string;
+      price: number;
+      creator_id: string;
+      [key: string]: any;
+    }
+    
+    const lesson = lessons && lessons.length > 0 ? lessons[0] as Lesson : null;
       
     if (lessonError || !lesson) {
       return NextResponse.json(
@@ -217,8 +227,8 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: stripeConfig.defaultCurrency,
             product_data: {
-              name: lesson.title,
-              description: lesson.description?.substring(0, 255) || `Access to ${lesson.title}`,
+              name: String(lesson.title),
+              description: lesson.description ? String(lesson.description).substring(0, 255) : `Access to ${String(lesson.title)}`,
             },
             unit_amount: priceInCents,
           },

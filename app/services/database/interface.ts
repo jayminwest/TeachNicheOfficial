@@ -1,14 +1,3 @@
-export interface DatabaseService {
-  query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }>;
-  getCategories(): Promise<{id: string; name: string; description?: string; created_at?: string; updated_at?: string}[]>;
-  getLessons(
-    limit?: number, 
-    offset?: number, 
-    filters?: Record<string, string | number | boolean>
-  ): Promise<Record<string, unknown>[]>;
-  create<T = unknown>(table: string, data: Record<string, unknown>): Promise<T | string>;
-  // Add other database methods as needed
-}
 /**
  * Database Service Interface
  * 
@@ -21,10 +10,17 @@ export interface DatabaseResponse<T> {
 }
 
 export interface DatabaseService {
-  query<T = unknown>(query: string, params?: unknown[]): Promise<{
-    rows: T[];
-    rowCount: number;
-  }>;
+  query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }>;
+  
+  getCategories(): Promise<{id: string; name: string; description?: string; created_at?: string; updated_at?: string}[]>;
+  
+  getLessons(
+    limit?: number, 
+    offset?: number, 
+    filters?: Record<string, string | number | boolean>
+  ): Promise<Record<string, unknown>[]>;
+  
+  create<T = unknown>(table: string, data: Record<string, unknown>): Promise<T | string>;
   
   from(table: string): {
     select: (columns?: string) => {
@@ -40,6 +36,7 @@ export interface DatabaseService {
   };
 }
 
+// Default implementation for backward compatibility
 export const databaseService: DatabaseService = {
   query: async <T = unknown>(_query: string, _params?: unknown[]): Promise<{
     rows: T[];
@@ -50,6 +47,21 @@ export const databaseService: DatabaseService = {
       rows: [],
       rowCount: 0
     };
+  },
+  
+  getCategories: async (): Promise<{id: string; name: string; description?: string; created_at?: string; updated_at?: string}[]> => {
+    console.warn('getCategories not implemented');
+    return [];
+  },
+  
+  getLessons: async (_limit?: number, _offset?: number, _filters?: Record<string, string | number | boolean>): Promise<Record<string, unknown>[]> => {
+    console.warn('getLessons not implemented');
+    return [];
+  },
+  
+  create: async <T = unknown>(_table: string, _data: Record<string, unknown>): Promise<T | string> => {
+    console.warn('create not implemented');
+    return '' as string;
   },
   
   from: (_table: string) => ({

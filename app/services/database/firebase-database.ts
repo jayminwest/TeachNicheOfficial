@@ -27,6 +27,200 @@ export class FirestoreDatabase implements DatabaseService {
     this.db = getFirestore(app);
   }
 
+  from(table: string) {
+    return {
+      select: (columns?: string) => ({
+        eq: async (column: string, value: unknown): Promise<DatabaseResponse<unknown>> => {
+          try {
+            const collectionRef = collection(this.db, table);
+            const q = query(collectionRef, where(column, '==', value));
+            const querySnapshot = await getDocs(q);
+            
+            const results: unknown[] = [];
+            querySnapshot.forEach((doc) => {
+              const data = this.convertTimestamps(doc.data());
+              results.push({ id: doc.id, ...data });
+            });
+            
+            return {
+              data: results,
+              error: null
+            };
+          } catch (error) {
+            console.error(`Error in from().select().eq():`, error);
+            return {
+              data: null,
+              error: error instanceof Error ? error : new Error('Unknown error')
+            };
+          }
+        },
+        match: (queryParams: Record<string, unknown>) => ({
+          maybeSingle: async (): Promise<DatabaseResponse<unknown>> => {
+            try {
+              const collectionRef = collection(this.db, table);
+              const constraints: QueryConstraint[] = [];
+              
+              Object.entries(queryParams).forEach(([field, value]) => {
+                constraints.push(where(field, '==', value));
+              });
+              
+              const q = query(collectionRef, ...constraints);
+              const querySnapshot = await getDocs(q);
+              
+              if (querySnapshot.empty) {
+                return { data: null, error: null };
+              }
+              
+              const doc = querySnapshot.docs[0];
+              const data = this.convertTimestamps(doc.data());
+              
+              return {
+                data: { id: doc.id, ...data },
+                error: null
+              };
+            } catch (error) {
+              console.error(`Error in from().select().match().maybeSingle():`, error);
+              return {
+                data: null,
+                error: error instanceof Error ? error : new Error('Unknown error')
+              };
+            }
+          }
+        }),
+        maybeSingle: async (): Promise<DatabaseResponse<unknown>> => {
+          try {
+            const collectionRef = collection(this.db, table);
+            const querySnapshot = await getDocs(query(collectionRef, limit(1)));
+            
+            if (querySnapshot.empty) {
+              return { data: null, error: null };
+            }
+            
+            const doc = querySnapshot.docs[0];
+            const data = this.convertTimestamps(doc.data());
+            
+            return {
+              data: { id: doc.id, ...data },
+              error: null
+            };
+          } catch (error) {
+            console.error(`Error in from().select().maybeSingle():`, error);
+            return {
+              data: null,
+              error: error instanceof Error ? error : new Error('Unknown error')
+            };
+          }
+        }
+      }),
+      insert: async (data: unknown): Promise<DatabaseResponse<unknown>> => {
+        try {
+          const collectionRef = collection(this.db, table);
+          const docRef = doc(collectionRef);
+          
+          const dataWithTimestamps = {
+            ...data as Record<string, unknown>,
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
+          };
+          
+          await setDoc(docRef, dataWithTimestamps);
+          
+          return {
+            data: { id: docRef.id, ...data },
+            error: null
+          };
+        } catch (error) {
+          console.error(`Error in from().insert():`, error);
+          return {
+            data: null,
+            error: error instanceof Error ? error : new Error('Unknown error')
+          };
+        }
+      },
+      update: async (data: unknown, options?: { eq: [string, unknown][] }): Promise<DatabaseResponse<unknown>> => {
+        try {
+          if (!options?.eq || options.eq.length === 0) {
+            throw new Error('Update requires eq options');
+          }
+          
+          const collectionRef = collection(this.db, table);
+          const constraints: QueryConstraint[] = [];
+          
+          options.eq.forEach(([field, value]) => {
+            constraints.push(where(field, '==', value));
+          });
+          
+          const q = query(collectionRef, ...constraints);
+          const querySnapshot = await getDocs(q);
+          
+          if (querySnapshot.empty) {
+            return { 
+              data: null, 
+              error: new Error('No document found to update') 
+            };
+          }
+          
+          const docRef = querySnapshot.docs[0].ref;
+          const dataWithTimestamp = {
+            ...data as Record<string, unknown>,
+            updated_at: serverTimestamp()
+          };
+          
+          await updateDoc(docRef, dataWithTimestamp);
+          
+          return {
+            data: { id: docRef.id, ...data },
+            error: null
+          };
+        } catch (error) {
+          console.error(`Error in from().update():`, error);
+          return {
+            data: null,
+            error: error instanceof Error ? error : new Error('Unknown error')
+          };
+        }
+      },
+      delete: async (options?: { eq: [string, unknown][] }): Promise<DatabaseResponse<unknown>> => {
+        try {
+          if (!options?.eq || options.eq.length === 0) {
+            throw new Error('Delete requires eq options');
+          }
+          
+          const collectionRef = collection(this.db, table);
+          const constraints: QueryConstraint[] = [];
+          
+          options.eq.forEach(([field, value]) => {
+            constraints.push(where(field, '==', value));
+          });
+          
+          const q = query(collectionRef, ...constraints);
+          const querySnapshot = await getDocs(q);
+          
+          if (querySnapshot.empty) {
+            return { 
+              data: null, 
+              error: new Error('No document found to delete') 
+            };
+          }
+          
+          const docRef = querySnapshot.docs[0].ref;
+          await deleteDoc(docRef);
+          
+          return {
+            data: { success: true },
+            error: null
+          };
+        } catch (error) {
+          console.error(`Error in from().delete():`, error);
+          return {
+            data: null,
+            error: error instanceof Error ? error : new Error('Unknown error')
+          };
+        }
+      }
+    };
+  }
+
   async create<T extends Record<string, unknown>>(
     table: string, 
     data: T, 

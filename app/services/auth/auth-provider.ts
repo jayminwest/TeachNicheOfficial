@@ -54,33 +54,34 @@ class FirebaseAuthService implements AuthService {
     this.firebaseAuth = new FirebaseAuth();
   }
   
-  async signIn(_email: string, _password: string): Promise<unknown> {
-    // Implement signIn method
-    console.warn('signIn not implemented');
-    return null;
+  async signIn(email: string, password: string): Promise<AuthUser> {
+    const user = await this.firebaseAuth.signIn(email, password);
+    return this.firebaseAuth.mapToAuthUser(user) as AuthUser;
   }
   
-  async signUp(_email: string, _password: string): Promise<unknown> {
-    // Implement signUp method
-    console.warn('signUp not implemented');
-    return null;
+  async signUp(email: string, password: string, name: string): Promise<AuthUser> {
+    const user = await this.firebaseAuth.signUp(email, password);
+    // TODO: Set display name if needed
+    return this.firebaseAuth.mapToAuthUser(user) as AuthUser;
   }
   
-  // Delegate other methods to FirebaseAuth
-  async signInWithGoogle() {
-    return this.firebaseAuth.signInWithGoogle();
+  async signInWithGoogle(): Promise<AuthUser | null> {
+    const user = await this.firebaseAuth.signInWithGoogle();
+    return this.firebaseAuth.mapToAuthUser(user);
   }
   
-  async signOut() {
+  async signOut(): Promise<void> {
     return this.firebaseAuth.signOut();
   }
   
-  onAuthStateChanged(callback: (user: unknown) => void) {
-    return this.firebaseAuth.onAuthStateChanged(callback);
+  onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void {
+    return this.firebaseAuth.onAuthStateChanged((user) => {
+      callback(this.firebaseAuth.mapToAuthUser(user));
+    });
   }
   
-  get currentUser() {
-    return this.firebaseAuth.currentUser;
+  async getCurrentUser(): Promise<AuthUser | null> {
+    return this.firebaseAuth.mapToAuthUser(this.firebaseAuth.getCurrentUser());
   }
 }
 

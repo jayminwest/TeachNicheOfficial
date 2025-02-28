@@ -11,5 +11,6 @@ export interface AuthService {
   signUp(email: string, password: string, name: string): Promise<AuthUser>;
   signOut(): Promise<void>;
   getCurrentUser(): Promise<AuthUser | null>;
-  // Add other auth methods as needed
+  signInWithGoogle?(): Promise<AuthUser | null>;
+  onAuthStateChanged?(callback: (user: AuthUser | null) => void): () => void;
 }

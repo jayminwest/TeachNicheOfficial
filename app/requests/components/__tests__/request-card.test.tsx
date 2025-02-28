@@ -7,7 +7,10 @@ jest.mock('@/app/lib/firebase/client', () => ({
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     match: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({ data: null })
+    single: jest.fn().mockResolvedValue({ data: null }),
+    eq: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockResolvedValue({ error: null })
   }),
   supabase: {
     from: jest.fn().mockReturnThis(),

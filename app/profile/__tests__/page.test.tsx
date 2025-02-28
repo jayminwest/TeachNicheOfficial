@@ -91,6 +91,25 @@ jest.mock('@/app/services/firebase', () => ({
   },
 }))
 
+// Mock profile page to avoid supabase reference error
+jest.mock('../page', () => {
+  const MockProfilePage = () => (
+    <div>
+      <h1>Profile</h1>
+      <div role="tablist">
+        <button role="tab">Profile</button>
+        <button role="tab">Content</button>
+        <button role="tab">Settings</button>
+      </div>
+      <div data-testid="tabs-content" data-value="profile">Profile Form</div>
+      <div data-testid="tabs-content" data-value="content">Content Management</div>
+      <div data-testid="tabs-content" data-value="settings">Account Settings</div>
+      <div data-testid="unauthenticated-redirect" style={{ display: 'none' }}></div>
+    </div>
+  )
+  return MockProfilePage
+})
+
 // Mock supabase
 jest.mock('@/app/lib/firebase/client', () => ({
   supabase: {

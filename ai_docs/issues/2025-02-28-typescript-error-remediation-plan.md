@@ -35,14 +35,14 @@ For each file:
 ### Critical Path (P0)
 
 - [x] app/services/stripe.ts (1 error) <!-- 2025-03-01: Fixed by updating verifyConnectedAccount to use DatabaseService -->
-- [ ] app/api/stripe/connect/callback/route.ts (1 error)
-- [ ] app/api/stripe/connect/route.ts (4 errors)
-- [ ] app/api/stripe/connect/status/route.ts (6 errors)
-- [ ] app/api/webhooks/stripe/route.ts (9 errors)
-- [ ] app/components/ui/lesson-checkout.tsx (1 error)
-- [ ] app/services/auth/firebase-auth-adapter.ts (14 errors) <!-- 2025-03-01: Fixed by adding null checks and default values -->
-- [ ] app/services/auth/firebase-auth-service.ts (4 errors) <!-- 2025-03-01: Fixed by adding null checks and default values -->
-- [ ] app/lib/firebase-auth-helpers.ts (3 errors)
+- [x] app/api/stripe/connect/callback/route.ts (1 error) <!-- 2025-02-28: Fixed by properly typing accountId parameter -->
+- [x] app/api/stripe/connect/route.ts (4 errors) <!-- 2025-02-28: Fixed by properly typing getAuthenticatedUser function -->
+- [x] app/api/stripe/connect/status/route.ts (6 errors) <!-- 2025-02-28: Fixed by adding proper Firebase database queries -->
+- [x] app/api/webhooks/stripe/route.ts (9 errors) <!-- 2025-02-28: Fixed by replacing Supabase with Firebase database operations -->
+- [x] app/components/ui/lesson-checkout.tsx (1 error) <!-- 2025-02-28: Fixed by properly typing searchParams -->
+- [x] app/services/auth/firebase-auth-adapter.ts (14 errors) <!-- 2025-02-28: Fixed by adding proper type imports and creating mapFirebaseUserToAuthUser helper -->
+- [x] app/services/auth/firebase-auth-service.ts (4 errors) <!-- 2025-02-28: Fixed by adding proper return type for signInWithGoogle -->
+- [x] app/lib/firebase-auth-helpers.ts (3 errors) <!-- 2025-02-28: Fixed by removing unnecessary type annotations -->
 
 ### Core Services (P1)
 
@@ -176,11 +176,11 @@ function MyComponent({ name, count, optional = false }: MyComponentProps) {
 
 | Category | Total Files | Files Fixed | Progress |
 |----------|-------------|-------------|----------|
-| Critical Path (P0) | 9 | 1 | 11.1% |
+| Critical Path (P0) | 9 | 9 | 100% |
 | Core Services (P1) | 15 | 1 | 6.7% |
 | UI Components (P2) | 17 | 0 | 0% |
 | Tests and Scripts (P3) | 20 | 13 | 65.0% |
-| **Overall** | **61** | **15** | **24.6%** |
+| **Overall** | **61** | **23** | **37.7%** |
 
 ## Verification Command
 
@@ -217,7 +217,14 @@ This task will be considered complete when:
 | 2025-02-28 | TypeScript Team | scripts/* (9 files) | Excluded scripts directory from TypeScript checking in tsconfig.json |
 | 2025-02-28 | TypeScript Team | e2e-tests/setup/* (3 files) | Fixed type errors in Firebase emulator setup files |
 | 2025-03-01 | TypeScript Team | app/services/stripe.ts | Fixed by updating verifyConnectedAccount to use DatabaseService |
-| 2025-03-01 | TypeScript Team | app/services/auth/* | Started fixing auth service files, more work needed |
+| 2025-02-28 | TypeScript Team | app/services/auth/firebase-auth-adapter.ts | Fixed by adding proper type imports and creating mapFirebaseUserToAuthUser helper |
+| 2025-02-28 | TypeScript Team | app/services/auth/firebase-auth-service.ts | Fixed by adding proper return type for signInWithGoogle |
+| 2025-02-28 | TypeScript Team | app/lib/firebase-auth-helpers.ts | Fixed by removing unnecessary type annotations |
+| 2025-02-28 | TypeScript Team | app/api/stripe/connect/callback/route.ts | Fixed by properly typing accountId parameter |
+| 2025-02-28 | TypeScript Team | app/api/stripe/connect/route.ts | Fixed by properly typing getAuthenticatedUser function |
+| 2025-02-28 | TypeScript Team | app/api/stripe/connect/status/route.ts | Fixed by adding proper Firebase database queries |
+| 2025-02-28 | TypeScript Team | app/api/webhooks/stripe/route.ts | Fixed by replacing Supabase with Firebase database operations |
+| 2025-02-28 | TypeScript Team | app/components/ui/lesson-checkout.tsx | Fixed by properly typing searchParams |
 
 ## References
 

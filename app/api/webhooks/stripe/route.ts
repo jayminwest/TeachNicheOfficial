@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { stripeConfig } from '@/app/services/stripe';
+import { FirestoreDatabase } from '@/app/services/database/firebase-database';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: stripeConfig.apiVersion
 });
+
+// Create database service
+const db = new FirestoreDatabase();
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -59,7 +63,11 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
   }
   
   // Extract metadata
-  const { purchaseId, lessonId, creatorId, userId } = session.metadata || {};
+  const metadata = session.metadata || {};
+  const purchaseId = metadata.purchaseId;
+  const lessonId = metadata.lessonId;
+  const creatorId = metadata.creatorId;
+  const userId = metadata.userId;
   
   if (!purchaseId || !lessonId || !creatorId || !userId) {
     console.error('Missing required metadata in checkout session:', session.id);
@@ -68,23 +76,26 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
   
   // Update purchase status
   try {
-    const { error: updateError } = await supabase
-      .from('purchases')
-      .update({
-        status: 'completed',
-        purchase_date: new Date().toISOString(),
-        metadata: {
-          stripe_payment_status: session.payment_status,
-          payment_completed_at: new Date().toISOString(),
-          checkout_session_id: session.id,
-        }
-      })
-      .eq('id', purchaseId);
-
-    if (updateError) {
-      console.error('Purchase update error:', updateError);
+    // Get the purchase document
+    const purchaseSnapshot = await db.query('purchases', [
+      { field: 'id', operator: '==', value: purchaseId }
+    ]);
+    
+    if (purchaseSnapshot.length === 0) {
+      console.error('Purchase not found:', purchaseId);
       return;
     }
+    
+    // Update the purchase
+    await db.update('purchases', purchaseId, {
+      status: 'completed',
+      purchase_date: new Date().toISOString(),
+      metadata: {
+        stripe_payment_status: session.payment_status,
+        payment_completed_at: new Date().toISOString(),
+        checkout_session_id: session.id,
+      }
+    });
 
     console.log('Purchase completed via checkout session:', purchaseId);
   } catch (err) {
@@ -95,30 +106,28 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
 
 async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
   // Get purchase record by payment intent
-  const { data: purchase, error: fetchError } = await supabase
-    .from('purchases')
-    .select('*')
-    .eq('payment_intent_id', paymentIntent.id)
-    ;
-// TODO: Implement equivalent of single() for Firebase
-
-  if (fetchError || !purchase) {
-    console.error('Purchase fetch error:', fetchError);
+  const purchaseSnapshot = await db.query('purchases', [
+    { field: 'payment_intent_id', operator: '==', value: paymentIntent.id }
+  ]);
+  
+  if (purchaseSnapshot.length === 0) {
+    console.error('Purchase not found for payment intent:', paymentIntent.id);
     return;
   }
+  
+  const purchase = purchaseSnapshot[0];
 
   // Record the earnings in creator_earnings table
   try {
-    await supabase
-      .from('creator_earnings')
-      .insert({
-        creator_id: purchase.creator_id,
-        payment_intent_id: paymentIntent.id,
-        amount: purchase.creator_earnings,
-        lesson_id: purchase.lesson_id,
-        purchase_id: purchase.id,
-        status: 'pending'
-      });
+    await db.create('creator_earnings', {
+      creator_id: purchase.creator_id,
+      payment_intent_id: paymentIntent.id,
+      amount: purchase.creator_earnings,
+      lesson_id: purchase.lesson_id,
+      purchase_id: purchase.id,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    });
       
     console.log('Creator earnings recorded:', purchase.creator_id, purchase.creator_earnings);
   } catch (error) {
@@ -129,23 +138,15 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
   // Update purchase status if not already completed
   if (purchase.status !== 'completed') {
     try {
-      const { error: updateError } = await supabase
-        .from('purchases')
-        .update({
-          status: 'completed',
-          purchase_date: new Date().toISOString(),
-          metadata: {
-            stripe_payment_status: paymentIntent.status,
-            payment_completed_at: new Date().toISOString(),
-            ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
-          }
-        })
-        .eq('id', purchase.id);
-
-      if (updateError) {
-        console.error('Purchase update error:', updateError);
-        return;
-      }
+      await db.update('purchases', purchase.id, {
+        status: 'completed',
+        purchase_date: new Date().toISOString(),
+        metadata: {
+          stripe_payment_status: paymentIntent.status,
+          payment_completed_at: new Date().toISOString(),
+          ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
+        }
+      });
 
       console.log('Purchase completed via payment intent:', purchase.id);
     } catch (err) {
@@ -165,22 +166,20 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
   }
   
   // Get the purchase record
-  const { data: purchase, error: fetchError } = await supabase
-    .from('purchases')
-    .select('id, creator_id, lesson_id, amount')
-    .eq('payment_intent_id', paymentIntentId)
-    ;
-// TODO: Implement equivalent of single() for Firebase
-    
-  if (fetchError || !purchase) {
-    console.error('Purchase fetch error for refund:', fetchError);
+  const purchaseSnapshot = await db.query('purchases', [
+    { field: 'payment_intent_id', operator: '==', value: paymentIntentId }
+  ]);
+  
+  if (purchaseSnapshot.length === 0) {
+    console.error('Purchase not found for refund:', paymentIntentId);
     return;
   }
   
+  const purchase = purchaseSnapshot[0];
+  
   // Update purchase status
-  const { error: updateError } = await supabase
-    .from('purchases')
-    .update({
+  try {
+    await db.update('purchases', purchase.id, {
       status: 'refunded',
       updated_at: new Date().toISOString(),
       metadata: {
@@ -188,10 +187,8 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
         refund_amount: refundAmount,
         refund_id: charge.refunds?.data[0]?.id,
       }
-    })
-    .eq('id', purchase.id);
-    
-  if (updateError) {
+    });
+  } catch (updateError) {
     console.error('Purchase update error for refund:', updateError);
     return;
   }
@@ -199,17 +196,16 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
   // Handle the earnings adjustment
   try {
     // Get the earnings record
-    const { data: earnings, error: earningsError } = await supabase
-      .from('creator_earnings')
-      .select('id, amount, status')
-      .eq('payment_intent_id', paymentIntentId)
-      ;
-// TODO: Implement equivalent of single() for Firebase
-      
-    if (earningsError || !earnings) {
-      console.error('Earnings fetch error for refund:', earningsError);
+    const earningsSnapshot = await db.query('creator_earnings', [
+      { field: 'payment_intent_id', operator: '==', value: paymentIntentId }
+    ]);
+    
+    if (earningsSnapshot.length === 0) {
+      console.error('Earnings not found for refund:', paymentIntentId);
       return;
     }
+    
+    const earnings = earningsSnapshot[0];
     
     // Calculate refunded earnings amount (proportional to refund amount)
     const refundRatio = refundAmount / purchase.amount;
@@ -217,35 +213,31 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
     
     if (earnings.status === 'pending') {
       // If earnings are still pending, update the record
-      await supabase
-        .from('creator_earnings')
-        .update({
-          status: 'failed',
-          updated_at: new Date().toISOString(),
-          metadata: {
-            refunded_at: new Date().toISOString(),
-            refund_amount: refundedEarnings,
-            refund_id: charge.refunds?.data[0]?.id,
-          }
-        })
-        .eq('id', earnings.id);
+      await db.update('creator_earnings', earnings.id, {
+        status: 'failed',
+        updated_at: new Date().toISOString(),
+        metadata: {
+          refunded_at: new Date().toISOString(),
+          refund_amount: refundedEarnings,
+          refund_id: charge.refunds?.data[0]?.id,
+        }
+      });
     } else if (earnings.status === 'paid') {
       // If earnings were already paid, create a negative adjustment
-      await supabase
-        .from('creator_earnings')
-        .insert({
-          creator_id: purchase.creator_id,
-          payment_intent_id: `${paymentIntentId}_refund`,
-          amount: -refundedEarnings, // Negative amount
-          lesson_id: purchase.lesson_id,
-          purchase_id: purchase.id,
-          status: 'pending',
-          metadata: {
-            refund_for: earnings.id,
-            refund_id: charge.refunds?.data[0]?.id,
-            original_payment_intent_id: paymentIntentId,
-          }
-        });
+      await db.create('creator_earnings', {
+        creator_id: purchase.creator_id,
+        payment_intent_id: `${paymentIntentId}_refund`,
+        amount: -refundedEarnings, // Negative amount
+        lesson_id: purchase.lesson_id,
+        purchase_id: purchase.id,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        metadata: {
+          refund_for: earnings.id,
+          refund_id: charge.refunds?.data[0]?.id,
+          original_payment_intent_id: paymentIntentId,
+        }
+      });
     }
     
     console.log('Refund processed for purchase:', purchase.id);

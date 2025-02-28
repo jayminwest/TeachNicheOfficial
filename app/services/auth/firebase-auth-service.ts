@@ -333,7 +333,11 @@ export async function signUp(email: string, password: string, name: string) {
   }
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(): Promise<{ 
+  user: AuthUser | null; 
+  token: string | null; 
+  error: Error | null 
+}> {
   try {
     // Check if we're in a browser environment
     if (typeof window === 'undefined') {
@@ -379,7 +383,7 @@ export async function signInWithGoogle() {
       // These errors require configuration changes
     }
     
-    return { user: null, token: null, error };
+    return { user: null, token: null, error: err };
   }
 }
 

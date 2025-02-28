@@ -5,7 +5,10 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  browserPopupRedirectResolver
+  browserPopupRedirectResolver,
+  User as FirebaseUser,
+  UserCredential,
+  Auth
 } from 'firebase/auth';
 import { auth } from '@/app/services/firebase';
 import { AuthUser } from './interface';
@@ -19,18 +22,7 @@ export async function signInWithGoogle(): Promise<AuthUser> {
     // Get user information
     const user = result.user;
     
-    return {
-      id: user.uid,
-      email: user.email || '',
-      name: user.displayName || '',
-      avatarUrl: user.photoURL || '',
-      metadata: {
-        createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || '',
-        provider: user.providerData?.[0]?.providerId || 'firebase',
-        emailVerified: user.emailVerified || false
-      }
-    };
+    return mapFirebaseUserToAuthUser(user);
   } catch (error) {
     console.error('Error signing in with Google:', error);
     throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -42,18 +34,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
     const result = await signInWithEmailAndPassword(auth, email, password);
     const user = result.user;
     
-    return {
-      id: user.uid,
-      email: user.email || '',
-      name: user.displayName || '',
-      avatarUrl: user.photoURL || '',
-      metadata: {
-        createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || '',
-        provider: user.providerData?.[0]?.providerId || 'firebase',
-        emailVerified: user.emailVerified || false
-      }
-    };
+    return mapFirebaseUserToAuthUser(user);
   } catch (error) {
     console.error('Error signing in with email:', error);
     throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -65,18 +46,7 @@ export async function createUser(email: string, password: string): Promise<AuthU
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
     
-    return {
-      id: user.uid,
-      email: user.email || '',
-      name: user.displayName || '',
-      avatarUrl: user.photoURL || '',
-      metadata: {
-        createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || '',
-        provider: user.providerData?.[0]?.providerId || 'firebase',
-        emailVerified: user.emailVerified || false
-      }
-    };
+    return mapFirebaseUserToAuthUser(user);
   } catch (error) {
     console.error('Error creating user:', error);
     throw new Error(`User creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -110,17 +80,24 @@ export function getCurrentUser(): Promise<AuthUser | null> {
       return;
     }
     
-    resolve({
-      id: user.uid,
-      email: user.email || '',
-      name: user.displayName || '',
-      avatarUrl: user.photoURL || '',
-      metadata: {
-        createdAt: user.metadata.creationTime || '',
-        lastSignInTime: user.metadata.lastSignInTime || '',
-        provider: user.providerData?.[0]?.providerId || 'firebase',
-        emailVerified: user.emailVerified || false
-      }
-    });
+    resolve(mapFirebaseUserToAuthUser(user));
   });
+}
+
+/**
+ * Helper function to map Firebase User to AuthUser
+ */
+function mapFirebaseUserToAuthUser(user: FirebaseUser): AuthUser {
+  return {
+    id: user.uid,
+    email: user.email || '',
+    name: user.displayName || '',
+    avatarUrl: user.photoURL || '',
+    metadata: {
+      createdAt: user.metadata?.creationTime || '',
+      lastSignInTime: user.metadata?.lastSignInTime || '',
+      provider: user.providerData?.[0]?.providerId || 'firebase',
+      emailVerified: user.emailVerified || false
+    }
+  };
 }

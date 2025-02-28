@@ -8,13 +8,16 @@ import { firebaseClient } from '@/app/services/firebase-compat';
 export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
-async function getAuthenticatedUser(request: Request) {
+async function getAuthenticatedUser(request: Request): Promise<{ 
+  user?: { uid: string; email: string }; 
+  error?: Error 
+}> {
   // First try cookie-based session
   const sessionData = await new Promise<{ user: { uid: string; email: string } } | null>(resolve => {
     const auth = getAuth(getApp());
     const unsubscribe = auth.onAuthStateChanged(user => {
       unsubscribe();
-      resolve(user ? { user } : null);
+      resolve(user ? { user: { uid: user.uid, email: user.email || '' } } : null);
     });
   });
 
@@ -30,7 +33,7 @@ async function getAuthenticatedUser(request: Request) {
       // Use Firebase Admin SDK to verify the token
       const decodedToken = await firebaseClient.auth.verifyIdToken(token);
       if (decodedToken.uid) {
-        return { user: { uid: decodedToken.uid, email: decodedToken.email } };
+        return { user: { uid: decodedToken.uid, email: decodedToken.email || '' } };
       }
     } catch (error) {
       return { error: error instanceof Error ? error : new Error('Token verification failed') };

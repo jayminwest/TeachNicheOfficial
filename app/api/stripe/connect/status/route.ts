@@ -1,29 +1,37 @@
 import { getAccountStatus } from '@/app/services/stripe';
 import { NextResponse } from 'next/server';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';
+import { FirestoreDatabase } from '@/app/services/database/firebase-database';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    const { data: { session } } = await new Promise<{ 
+      data: { session: { user: { uid: string } } | null }, 
+      error: null 
+    }>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve({ data: { session: user ? { user } : null }, error: null });
+      });
+    });
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's Stripe account ID from profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('stripe_account_id')
-      .eq('id', user.uid)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+    const userId = session.user.uid;
+    
+    // Get user's Stripe account ID from profile using Firebase
+    const db = new FirestoreDatabase();
+    const profilesSnapshot = await db.query('profiles', [
+      { field: 'id', operator: '==', value: userId }
+    ]);
+    
+    const profile = profilesSnapshot.length > 0 ? profilesSnapshot[0] : null;
 
     if (!profile?.stripe_account_id) {
       return NextResponse.json({ error: 'No Stripe account found' }, { status: 404 });

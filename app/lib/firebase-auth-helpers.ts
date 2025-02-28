@@ -1,4 +1,4 @@
-import { getAuth } from 'firebase/auth'
+import { getAuth, User as FirebaseUser } from 'firebase/auth'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth'
 import { cookies } from 'next/headers'
 
@@ -46,7 +46,7 @@ export async function signInWithSession(email: string, password: string) {
     
     // Create a session cookie (this would be called from an API route)
     return { user: userCredential.user, idToken }
-  } catch (error: Error | unknown) {
+  } catch (error) {
     console.error('Error signing in:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to sign in'
     return { error: errorMessage }
@@ -65,7 +65,7 @@ export async function signUpWithSession(email: string, password: string) {
     
     // Create a session cookie (this would be called from an API route)
     return { user: userCredential.user, idToken }
-  } catch (error: Error | unknown) {
+  } catch (error) {
     console.error('Error signing up:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to sign up'
     return { error: errorMessage }

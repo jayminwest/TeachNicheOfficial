@@ -11,7 +11,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface LessonCheckoutProps {
   lessonId: string;
   price: number;
-  searchParams?: URLSearchParams;
+  searchParams?: { get(key: string): string | null };
 }
 
 export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {

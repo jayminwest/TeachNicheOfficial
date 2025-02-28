@@ -47,7 +47,7 @@ declare global {
   
   // Jest extensions
   namespace jest {
-    interface MockedFunction<T extends (...args: unknown[]) => unknown> {
+    interface MockedFunction<T> {
       lastCallOptions?: unknown;
     }
   }

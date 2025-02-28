@@ -123,7 +123,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     creator_earnings: number;
     amount: number;
     status: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }
   
   const purchase = purchaseSnapshot.rows[0] as Purchase;
@@ -155,7 +155,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
         metadata: {
           stripe_payment_status: paymentIntent.status,
           payment_completed_at: new Date().toISOString(),
-          ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
+          ...(typeof purchase.metadata === 'object' ? purchase.metadata : {} as Record<string, unknown>)
         }
       });
 
@@ -197,7 +197,7 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       creator_id: string;
       lesson_id: string;
       status: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }
     
     const typedPurchase = purchase as Purchase;

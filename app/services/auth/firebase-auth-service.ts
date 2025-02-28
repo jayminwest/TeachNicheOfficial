@@ -68,7 +68,7 @@ const getFirebaseAuth = async (): Promise<{
       updatePassword: firebaseAuth.updatePassword,
       onAuthStateChanged: firebaseAuth.onAuthStateChanged,
       signInWithPopup: (auth: Auth, provider: unknown) => 
-        firebaseAuth.signInWithPopup(auth, provider as any),
+        firebaseAuth.signInWithPopup(auth, provider as Parameters<typeof firebaseAuth.signInWithPopup>[1]),
       GoogleAuthProvider: firebaseAuth.GoogleAuthProvider
     };
   } catch (error) {

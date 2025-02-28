@@ -40,7 +40,7 @@ export async function GET() {
     interface ProfileData {
       id: string;
       stripe_account_id?: string;
-      [key: string]: any;
+      [key: string]: unknown;
     }
     
     const typedProfile = profile as ProfileData | null;

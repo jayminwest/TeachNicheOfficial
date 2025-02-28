@@ -3,6 +3,8 @@ import { stripeConfig } from '@/app/services/stripe';
 import { calculateFees } from '@/app/lib/constants';
 import Stripe from 'stripe';
 import { z } from 'zod';
+import { getAuth, User } from 'firebase/auth';
+import { getApp } from 'firebase/app';
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {
@@ -22,15 +24,16 @@ const checkoutSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    // Get the current user using the route handler client
+    const user = await new Promise<User | null>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user);
+      });
+    });
     
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -67,13 +70,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if user already owns this lesson
-    const { data: existingPurchase } = await supabase
+    const { data: existingPurchase } = await firebaseClient
       .from('purchases')
-      .select('id')
+      .select()
       .eq('user_id', userId)
       .eq('lesson_id', lessonId)
       .eq('status', 'completed')
-      .maybeSingle();
+      .get();
       
     if (existingPurchase) {
       return NextResponse.json(
@@ -83,12 +86,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Get lesson details
-    const { data: lesson, error: lessonError } = await supabase
+    const { data: lessons, error: lessonError } = await firebaseClient
       .from('lessons')
-      .select('creator_id, title, description')
+      .select()
       .eq('id', lessonId)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+      .get();
+      
+    const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
       
     if (lessonError || !lesson) {
       return NextResponse.json(
@@ -98,14 +102,10 @@ export async function POST(request: NextRequest) {
     }
     
     // Verify the price matches the lesson's actual price
-    const { data: lessonPrice } = await supabase
-      .from('lessons')
-      .select('price')
-      .eq('id', lessonId)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+    // We already have the lesson from the previous query
+    const lessonPrice = lesson.price;
       
-    if (!lessonPrice) {
+    if (lessonPrice === undefined) {
       return NextResponse.json(
         { error: 'Failed to verify lesson price' },
         { status: 500 }
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Calculate expected total price with fees
-    const { totalBuyerCost: expectedPrice } = calculateFees(lessonPrice.price);
+    const { totalBuyerCost: expectedPrice } = calculateFees(lessonPrice);
     const expectedPriceInCents = Math.round(expectedPrice * 100);
     
     // Validate the price (allow small rounding differences)
@@ -132,31 +132,30 @@ export async function POST(request: NextRequest) {
     
     // Create a purchase record
     const purchaseId = crypto.randomUUID();
-    const { data: purchase, error: purchaseError } = await supabase
+    const purchaseData = {
+      id: purchaseId,
+      user_id: userId,
+      lesson_id: lessonId,
+      creator_id: lesson.creator_id,
+      amount: priceInCents,
+      status: 'pending',
+      fee_percentage: stripeConfig.platformFeePercent,
+      platform_fee: platformFee,
+      creator_earnings: creatorEarnings,
+      stripe_session_id: 'pending', // Will be updated after Stripe session creation
+      payment_intent_id: 'pending', // Will be updated after Stripe session creation
+      metadata: {
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        referral,
+        created_at: new Date().toISOString()
+      }
+    };
+    
+    const { data: purchase, error: purchaseError } = await firebaseClient
       .from('purchases')
-      .insert({
-        id: purchaseId,
-        user_id: userId,
-        lesson_id: lessonId,
-        creator_id: lesson.creator_id,
-        amount: priceInCents,
-        status: 'pending',
-        fee_percentage: stripeConfig.platformFeePercent,
-        platform_fee: platformFee,
-        creator_earnings: creatorEarnings,
-        stripe_session_id: 'pending', // Will be updated after Stripe session creation
-        payment_intent_id: 'pending', // Will be updated after Stripe session creation
-        metadata: {
-          utm_source,
-          utm_medium,
-          utm_campaign,
-          referral,
-          created_at: new Date().toISOString()
-        }
-      })
-      .select()
-      ;
-// TODO: Implement equivalent of single() for Firebase
+      .insert(purchaseData);
       
     if (purchaseError || !purchase) {
       console.error('Purchase creation error:', purchaseError);
@@ -195,13 +194,12 @@ export async function POST(request: NextRequest) {
     });
     
     // Update purchase record with session ID
-    await supabase
+    await firebaseClient
       .from('purchases')
       .update({
         stripe_session_id: checkoutSession.id,
         payment_intent_id: checkoutSession.payment_intent as string,
-      })
-      .eq('id', purchase.id);
+      }, { eq: ['id', purchase.id] });
     
     return NextResponse.json({
       url: checkoutSession.url,

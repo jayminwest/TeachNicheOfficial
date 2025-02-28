@@ -42,8 +42,14 @@ export async function GET() {
     const { data: earnings, error } = await firebaseClient
       .from('creator_earnings')
       .select()
-      .eq('creator_id', user.uid)
-      .order('created_at', { ascending: false });
+      .eq('creator_id', user.uid);
+    
+    // Sort the earnings by created_at in descending order
+    const sortedEarnings = earnings ? 
+      [...earnings].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ) : 
+      [];
     
     if (error) {
       console.error('Error fetching earnings:', error);
@@ -54,7 +60,7 @@ export async function GET() {
     }
     
     // Format the earnings data
-    const formattedEarnings = earnings.map(earning => ({
+    const formattedEarnings = sortedEarnings.map(earning => ({
       id: earning.id,
       amount: earning.amount,
       status: earning.status,

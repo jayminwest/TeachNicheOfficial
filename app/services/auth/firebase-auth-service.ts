@@ -14,7 +14,7 @@ export interface AuthUser {
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 function transformUser(firebaseUser: FirebaseUser): AuthUser {
@@ -71,7 +71,7 @@ export async function signInWithGoogle() {
       token,
       error: null 
     };
-  } catch (error: any) {
+  } catch (error) {
     return { user: null, token: null, error };
   }
 }

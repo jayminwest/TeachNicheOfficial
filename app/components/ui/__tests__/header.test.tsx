@@ -3,7 +3,17 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { useAuth } from '@/app/services/auth/AuthContext'
 
-// Mock the firebase client before importing Header
+// Mock the auth service before importing Header
+jest.mock('@/app/services/auth/auth-provider', () => ({
+  __esModule: true,
+  default: {
+    signOut: jest.fn().mockResolvedValue({}),
+    signIn: jest.fn().mockResolvedValue({}),
+    getCurrentUser: jest.fn().mockReturnValue(null)
+  }
+}));
+
+// Mock the firebase client
 jest.mock('@/app/services/firebase', () => ({
   auth: {
     signOut: jest.fn().mockResolvedValue({}),
@@ -28,6 +38,11 @@ jest.mock('lucide-react', () => ({
 // Mock the dependencies
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn()
+}))
+
+// Mock auth dialog
+jest.mock('@/app/components/ui/auth-dialog', () => ({
+  AuthDialog: ({ children }: { children: React.ReactNode }) => <div data-testid="auth-dialog">{children}</div>
 }))
 
 

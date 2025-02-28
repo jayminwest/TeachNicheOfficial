@@ -130,8 +130,15 @@ async function getLessonsHandler(request: Request) {
       sortDirection = 'desc';
     }
     
+    // Define a type for the query builder
+    type QueryBuilder = {
+      eq: (field: string, value: string | boolean | number) => QueryBuilder;
+      order: (field: string, options: { ascending: boolean }) => QueryBuilder;
+      get: () => Promise<{ data: any[]; error: any }>;
+    };
+    
     // Create a query builder and apply filters and sorting
-    const queryBuilder = lessonsRef.select() as any;
+    const queryBuilder = lessonsRef.select() as QueryBuilder;
     
     // Apply filters
     Object.entries(queryParams).forEach(([key, value]) => {

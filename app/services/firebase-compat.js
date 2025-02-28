@@ -154,6 +154,8 @@ export const firebaseClient = {
             }
           }
         };
+        
+        return queryBuilder; // Return the queryBuilder object
       },
       
       /**

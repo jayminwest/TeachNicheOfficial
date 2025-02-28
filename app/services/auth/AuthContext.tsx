@@ -33,6 +33,12 @@ export function AuthProvider({
   const isAuthenticated = !!user
 
   useEffect(() => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return () => {};
+    }
+    
     // Dynamically import Firebase auth to avoid server-side issues
     const initializeAuth = async () => {
       try {
@@ -41,7 +47,7 @@ export function AuthProvider({
         
         // If that fails, initialize it directly
         if (!authInstance) {
-          const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+          const { getAuth } = await import('firebase/auth');
           authInstance = getAuth(app);
           auth = authInstance; // Store for future use
         }

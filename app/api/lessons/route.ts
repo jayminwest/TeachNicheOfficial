@@ -213,15 +213,6 @@ async function updateLessonHandler(request: Request) {
     }
 
     // Check if user has permission to update this lesson
-    // Define a type for the query builder
-    type QueryBuilder = {
-      eq: (field: string, value: string | boolean | number) => QueryBuilder;
-      get: () => Promise<{ 
-        data: Array<Record<string, unknown>>; 
-        error: Error | null | unknown 
-      }>;
-    };
-    
     // Use Firebase client with proper method chaining
     const queryBuilder = firebaseClient
       .from('lessons')

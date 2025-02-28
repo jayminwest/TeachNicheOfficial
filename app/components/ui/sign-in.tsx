@@ -8,7 +8,7 @@ import {
   CardHeader,
 } from './card'
 import { Icons } from './icons'
-import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle } from '@/app/services/auth/firebase-auth-service'
 import { useAuth } from '@/app/services/auth/AuthContext'
 
 interface SignInPageProps {

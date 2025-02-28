@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent } from './dialog'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
-import authService from '@/app/services/auth/auth-provider'
+import { signInWithEmail, signUpWithEmail } from '@/app/services/auth/firebase-auth-service'
 
 interface AuthDialogProps {
   open: boolean
@@ -18,7 +18,10 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
   // Add these handlers to pass to the sign-in and sign-up components
   const handleSignIn = async (email: string, password: string) => {
     try {
-      await authService.signIn(email, password);
+      const result = await signInWithEmail(email, password);
+      if (result.error) {
+        throw result.error;
+      }
       onOpenChange(false);
       window.location.reload(); // Refresh to update UI with new auth state
     } catch (error) {
@@ -29,7 +32,10 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
 
   const handleSignUp = async (email: string, password: string, name: string) => {
     try {
-      await authService.signUp(email, password, name);
+      const result = await signUpWithEmail(email, password, name);
+      if (result.error) {
+        throw result.error;
+      }
       onOpenChange(false);
       window.location.reload(); // Refresh to update UI with new auth state
     } catch (error) {

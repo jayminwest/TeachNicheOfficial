@@ -37,16 +37,23 @@ const DialogContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   // Check if there's a DialogTitle in the children
   const hasDialogTitle = React.Children.toArray(children).some(
-    (child) => 
-      React.isValidElement(child) && 
-      (child.type === DialogTitle || 
-       (child.type === DialogHeader && 
-        React.isValidElement(child) && 
-        'children' in child.props &&
-        React.Children.toArray(child.props.children as React.ReactNode).some(
+    (child) => {
+      if (!React.isValidElement(child)) return false;
+      
+      if (child.type === DialogTitle) return true;
+      
+      if (child.type === DialogHeader) {
+        // Type assertion for child.props
+        const props = child.props as { children?: React.ReactNode };
+        if (!props.children) return false;
+        
+        return React.Children.toArray(props.children).some(
           (headerChild) => React.isValidElement(headerChild) && headerChild.type === DialogTitle
-        ))
-      )
+        );
+      }
+      
+      return false;
+    }
   );
 
   return (

@@ -69,15 +69,15 @@ export async function GET(request: Request) {
           if (matchingProfile) {
             // Update the profile if found
             try {
-              // Use the document update method directly
-              await firebaseClient.from('profiles').insert(
-                {
-                  id: user.uid,
-                  stripe_onboarding_complete: true,
-                  stripe_account_id: accountId
-                },
-                { upsert: true }
-              );
+              // Use a direct document update approach
+              const profileData = {
+                id: user.uid,
+                stripe_onboarding_complete: true,
+                stripe_account_id: accountId,
+                updated_at: new Date().toISOString()
+              };
+              
+              await firebaseClient.from('profiles').insert(profileData);
             } catch (updateError) {
               console.error('Failed to update profile:', updateError);
               return NextResponse.redirect(

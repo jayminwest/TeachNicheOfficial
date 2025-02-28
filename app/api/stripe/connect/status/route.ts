@@ -36,12 +36,21 @@ export async function GET() {
       ? profilesSnapshot.rows[0] as { stripe_account_id?: string }
       : null;
 
-    if (!profile?.stripe_account_id) {
+    // Type assertion for profile since we know the structure
+    interface ProfileData {
+      id: string;
+      stripe_account_id?: string;
+      [key: string]: any;
+    }
+    
+    const typedProfile = profile as ProfileData | null;
+
+    if (!typedProfile?.stripe_account_id) {
       return NextResponse.json({ error: 'No Stripe account found' }, { status: 404 });
     }
 
     // Get account status using our utility
-    const status = await getAccountStatus(typedProfile.stripe_account_id);
+    const status = await getAccountStatus(profile.stripe_account_id);
 
     return NextResponse.json(status);
   } catch (error) {

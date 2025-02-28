@@ -36,8 +36,9 @@ export default function ProfilePage() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
-        .single();
+        .eq('id', user.uid)
+        ;
+// TODO: Implement equivalent of single() for Firebase
 
       if (error) {
         console.error('Error fetching profile:', error);

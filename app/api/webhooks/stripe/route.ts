@@ -99,7 +99,8 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     .from('purchases')
     .select('*')
     .eq('payment_intent_id', paymentIntent.id)
-    .single();
+    ;
+// TODO: Implement equivalent of single() for Firebase
 
   if (fetchError || !purchase) {
     console.error('Purchase fetch error:', fetchError);
@@ -168,7 +169,8 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
     .from('purchases')
     .select('id, creator_id, lesson_id, amount')
     .eq('payment_intent_id', paymentIntentId)
-    .single();
+    ;
+// TODO: Implement equivalent of single() for Firebase
     
   if (fetchError || !purchase) {
     console.error('Purchase fetch error for refund:', fetchError);
@@ -201,7 +203,8 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       .from('creator_earnings')
       .select('id, amount, status')
       .eq('payment_intent_id', paymentIntentId)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
       
     if (earningsError || !earnings) {
       console.error('Earnings fetch error for refund:', earningsError);

@@ -30,7 +30,8 @@ export const processCreatorPayout = async (
       .from('creator_payout_methods')
       .select('bank_account_token, last_four')
       .eq('creator_id', creatorId)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
 
     if (bankError || !bankInfo?.bank_account_token) {
       console.error('Bank account fetch failed:', bankError);

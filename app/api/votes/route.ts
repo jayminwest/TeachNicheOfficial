@@ -42,7 +42,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { data: { session } } = await firebaseAuth.getSession()
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+})
 
     if (!session) {
       return NextResponse.json(
@@ -59,7 +65,7 @@ export async function POST(request: Request) {
       .from('lesson_request_votes')
       .select('*')
       .eq('request_id', validatedData.requestId)
-      .eq('user_id', user.id)
+      .eq('user_id', user.uid)
       .single()
 
     if (existingVote) {
@@ -83,7 +89,7 @@ export async function POST(request: Request) {
       .from('lesson_request_votes')
       .insert([{
         request_id: validatedData.requestId,
-        user_id: user.id,
+        user_id: user.uid,
         vote_type: validatedData.voteType,
         created_at: new Date().toISOString()
       }])

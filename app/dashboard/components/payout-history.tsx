@@ -25,7 +25,7 @@ export default function PayoutHistory() {
 
       try {
         const payoutHistory = await getPayoutHistory(
-          user.id, 
+          user.uid, 
           supabase, 
           pageSize, 
           page * pageSize

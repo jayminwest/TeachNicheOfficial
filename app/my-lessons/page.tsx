@@ -41,7 +41,13 @@ export default function MyLessonsPage() {
         setIsLoading(true);
         
         // Check if user is authenticated
-        const { data: { session } } = await firebaseAuth.getSession();
+        const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
         
         if (!session) {
           console.log('No session found, redirecting to login');
@@ -65,7 +71,7 @@ export default function MyLessonsPage() {
               created_at
             )
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', user.uid)
           .eq('status', 'completed');
         
         if (error) {

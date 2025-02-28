@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
-import { firebaseAuth } from '@/app/lib/firebase';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';;
 import { useRouter } from 'next/navigation';
 import { calculateFees, formatPrice, PAYMENT_CONSTANTS } from '@/app/lib/constants';
 
@@ -34,7 +35,13 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setIsLoading(true);
 
       // Check auth status
-      const { data: { session } } = await firebaseAuth.getSession();
+      const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
       
       if (!session) {
         setError('Please sign in to purchase this lesson');

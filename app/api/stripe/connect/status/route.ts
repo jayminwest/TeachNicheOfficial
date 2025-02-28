@@ -5,7 +5,13 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -15,8 +21,9 @@ export async function GET() {
     const { data: profile } = await supabase
       .from('profiles')
       .select('stripe_account_id')
-      .eq('id', user.id)
-      .single();
+      .eq('id', user.uid)
+      ;
+// TODO: Implement equivalent of single() for Firebase
 
     if (!profile?.stripe_account_id) {
       return NextResponse.json({ error: 'No Stripe account found' }, { status: 404 });

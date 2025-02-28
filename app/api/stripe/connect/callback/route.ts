@@ -6,7 +6,13 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     // Get the session from the cookie
-    const { data: { session }, error: sessionError } = await firebaseAuth.getSession();
+    const { data: { session }, error: sessionError } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
     if (sessionError || !session) {
       return NextResponse.redirect(
@@ -25,7 +31,7 @@ export async function GET(request: Request) {
     }
 
     // Verify the connected account using our utility
-    const { verified, status } = await verifyConnectedAccount(user.id, accountId, supabase);
+    const { verified, status } = await verifyConnectedAccount(user.uid, accountId, supabase);
 
     if (!verified) {
       return NextResponse.redirect(
@@ -42,7 +48,7 @@ export async function GET(request: Request) {
         .update({ 
           stripe_onboarding_complete: true 
         })
-        .eq('id', user.id)
+        .eq('id', user.uid)
         .eq('stripe_account_id', accountId); // Additional safety check
 
       if (updateError) {

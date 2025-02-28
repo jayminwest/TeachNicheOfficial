@@ -248,7 +248,8 @@ export const verifyConnectedAccount = async (
       .from('profiles')
       .select('stripe_account_id')
       .eq('id', userId)
-      .single();
+      ;
+// TODO: Implement equivalent of single() for Firebase
     
     if (!profile?.stripe_account_id || profile.stripe_account_id !== accountId) {
       return { verified: false, status: { isComplete: false } };

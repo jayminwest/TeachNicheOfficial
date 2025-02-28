@@ -5,7 +5,8 @@ import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { firebaseAuth } from '@/app/lib/firebase';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';;
 import { waitForAssetReady } from "@/app/services/mux";
 
 export default function NewLessonPage() {
@@ -34,7 +35,13 @@ export default function NewLessonPage() {
         return;
       }
 
-      const session = await firebaseAuth.getSession();
+      const session = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
       if (!session.data.session) {
         toast({
           title: "Authentication Required",

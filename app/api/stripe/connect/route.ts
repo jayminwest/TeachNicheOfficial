@@ -9,7 +9,13 @@ async function getAuthenticatedUser(request: Request) {
   // First try cookie-based session
   const {
     data: { session }
-  } = await firebaseAuth.getSession();
+  } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
 
   if (session?.user) {
     return { user: user };
@@ -71,8 +77,8 @@ export async function POST(request: Request) {
     }
 
     // Verify the user ID matches
-    if (user.id !== body.userId) {
-      console.error('User ID mismatch:', { sessionId: user.id, requestId: body.userId });
+    if (user.uid !== body.userId) {
+      console.error('User ID mismatch:', { sessionId: user.uid, requestId: body.userId });
       return NextResponse.json({ 
         error: 'Authentication error',
         details: 'User ID mismatch'
@@ -88,7 +94,7 @@ export async function POST(request: Request) {
       }, { status: 401 });
     }
 
-    console.log('Creating Stripe Connect account for:', { userId: user.id, email: user.email });
+    console.log('Creating Stripe Connect account for:', { userId: user.uid, email: user.email });
     
     // Get the Stripe instance
     const stripeInstance = getStripe();
@@ -99,7 +105,7 @@ export async function POST(request: Request) {
         type: 'standard',
         email: user.email,
         metadata: {
-          user_id: user.id
+          user_id: user.uid
         },
         capabilities: {
           card_payments: { requested: true },
@@ -126,7 +132,7 @@ export async function POST(request: Request) {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ stripe_account_id: account.id })
-        .eq('id', user.id);
+        .eq('id', user.uid);
 
       if (updateError) {
         // If we fail to update the database, delete the Stripe account to maintain consistency

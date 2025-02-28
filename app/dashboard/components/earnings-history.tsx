@@ -61,7 +61,7 @@ export default function EarningsHistory() {
         }
         
         const earningsHistory = await getEarningsHistory(
-          user.id, 
+          user.uid, 
           supabase, 
           pageSize, 
           page * pageSize

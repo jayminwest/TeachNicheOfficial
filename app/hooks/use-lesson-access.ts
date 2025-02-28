@@ -44,7 +44,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       }
 
       // Check cache first
-      const cacheKey = `lesson-access-${lessonId}-${user.id}`
+      const cacheKey = `lesson-access-${lessonId}-${user.uid}`
       const cached = sessionStorage.getItem(cacheKey)
       if (cached) {
         const entry: AccessCacheEntry = JSON.parse(cached)
@@ -74,7 +74,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
           supabase
             .from('purchases')
             .select('status, purchase_date')
-            .eq('user_id', user.id)
+            .eq('user_id', user.uid)
             .eq('lesson_id', lessonId)
             .maybeSingle(),
           timeoutPromise

@@ -84,7 +84,13 @@ export function BankAccountForm({
       setIsLoading(true);
       
       // Get the current session
-      const result = await firebaseAuth.getSession();
+      const result = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
       if (result.error) {
         throw new Error('Failed to get session');
       }
@@ -109,7 +115,7 @@ export function BankAccountForm({
         },
         credentials: 'include',
         body: JSON.stringify({ 
-          userId: user.id,
+          userId: user.uid,
           accountNumber,
           routingNumber,
           accountHolderName,

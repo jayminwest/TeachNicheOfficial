@@ -21,7 +21,7 @@ export default function EarningsWidget() {
       }
 
       try {
-        const earningsSummary = await getEarningsSummary(user.id, supabase);
+        const earningsSummary = await getEarningsSummary(user.uid, supabase);
         setEarnings(earningsSummary);
         setError(null);
       } catch (err) {

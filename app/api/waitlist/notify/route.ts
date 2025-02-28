@@ -18,8 +18,8 @@ export async function POST(request: Request) {
     // Send the email
     const emailService = createEmailService();
     // Format the data for the email template, including the invite link
-    const emailData = { name, inviteLink };
-    const success = await emailService.sendWelcomeEmail(email, emailData);
+    // The email service expects a string, so we'll use the name and include the invite link in the email template separately
+    const success = await emailService.sendWelcomeEmail(email, name, inviteLink);
     
     if (!success) {
       throw new Error('Failed to send email');

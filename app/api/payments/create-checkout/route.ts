@@ -7,6 +7,22 @@ import { getAuth, User } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 import { firebaseClient } from '@/app/services/firebase-compat';
 
+// Define a type for the query builder that matches the firebase-compat implementation
+type QueryBuilder = {
+  eq: (field: string, value: string | boolean | number) => QueryBuilder;
+  order: (field: string, options: { ascending: boolean }) => QueryBuilder;
+  orderBy: (field: string, direction?: string) => QueryBuilder;
+  limit: (count: number) => QueryBuilder;
+  get: () => Promise<{ 
+    data: Array<Record<string, unknown>>; 
+    error: Error | null | unknown 
+  }>;
+  execute: () => Promise<{ 
+    data: Array<Record<string, unknown>>; 
+    error: Error | null | unknown 
+  }>;
+};
+
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: stripeConfig.apiVersion,
@@ -71,13 +87,17 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if user already owns this lesson
-    const { data: existingPurchase } = await firebaseClient
+    let queryBuilder = firebaseClient
       .from('purchases')
-      .select()
-      .eq('user_id', userId)
-      .eq('lesson_id', lessonId)
-      .eq('status', 'completed')
-      .get();
+      .select() as unknown as QueryBuilder;
+      
+    // Apply filters
+    queryBuilder = queryBuilder.eq('user_id', userId);
+    queryBuilder = queryBuilder.eq('lesson_id', lessonId);
+    queryBuilder = queryBuilder.eq('status', 'completed');
+    
+    // Execute the query
+    const { data: existingPurchase } = await queryBuilder.get();
       
     if (existingPurchase) {
       return NextResponse.json(
@@ -87,11 +107,15 @@ export async function POST(request: NextRequest) {
     }
     
     // Get lesson details
-    const { data: lessons, error: lessonError } = await firebaseClient
+    let lessonQueryBuilder = firebaseClient
       .from('lessons')
-      .select()
-      .eq('id', lessonId)
-      .get();
+      .select() as unknown as QueryBuilder;
+      
+    // Apply filter
+    lessonQueryBuilder = lessonQueryBuilder.eq('id', lessonId);
+    
+    // Execute the query
+    const { data: lessons, error: lessonError } = await lessonQueryBuilder.get();
       
     const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
       

@@ -134,7 +134,10 @@ async function getLessonsHandler(request: Request) {
     type QueryBuilder = {
       eq: (field: string, value: string | boolean | number) => QueryBuilder;
       order: (field: string, options: { ascending: boolean }) => QueryBuilder;
-      get: () => Promise<{ data: any[]; error: any }>;
+      get: () => Promise<{ 
+        data: Array<Record<string, unknown>>; 
+        error: Error | null | unknown 
+      }>;
     };
     
     // Create a query builder and apply filters and sorting

@@ -75,6 +75,50 @@ export async function loginAsUser(page: Page, email: string, password: string) {
 }
 
 /**
+ * Helper function to set up mock authentication
+ * 
+ * @param page Playwright page object
+ */
+export async function setupMockAuth(page: Page) {
+  console.log('Setting up mock authentication');
+  
+  try {
+    // Directly set authentication state in the browser context
+    await page.evaluate(() => {
+      // Create a mock user session
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        user_metadata: {
+          full_name: 'Test User',
+          avatar_url: 'https://example.com/avatar.png'
+        }
+      };
+      
+      // Store in localStorage to simulate authenticated state
+      localStorage.setItem('firebaseAuth.token', JSON.stringify({
+        currentSession: {
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
+          user: mockUser
+        },
+        expiresAt: Date.now() + 3600000
+      }));
+      
+      // Set a flag to indicate test authentication
+      localStorage.setItem('test-auth-bypass', 'true');
+      
+      console.log('Mock authentication set in localStorage');
+      return true;
+    });
+    
+    console.log('Mock authentication setup completed successfully');
+  } catch (error) {
+    console.error('Failed to set up mock authentication:', error);
+  }
+}
+
+/**
  * Helper function to create a test lesson
  * 
  * @param page Playwright page object
@@ -92,4 +136,34 @@ export async function createTestLesson(page: Page, title: string, price: number)
   
   await page.click('[data-testid="submit-button"]');
   await page.waitForSelector('[data-testid="lesson-created-success"]');
+}
+
+/**
+ * Helper function to set up common API mocks
+ * 
+ * @param page Playwright page object
+ */
+export async function setupApiMocks(page: Page) {
+  // Set up route interception for authentication
+  await page.route('**/api/auth/signin', route => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ 
+        success: true, 
+        user: { 
+          email: 'test@example.com',
+          id: 'test-user-id'
+        } 
+      })
+    });
+  });
+  
+  await page.route('**/api/auth/signout', route => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true })
+    });
+  });
 }

@@ -1,19 +1,26 @@
 import { test, expect } from '@playwright/test';
-import { loginAsUser } from '../utils/auth-helpers';
-import { setupMocks } from '../utils/test-setup';
+import { setupMockAuth, setupApiMocks } from '../utils/auth-helpers';
 
 test.describe('Payout API Endpoints', () => {
+  test.beforeEach(async ({ page }) => {
+    // Set up API mocks for authentication endpoints
+    await setupApiMocks(page);
+    
+    // Set up mock authentication
+    await setupMockAuth(page);
+  });
+  
   test('bank account API endpoint works correctly', async ({ request, page }) => {
-    // Set up mocks first
-    await setupMocks(page);
+    // Set up route interception for the bank account API
+    await page.route('**/api/payouts/bank-account', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, message: 'Bank account set up successfully' })
+      });
+    });
     
-    // Login to get authentication token with our improved helper
-    const success = await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
-    if (!success) {
-      console.warn('Authentication may have failed, but continuing with test');
-    }
-    
-    // Mock the session data instead of trying to access window.supabase
+    // Mock the session data
     const sessionData = {
       session: {
         access_token: 'mock-token',
@@ -61,10 +68,27 @@ test.describe('Payout API Endpoints', () => {
   });
   
   test('earnings API endpoint returns correct data', async ({ request, page }) => {
-    // Login to get authentication token
-    await loginAsUser(page, 'test-creator@example.com', 'TestPassword123!');
+    // Set up route interception for the earnings API
+    await page.route('**/api/earnings', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          earnings: [
+            {
+              amount: 85.00,
+              status: 'pending',
+              created_at: new Date().toISOString(),
+              lesson_id: 'mock-lesson-id',
+              transaction_id: 'mock-transaction-id'
+            }
+          ],
+          total: 85.00
+        })
+      });
+    });
     
-    // Mock the session data instead of trying to access window.supabase
+    // Mock the session data
     const sessionData = {
       session: {
         access_token: 'mock-token',

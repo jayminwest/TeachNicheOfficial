@@ -1,16 +1,26 @@
 import { NextResponse } from 'next/server'
 import { stripe, stripeConfig } from '@/app/services/stripe'
 import { calculateFees } from '@/app/lib/utils'
+import { getAuth, User } from "firebase/auth"
+import { getApp } from "firebase/app"
+
+// Define the auth response type
+interface AuthResponse {
+  data: {
+    session: { user: User } | null;
+  };
+  error: null | unknown;
+}
 
 export async function POST(request: Request) {
   try {
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-})
+    const { data: { session } } = await new Promise<AuthResponse>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve({ data: { session: user ? { user } : null }, error: null });
+      });
+    });
 
     if (!session?.user) {
       return NextResponse.json(
@@ -29,15 +39,9 @@ export async function POST(request: Request) {
     }
 
     // Get lesson and creator details
-    const { data: lesson, error: lessonError } = await supabase
+    const { data: lesson, error: lessonError } = await firebaseClient
       .from('lessons')
-      .select(`
-        *,
-        creator:profiles!lessons_creator_id_fkey (
-          id,
-          stripe_account_id
-        )
-      `)
+      .select()
       .eq('id', lessonId)
       .single()
 
@@ -93,7 +97,7 @@ export async function POST(request: Request) {
       },
       metadata: {
         lessonId,
-        userId: user.uid,
+        userId: session.user.uid,
         creatorId: lesson.creator_id,
         version: '1'
       }
@@ -103,11 +107,11 @@ export async function POST(request: Request) {
     const purchaseId = crypto.randomUUID()
 
     // Record pending purchase
-    const { error: purchaseError } = await supabase
+    const { error: purchaseError } = await firebaseClient
       .from('purchases')
       .insert({
         id: purchaseId,
-        user_id: user.uid,
+        user_id: session.user.uid,
         lesson_id: lessonId,
         creator_id: lesson.creator_id,
         stripe_session_id: checkoutSession.id,

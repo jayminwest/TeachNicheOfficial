@@ -56,7 +56,7 @@ export async function GET(request: Request) {
         // First query to get the profile
         const { data: profile } = await firebaseClient
           .from('profiles')
-          .select('*')
+          .select()
           .eq('id', user.uid)
           .eq('stripe_account_id', accountId)
           .single();

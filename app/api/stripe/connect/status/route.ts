@@ -1,5 +1,5 @@
 import { getAccountStatus } from '@/app/services/stripe';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
 
     if (!session?.user) {
@@ -18,7 +18,7 @@ export async function GET() {
     const { data: profile } = await supabase
       .from('profiles')
       .select('stripe_account_id')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (!profile?.stripe_account_id) {

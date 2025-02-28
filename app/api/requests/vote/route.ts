@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { getAuth } from 'firebase/auth'
 import { cookies } from 'next/headers'
 import { voteSchema } from '@/app/lib/schemas/lesson-request'
 
@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   try {
 
     const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const auth = getAuth()({ cookies: () => cookieStore })
     
     const { data: { session }, error: sessionError } = await firebaseAuth.getSession()
     
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       .select()
       .match({ 
         request_id: requestId,
-        user_id: session.user.id 
+        user_id: user.id 
       })
       .single()
     console.log('Existing vote check:', existingVote);
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       .from('lesson_request_votes')
       .insert([{
         request_id: requestId,
-        user_id: session.user.id,
+        user_id: user.id,
         vote_type: voteType
       }])
 

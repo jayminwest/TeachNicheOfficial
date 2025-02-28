@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import { Database } from '@/types/database';
@@ -25,12 +25,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Initialize Supabase client
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const auth = getAuth()<Database>({ cookies });
     
     // Get the current user
     const { data: { session } } = await firebaseAuth.getSession();
     
-    if (!session || session.user.id !== userId) {
+    if (!session || user.id !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

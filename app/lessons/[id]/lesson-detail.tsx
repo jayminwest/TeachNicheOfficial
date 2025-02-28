@@ -3,7 +3,7 @@ import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/app/services/supabase";
+import { db, auth, storage } from '@/app/lib/firebase';
 import { Toaster } from "@/app/components/ui/toaster";
 import { formatPrice } from "@/app/lib/constants";
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/app/services/supabase';
+import { db, auth, storage } from '@/app/lib/firebase';
 import { LessonCard } from '@/app/components/ui/lesson-card';
 import { Button } from '@/app/components/ui/button';
 import Link from 'next/link';
@@ -66,7 +66,7 @@ export default function MyLessonsPage() {
               created_at
             )
           `)
-          .eq('user_id', session.user.id)
+          .eq('user_id', user.id)
           .eq('status', 'completed');
         
         if (error) {

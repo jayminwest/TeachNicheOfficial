@@ -7,7 +7,7 @@ import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"
 import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
-import { supabase } from "@/app/services/supabase"
+import { db, auth, storage } from '@/app/lib/firebase'
 import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {

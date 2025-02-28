@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { getAuth } from 'firebase/auth';
 import { cookies } from "next/headers";
 import { z } from "zod";
 
@@ -24,7 +24,7 @@ const applicationSchema = z.object({
 export async function POST(request: Request) {
   try {
     // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    const auth = getAuth()({ cookies });
     
     // Get the current user
     const { data: { session } } = await firebaseAuth.getSession();
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const { data: existingApplications, error: queryError } = await supabase
       .from('creator_applications')
       .select('id, status')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .in('status', ['pending', 'approved']);
     
     if (queryError) {
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const { data: application, error: insertError } = await supabase
       .from('creator_applications')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         motivation: body.motivation,
         sample_lesson_title: body.lessonTitle,
         sample_lesson_content: body.lessonContent,

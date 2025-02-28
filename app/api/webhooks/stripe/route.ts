@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
@@ -61,7 +61,7 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
     return;
   }
   
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const auth = getAuth()<Database>({ cookies });
   
   // Extract metadata
   const { purchaseId, lessonId, creatorId, userId } = session.metadata || {};
@@ -99,7 +99,7 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
 }
 
 async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const auth = getAuth()<Database>({ cookies });
   
   // Get purchase record by payment intent
   const { data: purchase, error: fetchError } = await supabase
@@ -162,7 +162,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
 }
 
 async function handleRefund(charge: Stripe.Charge): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const auth = getAuth()<Database>({ cookies });
   const paymentIntentId = charge.payment_intent as string;
   const refundAmount = charge.amount_refunded;
   

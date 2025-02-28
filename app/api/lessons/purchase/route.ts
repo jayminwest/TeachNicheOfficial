@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { getAuth } from 'firebase/auth'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { stripe, stripeConfig } from '@/app/services/stripe'
@@ -7,7 +7,7 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient<Database>({ cookies })
+    const auth = getAuth()<Database>({ cookies })
 
     const { data: { session } } = await firebaseAuth.getSession()
 
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       },
       metadata: {
         lessonId,
-        userId: session.user.id,
+        userId: user.id,
         creatorId: lesson.creator_id,
         version: '1'
       }
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
       .from('purchases')
       .insert({
         id: purchaseId,
-        user_id: session.user.id,
+        user_id: user.id,
         lesson_id: lessonId,
         creator_id: lesson.creator_id,
         stripe_session_id: checkoutSession.id,

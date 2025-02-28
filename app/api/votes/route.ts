@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { getAuth } from 'firebase/auth'
 import { cookies } from 'next/headers'
 import { voteSchema } from '@/app/lib/schemas/lesson-request'
 
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const auth = getAuth()({ cookies })
     const { searchParams } = new URL(request.url)
     
     const requestId = searchParams.get('requestId')
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const auth = getAuth()({ cookies })
     const { data: { session } } = await firebaseAuth.getSession()
 
     if (!session) {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       .from('lesson_request_votes')
       .select('*')
       .eq('request_id', validatedData.requestId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (existingVote) {
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       .from('lesson_request_votes')
       .insert([{
         request_id: validatedData.requestId,
-        user_id: session.user.id,
+        user_id: user.id,
         vote_type: validatedData.voteType,
         created_at: new Date().toISOString()
       }])

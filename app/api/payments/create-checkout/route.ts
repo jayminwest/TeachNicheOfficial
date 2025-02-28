@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { stripeConfig } from '@/app/services/stripe';
@@ -25,7 +25,7 @@ const checkoutSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const auth = getAuth()<Database>({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const { 
       lessonId, 
       price, 
-      userId = session.user.id,
+      userId = user.id,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     } = result.data;
     
     // Verify the user is making a purchase for themselves
-    if (session.user.id !== userId) {
+    if (user.id !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized to make this purchase' },
         { status: 403 }
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
         purchaseId: purchase.id,
         creatorId: lesson.creator_id,
       },
-      customer_email: session.user.email,
+      customer_email: user.email,
     });
     
     // Update purchase record with session ID

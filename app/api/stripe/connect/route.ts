@@ -1,5 +1,5 @@
 import { stripe, createConnectSession, getStripe } from '@/app/services/stripe';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
+  const auth = getAuth()({ cookies });
   
   // First try cookie-based session
   const {
@@ -16,7 +16,7 @@ async function getAuthenticatedUser(request: Request) {
   } = await firebaseAuth.getSession();
 
   if (session?.user) {
-    return { user: session.user };
+    return { user: user };
   }
 
   // If no cookie session, check Authorization header
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
       });
 
       // Store the Stripe account ID in Supabase
-      const supabase = createRouteHandlerClient({ cookies });
+      const auth = getAuth()({ cookies });
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ stripe_account_id: account.id })

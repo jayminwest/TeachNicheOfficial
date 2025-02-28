@@ -5,7 +5,7 @@ import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { supabase } from "@/app/services/supabase";
+import { db, auth, storage } from '@/app/lib/firebase';
 import { waitForAssetReady } from "@/app/services/mux";
 
 export default function NewLessonPage() {

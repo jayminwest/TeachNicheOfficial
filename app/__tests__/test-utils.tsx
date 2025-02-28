@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { AuthContext } from '@/app/services/auth/AuthContext'
-import { User } from '@supabase/supabase-js'
+import { User } from 'firebase/auth'
 
 // Mock user for testing
 const mockUser: User = {

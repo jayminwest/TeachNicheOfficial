@@ -3,6 +3,22 @@ import { firebaseClient } from '@/app/services/firebase-compat';
 import { getAuth, User } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 
+// Define a type for the query builder that matches the firebase-compat implementation
+type QueryBuilder = {
+  eq: (field: string, value: string | boolean | number) => QueryBuilder;
+  order: (field: string, options: { ascending: boolean }) => QueryBuilder;
+  orderBy: (field: string, direction?: string) => QueryBuilder;
+  limit: (count: number) => QueryBuilder;
+  get: () => Promise<{ 
+    data: Array<Record<string, unknown>>; 
+    error: Error | null | unknown 
+  }>;
+  execute: () => Promise<{ 
+    data: Array<Record<string, unknown>>; 
+    error: Error | null | unknown 
+  }>;
+};
+
 interface LessonData {
   title: string;
   description: string;
@@ -129,22 +145,6 @@ async function getLessonsHandler(request: Request) {
       sortField = 'price';
       sortDirection = 'desc';
     }
-    
-    // Define a type for the query builder that matches the firebase-compat implementation
-    type QueryBuilder = {
-      eq: (field: string, value: string | boolean | number) => QueryBuilder;
-      order: (field: string, options: { ascending: boolean }) => QueryBuilder;
-      orderBy: (field: string, direction?: string) => QueryBuilder;
-      limit: (count: number) => QueryBuilder;
-      get: () => Promise<{ 
-        data: Array<Record<string, unknown>>; 
-        error: Error | null | unknown 
-      }>;
-      execute: () => Promise<{ 
-        data: Array<Record<string, unknown>>; 
-        error: Error | null | unknown 
-      }>;
-    };
     
     // Create a query builder
     let queryBuilder = lessonsRef.select() as unknown as QueryBuilder;

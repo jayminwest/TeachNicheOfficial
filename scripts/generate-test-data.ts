@@ -26,6 +26,7 @@ const { Pool } = pkg;
 import { faker } from '@faker-js/faker';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as admin from 'firebase-admin';
 import { initMockFirebase } from './mock-firebase.ts';
 import colors from './utils/colors.ts';
 
@@ -123,6 +124,7 @@ let firebase: any;
 let datasetSize: 'small' | 'medium' | 'large' = 'small';
 let targetEnv: 'development' | 'production' | 'test' = 'development';
 let dryRun = false;
+let uploadToFirebase = false;
 let generatedData: {
   users: User[];
   categories: Category[];
@@ -157,11 +159,13 @@ function parseArgs() {
   if (args.includes('--test')) targetEnv = 'test';
   
   dryRun = args.includes('--dry-run');
+  uploadToFirebase = args.includes('--upload-to-firebase');
   
   console.log(`${colors.cyan}Test Data Generation Script${colors.reset}`);
   console.log(`Dataset size: ${colors.yellow}${datasetSize}${colors.reset}`);
   console.log(`Target environment: ${colors.yellow}${targetEnv}${colors.reset}`);
   if (dryRun) console.log(`${colors.yellow}Dry run mode enabled${colors.reset}`);
+  if (uploadToFirebase) console.log(`${colors.yellow}Firebase upload enabled${colors.reset}`);
 }
 
 /**
@@ -178,14 +182,15 @@ ${colors.yellow}Usage:${colors.reset}
   npm run generate-test-data -- [options]
 
 ${colors.yellow}Options:${colors.reset}
-  --small         Generate a small dataset (default)
-  --medium        Generate a medium dataset
-  --large         Generate a large dataset
-  --dev           Target development environment (default)
-  --prod          Target production environment
-  --test          Target test environment
-  --dry-run       Run without saving to database
-  --help          Show this help message
+  --small              Generate a small dataset (default)
+  --medium             Generate a medium dataset
+  --large              Generate a large dataset
+  --dev                Target development environment (default)
+  --prod               Target production environment
+  --test               Target test environment
+  --dry-run            Run without saving to database
+  --upload-to-firebase Upload data to Firebase/Firestore
+  --help               Show this help message
   `);
 }
 
@@ -223,13 +228,64 @@ async function initDatabase() {
 }
 
 /**
- * Initialize Firebase (or mock)
+ * Initialize the real Firebase Admin SDK
+ */
+function initRealFirebase() {
+  try {
+    // Load environment variables
+    dotenv.config({ path: `.env.${targetEnv}` });
+    
+    // Check if Firebase Admin is already initialized
+    if (admin.apps.length === 0) {
+      // Path to your service account key file
+      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 
+                                './firebase-service-account.json';
+      
+      if (!fs.existsSync(serviceAccountPath)) {
+        console.error(`${colors.red}Firebase service account file not found at ${serviceAccountPath}${colors.reset}`);
+        console.log(`${colors.yellow}Falling back to mock implementation${colors.reset}`);
+        return initMockFirebase();
+      }
+      
+      // Initialize Firebase Admin with service account
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+      });
+      
+      console.log(`${colors.green}Successfully initialized Firebase Admin SDK${colors.reset}`);
+    }
+    
+    return {
+      auth: admin.auth(),
+      firestore: admin.firestore(),
+      storage: admin.storage()
+    };
+  } catch (error) {
+    console.error(`${colors.red}Failed to initialize Firebase Admin SDK:${colors.reset}`, error);
+    console.log(`${colors.yellow}Falling back to mock implementation${colors.reset}`);
+    return initMockFirebase();
+  }
+}
+
+/**
+ * Initialize Firebase (real or mock)
  */
 function initFirebase() {
   try {
-    // In a real implementation, we would initialize Firebase here
-    // For now, we'll use our mock implementation
-    firebase = initMockFirebase();
+    // Use real Firebase if not in dry run mode and credentials are available
+    if (uploadToFirebase && process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      firebase = initRealFirebase();
+    } else {
+      // Use mock implementation for dry runs or when credentials aren't available
+      firebase = initMockFirebase();
+      if (uploadToFirebase) {
+        console.log(`${colors.yellow}Using mock Firebase implementation. To use real Firebase, set FIREBASE_SERVICE_ACCOUNT_PATH in your .env file.${colors.reset}`);
+      }
+    }
     console.log(`${colors.green}Successfully initialized Firebase${colors.reset}`);
   } catch (error) {
     console.error(`${colors.red}Failed to initialize Firebase:${colors.reset}`, error);
@@ -580,6 +636,123 @@ function saveDataToJson() {
 }
 
 /**
+ * Save data to Firestore
+ */
+async function saveToFirestore() {
+  if (!uploadToFirebase) {
+    console.log(`${colors.yellow}Skipping Firestore upload (use --upload-to-firebase to enable)${colors.reset}`);
+    return;
+  }
+  
+  console.log(`${colors.cyan}Saving data to Firestore...${colors.reset}`);
+  
+  // Determine the collection prefix based on environment
+  const collectionPrefix = targetEnv === 'production' ? 'production/' : 'dev/';
+  
+  // Save users
+  console.log(`Saving ${generatedData.users.length} users to Firestore...`);
+  for (const user of generatedData.users) {
+    try {
+      await firebase.firestore.collection(`${collectionPrefix}users`).doc(user.id).set({
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        isInstructor: user.isInstructor,
+        bio: user.bio,
+        createdAt: admin.firestore.Timestamp.fromDate(user.createdAt),
+        updatedAt: admin.firestore.Timestamp.fromDate(user.updatedAt)
+      });
+    } catch (error) {
+      console.error(`${colors.red}Failed to save user to Firestore:${colors.reset}`, error);
+    }
+  }
+  
+  // Save categories
+  console.log(`Saving ${generatedData.categories.length} categories to Firestore...`);
+  for (const category of generatedData.categories) {
+    try {
+      await firebase.firestore.collection(`${collectionPrefix}categories`).doc(category.id).set({
+        name: category.name,
+        description: category.description,
+        createdAt: admin.firestore.Timestamp.fromDate(category.createdAt),
+        updatedAt: admin.firestore.Timestamp.fromDate(category.updatedAt)
+      });
+    } catch (error) {
+      console.error(`${colors.red}Failed to save category to Firestore:${colors.reset}`, error);
+    }
+  }
+  
+  // Save lessons
+  console.log(`Saving ${generatedData.lessons.length} lessons to Firestore...`);
+  for (const lesson of generatedData.lessons) {
+    try {
+      await firebase.firestore.collection(`${collectionPrefix}lessons`).doc(lesson.id).set({
+        title: lesson.title,
+        description: lesson.description,
+        instructorId: lesson.instructorId,
+        categoryId: lesson.categoryId,
+        price: lesson.price,
+        content: lesson.content,
+        published: lesson.published,
+        createdAt: admin.firestore.Timestamp.fromDate(lesson.createdAt),
+        updatedAt: admin.firestore.Timestamp.fromDate(lesson.updatedAt),
+        thumbnailUrl: lesson.thumbnailUrl
+      });
+    } catch (error) {
+      console.error(`${colors.red}Failed to save lesson to Firestore:${colors.reset}`, error);
+    }
+  }
+  
+  // Save reviews
+  console.log(`Saving ${generatedData.reviews.length} reviews to Firestore...`);
+  for (const review of generatedData.reviews) {
+    try {
+      await firebase.firestore.collection(`${collectionPrefix}reviews`).doc(review.id).set({
+        lessonId: review.lessonId,
+        userId: review.userId,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: admin.firestore.Timestamp.fromDate(review.createdAt)
+      });
+    } catch (error) {
+      console.error(`${colors.red}Failed to save review to Firestore:${colors.reset}`, error);
+    }
+  }
+  
+  // Save payments
+  console.log(`Saving ${generatedData.payments.length} payments to Firestore...`);
+  for (const payment of generatedData.payments) {
+    try {
+      await firebase.firestore.collection(`${collectionPrefix}payments`).doc(payment.id).set({
+        userId: payment.userId,
+        lessonId: payment.lessonId,
+        amount: payment.amount,
+        status: payment.status,
+        createdAt: admin.firestore.Timestamp.fromDate(payment.createdAt),
+        processingFee: payment.processingFee,
+        platformFee: payment.platformFee,
+        instructorEarnings: payment.instructorEarnings
+      });
+      
+      // If payment is completed, also create a purchase record
+      if (payment.status === 'completed') {
+        const purchaseId = randomUUID();
+        await firebase.firestore.collection(`${collectionPrefix}purchases`).doc(purchaseId).set({
+          userId: payment.userId,
+          lessonId: payment.lessonId,
+          paymentId: payment.id,
+          createdAt: admin.firestore.Timestamp.fromDate(payment.createdAt)
+        });
+      }
+    } catch (error) {
+      console.error(`${colors.red}Failed to save payment to Firestore:${colors.reset}`, error);
+    }
+  }
+  
+  console.log(`${colors.green}Successfully saved all data to Firestore in the ${collectionPrefix} namespace!${colors.reset}`);
+}
+
+/**
  * Main function
  */
 async function main() {
@@ -602,6 +775,11 @@ async function main() {
     
     // Save data to JSON file for reference
     saveDataToJson();
+    
+    // Save data to Firestore if requested
+    if (uploadToFirebase) {
+      await saveToFirestore();
+    }
     
     console.log(`${colors.green}Test data generation completed successfully!${colors.reset}`);
     

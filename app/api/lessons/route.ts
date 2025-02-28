@@ -131,7 +131,7 @@ async function getLessonsHandler(request: Request) {
     }
     
     // Create a query builder and apply filters and sorting
-    const queryBuilder = lessonsRef.select();
+    const queryBuilder = lessonsRef.select() as any;
     
     // Apply filters
     Object.entries(queryParams).forEach(([key, value]) => {

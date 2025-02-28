@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server'
 import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
+import { getAuth, User } from 'firebase/auth'
+import { getApp } from 'firebase/app'
+import { firebaseClient } from '@/app/services/firebase-compat'
 
 export async function POST(request: Request) {
   try {
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-})
+    // Get the current user using the route handler client
+    const user = await new Promise<User | null>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user);
+      });
+    });
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -23,17 +27,15 @@ export async function POST(request: Request) {
     // Validate request body
     const validatedData = lessonRequestSchema.parse(body)
 
-    const { data, error } = await supabase
+    const { data, error } = await firebaseClient
       .from('lesson_requests')
-      .insert([{ 
+      .insert({ 
         ...validatedData,
         user_id: user.uid,
         status: 'open',
         vote_count: 0,
         created_at: new Date().toISOString()
-      }])
-      .select()
-      .single()
+      })
 
     if (error) {
       console.error('Supabase error:', error)
@@ -60,18 +62,34 @@ export async function GET(request: Request) {
     const category = searchParams.get('category')
     const status = searchParams.get('status')
     
-    let query = supabase
-      .from('lesson_requests')
-      .select('*')
+    // Define a type for the query builder
+    type QueryBuilder = {
+      eq: (field: string, value: string | boolean | number) => QueryBuilder;
+      order: (field: string, options: { ascending: boolean }) => QueryBuilder;
+      get: () => Promise<{ 
+        data: Array<Record<string, unknown>>; 
+        error: Error | null | unknown 
+      }>;
+    };
     
+    // Create a query builder
+    let queryBuilder = firebaseClient
+      .from('lesson_requests')
+      .select() as unknown as QueryBuilder;
+    
+    // Apply filters
     if (category) {
-      query = query.eq('category', category)
+      queryBuilder = queryBuilder.eq('category', category);
     }
     if (status) {
-      query = query.eq('status', status)
+      queryBuilder = queryBuilder.eq('status', status);
     }
     
-    const { data, error } = await query.order('created_at', { ascending: false })
+    // Apply sorting
+    queryBuilder = queryBuilder.order('created_at', { ascending: false });
+    
+    // Execute the query
+    const { data, error } = await queryBuilder.get();
     
     if (error) throw error
     

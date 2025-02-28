@@ -202,11 +202,11 @@ async function initDatabase() {
   dotenv.config({ path: `.env.${targetEnv}` });
   
   const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || `teach_niche_${targetEnv === 'production' ? 'prod' : 'dev'}`,
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    host: process.env.CLOUD_SQL_HOST || process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.CLOUD_SQL_PORT || process.env.DB_PORT || '5432'),
+    database: process.env.CLOUD_SQL_DATABASE || process.env.DB_NAME || `teach_niche_${targetEnv === 'production' ? 'prod' : 'dev'}`,
+    user: process.env.CLOUD_SQL_USER || process.env.DB_USER || 'jayminwest',
+    password: process.env.CLOUD_SQL_PASSWORD || process.env.DB_PASSWORD || '',
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
   };
   

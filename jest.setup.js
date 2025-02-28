@@ -124,20 +124,26 @@ jest.mock('@stripe/stripe-js', () => ({
 
 
 // Mock MUX
-jest.mock('@mux/mux-player-react', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(({ src, ...props }) => {
-    return React.createElement('div', { 'data-testid': 'mux-player', 'data-src': src, ...props });
-  })
-}));
+jest.mock('@mux/mux-player-react', () => {
+  const mockReact = require('react');
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(({ src, ...props }) => {
+      return mockReact.createElement('div', { 'data-testid': 'mux-player', 'data-src': src, ...props });
+    })
+  };
+});
 
 // Mock MUX Uploader
-jest.mock('@mux/mux-uploader-react', () => ({
-  __esModule: true,
-  MuxUploader: jest.fn().mockImplementation((props) => {
-    return React.createElement('div', { 'data-testid': 'mux-uploader', ...props });
-  })
-}));
+jest.mock('@mux/mux-uploader-react', () => {
+  const mockReact = require('react');
+  return {
+    __esModule: true,
+    MuxUploader: jest.fn().mockImplementation((props) => {
+      return mockReact.createElement('div', { 'data-testid': 'mux-uploader', ...props });
+    })
+  };
+});
 
 // Reset all mocks between tests
 beforeEach(() => {

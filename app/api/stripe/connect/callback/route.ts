@@ -69,11 +69,15 @@ export async function GET(request: Request) {
           if (matchingProfile) {
             // Update the profile if found
             try {
-              // Use a direct SQL query approach instead of the ORM-style API
-              await firebaseClient.rpc('update_profile_onboarding', {
-                profile_id: user.uid,
-                onboarding_complete: true
-              });
+              // Use the document update method directly
+              await firebaseClient.from('profiles').insert(
+                {
+                  id: user.uid,
+                  stripe_onboarding_complete: true,
+                  stripe_account_id: accountId
+                },
+                { upsert: true }
+              );
             } catch (updateError) {
               console.error('Failed to update profile:', updateError);
               return NextResponse.redirect(

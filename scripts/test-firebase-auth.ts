@@ -4,7 +4,31 @@
  * This script tests the Firebase authentication service to ensure it works correctly.
  */
 
-import { signInWithGoogle, signOut, getCurrentUser } from '../app/services/auth/supabaseAuth';
+import { getAuth, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
+import { app } from '../app/lib/firebase.ts';
+
+// Initialize Firebase Auth
+const auth = getAuth(app);
+
+// Get the current user
+async function getCurrentUser() {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
+// Sign out the current user
+async function signOut() {
+  try {
+    await firebaseSignOut(auth);
+    return { error: null };
+  } catch (error) {
+    return { error };
+  }
+}
 
 async function testFirebaseAuth() {
   console.log('Testing Firebase Authentication...');
@@ -14,11 +38,6 @@ async function testFirebaseAuth() {
     console.log('\n--- Testing getCurrentUser ---');
     const initialUser = await getCurrentUser();
     console.log('Initial user:', initialUser);
-    
-    // Note: We can't fully test sign-in with Google in a script
-    // as it requires a browser popup, but we can test the function exists
-    console.log('\n--- Testing signInWithGoogle (function only) ---');
-    console.log('signInWithGoogle function exists:', typeof signInWithGoogle === 'function');
     
     // If already signed in, test sign out
     if (initialUser) {

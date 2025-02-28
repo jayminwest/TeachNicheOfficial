@@ -5,7 +5,7 @@
  * with code that was previously using Supabase.
  */
 
-import { firebaseClient } from '../app/services/firebase-compat';
+import { firebaseClient } from '../app/services/firebase-compat.ts';
 
 async function testFirebaseCompat() {
   console.log('Testing Firebase Compatibility Layer...');
@@ -119,7 +119,7 @@ async function testFirebaseCompat() {
     
     console.log('\nAll tests passed successfully!');
   } catch (error) {
-    console.error('Test failed:', error);
+    console.error('Test failed:', error instanceof Error ? error.message : JSON.stringify(error));
     process.exit(1);
   }
 }

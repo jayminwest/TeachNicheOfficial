@@ -188,9 +188,11 @@ export class FirestoreDatabase implements DatabaseService {
   }
 
   // Implement required DatabaseService methods
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async query<T = unknown>(text: string, _params?: unknown[]): Promise<{ rows: T[]; rowCount: number }> {
     console.warn('Firestore does not support raw SQL queries. Using alternative implementation.');
     // This is a simplified implementation to satisfy the interface
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [collectionPart, _limitPart] = text.split(' LIMIT ');
     const collectionName = collectionPart.replace('SELECT * FROM ', '').trim();
     

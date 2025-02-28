@@ -38,12 +38,14 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "app/types/global.d.ts"
   ],
   "exclude": [
     "node_modules",
     "scripts/**/*",
-    "e2e-tests/playwright-report/**/*"
+    "e2e-tests/playwright-report/**/*",
+    "e2e-tests/playwright-report/trace/assets/**/*"
   ],
   "files": [
     "e2e-tests/setup/global.d.ts"

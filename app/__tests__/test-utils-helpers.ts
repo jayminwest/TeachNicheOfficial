@@ -1,4 +1,7 @@
 import { UserMetadata } from 'firebase/auth';
+import { Request } from 'next/dist/server/web/spec-extension/request';
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
 
 /**
  * Extended user metadata interface to handle custom properties
@@ -6,12 +9,14 @@ import { UserMetadata } from 'firebase/auth';
 export interface ExtendedUserMetadata extends UserMetadata {
   creatorProfile?: boolean;
   is_creator?: boolean;
+  creationTime?: string;
 }
 
 /**
  * Helper function to convert mock requests to Request objects for API route handlers
+ * This solves the common TS2345 error in tests where MockRequest is not assignable to Request
  */
-export function asRequest(mockRequest: Record<string, unknown>): Request {
+export function asRequest(mockRequest: Record<string, unknown> | any): Request {
   return mockRequest as unknown as Request;
 }
 
@@ -26,3 +31,12 @@ export function hasDataSession(obj: unknown): obj is { data: { session: unknown 
          typeof obj.data === 'object' &&
          'session' in obj.data;
 }
+
+/**
+ * Type for MockRequest used in tests
+ */
+export type MockRequest<T = any> = T & {
+  [key: string]: any;
+  _setParameter: (key: string, value?: string) => void;
+  _addBody: (key: string, value?: any) => void;
+};

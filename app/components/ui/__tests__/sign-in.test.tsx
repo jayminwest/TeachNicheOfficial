@@ -73,7 +73,7 @@ describe('SignInPage', () => {
   it('handles Google sign-in button click', async () => {
     const user = userEvent.setup();
     const mockUser = { uid: 'test-user-id', email: 'test@example.com' };
-    (signInWithGoogle as jest.Mock).mockResolvedValue(mockUser);
+    (firebaseAuth.signInWithGoogle as jest.Mock).mockResolvedValue(mockUser);
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
@@ -90,7 +90,7 @@ describe('SignInPage', () => {
   it('shows loading state during Google sign-in', async () => {
     const user = userEvent.setup();
     // Make the sign-in function wait
-    (signInWithGoogle as jest.Mock).mockImplementation(() => new Promise(resolve => {
+    (firebaseAuth.signInWithGoogle as jest.Mock).mockImplementation(() => new Promise(resolve => {
       setTimeout(resolve, 100);
     }));
 
@@ -107,7 +107,7 @@ describe('SignInPage', () => {
   it('displays error message when Google sign-in fails', async () => {
     const user = userEvent.setup();
     const errorMessage = 'Failed to authenticate with Google';
-    (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
+    (firebaseAuth.signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
@@ -172,7 +172,7 @@ describe('SignInPage', () => {
   it('announces errors to screen readers', async () => {
     const user = userEvent.setup();
     const errorMessage = 'Failed to authenticate with Google';
-    (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
+    (firebaseAuth.signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     

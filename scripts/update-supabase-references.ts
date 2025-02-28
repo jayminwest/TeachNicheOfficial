@@ -53,7 +53,7 @@ const replacementPatterns = [
 ];
 
 // Find files with Supabase references
-function findFilesWithSupabaseReferences() {
+function findFilesWithSupabaseReferences(): string[] {
   console.log('Searching for files with Supabase references...');
   
   try {
@@ -75,13 +75,27 @@ function findFilesWithSupabaseReferences() {
   }
 }
 
+interface Reference {
+  type: 'import' | 'client' | 'auth' | 'database' | 'storage';
+  match: string;
+  line: number;
+  table?: string;
+  bucket?: string;
+}
+
+interface FileAnalysis {
+  path: string;
+  references: Reference[];
+  content: string;
+}
+
 // Analyze file for Supabase references
-function analyzeFile(filePath) {
+function analyzeFile(filePath: string): FileAnalysis {
   console.log(`Analyzing ${filePath}...`);
   
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const references = [];
+    const references: Reference[] = [];
     
     // Check for imports
     const importMatches = content.match(/import\s+.*\s+from\s+['"]@\/app\/lib\/supabase['"]/g) || [];
@@ -150,8 +164,23 @@ function analyzeFile(filePath) {
   }
 }
 
+interface MigrationPlanChange {
+  type: string;
+  count: number;
+  lines: number[];
+  recommendation: string;
+  tables?: string[];
+  buckets?: string[];
+}
+
+interface MigrationPlan {
+  path: string;
+  referenceCount: number;
+  changes: MigrationPlanChange[];
+}
+
 // Generate migration plan for a file
-function generateMigrationPlan(fileAnalysis) {
+function generateMigrationPlan(fileAnalysis: FileAnalysis): MigrationPlan | null {
   const { path, references, content } = fileAnalysis;
   
   if (references.length === 0) {
@@ -160,7 +189,7 @@ function generateMigrationPlan(fileAnalysis) {
   
   console.log(`Generating migration plan for ${path} (${references.length} references)`);
   
-  const plan = {
+  const plan: MigrationPlan = {
     path,
     referenceCount: references.length,
     changes: []
@@ -227,7 +256,7 @@ function generateMigrationPlan(fileAnalysis) {
 }
 
 // Apply automated replacements to a file
-function applyAutomatedReplacements(filePath, dryRun = true) {
+function applyAutomatedReplacements(filePath: string, dryRun = true): number {
   console.log(`${dryRun ? '[DRY RUN] ' : ''}Applying automated replacements to ${filePath}...`);
   
   try {
@@ -261,7 +290,7 @@ function applyAutomatedReplacements(filePath, dryRun = true) {
 }
 
 // Main function
-async function main() {
+async function main(): Promise<void> {
   console.log('Starting Supabase reference update script...');
   
   // Find files with Supabase references

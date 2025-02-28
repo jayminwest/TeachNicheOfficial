@@ -34,7 +34,7 @@ export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: Auth
 
   const handleSignUp = async (email: string, password: string, name: string) => {
     try {
-      const result = await signUpWithEmail(email, password, name);
+      const result = await signUp(email, password, name);
       if (result.error) {
         throw result.error;
       }

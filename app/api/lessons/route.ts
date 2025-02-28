@@ -106,31 +106,35 @@ async function getLessonsHandler(request: Request) {
   try {
     // Firebase is already initialized in @/app/lib/firebase;
     
-    // Create a query builder
-    const queryBuilder = firebaseClient.from('lessons');
+    // Create a reference to the lessons collection
+    const lessonsRef = firebaseClient.from('lessons');
     
-    // Build the query with filters
-    let query = queryBuilder.select();
+    // Build query parameters
+    const queryParams: Record<string, any> = {};
     
-    // Apply filters
     if (category) {
-      // We need to apply filters before executing the query
-      query = query.eq('category', category);
+      queryParams.category = category;
     }
     
-    // Apply sorting
-    if (sort === 'newest') {
-      query = query.order('created_at', { ascending: false });
-    } else if (sort === 'oldest') {
-      query = query.order('created_at', { ascending: true });
+    // Determine sort field and direction
+    let sortField = 'created_at';
+    let sortDirection = 'desc';
+    
+    if (sort === 'oldest') {
+      sortDirection = 'asc';
     } else if (sort === 'price_low') {
-      query = query.order('price', { ascending: true });
+      sortField = 'price';
+      sortDirection = 'asc';
     } else if (sort === 'price_high') {
-      query = query.order('price', { ascending: false });
+      sortField = 'price';
+      sortDirection = 'desc';
     }
     
-    // Execute the query
-    const { data: lessons } = await query;
+    // Execute the query with all parameters
+    const { data: lessons } = await lessonsRef.select({
+      filters: queryParams,
+      orderBy: { field: sortField, direction: sortDirection }
+    });
     
     return NextResponse.json({ lessons });
   } catch (error) {

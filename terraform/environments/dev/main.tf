@@ -34,20 +34,20 @@ resource "google_sql_database_instance" "main" {
 
 # Cloud SQL database
 resource "google_sql_database" "database" {
-  name     = "teach-niche-db"
+  name     = "teach-niche-dev"
   instance = google_sql_database_instance.main.name
 }
 
 # Cloud SQL user
 resource "google_sql_user" "users" {
-  name     = "teach-niche-app"
+  name     = "teach-niche-app-dev"
   instance = google_sql_database_instance.main.name
   password = var.db_password
 }
 
 # Cloud Storage bucket for files
 resource "google_storage_bucket" "media_bucket" {
-  name     = "${var.project_id}-media"
+  name     = "${var.project_id}-dev-media"
   location = var.region
   
   uniform_bucket_level_access = true

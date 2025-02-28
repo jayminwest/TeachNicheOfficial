@@ -139,3 +139,11 @@
     "whatwg-fetch": "^3.6.20"
   }
 }
+{
+  "scripts": {
+    "generate-test-data": "ts-node scripts/generate-test-data.ts",
+    "setup-environment": "ts-node scripts/setup-environment.ts",
+    "setup-dev-env": "ts-node scripts/setup-environment.ts --dev --create-env",
+    "setup-prod-env": "ts-node scripts/setup-environment.ts --prod --create-env"
+  }
+}

@@ -4,6 +4,14 @@ import { getAuth, User } from 'firebase/auth'
 import { getApp } from 'firebase/app'
 import { firebaseClient } from '@/app/services/firebase-compat'
 
+// Define the vote record type
+interface VoteRecord {
+  id: string;
+  request_id: string;
+  user_id: string;
+  vote_type: string;
+}
+
 // Define a type for the query builder
 type QueryBuilder = {
   eq: (field: string, value: string | boolean | number) => QueryBuilder;
@@ -52,26 +60,17 @@ export async function POST(req: Request) {
     queryBuilder = queryBuilder.eq('user_id', user.uid);
     
     // Execute the query
-    const { data: existingVotes } = await queryBuilder.get() as { 
-      data: VoteRecord[]; 
-      error: Error | null | unknown 
-    };
+    const { data: rawVotes } = await queryBuilder.get();
+    // Cast the raw data to the correct type
+    const existingVotes = (rawVotes || []) as unknown as VoteRecord[];
     console.log('Existing vote check:', existingVotes);
-    
-    // Define the vote record type
-    interface VoteRecord {
-      id: string;
-      request_id: string;
-      user_id: string;
-      vote_type: string;
-    }
 
     if (existingVotes && existingVotes.length > 0) {
       console.log('Deleting existing vote');
       // Delete existing vote if it exists
       await firebaseClient
         .from('lesson_request_votes')
-        .delete({ eq: ['id', existingVotes[0].id as string] })
+        .delete({ eq: ['id', existingVotes[0].id] })
     }
 
     // Insert new vote

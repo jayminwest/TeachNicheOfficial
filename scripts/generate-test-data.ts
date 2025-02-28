@@ -25,8 +25,8 @@ import { Pool } from 'pg';
 import { faker } from '@faker-js/faker';
 import * as fs from 'fs';
 import * as path from 'path';
-import { initMockFirebase } from './mock-firebase';
-import colors from './utils/colors';
+import { initMockFirebase } from './mock-firebase.ts';
+import colors from './utils/colors.ts';
 
 // Define dataset sizes
 const DATASET_SIZES = {

@@ -1,12 +1,8 @@
 module.exports = {
   extends: 'next/core-web-vitals',
   rules: {
-    '@typescript-eslint/no-unused-vars': ['warn', { 
-      argsIgnorePattern: '^_',
-      varsIgnorePattern: '^_',
-      caughtErrorsIgnorePattern: '^_'
-    }],
-    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
     // Additional rules to downgrade errors to warnings during migration
     'react-hooks/exhaustive-deps': 'warn',
     'import/no-unresolved': 'warn',

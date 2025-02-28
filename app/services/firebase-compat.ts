@@ -39,7 +39,7 @@ import {
   UserCredential,
   User
 } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { app } from '../lib/firebase';
 
 // Initialize Firebase services
 const firestore = getFirestore(app);

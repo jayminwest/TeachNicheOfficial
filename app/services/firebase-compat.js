@@ -127,6 +127,13 @@ export const firebaseClient = {
             return queryBuilder;
           },
           
+          // Add order method as an alias for orderBy for Supabase compatibility
+          order: (field, { ascending } = {}) => {
+            const direction = ascending === false ? 'desc' : 'asc';
+            filters.push(orderBy(field, direction));
+            return queryBuilder;
+          },
+          
           limit: (count) => {
             filters.push(limit(count));
             return queryBuilder;

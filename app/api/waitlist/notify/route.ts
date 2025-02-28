@@ -12,14 +12,15 @@ export async function POST(request: Request) {
       );
     }
     
-    // Generate a unique invite link and include it in the email data
+    // Generate a unique invite link
     const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/signup?invite=${Buffer.from(email).toString('base64')}`;
     
     // Send the email
     const emailService = createEmailService();
-    // Format the data for the email template, including the invite link in the name parameter
+    // Format the data for the email template
     // The email service expects only 2 arguments: email and name
-    const success = await emailService.sendWelcomeEmail(email, name);
+    // Pass the name with the invite link for the welcome email template to use
+    const success = await emailService.sendWelcomeEmail(email, `${name}|${inviteLink}`);
     
     if (!success) {
       throw new Error('Failed to send email');

@@ -1,4 +1,5 @@
 import { firestore } from '@/app/services/firebase';
+import { firebaseClient } from '@/app/services/firebase-compat';
 import { LessonRequestFormData } from '@/app/lib/schemas/lesson-request';
 
 export interface LessonRequest {
@@ -25,51 +26,56 @@ export async function getRequests(options: RequestOptions = {}): Promise<LessonR
   try {
     const { category, sortBy = 'popular', status = 'open', limit = 50 } = options;
     
-    let query = firestore.collection('requests');
+    // Use firebaseClient for compatibility with existing code
+    let query = firebaseClient
+      .from('lesson_requests')
+      .select();
     
     if (category) {
-      query = query.where('category', '==', category);
+      query = query.eq('category', category);
     }
     
     if (status) {
-      query = query.where('status', '==', status);
+      query = query.eq('status', status);
     }
     
     // Apply sorting
     if (sortBy === 'popular') {
-      query = query.orderBy('vote_count', 'desc');
+      query = query.order('vote_count', { ascending: false });
     } else if (sortBy === 'newest') {
-      query = query.orderBy('created_at', 'desc');
+      query = query.order('created_at', { ascending: false });
     }
     
     // Apply limit
     query = query.limit(limit);
     
-    const snapshot = await query.get();
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as LessonRequest[];
+    const { data } = await query.get();
+    return data as LessonRequest[];
   } catch (error) {
     console.error('Error fetching requests:', error);
-    throw error;
+    return [];
   }
 }
 
 export async function createRequest(data: LessonRequestFormData): Promise<{ id: string }> {
   try {
-    const requestRef = firestore.collection('requests').doc();
-    
-    await requestRef.set({
+    const requestData = {
       ...data,
-      created_at: new Date().toISOString(),
-      status: 'open',
+      id: crypto.randomUUID(),
       vote_count: 0,
-      user_id: 'current-user-id' // This would be replaced with actual user ID in production
-    });
+      status: 'open',
+      created_at: new Date().toISOString()
+    };
     
-    return { id: requestRef.id };
+    const { data: newRequest, error } = await firebaseClient
+      .from('lesson_requests')
+      .insert(requestData);
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    return { id: newRequest.id };
   } catch (error) {
     console.error('Error creating request:', error);
     throw error;
@@ -78,12 +84,13 @@ export async function createRequest(data: LessonRequestFormData): Promise<{ id: 
 
 export async function updateRequest(id: string, data: Partial<LessonRequestFormData>): Promise<{ id: string }> {
   try {
-    const requestRef = firestore.collection('requests').doc(id);
+    const { error } = await firebaseClient
+      .from('lesson_requests')
+      .update(data, { eq: ['id', id] });
     
-    await requestRef.update({
-      ...data,
-      updated_at: new Date().toISOString()
-    });
+    if (error) {
+      throw new Error(error.message);
+    }
     
     return { id };
   } catch (error) {
@@ -94,7 +101,14 @@ export async function updateRequest(id: string, data: Partial<LessonRequestFormD
 
 export async function deleteRequest(id: string): Promise<boolean> {
   try {
-    await firestore.collection('requests').doc(id).delete();
+    const { error } = await firebaseClient
+      .from('lesson_requests')
+      .delete({ eq: ['id', id] });
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
     return true;
   } catch (error) {
     console.error('Error deleting request:', error);
@@ -102,55 +116,63 @@ export async function deleteRequest(id: string): Promise<boolean> {
   }
 }
 
-export async function voteForRequest(requestId: string, userId: string): Promise<void> {
+export async function voteForRequest(requestId: string, userId: string): Promise<boolean> {
   try {
-    // Check if user already voted
-    const voteRef = firestore.collection('votes').doc(`${requestId}_${userId}`);
-    const voteDoc = await voteRef.get();
+    // First check if the user has already voted
+    const { data: existingVotes } = await firebaseClient
+      .from('votes')
+      .select()
+      .eq('request_id', requestId)
+      .eq('user_id', userId)
+      .get();
     
-    // Start a transaction
-    await firestore.runTransaction(async (transaction) => {
-      const requestRef = firestore.collection('requests').doc(requestId);
+    if (existingVotes && existingVotes.length > 0) {
+      // User already voted, remove the vote
+      await firebaseClient
+        .from('votes')
+        .delete({ eq: ['id', existingVotes[0].id] });
       
-      if (voteDoc.exists) {
-        // User already voted, remove the vote
-        transaction.delete(voteRef);
-        
-        // Update vote count
-        transaction.update(requestRef, {
-          vote_count: firestore.FieldValue.increment(-1)
-        });
-      } else {
-        // User hasn't voted, add the vote
-        transaction.set(voteRef, {
-          user_id: userId,
+      // Decrement vote count
+      await firebaseClient
+        .from('lesson_requests')
+        .update({ vote_count: firebaseClient.increment(-1) }, { eq: ['id', requestId] });
+      
+      return true;
+    } else {
+      // User hasn't voted, add a vote
+      await firebaseClient
+        .from('votes')
+        .insert({
+          id: crypto.randomUUID(),
           request_id: requestId,
-          vote_type: 'upvote',
+          user_id: userId,
           created_at: new Date().toISOString()
         });
-        
-        // Update vote count
-        transaction.update(requestRef, {
-          vote_count: firestore.FieldValue.increment(1)
-        });
-      }
-    });
+      
+      // Increment vote count
+      await firebaseClient
+        .from('lesson_requests')
+        .update({ vote_count: firebaseClient.increment(1) }, { eq: ['id', requestId] });
+      
+      return true;
+    }
   } catch (error) {
     console.error('Error voting for request:', error);
-    throw error;
+    return false;
   }
 }
 
 export async function getUserVotes(userId: string): Promise<string[]> {
   try {
-    const votesSnapshot = await firestore
-      .collection('votes')
-      .where('user_id', '==', userId)
+    const { data: votes } = await firebaseClient
+      .from('votes')
+      .select()
+      .eq('user_id', userId)
       .get();
     
-    return votesSnapshot.docs.map(doc => doc.data().request_id);
+    return votes ? votes.map(vote => vote.request_id) : [];
   } catch (error) {
     console.error('Error getting user votes:', error);
-    throw error;
+    return [];
   }
 }

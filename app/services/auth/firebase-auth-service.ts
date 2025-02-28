@@ -17,14 +17,8 @@ import { getApp, initializeApp } from 'firebase/app';
 import { AuthService, AuthUser } from './interface';
 import { auth } from '@/app/services/firebase';
 
-// Export the interface for use in other files
-export interface AuthUser {
-  id: string;
-  email: string | null;
-  name: string | null;
-  avatarUrl: string | null;
-  metadata?: Record<string, unknown>;
-}
+// Import the interface from the interface file
+import { AuthUser } from './interface';
 
 export class FirebaseAuthService implements AuthService {
   private auth;
@@ -268,7 +262,7 @@ export async function signOut() {
   }
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<AuthUser | null> {
   // Check if we're in a browser environment
   if (typeof window === 'undefined') {
     console.log('getCurrentUser called in server environment - returning null');

@@ -95,21 +95,24 @@ export async function signOut(): Promise<void> {
   }
 }
 
-export function getCurrentUser(): AuthUser | null {
-  const user = auth.currentUser;
-  
-  if (!user) {
-    return null;
-  }
-  
-  return {
-    id: user.uid,
-    email: user.email,
-    name: user.displayName,
-    avatarUrl: user.photoURL,
-    metadata: {
-      createdAt: user.metadata.creationTime,
-      lastSignInTime: user.metadata.lastSignInTime
+export function getCurrentUser(): Promise<AuthUser | null> {
+  return new Promise((resolve) => {
+    const user = auth.currentUser;
+    
+    if (!user) {
+      resolve(null);
+      return;
     }
-  };
+    
+    resolve({
+      id: user.uid,
+      email: user.email,
+      name: user.displayName,
+      avatarUrl: user.photoURL,
+      metadata: {
+        createdAt: user.metadata.creationTime,
+        lastSignInTime: user.metadata.lastSignInTime
+      }
+    });
+  });
 }

@@ -88,10 +88,12 @@ export class FirebaseAuth implements AuthService {
   }): AuthUser {
     return {
       id: user.uid,
-      email: user.email || '',
-      name: user.displayName || '',
-      provider: user.providerData[0]?.providerId || 'password',
-      avatarUrl: user.photoURL || ''
+      email: user.email,
+      name: user.displayName,
+      avatarUrl: user.photoURL,
+      metadata: {
+        provider: user.providerData[0]?.providerId || 'password'
+      }
     };
   }
 }

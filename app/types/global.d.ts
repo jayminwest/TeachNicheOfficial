@@ -47,6 +47,7 @@ declare global {
   
   // Jest extensions
   namespace jest {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface MockedFunction<T> {
       lastCallOptions?: unknown;
     }

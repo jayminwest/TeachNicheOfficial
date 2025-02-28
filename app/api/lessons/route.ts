@@ -131,10 +131,22 @@ async function getLessonsHandler(request: Request) {
     }
     
     // Execute the query with all parameters
-    const { data: lessons } = await lessonsRef.select({
-      filters: queryParams,
-      orderBy: { field: sortField, direction: sortDirection }
-    });
+    const { data: lessons, error } = await lessonsRef.select()
+      .where(queryParams)
+      .orderBy(sortField, sortDirection)
+      .get();
+      
+    if (error) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to fetch lessons',
+          details: typeof error === 'object' && error !== null && 'message' in error 
+            ? String(error.message) 
+            : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
     
     return NextResponse.json({ lessons });
   } catch (error) {

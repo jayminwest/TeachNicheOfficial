@@ -18,24 +18,21 @@ interface LessonData {
 async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const session = await new Promise(resolve => {
+    const user = await new Promise(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();
-        resolve(user ? { user } : null);
+        resolve(user);
       });
     });
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
     
-    // Get user from session
-    const user = session.user;
-
     const data = await request.json();
     const { 
       title, 
@@ -146,24 +143,21 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const session = await new Promise(resolve => {
+    const user = await new Promise(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();
-        resolve(user ? { user } : null);
+        resolve(user);
       });
     });
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
     
-    // Get user from session
-    const user = session.user;
-
     const data = await request.json();
     const { id, ...updateData } = data;
 
@@ -214,24 +208,21 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const session = await new Promise(resolve => {
+    const user = await new Promise(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();
-        resolve(user ? { user } : null);
+        resolve(user);
       });
     });
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
     
-    // Get user from session
-    const user = session.user;
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

@@ -24,15 +24,15 @@ const applicationSchema = z.object({
 export async function POST(request: Request) {
   try {
     // Get the current user
-    const session = await new Promise(resolve => {
+    const user = await new Promise(resolve => {
       const auth = getAuth(getApp());
       const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe();
-        resolve(user ? { user } : null);
+        resolve(user);
       });
     });
     
-    if (!session || !session.user) {
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized. Please log in to submit an application." },
         { status: 401 }
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     const { data: existingApplications, error: queryError } = await supabase
       .from('creator_applications')
       .select('id, status')
-      .eq('user_id', session.user.uid)
+      .eq('user_id', user.uid)
       .in('status', ['pending', 'approved']);
     
     if (queryError) {
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const { data: application, error: insertError } = await supabase
       .from('creator_applications')
       .insert({
-        user_id: session.user.uid,
+        user_id: user.uid,
         motivation: body.motivation,
         sample_lesson_title: body.lessonTitle,
         sample_lesson_content: body.lessonContent,

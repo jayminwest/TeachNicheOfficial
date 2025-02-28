@@ -3,7 +3,13 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Get the current user
-    const { data: { session } } = await firebaseAuth.getSession();
+    const { data: { session } } = await new Promise(resolve => {
+  const auth = getAuth(getApp());
+  const unsubscribe = auth.onAuthStateChanged(user => {
+    unsubscribe();
+    resolve({ data: { session: user ? { user } : null }, error: null });
+  });
+});
     
     if (!session) {
       return NextResponse.json(
@@ -23,7 +29,7 @@ export async function GET() {
         payment_intent_id,
         lessons(title)
       `)
-      .eq('creator_id', user.id)
+      .eq('creator_id', user.uid)
       .order('created_at', { ascending: false });
     
     if (error) {

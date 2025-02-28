@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { firestore } from '@/app/lib/firebase';
+import { getFirestore } from '@/app/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 // Fallback mock categories in case Firestore is not available
@@ -14,6 +14,11 @@ export async function GET() {
   try {
     // Try to fetch categories from Firestore
     try {
+      const firestore = getFirestore();
+      if (!firestore) {
+        throw new Error('Firestore not available');
+      }
+      
       // Create a query against the collection
       const categoriesRef = collection(firestore, 'categories');
       const categoriesQuery = query(categoriesRef, orderBy('name'));

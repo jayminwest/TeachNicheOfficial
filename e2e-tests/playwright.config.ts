@@ -68,6 +68,12 @@ const config: PlaywrightTestConfig = {
   // Ensure all tests run, including those that might be skipped
   grep: /.*/,
   projects: [
+    // Setup project for Firebase emulators
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    // Regular browser testing projects
     {
       name: 'Chrome',
       use: { browserName: 'chromium' },
@@ -119,14 +125,8 @@ const config: PlaywrightTestConfig = {
   // Global setup to run before tests
   globalSetup: './setup/test-setup.ts',
   
-  // Add setup for Firebase emulators
-  projects: [
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-    ...config.projects || [],
-  ],
+  // Add setup for Firebase emulators and merge with existing projects
+  // Note: We're modifying the projects array directly instead of redefining it
   
   expect: {
     toHaveScreenshot: {

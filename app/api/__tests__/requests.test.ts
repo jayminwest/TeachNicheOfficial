@@ -1,4 +1,3 @@
-import { getAuth } from 'firebase/auth'
 import { POST, GET } from '../requests/route'
 
 // Mock dependencies

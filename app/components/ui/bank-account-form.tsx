@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/components/ui/use-toast';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { db, auth, storage } from '@/app/lib/firebase';
 import { stripeConfig } from '@/app/services/stripe';
 import {
   Card,

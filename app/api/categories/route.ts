@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 export async function GET() {
   try {
     const cookieStore = cookies()
-    const auth = getAuth()({ cookies: () => cookieStore })
+    const _auth = getAuth()({ cookies: () => cookieStore }) // Prefix with underscore to indicate intentional unused var
     
     const { data: categories, error } = await supabase
       .from('categories')

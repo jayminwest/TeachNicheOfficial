@@ -145,7 +145,7 @@ describe('SignInPage', () => {
     
     // Wait for any error message to appear
     await waitFor(() => {
-      const errorElement = screen.getByTestId('password-input');
+      const errorElement = screen.getByTestId('auth-error');
       expect(errorElement).toBeInTheDocument();
       expect(errorElement).toHaveClass('text-red-500');
     });

@@ -22,7 +22,7 @@ const getFirebaseAuth = async (): Promise<{
   signInWithPopup: (auth: Auth, provider: unknown) => Promise<UserCredential>;
   GoogleAuthProvider: {
     new(): unknown;
-    credentialFromResult(userCredential: UserCredential): unknown;
+    credentialFromResult(userCredential: UserCredential): { accessToken?: string } | null;
     prototype: unknown;
   };
 }> => {

@@ -4,97 +4,144 @@ This guide provides strategies for resolving common TypeScript errors in the Tea
 
 ## Common Error Types and Solutions
 
-### Type 'any' is not assignable to type...
+### TS2304: Cannot find name 'X'
 
-This error occurs when TypeScript cannot determine that a value of type `any` matches a more specific type.
+This error occurs when you're using a variable, function, or type that hasn't been imported or declared.
 
 ```typescript
 // Error
-const userData: User = someApiResponse; // someApiResponse is 'any'
+const auth = getAuth(getApp());
 
 // Solution
-const userData: User = someApiResponse as User;
+import { getAuth, getApp } from 'firebase/auth';
+const auth = getAuth(getApp());
 ```
 
-Better solution - add proper type checking:
-
-```typescript
-function isUser(obj: any): obj is User {
-  return obj && 
-    typeof obj.id === 'string' && 
-    typeof obj.email === 'string';
-}
-
-const userData: User = isUser(someApiResponse) 
-  ? someApiResponse 
-  : { id: '', email: '', displayName: '' }; // default values
-```
-
-### Object is possibly 'undefined' or 'null'
+For Supabase references that need to be replaced:
 
 ```typescript
 // Error
-const userName = user.name; // user might be undefined
-
-// Solutions
-// 1. Optional chaining
-const userName = user?.name;
-
-// 2. Non-null assertion (use only when you're certain)
-const userName = user!.name;
-
-// 3. Conditional check (safest)
-const userName = user ? user.name : '';
-```
-
-### Property does not exist on type
-
-```typescript
-// Error
-interface User { id: string; name: string; }
-const user: User = { id: '123', name: 'John' };
-console.log(user.email); // Property 'email' does not exist on type 'User'
+await supabase.from('lessons').select('*');
 
 // Solution
-interface User { id: string; name: string; email?: string; }
+import { databaseService } from '@/app/services/database';
+await databaseService.query('SELECT * FROM lessons');
 ```
 
-### Firebase-Specific Type Issues
+### TS2339: Property 'X' does not exist on type 'Y'
 
-Firebase often requires explicit typing:
+This error occurs when you're trying to access a property that doesn't exist on an object type.
 
 ```typescript
 // Error
-const docRef = db.collection('users').doc(userId);
+if (!user?.id) return; // Property 'id' does not exist on type 'User'
 
-// Solution
-import { firestore } from 'firebase-admin';
-const docRef: firestore.DocumentReference = db.collection('users').doc(userId);
+// Solution - Check Firebase User properties
+if (!user?.uid) return; // Firebase User has 'uid', not 'id'
 ```
 
-### React Component Props
-
-Always define prop interfaces for components:
+For metadata properties:
 
 ```typescript
-// Before
-function UserProfile(props) {
-  return <div>{props.name}</div>;
+// Error
+user?.metadata?.creatorProfile // Property 'creatorProfile' does not exist on type 'UserMetadata'
+
+// Solution - Create a type guard or interface extension
+interface ExtendedUserMetadata extends UserMetadata {
+  creatorProfile?: boolean;
+  is_creator?: boolean;
 }
 
-// After
-interface UserProfileProps {
-  name: string;
-  age?: number;
+// Then use type assertion
+(user?.metadata as ExtendedUserMetadata)?.creatorProfile
+```
+
+### TS7006: Parameter 'X' implicitly has an 'any' type
+
+This error occurs when a function parameter doesn't have a type annotation.
+
+```typescript
+// Error
+.map(item => ({ id: item.id }))
+
+// Solution
+.map((item: { id: string; amount: number }) => ({ id: item.id }))
+```
+
+### TS2345: Argument of type 'X' is not assignable to parameter of type 'Y'
+
+This error is common in test files where mock objects don't match expected types.
+
+```typescript
+// Error
+const result = await GET(req); // MockRequest not assignable to Request
+
+// Solution
+const result = await GET(req as unknown as Request);
+```
+
+### TS18046: 'X' is of type 'unknown'
+
+This error occurs when you try to access properties on a value of type 'unknown'.
+
+```typescript
+// Error
+if (result.error) { // 'result' is of type 'unknown'
+
+// Solution
+if ((result as { error?: Error }).error) {
+  // Now TypeScript knows error might exist
+}
+```
+
+### TS2416: Property 'X' in type 'Y' is not assignable to the same property in base type 'Z'
+
+This error occurs when a class method's signature doesn't match its interface.
+
+```typescript
+// Error
+// Interface
+interface StorageService {
+  deleteFile(path: string): Promise<void>;
 }
 
-function UserProfile({ name, age }: UserProfileProps) {
-  return (
-    <div>
-      {name} {age && `(${age})`}
-    </div>
-  );
+// Implementation
+async deleteFile(path: string): Promise<boolean> { // Return type mismatch
+  // ...
 }
+
+// Solution
+async deleteFile(path: string): Promise<void> {
+  // Don't return a value
+}
+```
+
+### TS2322: Type 'X' is not assignable to type 'Y'
+
+This error occurs when you're trying to assign a value of one type to a variable of another type.
+
+```typescript
+// Error
+const storageService: StorageService = new FirebaseStorage();
+// Type 'FirebaseStorage' is not assignable to type 'StorageService'
+
+// Solution
+// Fix the implementation to match the interface exactly
+```
+
+### TS2554: Expected X arguments, but got Y
+
+This error occurs when you're calling a function with the wrong number of arguments.
+
+```typescript
+// Error
+await emailService.sendWelcomeEmail(email, name, inviteLink);
+// Expected 2 arguments, but got 3
+
+// Solution
+// Check the function signature and adjust the call
+await emailService.sendWelcomeEmail(email, name);
+// Or update the function to accept the third parameter
 ```
 
 ## Debugging TypeScript Errors
@@ -105,6 +152,12 @@ To get more detailed error information:
 npx tsc --noEmit --skipLibCheck --project tsconfig.json path/to/file.ts --traceResolution
 ```
 
+For a specific error code explanation:
+
+```bash
+npx tsc --explainCode TS2345
+```
+
 ## Recommended Tools
 
 - **TypeScript Error Translator**: [ts-error-translator.vercel.app](https://ts-error-translator.vercel.app/)
@@ -112,6 +165,10 @@ npx tsc --noEmit --skipLibCheck --project tsconfig.json path/to/file.ts --traceR
   - TypeScript Error Translator
   - Error Lens
   - TypeScript Hero
+- **Type-Check Single File**:
+  ```bash
+  npx tsc --noEmit --skipLibCheck app/services/database/cloud-sql.ts
+  ```
 
 ## When to Use Type Assertions
 
@@ -189,6 +246,31 @@ if (isFirebaseUser(currentUser)) {
   // TypeScript knows currentUser is FirebaseUser here
   console.log(currentUser.uid);
 }
+```
+
+### Migrating from Supabase to Firebase
+
+When replacing Supabase references:
+
+```typescript
+// Before
+const { data, error } = await supabase
+  .from('lessons')
+  .select('*')
+  .eq('status', 'published');
+
+// After with DatabaseService
+const { rows: data } = await databaseService.query<LessonRecord[]>(
+  'SELECT * FROM lessons WHERE status = $1',
+  ['published']
+);
+
+// After with Firebase Firestore
+import { collection, query, where, getDocs } from 'firebase/firestore';
+const lessonsRef = collection(db, 'lessons');
+const q = query(lessonsRef, where('status', '==', 'published'));
+const snapshot = await getDocs(q);
+const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 ```
 
 ## References

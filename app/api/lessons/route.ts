@@ -105,21 +105,21 @@ async function getLessonsHandler(request: Request) {
     // Firebase is already initialized in @/app/lib/firebase;
     
     // Use Firebase client
-    let queryBuilder = firebaseClient.from('lessons');
+    let queryBuilder = firebaseClient.from('lessons').select();
     
     if (category) {
-      queryBuilder = queryBuilder.where('category', '==', category);
+      queryBuilder = queryBuilder.eq('category', category);
     }
     
     // Apply sorting
     if (sort === 'newest') {
-      queryBuilder = queryBuilder.orderBy('created_at', 'desc');
+      queryBuilder = queryBuilder.order('created_at', { ascending: false });
     } else if (sort === 'oldest') {
-      queryBuilder = queryBuilder.orderBy('created_at', 'asc');
+      queryBuilder = queryBuilder.order('created_at', { ascending: true });
     } else if (sort === 'price_low') {
-      queryBuilder = queryBuilder.orderBy('price', 'asc');
+      queryBuilder = queryBuilder.order('price', { ascending: true });
     } else if (sort === 'price_high') {
-      queryBuilder = queryBuilder.orderBy('price', 'desc');
+      queryBuilder = queryBuilder.order('price', { ascending: false });
     }
     
     // Apply limit
@@ -169,8 +169,8 @@ async function updateLessonHandler(request: Request) {
     // Use Firebase client
     const { data: lessons } = await firebaseClient
       .from('lessons')
-      .where('id', '==', id)
-      .limit(1)
+      .select()
+      .eq('id', id)
       .get();
     
     const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
@@ -192,8 +192,9 @@ async function updateLessonHandler(request: Request) {
     
     const { data: updatedLesson } = await firebaseClient
       .from('lessons')
-      .doc(id)
-      .update(updateData);
+      .update(updateData)
+      .eq('id', id)
+      .get();
 
     return NextResponse.json(updatedLesson);
   } catch {
@@ -235,8 +236,8 @@ async function deleteLessonHandler(request: Request) {
     // Use Firebase client
     const { data: lessons } = await firebaseClient
       .from('lessons')
-      .where('id', '==', id)
-      .limit(1)
+      .select()
+      .eq('id', id)
       .get();
     
     const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
@@ -259,8 +260,8 @@ async function deleteLessonHandler(request: Request) {
 
     await firebaseClient
       .from('lessons')
-      .doc(id)
       .delete()
+      .eq('id', id)
 
     return NextResponse.json({ success: true });
   } catch {

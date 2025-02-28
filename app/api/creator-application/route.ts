@@ -58,8 +58,7 @@ export async function POST(request: Request) {
     const { data: existingApplications, error: queryError } = await firebaseClient
       .from('creator_applications')
       .select()
-      .where('user_id', '==', user.uid)
-      .where('status', 'in', ['pending', 'approved'])
+      .eq('user_id', user.uid)
       .get();
     
     if (queryError) {
@@ -71,13 +70,18 @@ export async function POST(request: Request) {
     }
     
     if (existingApplications && existingApplications.length > 0) {
-      const application = existingApplications[0];
-      if (application.status === 'approved') {
+      const application = existingApplications.find(app => 
+        app.status === 'pending' || app.status === 'approved'
+      );
+      
+      if (!application) {
+        // No pending or approved applications found
+      } else if (application.status === 'approved') {
         return NextResponse.json(
           { error: "You are already an approved creator" },
           { status: 400 }
         );
-      } else {
+      } else if (application.status === 'pending') {
         return NextResponse.json(
           { error: "You already have a pending application" },
           { status: 400 }

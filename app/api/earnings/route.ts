@@ -1,15 +1,26 @@
 import { NextResponse } from 'next/server';
+import { getAuth, User } from "firebase/auth";
+import { getApp } from "firebase/app";
+import { firebaseClient } from '@/app/services/firebase-compat';
+
+// Define the auth response type
+interface AuthResponse {
+  data: {
+    session: { user: User } | null;
+  };
+  error: null | unknown;
+}
 
 export async function GET() {
   try {
     // Get the current user
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    const { data: { session } } = await new Promise<AuthResponse>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve({ data: { session: user ? { user } : null }, error: null });
+      });
+    });
     
     if (!session) {
       return NextResponse.json(
@@ -18,8 +29,17 @@ export async function GET() {
       );
     }
     
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: { message: 'Unauthorized' } },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user;
+    
     // Get creator earnings
-    const { data: earnings, error } = await supabase
+    const { data: earnings, error } = await firebaseClient
       .from('creator_earnings')
       .select(`
         id,

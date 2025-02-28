@@ -15,24 +15,22 @@
  */
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
-import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
 
-// Only import Auth in client components
-let getAuth: typeof import('firebase/auth').getAuth | undefined;
-let connectAuthEmulator: typeof import('firebase/auth').connectAuthEmulator | undefined;
+// Define types for our Firebase services
+type FirestoreType = import('firebase/firestore').Firestore;
+type StorageType = import('firebase/storage').FirebaseStorage;
+type FunctionsType = import('firebase/functions').Functions;
+type AuthType = import('firebase/auth').Auth;
 
-// Dynamically import auth in client-side only
-if (typeof window !== 'undefined') {
-  // Using dynamic import with type safety
-  import('firebase/auth').then((authModule) => {
-    getAuth = authModule.getAuth;
-    connectAuthEmulator = authModule.connectAuthEmulator;
-  }).catch(error => {
-    console.error('Failed to load auth module:', error);
-  });
-}
+// Declare variables to hold our Firebase services
+let app: FirebaseApp;
+let firestore: FirestoreType | null = null;
+let storage: StorageType | null = null;
+let functions: FunctionsType | null = null;
+let auth: AuthType | null = null;
+
+// Flag to check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
 
 // Check for required environment variables
 const requiredEnvVars = [
@@ -88,72 +86,118 @@ if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.proj
   }
 }
 
-// Log the configuration being used (without sensitive values)
-console.log('Firebase configuration:', {
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
-  storageBucket: firebaseConfig.storageBucket,
-  usingEmulators: process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true'
-});
-
-// Initialize Firebase only once
-let app: FirebaseApp;
-let auth: import('firebase/auth').Auth | null = null;
-let firestore: Firestore;
-let storage: FirebaseStorage;
-let functions: Functions;
-
-// Server-side Firebase initialization needs special handling
-const isServer = typeof window === 'undefined';
-
-try {
-  // Check if we have the minimum required configuration
-  if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-    throw new Error('Missing required Firebase configuration. Check your environment variables.');
-  }
-
-  // Initialize Firebase
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  
-  // Initialize services with special handling for server-side
-  if (isServer) {
-    // Server-side initialization - don't initialize auth
-    console.log('Server-side Firebase initialization - skipping auth');
-    firestore = getFirestore(app);
-    storage = getStorage(app);
-    functions = getFunctions(app);
-  } else {
-    // Client-side initialization (normal)
-    if (getAuth) {
-      auth = getAuth(app);
+// Initialize Firebase app
+function initializeFirebaseApp() {
+  try {
+    // Check if we have the minimum required configuration
+    if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+      throw new Error('Missing required Firebase configuration. Check your environment variables.');
     }
-    firestore = getFirestore(app);
-    storage = getStorage(app);
-    functions = getFunctions(app);
+
+    // Initialize Firebase
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    
+    console.log('Firebase app initialized successfully with project:', firebaseConfig.projectId);
+    return app;
+  } catch (error) {
+    console.error('Error initializing Firebase app:', error);
+    throw new Error('Failed to initialize Firebase app. Check your configuration.');
   }
-  
-  console.log('Firebase initialized successfully with project:', firebaseConfig.projectId);
-  
-  // Connect to emulators in development if FIREBASE_USE_EMULATORS is set
-  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
-    if (typeof window !== 'undefined') {
-      // Only connect to emulators in browser environment
-      if (auth && connectAuthEmulator) {
-        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-      }
-      connectFirestoreEmulator(firestore, 'localhost', 8080);
-      connectStorageEmulator(storage, 'localhost', 9199);
-      connectFunctionsEmulator(functions, 'localhost', 5001);
-      
-      console.log('🔥 Connected to Firebase emulators');
-    }
-  }
-} catch (error) {
-  console.error('Error initializing Firebase:', error);
-  throw new Error('Failed to initialize Firebase. Check your configuration.');
 }
 
-export { app, auth, firestore, storage, functions };
+// Initialize Firebase app
+app = initializeFirebaseApp();
+
+// Client-side only imports and initialization
+if (isBrowser) {
+  // Initialize Firestore
+  import('firebase/firestore').then(({ getFirestore, connectFirestoreEmulator }) => {
+    firestore = getFirestore(app);
+    
+    // Connect to emulator if needed
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
+      connectFirestoreEmulator(firestore, 'localhost', 8080);
+    }
+  }).catch(error => {
+    console.error('Failed to initialize Firestore:', error);
+  });
+  
+  // Initialize Storage
+  import('firebase/storage').then(({ getStorage, connectStorageEmulator }) => {
+    storage = getStorage(app);
+    
+    // Connect to emulator if needed
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
+      connectStorageEmulator(storage, 'localhost', 9199);
+    }
+  }).catch(error => {
+    console.error('Failed to initialize Storage:', error);
+  });
+  
+  // Initialize Functions
+  import('firebase/functions').then(({ getFunctions, connectFunctionsEmulator }) => {
+    functions = getFunctions(app);
+    
+    // Connect to emulator if needed
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
+      connectFunctionsEmulator(functions, 'localhost', 5001);
+    }
+  }).catch(error => {
+    console.error('Failed to initialize Functions:', error);
+  });
+  
+  // Initialize Auth
+  import('firebase/auth').then(({ getAuth, connectAuthEmulator }) => {
+    auth = getAuth(app);
+    
+    // Connect to emulator if needed
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
+      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    }
+  }).catch(error => {
+    console.error('Failed to initialize Auth:', error);
+  });
+  
+  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
+    console.log('🔥 Connected to Firebase emulators');
+  }
+}
+
+// Export the Firebase services
+export { app };
+
+// Export getters for the services to ensure they're only accessed after initialization
+export function getFirestore() {
+  if (!isBrowser) {
+    console.warn('Attempted to access Firestore on the server side. This is not supported.');
+    return null;
+  }
+  return firestore;
+}
+
+export function getStorage() {
+  if (!isBrowser) {
+    console.warn('Attempted to access Storage on the server side. This is not supported.');
+    return null;
+  }
+  return storage;
+}
+
+export function getFunctions() {
+  if (!isBrowser) {
+    console.warn('Attempted to access Functions on the server side. This is not supported.');
+    return null;
+  }
+  return functions;
+}
+
+export function getAuth() {
+  if (!isBrowser) {
+    console.warn('Attempted to access Auth on the server side. This is not supported.');
+    return null;
+  }
+  return auth;
+}
 
 /**
  * Helper function to determine if Firebase is properly initialized

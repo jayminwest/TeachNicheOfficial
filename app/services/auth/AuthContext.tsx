@@ -1,8 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { User } from 'firebase/auth'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { User, getAuth, onAuthStateChanged } from 'firebase/auth'
 import { app } from '@/app/lib/firebase'
 
 interface AuthContextType {
@@ -19,7 +18,7 @@ export const AuthContext = createContext<AuthContextType>({
   isCreator: () => false,
 })
 
-// Initialize Firebase Auth
+// Initialize Firebase Auth - this is safe because this is a client component ('use client')
 const auth = getAuth(app);
 
 export function AuthProvider({ 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent } from './dialog'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
-import { signInWithEmail, signUpWithEmail } from '@/app/services/auth/firebase-auth-service'
+import { signInWithEmail, signUp } from '@/app/services/auth/firebase-auth-service'
 
 interface AuthDialogProps {
   open: boolean

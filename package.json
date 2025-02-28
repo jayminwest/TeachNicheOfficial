@@ -137,9 +137,7 @@
     "wait-on": "^8.0.2",
     "webpack": "^5.98.0",
     "whatwg-fetch": "^3.6.20"
-  }
-}
-{
+  },
   "scripts": {
     "generate-test-data": "ts-node scripts/generate-test-data.ts",
     "setup-environment": "ts-node scripts/setup-environment.ts",

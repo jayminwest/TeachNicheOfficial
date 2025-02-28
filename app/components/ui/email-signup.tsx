@@ -5,7 +5,7 @@ import { Button } from "./button";
 import { Input } from "./input";
 import { motion } from "framer-motion";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { firestore } from "@/app/lib/firebase";
 
 export function EmailSignup() {
   const [email, setEmail] = useState("");
@@ -18,7 +18,7 @@ export function EmailSignup() {
 
     try {
       // Add email to Firebase waitlist collection
-      await addDoc(collection(db, "waitlist"), {
+      await addDoc(collection(firestore, "waitlist"), {
         email,
         signed_up_at: new Date().toISOString()
       });

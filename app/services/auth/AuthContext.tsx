@@ -1,8 +1,8 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { User, getAuth, onAuthStateChanged } from 'firebase/auth'
-import { app } from '@/app/lib/firebase'
+import { User, getAuth as firebaseGetAuth, onAuthStateChanged } from 'firebase/auth'
+import { app, getAuth as getFirebaseAuth } from '@/app/lib/firebase'
 
 interface AuthContextType {
   user: User | null
@@ -19,7 +19,8 @@ export const AuthContext = createContext<AuthContextType>({
 })
 
 // Initialize Firebase Auth - this is safe because this is a client component ('use client')
-const auth = getAuth(app);
+// Try to get auth from our helper function first, fallback to direct initialization
+const auth = getFirebaseAuth() || firebaseGetAuth(app);
 
 export function AuthProvider({ 
   children, 

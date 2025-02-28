@@ -1,14 +1,28 @@
-import { auth } from '@/app/lib/firebase';
+import { getAuth as getFirebaseAuth } from '@/app/lib/firebase';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   updateProfile,
-  signOut as firebaseSignOut
+  signOut as firebaseSignOut,
+  getAuth as firebaseGetAuth,
+  Auth
 } from 'firebase/auth';
 import { AuthService, AuthUser } from './interface';
+import { app } from '@/app/lib/firebase';
+
+// Get auth instance - this is safe in client components
+const getAuthInstance = (): Auth => {
+  // Try to get auth from our helper function first
+  const auth = getFirebaseAuth();
+  if (auth) return auth;
+  
+  // Fallback to creating a new instance if needed
+  return firebaseGetAuth(app);
+};
 
 export const firebaseAuth = {
   getSession: async () => {
+    const auth = getAuthInstance();
     const currentUser = auth.currentUser;
     
     return {
@@ -31,6 +45,7 @@ export const firebaseAuth = {
 export class FirebaseAuth implements AuthService {
   async signIn(email: string, password: string): Promise<AuthUser> {
     try {
+      const auth = getAuthInstance();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return this.transformUser(userCredential.user);
     } catch (error) {
@@ -41,6 +56,7 @@ export class FirebaseAuth implements AuthService {
   
   async signUp(email: string, password: string, name: string): Promise<AuthUser> {
     try {
+      const auth = getAuthInstance();
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       // Update the user profile with the name
@@ -57,6 +73,7 @@ export class FirebaseAuth implements AuthService {
   
   async signOut(): Promise<void> {
     try {
+      const auth = getAuthInstance();
       await firebaseSignOut(auth);
     } catch (error) {
       console.error('Error signing out:', error);
@@ -65,6 +82,8 @@ export class FirebaseAuth implements AuthService {
   }
   
   async getCurrentUser(): Promise<AuthUser | null> {
+    const auth = getAuthInstance();
+    
     // If we already have the current user, return it
     if (auth.currentUser) {
       return this.transformUser(auth.currentUser);

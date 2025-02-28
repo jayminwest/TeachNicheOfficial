@@ -7,8 +7,6 @@ import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
-    const auth = getAuth()<Database>({ cookies })
-
     const { data: { session } } = await firebaseAuth.getSession()
 
     if (!session?.user) {

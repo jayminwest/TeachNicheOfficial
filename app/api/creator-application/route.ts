@@ -23,9 +23,6 @@ const applicationSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // Initialize Supabase client
-    const auth = getAuth()({ cookies });
-    
     // Get the current user
     const { data: { session } } = await firebaseAuth.getSession();
     

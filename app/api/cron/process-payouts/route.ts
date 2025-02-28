@@ -21,9 +21,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Initialize Supabase client
-    const auth = getAuth()<Database>({ cookies });
-    
     // Process scheduled payouts using Firebase client
     const results = await processScheduledPayouts(firebaseClient);
     

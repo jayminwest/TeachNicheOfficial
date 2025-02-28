@@ -19,7 +19,6 @@ interface LessonData {
 async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
@@ -140,7 +139,6 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {
@@ -201,7 +199,6 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const auth = getAuth()({ cookies });
     const { data: { session } } = await firebaseAuth.getSession();
     
     if (!session?.user) {

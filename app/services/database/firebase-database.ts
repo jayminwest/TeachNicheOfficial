@@ -203,8 +203,8 @@ export class FirestoreDatabase implements DatabaseService {
     };
   }
 
-  async getCategories(): Promise<{ id: string; name: string; created_at: string; updated_at: string; }[]> {
-    const categories = await this.list<{ id: string; name: string; created_at: string; updated_at: string; }>('categories');
+  async getCategories(): Promise<{ id: string; name: string; description?: string; created_at: string; updated_at: string; }[]> {
+    const categories = await this.list<{ id: string; name: string; description?: string; created_at: string; updated_at: string; }>('categories');
     return categories.sort((a, b) => a.name.localeCompare(b.name));
   }
 

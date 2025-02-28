@@ -5,6 +5,7 @@ import Stripe from 'stripe';
 import { z } from 'zod';
 import { getAuth, User } from 'firebase/auth';
 import { getApp } from 'firebase/app';
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.secretKey, {

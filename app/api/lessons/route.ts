@@ -213,12 +213,35 @@ async function updateLessonHandler(request: Request) {
     }
 
     // Check if user has permission to update this lesson
-    // Use Firebase client
-    const { data: lessons } = await firebaseClient
+    // Define a type for the query builder
+    type QueryBuilder = {
+      eq: (field: string, value: string | boolean | number) => QueryBuilder;
+      get: () => Promise<{ 
+        data: Array<Record<string, unknown>>; 
+        error: Error | null | unknown 
+      }>;
+    };
+    
+    // Use Firebase client with proper method chaining
+    const queryBuilder = firebaseClient
       .from('lessons')
-      .select()
+      .select();
+      
+    const { data: lessons, error: queryError } = await queryBuilder
       .eq('id', id)
       .get();
+      
+    if (queryError) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to fetch lesson',
+          details: typeof queryError === 'object' && queryError !== null && 'message' in queryError 
+            ? String(queryError.message) 
+            : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
     
     const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
       
@@ -240,8 +263,7 @@ async function updateLessonHandler(request: Request) {
     const { data: updatedLesson } = await firebaseClient
       .from('lessons')
       .update(updateData)
-      .eq('id', id)
-      .get();
+      .eq('id', id);
 
     return NextResponse.json(updatedLesson);
   } catch (error) {

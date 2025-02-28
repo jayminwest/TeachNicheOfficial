@@ -46,9 +46,6 @@ export function onAuthStateChange(callback: (user: FirebaseUser | null) => void)
   return onAuthStateChanged(auth, callback);
 }
 
-// Import the interface
-import { AuthService } from './interface';
-
 // Create a class that implements AuthService
 class FirebaseAuthService implements AuthService {
   private firebaseAuth: FirebaseAuth;
@@ -57,13 +54,13 @@ class FirebaseAuthService implements AuthService {
     this.firebaseAuth = new FirebaseAuth();
   }
   
-  async signIn(email: string, password: string): Promise<any> {
+  async signIn(_email: string, _password: string): Promise<unknown> {
     // Implement signIn method
     console.warn('signIn not implemented');
     return null;
   }
   
-  async signUp(email: string, password: string): Promise<any> {
+  async signUp(_email: string, _password: string): Promise<unknown> {
     // Implement signUp method
     console.warn('signUp not implemented');
     return null;
@@ -78,7 +75,7 @@ class FirebaseAuthService implements AuthService {
     return this.firebaseAuth.signOut();
   }
   
-  onAuthStateChanged(callback: (user: any) => void) {
+  onAuthStateChanged(callback: (user: unknown) => void) {
     return this.firebaseAuth.onAuthStateChanged(callback);
   }
   

@@ -24,24 +24,12 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
   
   const { user } = useAuth();
   
-  // More robust handling of getFirebaseAuth
-  const supabase = useMemo(() => {
-    return typeof getFirebaseAuth === 'function' 
-      ? getFirebaseAuth() 
-      : {
-          from: () => ({
-            select: () => ({
-              eq: () => ({ data: null, error: null })
-            })
-          })
-        };
-  }, []);
-
   // Import database service
   const { databaseService } = useMemo(() => {
     try {
-      return require('@/app/services/database');
-    } catch (e) {
+      // Using dynamic import instead of require
+      return import('@/app/services/database');
+    } catch (_error) {
       return { databaseService: null };
     }
   }, []);

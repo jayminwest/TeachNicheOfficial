@@ -15,82 +15,69 @@ export interface DatabaseService {
  * This file defines the interface for database services.
  */
 
+export interface DatabaseResponse<T> {
+  data: T | null;
+  error: Error | null;
+}
+
 export interface DatabaseService {
-  query<T = any>(query: string, params?: any[]): Promise<{
+  query<T = unknown>(query: string, params?: unknown[]): Promise<{
     rows: T[];
     rowCount: number;
   }>;
   
   from(table: string): {
     select: (columns?: string) => {
-      eq: (column: string, value: any) => Promise<{
-        data: any;
-        error: any;
-      }>;
-      match: (query: Record<string, any>) => {
-        maybeSingle: () => Promise<{
-          data: any;
-          error: any;
-        }>;
+      eq: (column: string, value: unknown) => Promise<DatabaseResponse<unknown>>;
+      match: (queryParams: Record<string, unknown>) => {
+        maybeSingle: () => Promise<DatabaseResponse<unknown>>;
       };
-      maybeSingle: () => Promise<{
-        data: any;
-        error: any;
-      }>;
+      maybeSingle: () => Promise<DatabaseResponse<unknown>>;
     };
-    insert: (data: any) => Promise<{
-      data: any;
-      error: any;
-    }>;
-    update: (data: any, options?: { eq: [string, any][] }) => Promise<{
-      data: any;
-      error: any;
-    }>;
-    delete: (options?: { eq: [string, any][] }) => Promise<{
-      data: any;
-      error: any;
-    }>;
+    insert: (data: unknown) => Promise<DatabaseResponse<unknown>>;
+    update: (data: unknown, options?: { eq: [string, unknown][] }) => Promise<DatabaseResponse<unknown>>;
+    delete: (options?: { eq: [string, unknown][] }) => Promise<DatabaseResponse<unknown>>;
   };
 }
 
 export const databaseService: DatabaseService = {
-  query: async <T = any>(query: string, params?: any[]): Promise<{
+  query: async <T = unknown>(_query: string, _params?: unknown[]): Promise<{
     rows: T[];
     rowCount: number;
   }> => {
-    console.warn('Database query not implemented:', query, params);
+    console.warn('Database query not implemented:', _query, _params);
     return {
       rows: [],
       rowCount: 0
     };
   },
   
-  from: (table: string) => ({
-    select: (columns?: string) => ({
-      eq: async (column: string, value: any) => ({
+  from: (_table: string) => ({
+    select: (_columns?: string) => ({
+      eq: async (_column: string, _value: unknown): Promise<DatabaseResponse<unknown>> => ({
         data: null,
         error: null
       }),
-      match: (query: Record<string, any>) => ({
-        maybeSingle: async () => ({
+      match: (_queryParams: Record<string, unknown>) => ({
+        maybeSingle: async (): Promise<DatabaseResponse<unknown>> => ({
           data: null,
           error: null
         })
       }),
-      maybeSingle: async () => ({
+      maybeSingle: async (): Promise<DatabaseResponse<unknown>> => ({
         data: null,
         error: null
       })
     }),
-    insert: async (data: any) => ({
+    insert: async (_data: unknown): Promise<DatabaseResponse<unknown>> => ({
       data: null,
       error: null
     }),
-    update: async (data: any, options?: { eq: [string, any][] }) => ({
+    update: async (_data: unknown, _options?: { eq: [string, unknown][] }): Promise<DatabaseResponse<unknown>> => ({
       data: null,
       error: null
     }),
-    delete: async (options?: { eq: [string, any][] }) => ({
+    delete: async (_options?: { eq: [string, unknown][] }): Promise<DatabaseResponse<unknown>> => ({
       data: null,
       error: null
     })

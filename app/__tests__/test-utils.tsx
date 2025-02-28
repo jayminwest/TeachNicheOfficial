@@ -8,7 +8,7 @@ const mockUser = {
   uid: 'test-user-id',
   email: 'test@example.com',
   metadata: {
-    is_creator: true
+    creatorProfile: true
   },
   displayName: 'Test User',
   photoURL: 'https://example.com/avatar.png',
@@ -21,8 +21,14 @@ const mockUser = {
     email: 'test@example.com',
     phoneNumber: null,
     photoURL: 'https://example.com/avatar.png'
-  }]
-} as User
+  }],
+  getIdToken: () => Promise.resolve('mock-token'),
+  refreshToken: 'mock-refresh-token',
+  tenantId: null,
+  delete: () => Promise.resolve(),
+  reload: () => Promise.resolve(),
+  toJSON: () => ({})
+} as unknown as User
 
 interface AuthProviderProps {
   user?: User | null
@@ -56,7 +62,7 @@ export function renderWithAuth(
             user: user as User | null, // Force the correct type
             loading: loading as boolean,
             isAuthenticated: isAuthenticated as boolean,
-            isCreator: () => Boolean(user?.metadata?.creatorProfile)
+            isCreator: () => Boolean(user?.metadata?.creatorProfile || user?.metadata?.is_creator)
           }}
         >
           {children}

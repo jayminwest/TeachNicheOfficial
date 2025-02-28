@@ -52,9 +52,13 @@ export function AuthProvider({
 
   const isCreator = useCallback(() => {
     // Check if the user has a creator profile in their custom claims or metadata
-    return user?.metadata?.creatorProfile === true || 
-           user?.customClaims?.is_creator === true;
-  }, [user?.metadata?.creatorProfile, user?.customClaims?.is_creator]);
+    const metadata = user?.metadata as Record<string, any> | undefined;
+    const customClaims = (user as any)?.customClaims;
+    
+    return metadata?.creatorProfile === true || 
+           metadata?.is_creator === true ||
+           customClaims?.is_creator === true;
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated, isCreator }}>

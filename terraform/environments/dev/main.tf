@@ -15,7 +15,7 @@ provider "google" {
 
 # Cloud SQL instance
 resource "google_sql_database_instance" "main" {
-  name             = "${var.project_id}-db-instance"
+  name             = "${var.project_id}-dev-db-instance"
   database_version = "POSTGRES_14"
   region           = var.region
   

@@ -11,16 +11,20 @@ const isBrowser = typeof window !== 'undefined';
 // Dynamically import auth-related modules only on the client side
 const getFirebaseAuth = async (): Promise<{
   auth: Auth | null;
-  createUserWithEmailAndPassword: Function;
-  signInWithEmailAndPassword: Function;
-  signOut: Function;
-  sendPasswordResetEmail: Function;
-  updateProfile: Function;
-  updateEmail: Function;
-  updatePassword: Function;
-  onAuthStateChanged: Function;
-  signInWithPopup: Function;
-  GoogleAuthProvider: any;
+  createUserWithEmailAndPassword: (auth: Auth, email: string, password: string) => Promise<UserCredential>;
+  signInWithEmailAndPassword: (auth: Auth, email: string, password: string) => Promise<UserCredential>;
+  signOut: (auth: Auth) => Promise<void>;
+  sendPasswordResetEmail: (auth: Auth, email: string) => Promise<void>;
+  updateProfile: (user: FirebaseUser, profile: { displayName?: string | null; photoURL?: string | null }) => Promise<void>;
+  updateEmail: (user: FirebaseUser, email: string) => Promise<void>;
+  updatePassword: (user: FirebaseUser, password: string) => Promise<void>;
+  onAuthStateChanged: (auth: Auth, nextOrObserver: (user: FirebaseUser | null) => void, error?: (error: Error) => void) => () => void;
+  signInWithPopup: (auth: Auth, provider: unknown) => Promise<UserCredential>;
+  GoogleAuthProvider: {
+    new(): unknown;
+    credentialFromResult(userCredential: UserCredential): unknown;
+    prototype: unknown;
+  };
 }> => {
   if (!isBrowser) {
     return {
@@ -425,7 +429,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 }
 
-function transformUser(firebaseUser: any): AuthUser {
+function transformUser(firebaseUser: FirebaseUser): AuthUser {
   return {
     id: firebaseUser.uid,
     email: firebaseUser.email,

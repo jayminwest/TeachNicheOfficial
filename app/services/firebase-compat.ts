@@ -207,3 +207,163 @@ export function getFirebaseCompat() {
 
 // Default export for backward compatibility
 export default firebaseClient;
+/**
+ * Firebase Compatibility Layer for Supabase
+ * 
+ * This file provides a compatibility layer that mimics the Supabase client API
+ * but uses Firebase services under the hood. This allows for a gradual migration
+ * from Supabase to Firebase without requiring extensive code changes.
+ */
+
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { app } from '@/app/lib/firebase';
+
+// Initialize Firebase services
+const firestore = getFirestore(app);
+const storage = getStorage(app);
+const auth = getAuth(app);
+
+// Compatibility layer for Supabase client
+export const supabase = {
+  auth: {
+    signUp: async ({ email, password }: { email: string; password: string }) => {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        return { data: { user: userCredential.user }, error: null };
+      } catch (error: any) {
+        return { data: null, error: { message: error.message } };
+      }
+    },
+    signIn: async ({ email, password }: { email: string; password: string }) => {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return { data: { user: userCredential.user }, error: null };
+      } catch (error: any) {
+        return { data: null, error: { message: error.message } };
+      }
+    },
+    signInWithGoogle: async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(auth, provider);
+        return { data: { user: userCredential.user }, error: null };
+      } catch (error: any) {
+        return { data: null, error: { message: error.message } };
+      }
+    },
+    signOut: async () => {
+      try {
+        await signOut(auth);
+        return { error: null };
+      } catch (error: any) {
+        return { error: { message: error.message } };
+      }
+    },
+    getUser: async () => {
+      const user = auth.currentUser;
+      if (user) {
+        return { data: { user }, error: null };
+      }
+      return { data: { user: null }, error: null };
+    }
+  },
+  from: (tableName: string) => {
+    return {
+      select: (columns: string = '*') => {
+        return {
+          eq: async (column: string, value: any) => {
+            try {
+              const q = query(collection(firestore, tableName), where(column, '==', value));
+              const snapshot = await getDocs(q);
+              const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              return { data, error: null };
+            } catch (error: any) {
+              return { data: null, error: { message: error.message } };
+            }
+          },
+          order: (column: string, { ascending = true } = {}) => {
+            return {
+              limit: async (count: number) => {
+                try {
+                  const q = query(
+                    collection(firestore, tableName), 
+                    orderBy(column, ascending ? 'asc' : 'desc'),
+                    limit(count)
+                  );
+                  const snapshot = await getDocs(q);
+                  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                  return { data, error: null };
+                } catch (error: any) {
+                  return { data: null, error: { message: error.message } };
+                }
+              }
+            };
+          }
+        };
+      },
+      insert: async (data: any) => {
+        try {
+          const docRef = doc(collection(firestore, tableName));
+          await setDoc(docRef, { ...data, created_at: new Date().toISOString() });
+          return { data: { id: docRef.id, ...data }, error: null };
+        } catch (error: any) {
+          return { data: null, error: { message: error.message } };
+        }
+      },
+      update: async (data: any, { id }: { id: string }) => {
+        try {
+          const docRef = doc(firestore, tableName, id);
+          await updateDoc(docRef, { ...data, updated_at: new Date().toISOString() });
+          return { data, error: null };
+        } catch (error: any) {
+          return { data: null, error: { message: error.message } };
+        }
+      },
+      delete: async ({ id }: { id: string }) => {
+        try {
+          const docRef = doc(firestore, tableName, id);
+          await deleteDoc(docRef);
+          return { error: null };
+        } catch (error: any) {
+          return { error: { message: error.message } };
+        }
+      }
+    };
+  },
+  storage: {
+    from: (bucketName: string) => {
+      return {
+        upload: async (path: string, file: File | Blob | ArrayBuffer) => {
+          try {
+            const storageRef = ref(storage, `${bucketName}/${path}`);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            return { data: { path, url }, error: null };
+          } catch (error: any) {
+            return { data: null, error: { message: error.message } };
+          }
+        },
+        getPublicUrl: (path: string) => {
+          const storageRef = ref(storage, `${bucketName}/${path}`);
+          return { publicUrl: `https://firebasestorage.googleapis.com/v0/b/${storage.app.options.storageBucket}/o/${encodeURIComponent(`${bucketName}/${path}`)}?alt=media` };
+        },
+        remove: async (paths: string[]) => {
+          try {
+            const promises = paths.map(path => {
+              const storageRef = ref(storage, `${bucketName}/${path}`);
+              return deleteObject(storageRef);
+            });
+            await Promise.all(promises);
+            return { data: null, error: null };
+          } catch (error: any) {
+            return { data: null, error: { message: error.message } };
+          }
+        }
+      };
+    }
+  }
+};
+
+export default supabase;

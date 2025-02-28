@@ -13,6 +13,7 @@ import { useAuth } from '@/app/services/auth/AuthContext'
 
 interface SignUpPageProps {
   onSwitchToSignIn: () => void;
+  onSignUp?: (email: string, password: string, name: string) => Promise<void>;
 }
 
 function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {

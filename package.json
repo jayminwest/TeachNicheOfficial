@@ -4,31 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules npx playwright test --config=e2e-tests/playwright.config.ts",
-    "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests' --config=e2e-tests/playwright.config.ts",
-    "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual",
-    "type-check": "tsc --noEmit",
-    "migrate:db": "node --loader ts-node/esm scripts/migrate-database.ts",
-    "migrate:storage": "node --loader ts-node/esm scripts/migrate-storage.ts",
-    "test:storage": "node --loader ts-node/esm scripts/test-firebase-storage.ts",
-    "test:db": "node --loader ts-node/esm scripts/test-database-service.ts",
-    "test:email": "node --loader ts-node/esm scripts/test-email-service.ts",
-    "test:auth": "node --loader ts-node/esm scripts/test-firebase-auth.ts",
-    "test:compat": "node --loader ts-node/esm scripts/test-firebase-compat.ts",
-    "test:all": "node --loader ts-node/esm scripts/test-all-services.ts",
-    "migrate": "npm run migrate:db && npm run migrate:storage",
-    "verify": "node --loader ts-node/esm scripts/verify-migration.ts",
-    "check:refs": "node --loader ts-node/esm scripts/check-supabase-references.ts",
-    "setup:firebase": "node --loader ts-node/esm scripts/setup-firebase.ts",
-    "setup:categories": "node --loader ts-node/esm scripts/setup-categories.ts",
-    "deploy:firestore-rules": "node --loader ts-node/esm scripts/deploy-firestore-rules.ts"
+    "generate-test-data": "ts-node scripts/generate-test-data.ts",
+    "setup-environment": "ts-node scripts/setup-environment.ts",
+    "setup-dev-env": "ts-node scripts/setup-environment.ts --dev --create-env",
+    "setup-prod-env": "ts-node scripts/setup-environment.ts --prod --create-env"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.7.0",
@@ -58,7 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "firebase": "^10.14.1",
+    "firebase": "^11.4.0",
     "firebase-admin": "^12.7.0",
     "framer-motion": "^12.4.7",
     "google-auth-library": "^9.4.1",
@@ -137,11 +116,5 @@
     "wait-on": "^8.0.2",
     "webpack": "^5.98.0",
     "whatwg-fetch": "^3.6.20"
-  },
-  "scripts": {
-    "generate-test-data": "ts-node scripts/generate-test-data.ts",
-    "setup-environment": "ts-node scripts/setup-environment.ts",
-    "setup-dev-env": "ts-node scripts/setup-environment.ts --dev --create-env",
-    "setup-prod-env": "ts-node scripts/setup-environment.ts --prod --create-env"
   }
 }

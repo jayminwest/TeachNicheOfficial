@@ -68,13 +68,14 @@ export async function GET(request: Request) {
           
           if (matchingProfile) {
             // Update the profile if found
-            const updateResult = await firebaseClient
-              .from('profiles')
-              .update({ stripe_onboarding_complete: true })
-              .eq('id', user.uid);
-              
-            if (updateResult.error) {
-              console.error('Failed to update profile:', updateResult.error);
+            try {
+              // Use a direct SQL query approach instead of the ORM-style API
+              await firebaseClient.rpc('update_profile_onboarding', {
+                profile_id: user.uid,
+                onboarding_complete: true
+              });
+            } catch (updateError) {
+              console.error('Failed to update profile:', updateError);
               return NextResponse.redirect(
                 `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
               );

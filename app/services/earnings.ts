@@ -128,7 +128,16 @@ export const getEarningsSummary = async (
   databaseService: DatabaseService
 ): Promise<EarningsSummary> => {
   // Get all earnings for the creator
-  const { rows: earningsData } = await databaseService.query(`
+  interface EarningsData {
+    id: string;
+    amount: number;
+    status: string;
+    created_at: string;
+    lesson_id: string;
+    lesson_title?: string;
+  }
+
+  const { rows: earningsData } = await databaseService.query<EarningsData>(`
     SELECT 
       e.id,
       e.amount, 
@@ -162,16 +171,16 @@ export const getEarningsSummary = async (
   }
 
   // Calculate totals
-  const totalEarnings = earningsData.reduce((sum: number, item: any) => sum + item.amount, 0);
+  const totalEarnings = earningsData.reduce((sum: number, item) => sum + item.amount, 0);
   const pendingEarnings = earningsData
-    .filter((item: any) => item.status === 'pending')
-    .reduce((sum: number, item: any) => sum + item.amount, 0);
+    .filter((item) => item.status === 'pending')
+    .reduce((sum: number, item) => sum + item.amount, 0);
   const paidEarnings = earningsData
-    .filter((item: any) => item.status === 'paid')
-    .reduce((sum: number, item: any) => sum + item.amount, 0);
+    .filter((item) => item.status === 'paid')
+    .reduce((sum: number, item) => sum + item.amount, 0);
 
   // Format recent earnings
-  const recentEarnings = earningsData.slice(0, 10).map((item: any) => ({
+  const recentEarnings = earningsData.slice(0, 10).map((item) => ({
     id: item.id,
     amount: item.amount,
     formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
@@ -227,7 +236,17 @@ export const getEarningsHistory = async (
   limit = 10,
   offset = 0
 ): Promise<EarningsHistoryItem[]> => {
-  const { rows: data } = await databaseService.query(`
+  interface EarningsHistoryData {
+    id: string;
+    created_at: string;
+    amount: number;
+    status: string;
+    purchase_id: string;
+    lesson_id: string;
+    lesson_title?: string;
+  }
+
+  const { rows: data } = await databaseService.query<EarningsHistoryData>(`
     SELECT 
       e.id,
       e.created_at,
@@ -252,7 +271,7 @@ export const getEarningsHistory = async (
     return [];
   }
 
-  return data.map((item: any) => ({
+  return data.map((item) => ({
     id: item.id,
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
@@ -279,7 +298,16 @@ export const getPayoutHistory = async (
   limit = 10,
   offset = 0
 ): Promise<PayoutHistoryItem[]> => {
-  const { rows: data } = await databaseService.query(`
+  interface PayoutHistoryData {
+    id: string;
+    created_at: string;
+    amount: number;
+    status: string;
+    destination_last_four: string;
+    earnings_count: number;
+  }
+
+  const { rows: data } = await databaseService.query<PayoutHistoryData>(`
     SELECT 
       id, 
       created_at, 
@@ -300,7 +328,7 @@ export const getPayoutHistory = async (
     return [];
   }
 
-  return data.map((item: any) => ({
+  return data.map((item) => ({
     id: item.id,
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,

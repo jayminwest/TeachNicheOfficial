@@ -104,7 +104,8 @@ export function BankAccountForm({
         throw new Error('No active session');
       }
 
-      const { session } = result.data;
+      // We don't need to use session here since we already have user from useAuth
+      // const { session } = result.data;
 
       // Check if country is supported
       const supportedCountries = stripeConfig.supportedCountries || ['US'];

@@ -10,9 +10,8 @@ export class FirebaseStorage implements StorageService {
       const storage = getStorage(getApp());
       
       // Create a reference to the file location in Firebase Storage
-      // Import storage from firebase/storage
-      import { getStorage } from 'firebase/storage';
-      const storageRef = ref(getStorage(), path);
+      const storage = getStorage();
+      const storageRef = ref(storage, path);
       
       // Convert Buffer to Blob if needed
       let fileData: File | Blob;
@@ -47,6 +46,7 @@ export class FirebaseStorage implements StorageService {
   
   async deleteFile(path: string): Promise<void> {
     try {
+      const storage = getStorage();
       const storageRef = ref(storage, path);
       await deleteObject(storageRef);
     } catch (error) {

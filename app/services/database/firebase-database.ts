@@ -138,7 +138,7 @@ export class FirestoreDatabase implements DatabaseService {
       if (startAfterDoc && sortField) {
         const startDoc = await this.get(table, startAfterDoc);
         if (startDoc) {
-          if (startDoc && typeof sortField === 'string' && startDoc && typeof startDoc === 'object' && sortField in startDoc) {
+          if (startDoc && typeof sortField === 'string' && typeof startDoc === 'object' && startDoc !== null && sortField in startDoc) {
             queryConstraints.push(startAfter(startDoc[sortField as keyof typeof startDoc]));
           }
         }

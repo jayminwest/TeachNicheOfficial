@@ -56,7 +56,7 @@ export class CloudSqlDatabase implements DatabaseService {
       updated_at: string;
     }>('SELECT * FROM categories ORDER BY name');
     
-    return rows as Record<string, unknown>[];
+    return rows;
   }
   
   async getLessons(limit = 10, offset = 0, filters: Record<string, string | number | boolean> = {}): Promise<Record<string, unknown>[]> {

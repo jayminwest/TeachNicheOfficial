@@ -410,7 +410,7 @@ export const processScheduledPayouts = async (
         } else {
           results.failed++;
           results.details.push({
-            creatorId: creator.creator_id,
+            creatorId: (creator as any).creator_id,
             status: 'failed',
             error: payoutResult.error
           });

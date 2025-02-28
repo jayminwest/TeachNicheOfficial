@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
     // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    const auth = getAuth()({ cookies });
     
     // Get the current user
     const { data: { session } } = await firebaseAuth.getSession();
@@ -28,7 +28,7 @@ export async function GET() {
         payment_intent_id,
         lessons(title)
       `)
-      .eq('creator_id', session.user.id)
+      .eq('creator_id', user.id)
       .order('created_at', { ascending: false });
     
     if (error) {

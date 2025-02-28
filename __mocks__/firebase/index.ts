@@ -79,7 +79,7 @@ export const mockRequestData = [
 export const mockFirebaseAuth = {
   getAuth: () => ({
     currentUser: mockUserData,
-    onAuthStateChanged: (callback) => {
+    onAuthStateChanged: (callback: (user: any) => void) => {
       callback(mockUserData);
       return () => {}; // Unsubscribe function
     },

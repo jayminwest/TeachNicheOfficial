@@ -24,7 +24,8 @@ export async function createSessionCookie(idToken: string, expiresIn = 60 * 60 *
     }
     
     // Set the cookie
-    cookies().set(options)
+    const cookieStore = cookies()
+    cookieStore.set(options)
     
     return { success: true }
   } catch (error) {
@@ -76,7 +77,8 @@ export async function signOut() {
     await firebaseSignOut(auth)
     
     // Clear the session cookie
-    cookies().delete('__session')
+    const cookieStore = cookies()
+    cookieStore.delete('__session')
     
     return { success: true }
   } catch (error) {
@@ -93,7 +95,8 @@ export async function getSession() {
     const adminAuth = admin.auth()
     
     // Get the session cookie
-    const sessionCookie = cookies().get('__session')?.value
+    const cookieStore = cookies()
+    const sessionCookie = cookieStore.get('__session')?.value
     
     if (!sessionCookie) {
       return { data: { session: null } }

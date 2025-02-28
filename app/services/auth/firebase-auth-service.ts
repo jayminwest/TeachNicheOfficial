@@ -17,9 +17,6 @@ import { getApp, initializeApp } from 'firebase/app';
 import { AuthService, AuthUser } from './interface';
 import { auth } from '@/app/services/firebase';
 
-// Import the interface from the interface file
-import { AuthUser } from './interface';
-
 export class FirebaseAuthService implements AuthService {
   private auth;
 
@@ -52,6 +49,10 @@ export class FirebaseAuthService implements AuthService {
 
   async signUp(email: string, password: string, name: string): Promise<AuthUser> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       const userCredential: UserCredential = await createUserWithEmailAndPassword(
         this.auth, 
         email, 
@@ -69,6 +70,10 @@ export class FirebaseAuthService implements AuthService {
 
   async signIn(email: string, password: string): Promise<AuthUser> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       const userCredential: UserCredential = await signInWithEmailAndPassword(
         this.auth, 
         email, 
@@ -84,6 +89,10 @@ export class FirebaseAuthService implements AuthService {
 
   async signOut(): Promise<void> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       await firebaseSignOut(this.auth);
     } catch (error) {
       console.error('Error signing out:', error);
@@ -92,6 +101,11 @@ export class FirebaseAuthService implements AuthService {
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
+    if (!this.auth) {
+      console.error('Firebase auth is not initialized');
+      return null;
+    }
+    
     return new Promise((resolve) => {
       const unsubscribe = onAuthStateChanged(this.auth, (user) => {
         unsubscribe();
@@ -106,6 +120,10 @@ export class FirebaseAuthService implements AuthService {
 
   async updateProfile(userId: string, data: { name?: string; avatarUrl?: string }): Promise<void> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       const user = this.auth.currentUser;
       if (!user) {
         throw new Error('No user is currently signed in');
@@ -130,6 +148,10 @@ export class FirebaseAuthService implements AuthService {
 
   async updateEmail(userId: string, email: string): Promise<void> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       const user = this.auth.currentUser;
       if (!user) {
         throw new Error('No user is currently signed in');
@@ -144,6 +166,10 @@ export class FirebaseAuthService implements AuthService {
 
   async updatePassword(userId: string, password: string): Promise<void> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       const user = this.auth.currentUser;
       if (!user) {
         throw new Error('No user is currently signed in');
@@ -158,6 +184,10 @@ export class FirebaseAuthService implements AuthService {
 
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
+      if (!this.auth) {
+        throw new Error('Firebase auth is not initialized');
+      }
+      
       await firebaseSendPasswordResetEmail(this.auth, email);
     } catch (error) {
       console.error('Error sending password reset email:', error);

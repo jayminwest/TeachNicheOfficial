@@ -29,9 +29,9 @@ export async function signInWithGoogle(): Promise<AuthUser> {
         lastSignInTime: user.metadata.lastSignInTime
       }
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error signing in with Google:', error);
-    throw new Error(`Authentication failed: ${error.message}`);
+    throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -50,9 +50,9 @@ export async function signInWithEmail(email: string, password: string): Promise<
         lastSignInTime: user.metadata.lastSignInTime
       }
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error signing in with email:', error);
-    throw new Error(`Authentication failed: ${error.message}`);
+    throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -71,27 +71,27 @@ export async function createUser(email: string, password: string): Promise<AuthU
         lastSignInTime: user.metadata.lastSignInTime
       }
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating user:', error);
-    throw new Error(`User creation failed: ${error.message}`);
+    throw new Error(`User creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
 export async function resetPassword(email: string): Promise<void> {
   try {
     await sendPasswordResetEmail(auth, email);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error resetting password:', error);
-    throw new Error(`Password reset failed: ${error.message}`);
+    throw new Error(`Password reset failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
 export async function signOut(): Promise<void> {
   try {
     await firebaseSignOut(auth);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error signing out:', error);
-    throw new Error(`Sign out failed: ${error.message}`);
+    throw new Error(`Sign out failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

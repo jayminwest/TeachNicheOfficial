@@ -52,8 +52,8 @@ export function AuthProvider({
 
   const isCreator = useCallback(() => {
     // Check if the user has a creator profile in their custom claims or metadata
-    const metadata = user?.metadata as Record<string, any> | undefined;
-    const customClaims = (user as any)?.customClaims;
+    const metadata = user?.metadata as Record<string, unknown> | undefined;
+    const customClaims = (user as { customClaims?: Record<string, unknown> })?.customClaims;
     
     return metadata?.creatorProfile === true || 
            metadata?.is_creator === true ||

@@ -52,7 +52,7 @@ try {
     // Get the existing app by name
     try {
       app = getApp();
-    } catch (innerError) {
+    } catch (_) {
       // If getApp fails, initialize with config again as fallback
       app = initializeApp(firebaseConfig, 'teach-niche-app');
     }
@@ -212,7 +212,7 @@ export const firebaseClient = {
           }
           
           // Update the document
-          const docRef = doc(firestore, collectionName, querySnapshot.docs[0].id);
+          const docRef = doc(firestore, querySnapshot.docs[0].ref.path, querySnapshot.docs[0].id);
           await updateDoc(docRef, {
             ...data,
             updated_at: new Date().toISOString()

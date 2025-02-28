@@ -100,7 +100,7 @@ describe('SignInPage', () => {
     const user = userEvent.setup();
     
     // Create a mock implementation that doesn't resolve immediately
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: (value: unknown) => void;
     const mockPromise = new Promise(resolve => {
       resolvePromise = resolve;
     });

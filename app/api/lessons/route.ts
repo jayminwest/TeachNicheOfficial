@@ -106,23 +106,23 @@ async function getLessonsHandler(request: Request) {
     // Firebase is already initialized in @/app/lib/firebase;
     
     // Use Firebase client
-    let query = firebaseClient
+    let queryBuilder = firebaseClient
       .from('lessons')
       .select();
     
     if (category) {
-      query = query.eq('category', category);
+      queryBuilder = queryBuilder.eq('category', category);
     }
     
     // Apply sorting
     if (sort === 'newest') {
-      query = query.order('created_at', 'desc');
+      queryBuilder = queryBuilder.order('created_at', 'desc');
     } else if (sort === 'oldest') {
-      query = query.order('created_at', 'asc');
+      queryBuilder = queryBuilder.order('created_at', 'asc');
     } else if (sort === 'price_low') {
-      query = query.order('price', 'asc');
+      queryBuilder = queryBuilder.order('price', 'asc');
     } else if (sort === 'price_high') {
-      query = query.order('price', 'desc');
+      queryBuilder = queryBuilder.order('price', 'desc');
     }
     
     // Apply limit

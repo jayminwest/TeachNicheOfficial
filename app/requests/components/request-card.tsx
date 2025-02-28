@@ -22,18 +22,20 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
   const [voteCount, setVoteCount] = useState(request.vote_count)
   const [showAuth, setShowAuth] = useState(false)
   
-  // More robust handling of getFirebaseAuth
-  const supabase = typeof getFirebaseAuth === 'function' 
-    ? getFirebaseAuth() 
-    : {
-        from: () => ({
-          select: () => ({
-            eq: () => ({ data: null, error: null })
-          })
-        })
-      }
-  
   const { user } = useAuth();
+  
+  // More robust handling of getFirebaseAuth
+  const supabase = React.useMemo(() => {
+    return typeof getFirebaseAuth === 'function' 
+      ? getFirebaseAuth() 
+      : {
+          from: () => ({
+            select: () => ({
+              eq: () => ({ data: null, error: null })
+            })
+          })
+        };
+  }, []);
 
   // Fetch current vote count from Supabase
   const updateVoteCount = useCallback(async () => {

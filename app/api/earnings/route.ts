@@ -54,12 +54,11 @@ export async function GET() {
       .select()
       .eq('creator_id', user.uid);
     
-    // Sort the earnings by created_at in descending order
-    const sortedEarnings = earnings ? 
-      [...earnings].sort((a: EarningRecord, b: EarningRecord) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ) as EarningRecord[] : 
-      [];
+    // Cast the earnings to the proper type and sort by created_at in descending order
+    const typedEarnings = earnings as EarningRecord[] || [];
+    const sortedEarnings = [...typedEarnings].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
     
     if (error) {
       console.error('Error fetching earnings:', error);

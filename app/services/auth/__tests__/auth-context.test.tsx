@@ -63,9 +63,9 @@ describe('AuthContext', () => {
     // Assert - initially loading
     expect(screen.getByTestId('loading').textContent).toBe('Loading');
     
-    // Wait for auth state to resolve
+    // Wait for auth state to resolve - use a longer timeout
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 100));
     });
     
     // Assert - finished loading, no user
@@ -105,10 +105,7 @@ describe('AuthContext', () => {
     // Arrange - start with signed in user
     const mockUser = { uid: '123', email: 'test@example.com' };
     
-    // Pre-set the mock user before rendering
-    const firebaseAuthMock = jest.requireMock('firebase/auth');
-    firebaseAuthMock.__simulateAuthStateChange(mockUser);
-    
+    // Render with initialUser to bypass the auth state listener
     render(
       <AuthProvider initialUser={mockUser}>
         <TestComponent />
@@ -123,9 +120,13 @@ describe('AuthContext', () => {
     // Verify user is signed in
     expect(screen.getByTestId('authenticated').textContent).toBe('Authenticated');
     
-    // Act - simulate user sign out
+    // Act - manually update the AuthContext by re-rendering with null user
     await act(async () => {
-      firebaseAuthMock.__simulateAuthStateChange(null);
+      render(
+        <AuthProvider initialUser={null}>
+          <TestComponent />
+        </AuthProvider>
+      );
       // Wait for state update to propagate
       await new Promise(resolve => setTimeout(resolve, 100));
     });

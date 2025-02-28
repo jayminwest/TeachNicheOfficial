@@ -39,14 +39,24 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get lesson and creator details
+    // Define the lesson type
+    interface Lesson {
+      id: string;
+      title: string;
+      description?: string;
+      price: number;
+      creator_id: string;
+      thumbnail_url?: string;
+    }
+
+    // Get lesson details
     const { data: lessons, error: lessonError } = await firebaseClient
       .from('lessons')
       .select()
       .eq('id', lessonId);
     
     // Get the single lesson from the array
-    const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
+    const lesson = lessons && lessons.length > 0 ? lessons[0] as Lesson : null;
 
     if (lessonError || !lesson) {
       console.error('Lesson fetch error:', lessonError)
@@ -56,8 +66,24 @@ export async function POST(request: Request) {
       )
     }
 
+    // Get creator details
+    const { data: creators, error: creatorError } = await firebaseClient
+      .from('profiles')
+      .select()
+      .eq('id', lesson.creator_id);
+    
+    const creator = creators && creators.length > 0 ? creators[0] : null;
+
+    if (creatorError || !creator) {
+      console.error('Creator fetch error:', creatorError)
+      return NextResponse.json(
+        { error: 'Creator not found' },
+        { status: 404 }
+      )
+    }
+
     // Check if creator has Stripe account
-    if (!lesson.creator.stripe_account_id) {
+    if (!creator.stripe_account_id) {
       return NextResponse.json(
         { error: 'Creator payment setup incomplete' },
         { status: 400 }

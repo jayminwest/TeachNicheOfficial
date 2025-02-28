@@ -4,10 +4,20 @@ import { getAuth, User } from 'firebase/auth'
 import { getApp } from 'firebase/app'
 import { firebaseClient } from '@/app/services/firebase-compat'
 
+// Define a type for the query builder
+type QueryBuilder = {
+  eq: (field: string, value: string | boolean | number) => QueryBuilder;
+  order: (field: string, options: { ascending: boolean }) => QueryBuilder;
+  get: () => Promise<{ 
+    data: Array<Record<string, unknown>>; 
+    error: Error | null | unknown 
+  }>;
+};
+
 // Set the runtime to edge
 export const runtime = 'edge'
 
-export async function POST(req: Request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+export async function POST(req: Request) {
   console.log('Vote API route called');
   try {
 
@@ -33,12 +43,16 @@ export async function POST(req: Request) { // eslint-disable-line @typescript-es
     const { requestId, voteType } = voteSchema.parse(body)
 
     // Check for existing vote
-    const { data: existingVote } = await firebaseClient
+    let queryBuilder = firebaseClient
       .from('lesson_request_votes')
-      .select()
-      .eq('request_id', requestId)
-      .eq('user_id', user.uid)
-      .get()
+      .select() as unknown as QueryBuilder;
+      
+    // Apply filters
+    queryBuilder = queryBuilder.eq('request_id', requestId);
+    queryBuilder = queryBuilder.eq('user_id', user.uid);
+    
+    // Execute the query
+    const { data: existingVote } = await queryBuilder.get();
     console.log('Existing vote check:', existingVote);
 
     if (existingVote) {
@@ -67,19 +81,27 @@ export async function POST(req: Request) { // eslint-disable-line @typescript-es
     // Update vote count
     console.log('Updating vote count');
     // Since we don't have RPC in Firebase, we need to implement the vote count update directly
-    const { data: requestData } = await firebaseClient
+    let requestQueryBuilder = firebaseClient
       .from('lesson_requests')
-      .select()
-      .eq('id', requestId)
-      .get();
+      .select() as unknown as QueryBuilder;
+      
+    // Apply filter
+    requestQueryBuilder = requestQueryBuilder.eq('id', requestId);
+    
+    // Execute the query
+    const { data: requestData } = await requestQueryBuilder.get();
       
     if (requestData && requestData.length > 0) {
       // Calculate the new vote count
-      const { data: votes } = await firebaseClient
+      let votesQueryBuilder = firebaseClient
         .from('lesson_request_votes')
-        .select()
-        .eq('request_id', requestId)
-        .get();
+        .select() as unknown as QueryBuilder;
+        
+      // Apply filter
+      votesQueryBuilder = votesQueryBuilder.eq('request_id', requestId);
+      
+      // Execute the query
+      const { data: votes } = await votesQueryBuilder.get();
         
       const voteCount = votes ? votes.length : 0;
       

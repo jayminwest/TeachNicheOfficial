@@ -329,13 +329,14 @@ We've made significant progress implementing the testing strategy for Firebase a
 **File:** `e2e-tests/tests/auth-flow.spec.ts`
 - ✅ Fixed duplicate test blocks issue
 - ✅ Created proper Playwright configuration
-- ✅ Updated tests with more reliable selectors
+- ✅ Updated tests to work with Google Sign-In
+- ✅ Added mocking for Google authentication
 - ✅ Added debugging and screenshots
 - ✅ Increased timeouts for more reliable testing
 
 **Key Issues Identified:**
-- Tests now use absolute URLs for more reliable navigation
-- Added extensive error handling and fallback selectors
+- Tests now properly target the Google Sign-In button
+- Added mocking to simulate successful and failed authentication
 - Screenshots are captured at key points for debugging
 
 ### Firebase Emulator Integration

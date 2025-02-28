@@ -405,7 +405,7 @@ export const processScheduledPayouts = async (
           results.details.push({
             creatorId: (creator as any).creator_id,
             status: 'success',
-            amount: creator.pending_amount
+            amount: (creator as any).pending_amount
           });
         } else {
           results.failed++;

@@ -4,10 +4,10 @@ import type { PoolClient } from 'pg';
 import { DatabaseService } from './interface';
 
 export class CloudSqlDatabase implements DatabaseService {
-  private pool: typeof Pool;
+  private pool: any; // Using any temporarily to fix type issues
   
   constructor() {
-    this.pool = new Pool({
+    this.pool = new (Pool as any)({
       host: process.env.CLOUD_SQL_HOST || process.env.DB_HOST,
       user: process.env.CLOUD_SQL_USER || process.env.DB_USER,
       password: process.env.CLOUD_SQL_PASSWORD || process.env.DB_PASSWORD,

@@ -63,7 +63,7 @@ export const firebaseClient = {
     const collectionRef = collection(firestore, tableName);
     
     return {
-      select: (columns = '*') => {
+      select: (_columns = '*') => {
         // In Firebase, we don't need to specify columns to select
         return {
           eq: async (column: string, value: QueryValue) => {
@@ -292,7 +292,7 @@ export const supabase = {
   },
   from: (tableName: string) => {
     return {
-      select: (columns: string = '*') => {
+      select: (_columns: string = '*') => {
         return {
           eq: async (column: string, value: QueryValue) => {
             try {

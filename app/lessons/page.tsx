@@ -6,7 +6,6 @@ import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { LessonGrid } from "@/app/components/ui/lesson-grid";
 import Link from "next/link";
-import { db, auth, storage } from '@/app/lib/firebase';
 import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 
@@ -19,6 +18,8 @@ export default function LessonsPage() {
   useEffect(() => {
     async function fetchLessons() {
       try {
+        // Import supabase only when needed
+        const { default: supabase } = await import('@/app/services/firebase-compat');
         const { data, error } = await supabase
           .from('lessons')
           .select(`

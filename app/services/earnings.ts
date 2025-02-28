@@ -416,7 +416,7 @@ export const processScheduledPayouts = async (
         } else {
           results.failed++;
           results.details.push({
-            creatorId: (creator as any).creator_id,
+            creatorId: (creator as EligibleCreator).creator_id,
             status: 'failed',
             error: payoutResult.error
           });
@@ -424,7 +424,7 @@ export const processScheduledPayouts = async (
       } catch (error) {
         results.failed++;
         results.details.push({
-          creatorId: (creator as any).creator_id,
+          creatorId: (creator as EligibleCreator).creator_id,
           status: 'error',
           error: error instanceof Error ? error.message : 'Unknown error'
         });

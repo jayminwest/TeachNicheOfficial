@@ -31,7 +31,12 @@ export const processCreatorPayout = async (
       LIMIT 1
     `, [creatorId]);
 
-    if (!bankInfo || (bankInfo as any[]).length === 0 || !(bankInfo as any[])[0]?.bank_account_token) {
+    interface BankAccountInfo {
+      bank_account_token: string;
+      last_four?: string;
+    }
+    
+    if (!bankInfo || bankInfo.length === 0 || !(bankInfo[0] as BankAccountInfo)?.bank_account_token) {
       console.error('Bank account fetch failed:', new Error('No bank account found'));
       return {
         success: false,
@@ -45,7 +50,7 @@ export const processCreatorPayout = async (
     const payout = await (stripe as Stripe).payouts.create({
       amount,
       currency: stripeConfig.defaultCurrency,
-      destination: (bankInfo as any[])[0]?.bank_account_token,
+      destination: (bankInfo[0] as BankAccountInfo).bank_account_token,
       metadata: {
         creatorId,
         type: 'creator_earnings'
@@ -63,7 +68,7 @@ export const processCreatorPayout = async (
         amount,
         payout.status as string,
         payout.id,
-        (bankInfo as any[])[0]?.last_four
+        (bankInfo[0] as BankAccountInfo).last_four
       ]);
     } catch (payoutError) {
       console.error('Failed to record payout:', payoutError);
@@ -118,9 +123,14 @@ export const processAllEligiblePayouts = async (
     
     // Process payouts for each eligible creator
     for (const creator of (eligibleCreators || [])) {
+      interface EligibleCreator {
+        creator_id: string;
+        pending_amount: number;
+      }
+      
       const result = await processCreatorPayout(
-        (creator as any).creator_id,
-        (creator as any).pending_amount,
+        (creator as EligibleCreator).creator_id,
+        (creator as EligibleCreator).pending_amount,
         databaseService
       );
       

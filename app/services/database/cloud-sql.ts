@@ -4,10 +4,10 @@ import type { PoolClient } from 'pg';
 import { DatabaseService } from './interface';
 
 export class CloudSqlDatabase implements DatabaseService {
-  private pool: any; // Using any temporarily to fix type issues
+  private pool: pkg.Pool;
   
   constructor() {
-    this.pool = new (Pool as any)({
+    this.pool = new Pool({
       host: process.env.CLOUD_SQL_HOST || process.env.DB_HOST,
       user: process.env.CLOUD_SQL_USER || process.env.DB_USER,
       password: process.env.CLOUD_SQL_PASSWORD || process.env.DB_PASSWORD,
@@ -20,17 +20,17 @@ export class CloudSqlDatabase implements DatabaseService {
     // Log connection info in development mode
     if (process.env.NODE_ENV === 'development') {
       console.log('Database connection configured with:', {
-        host: (this.pool as any).options?.host,
-        database: (this.pool as any).options?.database,
-        user: (this.pool as any).options?.user,
-        port: (this.pool as any).options?.port,
-        ssl: (this.pool as any).options?.ssl,
+        host: this.pool.options?.host,
+        database: this.pool.options?.database,
+        user: this.pool.options?.user,
+        port: this.pool.options?.port,
+        ssl: this.pool.options?.ssl,
       });
     }
   }
   
   async getClient(): Promise<PoolClient> {
-    return await (this.pool as any).connect();
+    return await this.pool.connect();
   }
   
   async query<T>(text: string, params: unknown[] = []): Promise<{ rows: T[]; rowCount: number }> {

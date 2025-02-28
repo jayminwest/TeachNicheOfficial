@@ -276,9 +276,20 @@ async function generatePayments(
     // Determine how many payments this user will have (random up to max)
     const paymentCount = Math.floor(Math.random() * paymentsPerUser) + 1;
     
+    // Filter out lessons already purchased by this user
+    const availableLessons = publishedLessons.filter(lesson => 
+      !payments.some(p => p.userId === user.id && p.lessonId === lesson.id) &&
+      lesson.instructorId !== user.id
+    );
+    
+    if (availableLessons.length === 0) {
+      console.warn(`${colors.yellow}No available lessons for user ${user.id} to purchase${colors.reset}`);
+      continue;
+    }
+    
     // Create unique set of lessons this user purchased
-    const shuffledLessons = [...publishedLessons].sort(() => 0.5 - Math.random());
-    const purchasedLessons = shuffledLessons.slice(0, paymentCount);
+    const shuffledLessons = [...availableLessons].sort(() => 0.5 - Math.random());
+    const purchasedLessons = shuffledLessons.slice(0, Math.min(paymentCount, availableLessons.length));
     
     for (const lesson of purchasedLessons) {
       // Skip if user is the instructor of this lesson

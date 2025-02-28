@@ -166,6 +166,30 @@ STRIPE_WEBHOOK_SECRET=${process.env.TEST_STRIPE_WEBHOOK_SECRET || process.env.ST
   console.log('- .env.test');
 }
 
+// Validate Stripe configuration
+function validateStripeConfig() {
+  console.log(`${colors.cyan}Validating Stripe configuration...${colors.reset}`);
+  
+  const requiredVars = [
+    'STRIPE_SECRET_KEY',
+    'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+    'STRIPE_WEBHOOK_SECRET'
+  ];
+  
+  let isValid = true;
+  
+  for (const varName of requiredVars) {
+    if (!process.env[varName]) {
+      console.error(`${colors.red}Missing required Stripe variable: ${varName}${colors.reset}`);
+      isValid = false;
+    } else if (varName.includes('SECRET') && process.env[varName]!.startsWith('sk_test_')) {
+      console.warn(`${colors.yellow}Warning: Using test mode Stripe key for production${colors.reset}`);
+    }
+  }
+  
+  return isValid;
+}
+
 // Verify database connection
 async function verifyDatabaseConnection(environment: Environment) {
   console.log(`${colors.cyan}Verifying database connection for ${environment} environment...${colors.reset}`);
@@ -239,6 +263,12 @@ Options:
       createEnvFiles();
     }
     
+    // Validate configurations
+    const stripeValid = validateStripeConfig();
+    if (!stripeValid) {
+      throw new Error('Invalid Stripe configuration');
+    }
+
     // Verify database connection if requested
     if (verifyConnection) {
       if (targetEnvironment === 'all') {

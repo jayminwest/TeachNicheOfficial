@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { firestore } from '@/app/lib/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
-// Mock categories for development until Firestore is properly set up
+// Fallback mock categories in case Firestore is not available
 const mockCategories = [
   { id: '1', name: 'Kendama Basics', description: 'Fundamental techniques for beginners' },
   { id: '2', name: 'Intermediate Tricks', description: 'More advanced techniques' },
@@ -10,9 +12,33 @@ const mockCategories = [
 
 export async function GET() {
   try {
-    // Return mock categories for now
-    // This will be replaced with actual Firestore queries once the Firebase
-    // server-side issues are resolved
+    // Try to fetch categories from Firestore
+    try {
+      // Create a query against the collection
+      const categoriesRef = collection(firestore, 'categories');
+      const categoriesQuery = query(categoriesRef, orderBy('name'));
+      
+      // Execute the query
+      const querySnapshot = await getDocs(categoriesQuery);
+      
+      // If we have results, map the documents to an array of categories
+      if (!querySnapshot.empty) {
+        const categories = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        return NextResponse.json(categories);
+      }
+      
+      // If no categories found in Firestore, fall back to mock data
+      console.log('No categories found in Firestore, using mock data');
+    } catch (firestoreError) {
+      console.error('Error fetching from Firestore:', firestoreError);
+      console.log('Falling back to mock categories');
+    }
+    
+    // Return mock categories as fallback
     return NextResponse.json(mockCategories);
   } catch (error) {
     console.error('Error in categories endpoint:', error);

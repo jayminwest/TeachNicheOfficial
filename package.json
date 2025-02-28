@@ -25,7 +25,9 @@
     "test:all": "node --loader ts-node/esm scripts/test-all-services.ts",
     "migrate": "npm run migrate:db && npm run migrate:storage",
     "verify": "node --loader ts-node/esm scripts/verify-migration.ts",
-    "check:refs": "node --loader ts-node/esm scripts/check-supabase-references.ts"
+    "check:refs": "node --loader ts-node/esm scripts/check-supabase-references.ts",
+    "setup:firebase": "node --loader ts-node/esm scripts/setup-firebase.ts",
+    "setup:categories": "node --loader ts-node/esm scripts/setup-categories.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.7.0",

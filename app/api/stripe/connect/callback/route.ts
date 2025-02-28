@@ -54,9 +54,12 @@ export async function GET(request: Request) {
       // Update onboarding status only if we have verified everything
       try {
         await firebaseClient.from('profiles')
-          .update({ stripe_onboarding_complete: true })
-          .eq('id', user.uid)
-          .eq('stripe_account_id', accountId);
+          .update({ stripe_onboarding_complete: true }, { 
+            where: { 
+              id: { eq: user.uid },
+              stripe_account_id: { eq: accountId }
+            }
+          });
       } catch (updateError) {
         console.error('Failed to update onboarding status:', updateError);
         return NextResponse.redirect(

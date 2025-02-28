@@ -5,7 +5,7 @@
  */
 
 import { getAuth, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { app } from '../app/lib/firebase';
+import { app } from '../app/lib/firebase.js';
 
 // Initialize Firebase Auth
 const auth = getAuth(app);

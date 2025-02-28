@@ -6,10 +6,14 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   browserPopupRedirectResolver,
-  User as FirebaseUser
+  User as FirebaseUser,
+  Auth
 } from 'firebase/auth';
 import { auth } from '@/app/services/firebase';
 import { AuthUser } from './interface';
+
+// Ensure auth is properly typed
+const firebaseAuth: Auth = auth as Auth;
 
 export async function signInWithGoogle(): Promise<AuthUser> {
   try {

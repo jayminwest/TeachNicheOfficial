@@ -130,26 +130,32 @@ async function getLessonsHandler(request: Request) {
       sortDirection = 'desc';
     }
     
-    // Define a type for the query builder
+    // Define a type for the query builder that matches the firebase-compat implementation
     type QueryBuilder = {
       eq: (field: string, value: string | boolean | number) => QueryBuilder;
       order: (field: string, options: { ascending: boolean }) => QueryBuilder;
+      orderBy: (field: string, direction?: string) => QueryBuilder;
+      limit: (count: number) => QueryBuilder;
       get: () => Promise<{ 
+        data: Array<Record<string, unknown>>; 
+        error: Error | null | unknown 
+      }>;
+      execute: () => Promise<{ 
         data: Array<Record<string, unknown>>; 
         error: Error | null | unknown 
       }>;
     };
     
-    // Create a query builder and apply filters and sorting
-    const queryBuilder = lessonsRef.select() as QueryBuilder;
+    // Create a query builder
+    let queryBuilder = lessonsRef.select() as unknown as QueryBuilder;
     
-    // Apply filters
+    // Apply filters - make sure to reassign the result of each operation
     Object.entries(queryParams).forEach(([key, value]) => {
-      queryBuilder.eq(key, value);
+      queryBuilder = queryBuilder.eq(key, value);
     });
     
-    // Apply sorting
-    queryBuilder.order(sortField, { ascending: sortDirection === 'asc' });
+    // Apply sorting - make sure to reassign the result
+    queryBuilder = queryBuilder.order(sortField, { ascending: sortDirection === 'asc' });
     
     // Execute the query
     const { data: lessons, error } = await queryBuilder.get();

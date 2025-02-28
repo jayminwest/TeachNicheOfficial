@@ -41,6 +41,15 @@ export async function signInWithEmail(email: string, password: string) {
   }
 }
 
+export async function signUpWithEmail(email: string, password: string) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    return { user: transformUser(userCredential.user), error: null };
+  } catch (error) {
+    return { user: null, error };
+  }
+}
+
 export async function signUp(email: string, password: string, name: string) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);

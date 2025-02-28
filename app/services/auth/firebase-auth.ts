@@ -7,6 +7,27 @@ import {
 } from 'firebase/auth';
 import { AuthService, AuthUser } from './interface';
 
+export const firebaseAuth = {
+  getSession: async () => {
+    const currentUser = auth.currentUser;
+    
+    return {
+      data: {
+        session: currentUser ? {
+          user: {
+            id: currentUser.uid,
+            email: currentUser.email,
+            user_metadata: {
+              full_name: currentUser.displayName
+            }
+          }
+        } : null
+      },
+      error: null
+    };
+  }
+};
+
 export class FirebaseAuth implements AuthService {
   async signIn(email: string, password: string): Promise<AuthUser> {
     try {

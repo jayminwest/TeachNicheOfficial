@@ -38,11 +38,14 @@ export function AuthProvider({
       return () => {};
     }
     
-    // For tests with initialUser, skip the auth initialization
-    if (initialUser !== null) {
+    // For tests with initialUser, update the user state
+    if (initialUser !== undefined) {
       setUser(initialUser);
       setLoading(false);
-      return () => {};
+      // If initialUser is provided, we don't need to set up the auth listener
+      if (initialUser !== null) {
+        return () => {};
+      }
     }
     
     // Dynamically import Firebase auth to avoid server-side issues

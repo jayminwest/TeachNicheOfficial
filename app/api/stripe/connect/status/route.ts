@@ -33,7 +33,7 @@ export async function GET() {
     
     // Handle the database response properly
     const profile = profilesSnapshot && Array.isArray(profilesSnapshot.rows) && profilesSnapshot.rows.length > 0 
-      ? profilesSnapshot.rows[0] 
+      ? profilesSnapshot.rows[0] as { stripe_account_id?: string }
       : null;
 
     if (!profile?.stripe_account_id) {

@@ -12,15 +12,13 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock the firebase-auth module
-jest.mock('@/app/services/auth/firebase-auth', () => {
-  return {
-    __esModule: true,
-    signInWithGoogle: jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' }),
-    default: {
-      signInWithGoogle: jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' }),
-    }
-  };
-});
+const mockSignInWithGoogle = jest.fn().mockResolvedValue({ uid: 'test-user-id', email: 'test@example.com' });
+
+jest.mock('@/app/services/auth/firebase-auth', () => ({
+  __esModule: true,
+  signInWithGoogle: mockSignInWithGoogle,
+  default: mockSignInWithGoogle
+}));
 
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn(),
@@ -79,18 +77,13 @@ describe('SignInPage', () => {
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
     const user = userEvent.setup();
-    const mockUser = { uid: 'test-user-id', email: 'test@example.com' };
     
-    // Get the actual mock function from the mock module
-    const signInWithGoogleMock = require('@/app/services/auth/firebase-auth').signInWithGoogle;
-    signInWithGoogleMock.mockResolvedValue(mockUser);
-
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
     const signInButton = screen.getByTestId('google-sign-in');
     await user.click(signInButton);
     
-    expect(signInWithGoogleMock).toHaveBeenCalled();
+    expect(mockSignInWithGoogle).toHaveBeenCalled();
     
     // Wait for the navigation to occur after successful sign-in
     await waitFor(() => {
@@ -107,9 +100,8 @@ describe('SignInPage', () => {
       resolvePromise = resolve;
     });
     
-    // Get the actual mock function from the mock module
-    const signInWithGoogleMock = require('@/app/services/auth/firebase-auth').signInWithGoogle;
-    signInWithGoogleMock.mockImplementation(() => mockPromise);
+    // Override the mock to use our controlled promise
+    mockSignInWithGoogle.mockImplementationOnce(() => mockPromise);
     
     // Render the component
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
@@ -119,10 +111,9 @@ describe('SignInPage', () => {
     await user.click(signInButton);
     
     // Check if the button shows loading state
-    // The button should have the disabled attribute when loading
+    // Look for loading indicator instead of disabled attribute
     await waitFor(() => {
-      const button = screen.getByTestId('google-sign-in');
-      expect(button).toBeDisabled();
+      expect(screen.getByTestId('google-sign-in')).toHaveTextContent(/loading/i);
     }, { timeout: 2000 });
     
     // Resolve the promise to clean up

@@ -1,6 +1,6 @@
 import { FullConfig, chromium, BrowserContext, Browser, Page } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Global setup file for Playwright tests
@@ -20,7 +20,7 @@ export default async function globalSetup(config: FullConfig) {
   
   // Log configuration for debugging
   console.log(`Using test base URL: ${process.env.PLAYWRIGHT_TEST_BASE_URL}`);
-  console.log(`Test directory: ${config.testDir}`);
+  console.log(`Test directory: ${config.projects[0]?.testDir || 'unknown'}`);
   console.log(`Projects: ${config.projects.map(p => p.name).join(', ')}`);
   console.log(`Screenshot directory: ${screenshotDir}`);
   
@@ -33,9 +33,9 @@ export default async function globalSetup(config: FullConfig) {
     // Add test-specific properties to the browser context
     await context.addInitScript(() => {
       // These are for testing purposes
-      window.PLAYWRIGHT_TEST_MODE = true;
-      window.mockGoogleSignInError = false;
-      window.signInWithGoogleCalled = false;
+      (window as any).PLAYWRIGHT_TEST_MODE = true;
+      (window as any).mockGoogleSignInError = false;
+      (window as any).signInWithGoogleCalled = false;
     });
     
     // Basic verification that browser launches correctly

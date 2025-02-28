@@ -52,15 +52,26 @@ export async function POST(req: Request) {
     queryBuilder = queryBuilder.eq('user_id', user.uid);
     
     // Execute the query
-    const { data: existingVotes } = await queryBuilder.get();
+    const { data: existingVotes } = await queryBuilder.get() as { 
+      data: VoteRecord[]; 
+      error: Error | null | unknown 
+    };
     console.log('Existing vote check:', existingVotes);
+    
+    // Define the vote record type
+    interface VoteRecord {
+      id: string;
+      request_id: string;
+      user_id: string;
+      vote_type: string;
+    }
 
     if (existingVotes && existingVotes.length > 0) {
       console.log('Deleting existing vote');
       // Delete existing vote if it exists
       await firebaseClient
         .from('lesson_request_votes')
-        .delete({ eq: ['id', existingVotes[0].id] })
+        .delete({ eq: ['id', existingVotes[0].id as string] })
     }
 
     // Insert new vote

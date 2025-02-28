@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getAuth } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 import { firebaseClient } from '@/app/services/firebase-compat';
+import { FirestoreDatabase } from '@/app/services/database/firebase-database';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,8 +40,11 @@ export async function GET(request: Request) {
       );
     }
 
+    // Create a proper DatabaseService implementation
+    const databaseService = new FirestoreDatabase();
+    
     // Verify the connected account using our utility
-    const { verified, status } = await verifyConnectedAccount(user.uid, accountId, firebaseClient);
+    const { verified, status } = await verifyConnectedAccount(user.uid, accountId, databaseService);
 
     if (!verified) {
       return NextResponse.redirect(

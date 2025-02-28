@@ -68,13 +68,13 @@ export async function GET(request: Request) {
           
           if (matchingProfile) {
             // Update the profile if found
-            const { data: _data, error } = await firebaseClient
+            const updateResult = await firebaseClient
               .from('profiles')
               .update({ stripe_onboarding_complete: true })
               .eq('id', user.uid);
               
-            if (error) {
-              console.error('Failed to update profile:', error);
+            if (updateResult.error) {
+              console.error('Failed to update profile:', updateResult.error);
               return NextResponse.redirect(
                 `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
               );

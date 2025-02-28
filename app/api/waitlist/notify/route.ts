@@ -17,7 +17,11 @@ export async function POST(request: Request) {
     
     // Send the email
     const emailService = createEmailService();
-    const success = await emailService.sendWelcomeEmail(email, name, inviteLink);
+    // Pass the invite link as part of the data object instead of a separate parameter
+    const success = await emailService.sendWelcomeEmail(email, {
+      name,
+      inviteLink
+    });
     
     if (!success) {
       throw new Error('Failed to send email');

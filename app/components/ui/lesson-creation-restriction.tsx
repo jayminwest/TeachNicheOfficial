@@ -3,7 +3,7 @@
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { getTimeUntilCanCreateLesson } from "@/app/services/user-restrictions";
 import { Alert, AlertDescription, AlertTitle } from "@/app/components/ui/alert";
-import { AlertCircle, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface LessonCreationRestrictionProps {

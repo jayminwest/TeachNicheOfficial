@@ -29,7 +29,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
     try {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
-        // @ts-ignore - This is for testing purposes
+        // @ts-expect-error - This is for testing purposes
         window.signInWithGoogleCalled = true;
       }
       

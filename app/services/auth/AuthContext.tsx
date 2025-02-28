@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import type { User, Auth } from 'firebase/auth'
+import type { User } from 'firebase/auth'
 import { app, getAuth as getFirebaseAuth } from '@/app/lib/firebase'
 
 interface AuthContextType {
@@ -88,7 +88,7 @@ export function AuthProvider({
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, []);
+  }, [initialUser]);
 
   const isCreator = useCallback(() => {
     // Check if the user has a creator profile in their custom claims or metadata

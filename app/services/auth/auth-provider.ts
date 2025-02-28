@@ -15,9 +15,9 @@ import type { User as FirebaseUser } from 'firebase/auth';
 const isBrowser = typeof window !== 'undefined';
 
 // Initialize auth lazily only in browser environment
-let auth: any = null;
-let getAuth: Function;
-let onAuthStateChanged: Function;
+let auth: ReturnType<typeof import('firebase/auth').getAuth> | null = null;
+let getAuth: typeof import('firebase/auth').getAuth;
+let onAuthStateChanged: typeof import('firebase/auth').onAuthStateChanged;
 
 // Dynamically import Firebase auth in browser only
 if (isBrowser) {

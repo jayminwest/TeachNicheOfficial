@@ -52,8 +52,8 @@ const DialogContent = React.forwardRef<
             typeof headerChild.type === 'function' && 
             headerChild.type && 
             typeof headerChild.type === 'object' && 
-            'displayName' in (headerChild.type as any) && 
-            (headerChild.type as any).displayName === DialogTitle.displayName
+            'displayName' in (headerChild.type as React.ComponentType) && 
+            (headerChild.type as React.ComponentType).displayName === DialogTitle.displayName
         );
       }
       

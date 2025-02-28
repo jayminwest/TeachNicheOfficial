@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useCategories } from '@/app/hooks/useCategories'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { createRequest, deleteRequest, updateRequest } from '@/app/lib/supabase/requests'
+import { createRequest, deleteRequest, updateRequest } from '@/app/lib/firebase/requests'
 import { type LessonRequest } from '@/app/lib/schemas/lesson-request'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/app/components/ui/dialog"

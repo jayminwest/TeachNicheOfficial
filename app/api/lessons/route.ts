@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase/client';
 import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
+import { firebaseClient } from '@/app/services/firebase-compat';
+import { firebaseAuth } from '@/app/services/auth/firebase-auth';
 
 interface LessonData {
   title: string;
@@ -50,7 +51,7 @@ async function createLessonHandler(request: Request) {
       );
     }
 
-    // Create lesson in Supabase
+    // Create lesson in Firebase
     const lessonData = {
       id: crypto.randomUUID(), // Add UUID here
       title,
@@ -61,17 +62,14 @@ async function createLessonHandler(request: Request) {
       creator_id: user.id, // Changed from user_id to creator_id to match database schema
       category,
       mux_asset_id: muxAssetId,
-      mux_playback_id: muxPlaybackId
+      mux_playback_id: muxPlaybackId,
+      created_at: new Date().toISOString()
     };
 
-    const dbClient = createClient();
-    
-    // Call from directly on the supabase client to match test expectations
-    const { data: lesson, error } = await dbClient
+    // Use Firebase client
+    const { data: lesson, error } = await firebaseClient
       .from('lessons')
-      .insert(lessonData)
-      .select()
-      .single();
+      .insert(lessonData);
 
     if (error) {
       return NextResponse.json(
@@ -104,10 +102,10 @@ async function getLessonsHandler(request: Request) {
   try {
     // Firebase is already initialized in @/app/lib/firebase;
     
-    // Call from directly on the supabase client to match test expectations
-    let query = supabase
+    // Use Firebase client
+    let query = firebaseClient
       .from('lessons')
-      .select('*');
+      .select();
     
     if (category) {
       query = query.eq('category', category);
@@ -115,20 +113,20 @@ async function getLessonsHandler(request: Request) {
     
     // Apply sorting
     if (sort === 'newest') {
-      query = query.order('created_at', { ascending: false });
+      query = query.orderBy('created_at', 'desc');
     } else if (sort === 'oldest') {
-      query = query.order('created_at', { ascending: true });
+      query = query.orderBy('created_at', 'asc');
     } else if (sort === 'price_low') {
-      query = query.order('price', { ascending: true });
+      query = query.orderBy('price', 'asc');
     } else if (sort === 'price_high') {
-      query = query.order('price', { ascending: false });
+      query = query.orderBy('price', 'desc');
     }
     
     // Apply limit
     query = query.limit(limit);
     
     // Execute the query
-    const { data: lessons } = await query;
+    const { data: lessons } = await query.get();
     
     return NextResponse.json({ lessons });
   } catch {
@@ -165,12 +163,10 @@ async function updateLessonHandler(request: Request) {
     }
 
     // Check if user has permission to update this lesson
-    const dbClient = createClient();
-    
-    // Call from directly on the supabase client to match test expectations
-    const { data: lesson } = await dbClient
+    // Use Firebase client
+    const { data: lesson } = await firebaseClient
       .from('lessons')
-      .select('creator_id') // Changed from user_id to creator_id to match database schema
+      .select()
       .eq('id', id)
       .single();
       
@@ -189,12 +185,9 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const { data: updatedLesson } = await dbClient
+    const { data: updatedLesson } = await firebaseClient
       .from('lessons')
-      .update(updateData)
-      .match({ id }) // Use match instead of eq to match test expectations
-      .select()
-      .single();
+      .update(id, updateData);
 
     return NextResponse.json(updatedLesson);
   } catch {
@@ -230,12 +223,10 @@ async function deleteLessonHandler(request: Request) {
       );
     }
 
-    const dbClient = createClient();
-    
-    // Call from directly on the supabase client to match test expectations
-    const { data: lesson } = await dbClient
+    // Use Firebase client
+    const { data: lesson } = await firebaseClient
       .from('lessons')
-      .select('*')
+      .select()
       .eq('id', id)
       .single();
 
@@ -255,10 +246,9 @@ async function deleteLessonHandler(request: Request) {
       );
     }
 
-    await dbClient
+    await firebaseClient
       .from('lessons')
-      .delete()
-      .match({ id }) // Use match instead of eq to match test expectations
+      .delete(id)
 
     return NextResponse.json({ success: true });
   } catch {

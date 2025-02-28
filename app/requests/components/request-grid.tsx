@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
-import { getRequests } from '@/app/lib/supabase/requests'
+import { getRequests } from '@/app/lib/firebase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { RequestCard } from './request-card'
 import { Loader2 } from 'lucide-react'

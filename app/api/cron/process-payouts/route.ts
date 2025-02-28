@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import { processScheduledPayouts } from '@/app/services/earnings';
-import { addRpcToClient } from '@/app/lib/types/supabase-rpc';
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 // Secret key to secure the cron endpoint
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -24,11 +24,8 @@ export async function POST(request: NextRequest) {
     // Initialize Supabase client
     const auth = getAuth()<Database>({ cookies });
     
-    // Add RPC capabilities to the client
-    const extendedClient = addRpcToClient(supabase);
-    
-    // Process scheduled payouts
-    const results = await processScheduledPayouts(extendedClient);
+    // Process scheduled payouts using Firebase client
+    const results = await processScheduledPayouts(firebaseClient);
     
     return NextResponse.json({
       success: true,

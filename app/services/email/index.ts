@@ -1,48 +1,5 @@
 import { GoogleWorkspaceEmail } from './google-workspace';
-
-// For now, we only have one email implementation
-export const emailService = new GoogleWorkspaceEmail();
-import { EmailService } from './interface';
-import { GoogleWorkspaceEmail } from './google-workspace';
-
-// Factory function to create the appropriate email service
-export function createEmailService(): EmailService {
-  return new GoogleWorkspaceEmail();
-}
-
-// Export the interface for type checking
-export type { EmailService, EmailOptions } from './interface';
-import { EmailService } from './interface';
-import { GoogleWorkspaceEmail } from './google-workspace';
-
-// Factory function to create the appropriate email service
-export function createEmailService(): EmailService {
-  return new GoogleWorkspaceEmail();
-}
-
-// Export the interface for type checking
-export type { EmailService, EmailOptions } from './interface';
-import { GoogleWorkspaceEmail } from './google-workspace';
-
-// Interface for email service
-export interface EmailOptions {
-  to: string;
-  subject: string;
-  text: string;
-  html?: string;
-  attachments?: Array<{
-    filename: string;
-    content: Buffer | string;
-    contentType?: string;
-  }>;
-}
-
-export interface EmailService {
-  sendEmail(options: EmailOptions): Promise<boolean>;
-  sendWelcomeEmail(to: string, name: string): Promise<boolean>;
-  sendPasswordResetEmail(to: string, resetLink: string): Promise<boolean>;
-  sendPurchaseConfirmation(to: string, lessonTitle: string, amount: number): Promise<boolean>;
-}
+import { EmailService, EmailOptions } from './interface';
 
 // Factory function to create the appropriate email service
 export function createEmailService(): EmailService {
@@ -57,6 +14,8 @@ export function createEmailService(): EmailService {
   }
 }
 
+// Export the interface for type checking
+export type { EmailService, EmailOptions } from './interface';
 // Mock email service for testing
 class MockEmailService implements EmailService {
   async sendEmail(options: EmailOptions): Promise<boolean> {

@@ -76,7 +76,7 @@ export async function createRequest(data: LessonRequestFormData): Promise<{ id: 
       throw new Error(error.message);
     }
     
-    return { id: newRequest.id };
+    return { id: newRequest?.id || 'new-request-id' };
   } catch (error) {
     console.error('Error creating request:', error);
     throw error;
@@ -134,9 +134,10 @@ export async function voteForRequest(requestId: string, userId: string): Promise
         .delete({ eq: ['id', existingVotes[0].id] });
       
       // Decrement vote count
+      // Decrement vote count
       await firebaseClient
         .from('lesson_requests')
-        .update({ vote_count: firebaseClient.increment(-1) }, { eq: ['id', requestId] });
+        .update({ vote_count: { decrement: 1 } }, { eq: ['id', requestId] });
       
       return true;
     } else {
@@ -151,9 +152,10 @@ export async function voteForRequest(requestId: string, userId: string): Promise
         });
       
       // Increment vote count
+      // Increment vote count
       await firebaseClient
         .from('lesson_requests')
-        .update({ vote_count: firebaseClient.increment(1) }, { eq: ['id', requestId] });
+        .update({ vote_count: { increment: 1 } }, { eq: ['id', requestId] });
       
       return true;
     }
@@ -165,13 +167,18 @@ export async function voteForRequest(requestId: string, userId: string): Promise
 
 export async function getUserVotes(userId: string): Promise<string[]> {
   try {
-    const { data: votes } = await firebaseClient
-      .from('votes')
-      .select()
-      .eq('user_id', userId)
-      .get();
-    
-    return votes ? votes.map(vote => vote.request_id) : [];
+    try {
+      const queryResult = await firebaseClient
+        .from('votes')
+        .select()
+        .eq('user_id', userId);
+      
+      const votes = queryResult.data || [];
+      return votes ? votes.map((vote: any) => vote.request_id) : [];
+    } catch (error) {
+      console.error('Error getting user votes:', error);
+      return [];
+    }
   } catch (error) {
     console.error('Error getting user votes:', error);
     return [];

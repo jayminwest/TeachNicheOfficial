@@ -37,7 +37,10 @@ export class CloudSqlDatabase implements DatabaseService {
     const client = await this.getClient();
     try {
       const result = await client.query(text, params);
-      return { rows: result.rows, rowCount: result.rowCount || 0 };
+      return { 
+        rows: result.rows as T[], 
+        rowCount: result.rowCount || 0 
+      };
     } finally {
       client.release();
     }
@@ -76,7 +79,7 @@ export class CloudSqlDatabase implements DatabaseService {
     query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     params.push(limit, offset);
     
-    const { rows } = await this.query(query, params);
+    const { rows } = await this.query<Record<string, unknown>>(query, params);
     return rows;
   }
 }

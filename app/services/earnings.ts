@@ -184,7 +184,7 @@ export const getEarningsSummary = async (
     id: item.id,
     amount: item.amount,
     formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
-    status: item.status,
+    status: item.status as 'pending' | 'paid' | 'failed',
     createdAt: item.created_at,
     lessonTitle: item.lesson_title || 'Unknown lesson',
     lessonId: item.lesson_id
@@ -276,7 +276,7 @@ export const getEarningsHistory = async (
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
     formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
-    status: item.status,
+    status: item.status as 'pending' | 'paid' | 'failed',
     lessonTitle: item.lesson_title,
     lessonId: item.lesson_id,
     purchaseId: item.purchase_id
@@ -333,7 +333,7 @@ export const getPayoutHistory = async (
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
     formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
-    status: item.status,
+    status: item.status as 'pending' | 'paid' | 'failed' | 'canceled',
     destination: `••••${item.destination_last_four}`,
     earningsCount: item.earnings_count || 0
   }));
@@ -388,9 +388,12 @@ export const processScheduledPayouts = async (
           pending_amount: number;
         }
         
+        // Define at the top level to make it accessible throughout the function
+        type CreatorType = EligibleCreator;
+        
         const payoutResult = await processCreatorPayout(
-          (creator as EligibleCreator).creator_id,
-          (creator as EligibleCreator).pending_amount,
+          (creator as CreatorType).creator_id,
+          (creator as CreatorType).pending_amount,
           databaseService
         );
 
@@ -409,14 +412,14 @@ export const processScheduledPayouts = async (
 
           results.processed++;
           results.details.push({
-            creatorId: (creator as EligibleCreator).creator_id,
+            creatorId: (creator as CreatorType).creator_id,
             status: 'success',
-            amount: (creator as EligibleCreator).pending_amount
+            amount: (creator as CreatorType).pending_amount
           });
         } else {
           results.failed++;
           results.details.push({
-            creatorId: (creator as EligibleCreator).creator_id,
+            creatorId: (creator as CreatorType).creator_id,
             status: 'failed',
             error: payoutResult.error
           });

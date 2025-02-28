@@ -41,13 +41,14 @@ export default function MyLessonsPage() {
         setIsLoading(true);
         
         // Check if user is authenticated
-        const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
+        const authResult = await new Promise<{data: {session: any | null}, error: null | Error}>(resolve => {
+  const auth = getAuth();
+  const unsubscribe = auth.onAuthStateChanged((user: any) => {
     unsubscribe();
     resolve({ data: { session: user ? { user } : null }, error: null });
   });
 });
+        const { data: { session } } = authResult;
         
         if (!session) {
           console.log('No session found, redirecting to login');
@@ -71,7 +72,7 @@ export default function MyLessonsPage() {
               created_at
             )
           `)
-          .eq('user_id', user.uid)
+          .eq('user_id', session?.user?.uid || '')
           .eq('status', 'completed');
         
         if (error) {

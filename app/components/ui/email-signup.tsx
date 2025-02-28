@@ -5,7 +5,8 @@ import { Button } from "./button";
 import { Input } from "./input";
 import { motion } from "framer-motion";
 import { collection, addDoc } from "firebase/firestore";
-import { firestore } from "@/app/lib/firebase";
+import { getFirestore } from "@/app/lib/firebase";
+const firestore = getFirestore();
 
 export function EmailSignup() {
   const [email, setEmail] = useState("");

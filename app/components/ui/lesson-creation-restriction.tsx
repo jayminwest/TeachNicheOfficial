@@ -18,7 +18,8 @@ export function LessonCreationRestriction({ className }: LessonCreationRestricti
     if (!user?.metadata?.creationTime) return;
     
     const updateTimeRemaining = () => {
-      const remaining = getTimeUntilCanCreateLesson(user.metadata.creationTime);
+      const creationTime = user.metadata.creationTime || new Date().toISOString();
+      const remaining = getTimeUntilCanCreateLesson(creationTime);
       setTimeRemaining(remaining);
     };
     
@@ -34,7 +35,7 @@ export function LessonCreationRestriction({ className }: LessonCreationRestricti
   if (!timeRemaining) return null;
   
   return (
-    <Alert variant="warning" className={className}>
+    <Alert variant="destructive" className={className}>
       <Clock className="h-4 w-4" />
       <AlertTitle>New Account Restriction</AlertTitle>
       <AlertDescription>

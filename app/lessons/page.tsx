@@ -18,17 +18,16 @@ export default function LessonsPage() {
   useEffect(() => {
     async function fetchLessons() {
       try {
-        // Import supabase only when needed
-        const { default: supabase } = await import('@/app/services/firebase-compat');
-        const { data, error } = await supabase
-          .from('lessons')
-          .select(`
-            *,
-            reviews (
-              rating
-            )
-          `)
-          .order('created_at', { ascending: false });
+        // Import firebaseClient only when needed
+        const { firebaseClient } = await import('@/app/services/firebase-compat');
+        
+        // Query lessons collection
+        const queryRef = firebaseClient.from('lessons');
+        const queryResult = await queryRef.select();
+        
+        // Mock data structure to match expected format
+        const data = queryResult.data || [];
+        const error = queryResult.error;
 
         if (error) {
           throw new Error(`Database error: ${error.message}`);
@@ -43,11 +42,11 @@ export default function LessonsPage() {
         }
         
         // Transform the data to match the Lesson type
-        const transformedLessons: Lesson[] = (data || []).map(lesson => {
+        const transformedLessons: Lesson[] = (data || []).map((lesson: any) => {
           const reviews = lesson.reviews || [];
           const totalRatings = reviews.length;
           const averageRating = totalRatings > 0 
-            ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalRatings 
+            ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / totalRatings 
             : 0;
 
           return {

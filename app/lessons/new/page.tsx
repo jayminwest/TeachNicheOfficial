@@ -35,14 +35,14 @@ export default function NewLessonPage() {
         return;
       }
 
-      const session = await new Promise(resolve => {
+      const session = await new Promise<{data: {session: {user: any} | null}, error: null | Error}>(resolve => {
   const auth = getAuth(getApp());
   const unsubscribe = auth.onAuthStateChanged(user => {
     unsubscribe();
     resolve({ data: { session: user ? { user } : null }, error: null });
   });
 });
-      if (!session.data.session) {
+      if (!session?.data?.session) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to create a lesson",
@@ -107,7 +107,7 @@ export default function NewLessonPage() {
       };
 
       // Verify session is still valid
-      if (!session.data.session) {
+      if (!session?.data?.session) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to create a lesson",

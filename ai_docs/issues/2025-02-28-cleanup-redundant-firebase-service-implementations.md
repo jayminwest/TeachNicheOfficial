@@ -73,27 +73,61 @@ Both `file.d.ts` and `global.d.ts` define the same `FileConstructor` interface a
 
 ## Implementation Plan
 
-1. Search for imports of the files to be deleted:
-   ```bash
-   grep -r "from '@/app/services/auth/firebase-auth'" --include="*.ts" --include="*.tsx" .
-   grep -r "from '@/app/services/auth/firebase-auth-adapter'" --include="*.ts" --include="*.tsx" .
-   grep -r "from '@/app/services/storage/firebase-storage'" --include="*.ts" --include="*.tsx" .
-   ```
+### Step 1: Identify Affected Files
+First, search for imports of the files to be deleted to identify which files need to be updated:
 
-2. Update any imports to reference the canonical implementations
+```bash
+# Check for imports of firebase-auth.ts
+grep -r "from '@/app/services/auth/firebase-auth'" --include="*.ts" --include="*.tsx" .
+```
 
-3. Delete the redundant files:
-   ```bash
-   rm app/types/file.d.ts
-   rm app/services/auth/firebase-auth.ts
-   rm app/services/auth/firebase-auth-adapter.ts
-   rm app/services/storage/firebase-storage.ts
-   ```
+```bash
+# Check for imports of firebase-auth-adapter.ts
+grep -r "from '@/app/services/auth/firebase-auth-adapter'" --include="*.ts" --include="*.tsx" .
+```
 
-4. Run tests to ensure everything still works:
-   ```bash
-   npm test && vercel build
-   ```
+```bash
+# Check for imports of firebase-storage.ts
+grep -r "from '@/app/services/storage/firebase-storage'" --include="*.ts" --include="*.tsx" .
+```
+
+```bash
+# Check for imports of file.d.ts types
+grep -r "from '@/app/types/file'" --include="*.ts" --include="*.tsx" .
+```
+
+### Step 2: Update Imports
+For each file identified in Step 1, update the imports to reference the canonical implementations:
+
+- Replace `from '@/app/services/auth/firebase-auth'` with `from '@/app/services/auth/firebase-auth-service'`
+- Replace `from '@/app/services/auth/firebase-auth-adapter'` with `from '@/app/services/auth/firebase-auth-service'`
+- Replace `from '@/app/services/storage/firebase-storage'` with `from '@/app/services/storage/firebase-storage-service'`
+
+### Step 3: Delete Redundant Files
+After updating all imports and verifying the changes, delete the redundant files:
+
+```bash
+# Delete redundant type definition
+rm app/types/file.d.ts
+```
+
+```bash
+# Delete redundant auth implementations
+rm app/services/auth/firebase-auth.ts
+rm app/services/auth/firebase-auth-adapter.ts
+```
+
+```bash
+# Delete redundant storage implementation
+rm app/services/storage/firebase-storage.ts
+```
+
+### Step 4: Test Changes
+After each step, run tests to ensure everything still works:
+
+```bash
+npm test && vercel build
+```
 
 ## Additional Context
 This cleanup aligns with our core philosophy of minimalism and modularity as outlined in the project documentation. By maintaining a single, well-defined implementation for each service, we improve maintainability and reduce the risk of bugs caused by inconsistent implementations.

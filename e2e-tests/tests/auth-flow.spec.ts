@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Authentication Flow', () => {
   test('should allow user to sign in', async ({ page }) => {
     // Navigate to the site
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Click sign in button
     await page.click('[data-testid="sign-in-button"]');
@@ -24,7 +24,7 @@ test.describe('Authentication Flow', () => {
   
   test('should show error for invalid credentials', async ({ page }) => {
     // Navigate to the site
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Click sign in button
     await page.click('[data-testid="sign-in-button"]');
@@ -46,7 +46,7 @@ test.describe('Authentication Flow', () => {
     const uniqueEmail = `test-${Date.now()}@example.com`;
     
     // Navigate to the site
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Click sign in button
     await page.click('[data-testid="sign-in-button"]');
@@ -71,7 +71,7 @@ test.describe('Authentication Flow', () => {
   
   test('should allow user to sign out', async ({ page }) => {
     // First sign in
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     await page.click('[data-testid="sign-in-button"]');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'testpassword');

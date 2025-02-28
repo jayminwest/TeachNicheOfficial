@@ -144,7 +144,13 @@ export async function POST(request: NextRequest) {
       description?: string;
       price: number;
       creator_id: string;
-      [key: string]: any;
+      status?: string;
+      content?: string;
+      mux_asset_id?: string;
+      mux_playback_id?: string;
+      created_at?: string;
+      updated_at?: string;
+      category?: string;
     }
     
     const lesson = lessons && lessons.length > 0 ? lessons[0] as Lesson : null;

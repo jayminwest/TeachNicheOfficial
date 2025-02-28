@@ -86,12 +86,40 @@ async function createCategories(db: any) {
     
     console.log(`${colors.blue}Creating categories in Firestore...${colors.reset}`);
     
-    for (const category of mockCategories) {
-      await addDoc(categoriesRef, category);
-      console.log(`  - Created category: ${category.name}`);
+    // Check if we have permission issues
+    try {
+      for (const category of mockCategories) {
+        await addDoc(categoriesRef, category);
+        console.log(`  - Created category: ${category.name}`);
+      }
+      
+      console.log(`${colors.green}Successfully created ${mockCategories.length} categories!${colors.reset}`);
+    } catch (permissionError) {
+      if (permissionError.code === 'permission-denied') {
+        console.error(`${colors.red}Permission denied error:${colors.reset}`, permissionError);
+        console.log(`${colors.yellow}You need to update your Firestore security rules to allow writes to the categories collection.${colors.reset}`);
+        console.log(`${colors.yellow}Please follow these steps:${colors.reset}`);
+        console.log(`1. Go to the Firebase Console: ${colors.blue}https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore/rules${colors.reset}`);
+        console.log(`2. Update your security rules to allow writes to the categories collection:`);
+        console.log(`
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if true; // Temporarily allow all writes for setup
     }
-    
-    console.log(`${colors.green}Successfully created ${mockCategories.length} categories!${colors.reset}`);
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+        `);
+        console.log(`3. Click "Publish" and then run this script again.`);
+      } else {
+        console.error(`${colors.red}Error creating categories:${colors.reset}`, permissionError);
+      }
+    }
   } catch (error) {
     console.error(`${colors.red}Error creating categories:${colors.reset}`, error);
   }

@@ -51,7 +51,7 @@ export function renderWithAuth(
             user: user as User | null, // Force the correct type
             loading: loading as boolean,
             isAuthenticated: isAuthenticated as boolean,
-            isCreator: () => Boolean(user?.user_metadata?.is_creator)
+            isCreator: () => Boolean(user?.metadata?.is_creator)
           }}
         >
           {children}

@@ -61,9 +61,9 @@ export function AuthProvider({
   }, [])
 
   const isCreator = useCallback(() => {
-    return user?.user_metadata?.is_creator === true || 
-           user?.app_metadata?.is_creator === true;
-  }, [user?.user_metadata?.is_creator, user?.app_metadata?.is_creator]);
+    return user?.metadata?.is_creator === true || 
+           user?.metadata?.is_creator === true;
+  }, [user?.metadata?.is_creator, user?.metadata?.is_creator]);
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated, isCreator }}>

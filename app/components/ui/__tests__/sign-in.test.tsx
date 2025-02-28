@@ -212,7 +212,7 @@ describe('SignInPage', () => {
     
     // Wait for the error message to appear and check it's accessible
     await waitFor(() => {
-      const errorElement = screen.getByTestId('password-input');
+      const errorElement = screen.getByTestId('auth-error');
       expect(errorElement).toBeInTheDocument();
       expect(errorElement).toHaveClass('text-red-500'); // Visual indication
       // In a real implementation, we would also check for aria-live attributes

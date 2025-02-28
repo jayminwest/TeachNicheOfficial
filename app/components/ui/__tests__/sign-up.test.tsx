@@ -116,7 +116,7 @@ describe('SignUpPage', () => {
     await waitFor(() => {
       // The actual error message might be different from what we expect
       // Look for any error message with red styling
-      const errorElement = screen.getByTestId('password-input');
+      const errorElement = screen.getByTestId('auth-error');
       expect(errorElement).toBeInTheDocument();
       expect(errorElement).toHaveClass('text-red-500');
     });
@@ -185,7 +185,7 @@ describe('SignUpPage', () => {
     await waitFor(() => {
       // The actual error message might be different from what we expect
       // Look for any error message with red styling
-      const errorElement = screen.getByTestId('password-input');
+      const errorElement = screen.getByTestId('auth-error');
       expect(errorElement).toBeInTheDocument();
       expect(errorElement).toHaveClass('text-red-500'); // Visual indication
       // In a real implementation, we would also check for aria-live attributes

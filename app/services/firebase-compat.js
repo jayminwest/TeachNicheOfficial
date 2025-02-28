@@ -6,7 +6,7 @@
  */
 
 // Import Firebase directly to avoid ESM issues
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp } from 'firebase/app';
 import { 
   getFirestore,
   collection, 
@@ -49,7 +49,6 @@ try {
   // If error is about duplicate app, get the existing instance
   if (error.code === 'app/duplicate-app') {
     // Get the existing app by name
-    const { getApp } = require('firebase/app');
     try {
       app = getApp();
     } catch (innerError) {

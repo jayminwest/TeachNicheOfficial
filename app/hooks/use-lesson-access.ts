@@ -73,15 +73,15 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         // Import database service
         const { databaseService } = await import('@/app/services/database');
         
-        // Get database reference first to avoid chaining issues
+        // Create the database query step by step to avoid TypeScript errors
         const purchasesRef = databaseService.from('purchases');
+        const query = purchasesRef.select('status, purchase_date');
+        const filteredByUser = query.eq('user_id', user.uid);
+        const filteredByLesson = filteredByUser.eq('lesson_id', lessonId);
+        const singleResult = filteredByLesson.maybeSingle();
         
         const result = await Promise.race([
-          purchasesRef
-            .select('status, purchase_date')
-            .eq('user_id', user.uid)
-            .eq('lesson_id', lessonId)
-            .maybeSingle(),
+          singleResult,
           timeoutPromise
         ])
 

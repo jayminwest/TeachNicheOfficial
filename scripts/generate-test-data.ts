@@ -161,11 +161,15 @@ function parseArgs() {
   dryRun = args.includes('--dry-run');
   uploadToFirebase = args.includes('--upload-to-firebase');
   
+  // Debug mode for more verbose logging
+  const debug = args.includes('--debug');
+  
   console.log(`${colors.cyan}Test Data Generation Script${colors.reset}`);
   console.log(`Dataset size: ${colors.yellow}${datasetSize}${colors.reset}`);
   console.log(`Target environment: ${colors.yellow}${targetEnv}${colors.reset}`);
   if (dryRun) console.log(`${colors.yellow}Dry run mode enabled${colors.reset}`);
   if (uploadToFirebase) console.log(`${colors.yellow}Firebase upload enabled${colors.reset}`);
+  if (debug) console.log(`${colors.yellow}Debug mode enabled${colors.reset}`);
 }
 
 /**
@@ -190,6 +194,7 @@ ${colors.yellow}Options:${colors.reset}
   --test               Target test environment
   --dry-run            Run without saving to database
   --upload-to-firebase Upload data to Firebase/Firestore
+  --debug              Enable verbose debug logging
   --help               Show this help message
   `);
 }
@@ -642,7 +647,28 @@ async function generateReviews(users: User[], lessons: Lesson[], config: Generat
  */
 async function generatePayments(users: User[], lessons: Lesson[], config: GenerationConfig) {
   const students = users.filter(user => !user.isInstructor);
-  const publishedLessons = lessons.filter(lesson => lesson.published);
+  let publishedLessons = lessons.filter(lesson => lesson.published);
+  
+  // Verify lessons exist in the database before proceeding
+  if (!dryRun) {
+    try {
+      const { rows } = await pool.query('SELECT id FROM lessons');
+      const existingLessonIds = new Set(rows.map(row => row.id));
+      
+      // Filter lessons to only include those that exist in the database
+      publishedLessons = publishedLessons.filter(lesson => existingLessonIds.has(lesson.id));
+      
+      console.log(`Found ${existingLessonIds.size} lessons in database, ${publishedLessons.length} are published`);
+      
+      if (publishedLessons.length === 0) {
+        console.log(`${colors.yellow}No published lessons found in database, skipping payment generation${colors.reset}`);
+        return [];
+      }
+    } catch (error) {
+      console.error(`${colors.red}Failed to verify lessons in database:${colors.reset}`, error);
+      return [];
+    }
+  }
   
   // Calculate total payments
   const totalPayments = Math.min(students.length * config.paymentsPerUser, publishedLessons.length * 10);
@@ -751,7 +777,8 @@ async function saveToFirestore() {
   console.log(`${colors.cyan}Saving data to Firestore...${colors.reset}`);
   
   // Determine the collection prefix based on environment
-  const collectionPrefix = targetEnv === 'production' ? 'production/' : 'dev/';
+  // For Firebase, we don't use a prefix - collections are at the root level
+  const collectionPrefix = '';
   
   // Save users
   console.log(`Saving ${generatedData.users.length} users to Firestore...`);
@@ -865,6 +892,16 @@ async function main() {
     
     // Initialize services
     await initDatabase();
+    
+    // Verify database schema
+    if (!dryRun) {
+      const schemaValid = await verifyDatabaseSchema();
+      if (!schemaValid) {
+        console.error(`${colors.red}Database schema verification failed. Exiting.${colors.reset}`);
+        process.exit(1);
+      }
+    }
+    
     initFirebase();
     
     // Get configuration for selected dataset size

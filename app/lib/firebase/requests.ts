@@ -180,8 +180,8 @@ export async function getUserVotes(userId: string): Promise<string[]> {
         .select()
         .eq('user_id', userId);
       
-      const votes = queryResult.data || [];
-      return votes ? votes.map((vote: Record<string, unknown>) => vote.request_id as string) : [];
+      const votes = queryResult && 'data' in queryResult ? queryResult.data : [];
+      return Array.isArray(votes) ? votes.map((vote: Record<string, unknown>) => vote.request_id as string) : [];
     } catch (error) {
       console.error('Error getting user votes:', error);
       return [];

@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getAuth } from 'firebase/auth';
 import { getApp } from 'firebase/app';
-import { firebaseClient } from '@/app/services/firebase-compat';
 
 export const dynamic = 'force-dynamic';
 
@@ -138,6 +137,8 @@ export async function POST(request: Request) {
 
       // Store the Stripe account ID in our database
       try {
+        // Import the database service
+        const { FirestoreDatabase } = await import('@/app/services/database/firebase-database');
         // Create a database service
         const db = new FirestoreDatabase();
         

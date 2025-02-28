@@ -33,7 +33,7 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
       setIsLoading(true);
 
       // Check auth status
-      const { data: { session } } = await new Promise<{ data: { session: any } }>(resolve => {
+      const { data: { session } } = await new Promise<{ data: { session: { user: unknown } | null } }>(resolve => {
         // Dynamically import Firebase auth to avoid SSR issues
         import('firebase/auth').then(({ getAuth, onAuthStateChanged }) => {
           import('firebase/app').then(({ getApp }) => {

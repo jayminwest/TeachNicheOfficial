@@ -3,8 +3,6 @@ import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getFirestore, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { getApp } from 'firebase/app';;
 import { Toaster } from "@/app/components/ui/toaster";
 import { formatPrice } from "@/app/lib/constants";
 

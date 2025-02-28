@@ -50,22 +50,27 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         // In real environment, use the router
         router.push('/dashboard');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Google sign-in error:', err);
       
       // Provide more specific error messages based on error code
-      if (err.code === 'auth/unauthorized-domain') {
-        setError('This domain is not authorized for sign-in. Please contact support.');
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in was cancelled. Please try again.');
-      } else if (err.code === 'auth/popup-blocked') {
-        setError('Sign-in popup was blocked by your browser. Please allow popups for this site.');
-      } else if (err.code === 'auth/cancelled-popup-request') {
-        setError('Sign-in request was cancelled.');
-      } else if (err.code === 'auth/internal-error') {
-        setError('An internal error occurred. Please try again later.');
+      if (typeof err === 'object' && err !== null && 'code' in err) {
+        const firebaseError = err as { code: string };
+        if (firebaseError.code === 'auth/unauthorized-domain') {
+          setError('This domain is not authorized for sign-in. Please contact support.');
+        } else if (firebaseError.code === 'auth/popup-closed-by-user') {
+          setError('Sign-in was cancelled. Please try again.');
+        } else if (firebaseError.code === 'auth/popup-blocked') {
+          setError('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+        } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+          setError('Sign-in request was cancelled.');
+        } else if (firebaseError.code === 'auth/internal-error') {
+          setError('An internal error occurred. Please try again later.');
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+        }
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+        setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
       }
     } finally {
       setIsLoading(false)

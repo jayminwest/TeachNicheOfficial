@@ -20,7 +20,6 @@ import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/st
 import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Only import Auth in client components
-let Auth: typeof import('firebase/auth').Auth | undefined;
 let getAuth: typeof import('firebase/auth').getAuth | undefined;
 let connectAuthEmulator: typeof import('firebase/auth').connectAuthEmulator | undefined;
 
@@ -28,7 +27,6 @@ let connectAuthEmulator: typeof import('firebase/auth').connectAuthEmulator | un
 if (typeof window !== 'undefined') {
   // Using dynamic import with type safety
   import('firebase/auth').then((authModule) => {
-    Auth = authModule.Auth;
     getAuth = authModule.getAuth;
     connectAuthEmulator = authModule.connectAuthEmulator;
   }).catch(error => {

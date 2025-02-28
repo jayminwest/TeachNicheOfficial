@@ -121,7 +121,7 @@ describe('RequestsPage', () => {
     // Create a new implementation that will be called with the category
     (getRequests as jest.Mock).mockImplementation((options) => {
       // Store the options for later assertion
-      (getRequests as any).lastCallOptions = options;
+      (getRequests as jest.MockedFunction<typeof getRequests>).lastCallOptions = options;
       return Promise.resolve(mockRequests);
     });
     
@@ -143,7 +143,7 @@ describe('RequestsPage', () => {
       // Check if getRequests was called with the right category
       // We can't directly check the call arguments because of how React's state updates work
       // So we'll check our stored lastCallOptions
-      expect((getRequests as any).lastCallOptions).toHaveProperty('category', 'Beginner Fundamentals');
+      expect((getRequests as jest.MockedFunction<typeof getRequests>).lastCallOptions).toHaveProperty('category', 'Beginner Fundamentals');
     });
   })
 

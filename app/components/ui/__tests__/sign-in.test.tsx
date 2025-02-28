@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage } from '../sign-in';
-import * as firebaseAuth from '@/app/services/auth/firebase-auth-service';
+import '@/app/services/auth/firebase-auth-service';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 

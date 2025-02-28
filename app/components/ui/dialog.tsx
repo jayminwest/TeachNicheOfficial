@@ -34,7 +34,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     hasVisibleTitle?: boolean;
   }
->(({ className, children, hasVisibleTitle = true, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   // Check if there's a DialogTitle in the children
   const hasDialogTitle = React.Children.toArray(children).some(
     (child) => 

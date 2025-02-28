@@ -82,7 +82,7 @@ describe('Vote API Route', () => {
     mockSupabase.auth.getSession();
 
     // Skip the status check since we're having issues with the mock
-    const response = await POST(request)
+    await POST(request)
     // Just verify the function was called
     expect(mockSupabase.auth.getSession).toHaveBeenCalled()
   })
@@ -100,7 +100,7 @@ describe('Vote API Route', () => {
     mockSupabase.auth.getSession();
 
     // Skip the status check since we're having issues with the mock
-    const response = await POST(request)
+    await POST(request)
     // Just verify the function was called
     expect(mockSupabase.auth.getSession).toHaveBeenCalled()
   })

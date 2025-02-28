@@ -27,23 +27,23 @@ export async function getRequests(options: RequestOptions = {}): Promise<LessonR
     const { category, sortBy = 'popular', status = 'open' } = options;
     
     // Use firebaseClient for compatibility with existing code
-    let query = firebaseClient
+    const queryBuilder = firebaseClient
       .from('lesson_requests')
       .select();
     
     if (category) {
-      query = query.eq('category', category);
+      queryBuilder.eq('category', category);
     }
     
     if (status) {
-      query = query.eq('status', status);
+      queryBuilder.eq('status', status);
     }
     
     // Apply sorting
     if (sortBy === 'popular') {
-      query = query.order('vote_count', { ascending: false });
+      queryBuilder.order('vote_count', { ascending: false });
     } else if (sortBy === 'newest') {
-      query = query.order('created_at', { ascending: false });
+      queryBuilder.order('created_at', { ascending: false });
     }
     
     // Apply limit

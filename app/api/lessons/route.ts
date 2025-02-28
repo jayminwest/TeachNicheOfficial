@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { firebaseClient } from '@/app/services/firebase-compat';
-import { firebaseAuth } from '@/app/services/auth/firebase-auth';
+import { getAuth, getApp } from 'firebase/auth';
 
 interface LessonData {
   title: string;
@@ -32,7 +32,7 @@ async function createLessonHandler(request: Request) {
       );
     }
     
-    const currentUser = auth.currentUser;
+    // Get user from session
 
     const data = await request.json();
     const { 
@@ -98,7 +98,7 @@ async function createLessonHandler(request: Request) {
 
 async function getLessonsHandler(request: Request) {
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get('limit') || '10');
+  // const limit = parseInt(searchParams.get('limit') || '10');
   const category = searchParams.get('category');
   const sort = searchParams.get('sort') || 'newest';
   
@@ -127,12 +127,10 @@ async function getLessonsHandler(request: Request) {
     
     // Apply limit
     // TODO: Implement limit for Firebase
-  // query = query.limit(limit);
     
     // Execute the query
-    const { data: lessons } = await // TODO: Implement get() for Firebase
-  // Temporary placeholder to avoid errors
-  { data: [] };
+    // Temporary placeholder to avoid errors
+    const { data: lessons } = await Promise.resolve({ data: [] });
     
     return NextResponse.json({ lessons });
   } catch {
@@ -161,7 +159,7 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const currentUser = auth.currentUser;
+    // Get user from session
 
     const data = await request.json();
     const { id, ...updateData } = data;
@@ -228,7 +226,7 @@ async function deleteLessonHandler(request: Request) {
       );
     }
     
-    const currentUser = auth.currentUser;
+    // Get user from session
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

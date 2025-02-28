@@ -4,7 +4,7 @@ export function createClient() {
   return {
     firestore,
     auth,
-    from: (collectionPath: string) => ({
+    from: (_collectionPath: string) => ({
       select: () => ({
         eq: () => ({
           single: async () => ({

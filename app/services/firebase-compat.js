@@ -52,7 +52,7 @@ try {
     // Get the existing app by name
     try {
       app = getApp();
-    } catch (initError) {
+    } catch (_) {
       // If getApp fails, initialize with config again as fallback
       app = initializeApp(firebaseConfig, 'teach-niche-app');
     }
@@ -404,7 +404,7 @@ export const firebaseClient = {
 // For testing environment
 if (process.env.NODE_ENV === 'test') {
   // Mock implementations for testing
-  firebaseClient.from = jest.fn().mockImplementation((collectionName) => ({
+  firebaseClient.from = jest.fn().mockImplementation((_) => ({
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),

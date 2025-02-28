@@ -5,6 +5,29 @@ import { getRequests } from '@/app/lib/firebase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 
+// Mock Firebase app and services
+jest.mock('firebase/app', () => {
+  const mockApp = { name: '[DEFAULT]', options: {} };
+  return {
+    getApp: jest.fn().mockReturnValue(mockApp),
+    initializeApp: jest.fn().mockReturnValue(mockApp)
+  };
+});
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn().mockReturnValue({}),
+  collection: jest.fn().mockReturnThis(),
+  doc: jest.fn().mockReturnThis(),
+  getDoc: jest.fn().mockResolvedValue({
+    data: () => ({}),
+    exists: () => true,
+  }),
+  getDocs: jest.fn().mockResolvedValue({
+    docs: [],
+    forEach: jest.fn()
+  })
+}));
+
 // Mock Firebase auth
 jest.mock('@/app/services/firebase', () => ({
   auth: {
@@ -25,6 +48,21 @@ jest.mock('@/app/services/firebase', () => ({
   },
 }))
 
+// Mock database service
+jest.mock('@/app/services/database', () => ({
+  createDatabaseService: jest.fn().mockReturnValue({
+    getCollection: jest.fn().mockReturnValue({
+      where: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      get: jest.fn().mockResolvedValue([])
+    }),
+    getDocument: jest.fn().mockResolvedValue({}),
+    updateDocument: jest.fn().mockResolvedValue({}),
+    createDocument: jest.fn().mockResolvedValue({ id: 'new-doc-id' }),
+    deleteDocument: jest.fn().mockResolvedValue(true)
+  })
+}));
 
 // Mock getFirebaseAuth
 jest.mock('@/app/lib/firebase/client', () => ({

@@ -6,6 +6,7 @@ import { EarningsHistoryItem, getEarningsHistory } from '@/app/services/earnings
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { formatCurrency } from '@/app/lib/utils';
+import { firebaseClient } from '@/app/services/firebase-compat';
 
 export default function EarningsHistory() {
   const [earnings, setEarnings] = useState<EarningsHistoryItem[]>([]);
@@ -24,7 +25,7 @@ export default function EarningsHistory() {
       }
 
       try {
-        // In test environments, use mock data if supabase client isn't fully initialized
+        // In test environments, use mock data if firebase client isn't fully initialized
         if (process.env.NODE_ENV === 'test' || window.location.href.includes('localhost')) {
           // Mock data for testing
           const mockEarnings: EarningsHistoryItem[] = [
@@ -62,7 +63,7 @@ export default function EarningsHistory() {
         
         const earningsHistory = await getEarningsHistory(
           user.uid, 
-          supabase, 
+          firebaseClient, 
           pageSize, 
           page * pageSize
         );

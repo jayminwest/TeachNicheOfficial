@@ -1,28 +1,22 @@
 import { getAuth as getFirebaseAuth } from '@/app/lib/firebase';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  updateProfile,
-  signOut as firebaseSignOut,
-  getAuth as firebaseGetAuth,
-  Auth
-} from 'firebase/auth';
+import type { Auth } from 'firebase/auth';
 import { AuthService, AuthUser } from './interface';
 import { app } from '@/app/lib/firebase';
 
 // Get auth instance - this is safe in client components
-const getAuthInstance = (): Auth => {
+const getAuthInstance = async (): Promise<Auth> => {
   // Try to get auth from our helper function first
   const auth = getFirebaseAuth();
   if (auth) return auth;
   
   // Fallback to creating a new instance if needed
-  return firebaseGetAuth(app);
+  const { getAuth } = await import('firebase/auth');
+  return getAuth(app);
 };
 
 export const firebaseAuth = {
   getSession: async () => {
-    const auth = getAuthInstance();
+    const auth = await getAuthInstance();
     const currentUser = auth.currentUser;
     
     return {
@@ -45,7 +39,8 @@ export const firebaseAuth = {
 export class FirebaseAuth implements AuthService {
   async signIn(email: string, password: string): Promise<AuthUser> {
     try {
-      const auth = getAuthInstance();
+      const auth = await getAuthInstance();
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return this.transformUser(userCredential.user);
     } catch (error) {
@@ -56,7 +51,8 @@ export class FirebaseAuth implements AuthService {
   
   async signUp(email: string, password: string, name: string): Promise<AuthUser> {
     try {
-      const auth = getAuthInstance();
+      const auth = await getAuthInstance();
+      const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       // Update the user profile with the name
@@ -73,8 +69,9 @@ export class FirebaseAuth implements AuthService {
   
   async signOut(): Promise<void> {
     try {
-      const auth = getAuthInstance();
-      await firebaseSignOut(auth);
+      const auth = await getAuthInstance();
+      const { signOut } = await import('firebase/auth');
+      await signOut(auth);
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
@@ -82,7 +79,7 @@ export class FirebaseAuth implements AuthService {
   }
   
   async getCurrentUser(): Promise<AuthUser | null> {
-    const auth = getAuthInstance();
+    const auth = await getAuthInstance();
     
     // If we already have the current user, return it
     if (auth.currentUser) {
@@ -91,9 +88,11 @@ export class FirebaseAuth implements AuthService {
     
     // Otherwise, wait for the auth state to be determined
     return new Promise((resolve) => {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        unsubscribe();
-        resolve(user ? this.transformUser(user) : null);
+      import('firebase/auth').then(({ onAuthStateChanged }) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          unsubscribe();
+          resolve(user ? this.transformUser(user) : null);
+        });
       });
     });
   }

@@ -196,8 +196,17 @@ export function getAuth() {
     console.warn('Attempted to access Auth on the server side. This is not supported.');
     return null;
   }
+  
+  // If auth is not initialized yet, return null
+  // The client component will handle initialization
   return auth;
 }
+
+// Create a server-safe version of Firebase for server components
+export const serverSafeFirebase = {
+  app,
+  // Add any server-safe methods here
+};
 
 /**
  * Helper function to determine if Firebase is properly initialized

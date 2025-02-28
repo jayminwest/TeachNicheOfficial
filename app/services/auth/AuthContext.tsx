@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { User, getAuth as firebaseGetAuth, onAuthStateChanged } from 'firebase/auth'
+import type { User, Auth } from 'firebase/auth'
 import { app, getAuth as getFirebaseAuth } from '@/app/lib/firebase'
 
 interface AuthContextType {
@@ -18,9 +18,8 @@ export const AuthContext = createContext<AuthContextType>({
   isCreator: () => false,
 })
 
-// Initialize Firebase Auth - this is safe because this is a client component ('use client')
-// Try to get auth from our helper function first, fallback to direct initialization
-const auth = getFirebaseAuth() || firebaseGetAuth(app);
+// We'll initialize auth in useEffect to ensure it only runs on the client
+let auth: Auth | null = null;
 
 export function AuthProvider({ 
   children, 
@@ -34,21 +33,51 @@ export function AuthProvider({
   const isAuthenticated = !!user
 
   useEffect(() => {
-    // Set up auth state change listener
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // Convert Firebase user to User format for compatibility
-        // Use the Firebase User directly
-        setUser(firebaseUser);
-      } else {
-        setUser(null);
+    // Dynamically import Firebase auth to avoid server-side issues
+    const initializeAuth = async () => {
+      try {
+        // First try to get auth from our helper function
+        let authInstance = getFirebaseAuth();
+        
+        // If that fails, initialize it directly
+        if (!authInstance) {
+          const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+          authInstance = getAuth(app);
+          auth = authInstance; // Store for future use
+        }
+        
+        // Set up auth state change listener
+        const { onAuthStateChanged } = await import('firebase/auth');
+        const unsubscribe = onAuthStateChanged(authInstance, (firebaseUser) => {
+          if (firebaseUser) {
+            // Use the Firebase User directly
+            setUser(firebaseUser);
+          } else {
+            setUser(null);
+          }
+          setLoading(false);
+        });
+        
+        // Return cleanup function
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setLoading(false);
+        return () => {}; // Return empty cleanup function
       }
-      setLoading(false);
+    };
+    
+    // Initialize auth and store the unsubscribe function
+    let unsubscribe: (() => void) | undefined;
+    initializeAuth().then(cleanupFn => {
+      unsubscribe = cleanupFn;
     });
     
     // Cleanup subscription
-    return () => unsubscribe();
-  }, [])
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   const isCreator = useCallback(() => {
     // Check if the user has a creator profile in their custom claims or metadata

@@ -111,7 +111,7 @@ export class GoogleWorkspaceEmail implements EmailService {
     const boundary = 'boundary_' + Date.now().toString();
     const sender = process.env.EMAIL_SENDER || 'noreply@teachniche.com';
     
-    let email = [
+    const email = [
       `From: Teach Niche <${sender}>`,
       `To: ${options.to}`,
       `Subject: ${options.subject}`,

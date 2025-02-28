@@ -244,11 +244,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Ensure purchase has the correct type
-    const purchaseRecord = {
-      id: purchaseId,
-      ...purchaseData
-    };
+    // Purchase record created successfully
     
     // Create Stripe checkout session with proper typing
     const sessionParams: StripeCheckoutSessionParams = {

@@ -115,7 +115,18 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     return;
   }
   
-  const purchase = purchaseSnapshot.rows[0];
+  // Define the purchase type
+  interface Purchase {
+    id: string;
+    creator_id: string;
+    lesson_id: string;
+    creator_earnings: number;
+    amount: number;
+    status: string;
+    metadata?: Record<string, any>;
+  }
+  
+  const purchase = purchaseSnapshot.rows[0] as Purchase;
 
   // Record the earnings in creator_earnings table
   try {
@@ -205,7 +216,14 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       return;
     }
     
-    const earnings = earningsSnapshot.rows[0];
+    // Define the earnings type
+    interface Earnings {
+      id: string;
+      amount: number;
+      status: string;
+    }
+    
+    const earnings = earningsSnapshot.rows[0] as Earnings;
     
     // Calculate refunded earnings amount (proportional to refund amount)
     const refundRatio = refundAmount / purchase.amount;

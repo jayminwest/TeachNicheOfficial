@@ -68,7 +68,7 @@ const getFirebaseAuth = async (): Promise<{
       updatePassword: firebaseAuth.updatePassword,
       onAuthStateChanged: firebaseAuth.onAuthStateChanged,
       signInWithPopup: (auth: Auth, provider: unknown) => 
-        firebaseAuth.signInWithPopup(auth, provider as AuthProvider),
+        firebaseAuth.signInWithPopup(auth, provider as any),
       GoogleAuthProvider: firebaseAuth.GoogleAuthProvider
     };
   } catch (error) {
@@ -360,13 +360,19 @@ export async function signInWithGoogle(): Promise<{
     const provider = new GoogleAuthProvider();
     
     // Add scopes for better user info
-    if (typeof provider.addScope === 'function') {
-      provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-      provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+    // Type assertion for provider since we know it's a GoogleAuthProvider
+    const typedProvider = provider as {
+      addScope: (scope: string) => void;
+      setCustomParameters: (params: Record<string, string>) => void;
+    };
+    
+    if (typeof typedProvider.addScope === 'function') {
+      typedProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
+      typedProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
       
       // Set custom parameters for better UX
-      if (typeof provider.setCustomParameters === 'function') {
-        provider.setCustomParameters({
+      if (typeof typedProvider.setCustomParameters === 'function') {
+        typedProvider.setCustomParameters({
           prompt: 'select_account'
         });
       }

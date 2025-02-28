@@ -41,7 +41,7 @@ export async function GET() {
     }
 
     // Get account status using our utility
-    const status = await getAccountStatus(profile.stripe_account_id);
+    const status = await getAccountStatus(typedProfile.stripe_account_id);
 
     return NextResponse.json(status);
   } catch (error) {

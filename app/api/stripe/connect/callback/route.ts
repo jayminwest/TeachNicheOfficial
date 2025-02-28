@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     const databaseService = new FirestoreDatabase();
     
     // Verify the connected account using our utility
-    const { verified, status } = await verifyConnectedAccount(user.uid, accountId, databaseService);
+    const { verified, status } = await verifyConnectedAccount(user.uid, accountId as string, databaseService);
 
     if (!verified) {
       return NextResponse.redirect(

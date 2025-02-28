@@ -5,6 +5,6 @@ export interface DatabaseService {
     limit?: number, 
     offset?: number, 
     filters?: Record<string, string | number | boolean>
-  ): Promise<{id: string; title: string; content: string; category_id: string}[]>;
+  ): Promise<Record<string, unknown>[]>;
   // Add other database methods as needed
 }

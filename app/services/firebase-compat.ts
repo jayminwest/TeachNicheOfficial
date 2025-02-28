@@ -195,7 +195,7 @@ export const firebaseClient = {
           
           // Update all matching documents
           const updatePromises = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => 
-            updateDoc(doc.ref, data)
+            updateDoc(doc.ref, data as Record<string, any>)
           );
           
           await Promise.all(updatePromises);

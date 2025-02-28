@@ -244,7 +244,10 @@ export const verifyConnectedAccount = async (
 ) => {
   try {
     // Verify the account exists and belongs to this user
-    const profiles = await databaseService.list('profiles', { id: userId });
+    const { rows: profiles } = await databaseService.query(
+      'SELECT * FROM profiles WHERE id = $1',
+      [userId]
+    );
     
     // Check if we got results
     const profile = profiles && profiles.length > 0 ? profiles[0] : null;

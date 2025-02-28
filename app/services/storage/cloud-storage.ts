@@ -15,9 +15,16 @@ export class CloudStorage implements StorageService {
   }
   
   async uploadFile(path: string, file: File | Blob | Buffer): Promise<string> {
-    const fileBuffer = file instanceof Buffer 
-      ? file 
-      : Buffer.from(await file.arrayBuffer());
+    let fileBuffer: Buffer;
+    
+    if (Buffer.isBuffer(file)) {
+      fileBuffer = file;
+    } else if (file instanceof Blob || file instanceof File) {
+      const arrayBuffer = await file.arrayBuffer();
+      fileBuffer = Buffer.from(arrayBuffer);
+    } else {
+      throw new Error('Unsupported file type');
+    }
     
     const fileOptions = {
       contentType: file instanceof File ? file.type : undefined
@@ -41,12 +48,10 @@ export class CloudStorage implements StorageService {
     return `https://storage.googleapis.com/${this.bucket}/${path}`;
   }
   
-  async deleteFile(path: string): Promise<boolean> {
+  async deleteFile(path: string): Promise<void> {
     await this.storage
       .bucket(this.bucket)
       .file(path)
       .delete();
-    
-    return true;
   }
 }

@@ -25,15 +25,14 @@ export const processCreatorPayout = async (
 ): Promise<PayoutResult> => {
   try {
     // Get creator's bank account information
-    const bankInfo = await databaseService.list('creator_payout_methods', 
-      { creator_id: creatorId },
-      undefined,
-      undefined,
-      1
-    );
+    const { rows: bankInfo } = await databaseService.query(`
+      SELECT * FROM creator_payout_methods 
+      WHERE creator_id = $1 AND is_default = true
+      LIMIT 1
+    `, [creatorId]);
 
     if (!bankInfo || bankInfo.length === 0 || !bankInfo[0].bank_account_token) {
-      console.error('Bank account fetch failed:', bankError);
+      console.error('Bank account fetch failed:', error);
       return {
         success: false,
         error: 'No bank account found for creator',
@@ -55,13 +54,17 @@ export const processCreatorPayout = async (
 
     // Record the payout in our database
     try {
-      await databaseService.create('creator_payouts', {
-        creator_id: creatorId,
+      await databaseService.query(`
+        INSERT INTO creator_payouts 
+        (creator_id, amount, status, payout_id, destination_last_four, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      `, [
+        creatorId,
         amount,
-        status: payout.status as 'pending' | 'paid' | 'failed' | 'canceled',
-        payout_id: payout.id,
-        destination_last_four: bankInfo[0].last_four
-      });
+        payout.status as string,
+        payout.id,
+        bankInfo[0].last_four
+      ]);
     } catch (payoutError) {
       console.error('Failed to record payout:', payoutError);
       // We don't throw here because the payout was successful in Stripe
@@ -99,9 +102,19 @@ export const processAllEligiblePayouts = async (
     // Get all creators with pending earnings above the minimum threshold
     // This is a simplified version - in a real implementation, you would need to
     // create a custom query or function to get eligible creators
-    const eligibleCreators = await databaseService.list('creator_earnings_summary', 
-      { pending_amount_gte: stripeConfig.minimumPayoutAmount }
-    );
+    const { rows: eligibleCreators } = await databaseService.query(`
+      SELECT 
+        creator_id, 
+        SUM(amount) as pending_amount
+      FROM 
+        creator_earnings
+      WHERE 
+        status = 'pending'
+      GROUP BY 
+        creator_id
+      HAVING 
+        SUM(amount) >= $1
+    `, [stripeConfig.minimumPayoutAmount]);
     
     // Process payouts for each eligible creator
     for (const creator of (eligibleCreators || [])) {

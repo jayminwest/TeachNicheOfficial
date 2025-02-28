@@ -124,44 +124,59 @@ export const recordCreatorEarnings = async (
  */
 export const getEarningsSummary = async (
   creatorId: string,
-  supabaseClient: TypedSupabaseClient
+  databaseService: DatabaseService
 ): Promise<EarningsSummary> => {
   // Get all earnings for the creator
-  const { data: earningsData, error } = await supabaseClient
-    .from('creator_earnings')
-    .select(`
-      id,
-      amount, 
-      status,
-      created_at,
-      lesson_id,
-      lessons(id, title)
-    `)
-    .eq('creator_id', creatorId)
-    .order('created_at', { ascending: false });
+  const { rows: earningsData } = await databaseService.query(`
+    SELECT 
+      e.id,
+      e.amount, 
+      e.status,
+      e.created_at,
+      e.lesson_id,
+      l.id as lesson_id,
+      l.title as lesson_title
+    FROM 
+      creator_earnings e
+    LEFT JOIN 
+      lessons l ON e.lesson_id = l.id
+    WHERE 
+      e.creator_id = $1
+    ORDER BY 
+      e.created_at DESC
+  `, [creatorId]);
 
-  if (error) {
-    console.error('Failed to fetch earnings:', error);
-    throw new Error('Failed to fetch earnings data');
+  if (!earningsData || earningsData.length === 0) {
+    return {
+      totalEarnings: 0,
+      pendingEarnings: 0,
+      paidEarnings: 0,
+      formattedTotal: formatCurrency(0),
+      formattedPending: formatCurrency(0),
+      formattedPaid: formatCurrency(0),
+      nextPayoutDate: null,
+      nextPayoutAmount: 0,
+      formattedNextPayout: formatCurrency(0)
+    };
   }
 
   // Calculate totals
-  const totalEarnings = earningsData.reduce((sum, item) => sum + item.amount, 0);
+  const totalEarnings = earningsData.reduce((sum: number, item: any) => sum + item.amount, 0);
   const pendingEarnings = earningsData
-    .filter(item => item.status === 'pending')
-    .reduce((sum, item) => sum + item.amount, 0);
+    .filter((item: any) => item.status === 'pending')
+    .reduce((sum: number, item: any) => sum + item.amount, 0);
   const paidEarnings = earningsData
-    .filter(item => item.status === 'paid')
-    .reduce((sum, item) => sum + item.amount, 0);
+    .filter((item: any) => item.status === 'paid')
+    .reduce((sum: number, item: any) => sum + item.amount, 0);
 
   // Format recent earnings
-  const recentEarnings = earningsData.slice(0, 10).map(item => ({
+  const recentEarnings = earningsData.slice(0, 10).map((item: any) => ({
     id: item.id,
     amount: item.amount,
     formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
     status: item.status,
     createdAt: item.created_at,
-    lessonTitle: item.lessons?.title || 'Unknown lesson',
+    lessonTitle: item.lesson_title || 'Unknown lesson',
     lessonId: item.lesson_id
   }));
 
@@ -207,38 +222,43 @@ export const getEarningsSummary = async (
  */
 export const getEarningsHistory = async (
   creatorId: string,
-  supabaseClient: TypedSupabaseClient,
+  databaseService: DatabaseService,
   limit = 10,
   offset = 0
 ): Promise<EarningsHistoryItem[]> => {
-  const { data, error } = await supabaseClient
-    .from('creator_earnings')
-    .select(`
-      id,
-      created_at,
-      amount,
-      status,
-      purchase_id,
-      lesson_id,
-      lessons(id, title)
-    `)
-    .eq('creator_id', creatorId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const { rows: data } = await databaseService.query(`
+    SELECT 
+      e.id,
+      e.created_at,
+      e.amount,
+      e.status,
+      e.purchase_id,
+      e.lesson_id,
+      l.id as lesson_id,
+      l.title as lesson_title
+    FROM 
+      creator_earnings e
+    LEFT JOIN 
+      lessons l ON e.lesson_id = l.id
+    WHERE 
+      e.creator_id = $1
+    ORDER BY 
+      e.created_at DESC
+    LIMIT $2 OFFSET $3
+  `, [creatorId, limit, offset]);
 
-  if (error) {
-    console.error('Failed to fetch earnings history:', error);
-    throw new Error('Failed to fetch earnings history');
+  if (!data || data.length === 0) {
+    return [];
   }
 
-  return data.map(item => ({
+  return data.map((item: any) => ({
     id: item.id,
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
     formattedAmount: formatCurrency(item.amount / 100), // Convert cents to dollars for display
     status: item.status,
-    lessonTitle: item.lessons?.title,
-    lessonId: item.lessons?.id,
+    lessonTitle: item.lesson_title,
+    lessonId: item.lesson_id,
     purchaseId: item.purchase_id
   }));
 };
@@ -254,30 +274,32 @@ export const getEarningsHistory = async (
  */
 export const getPayoutHistory = async (
   creatorId: string,
-  supabaseClient: TypedSupabaseClient,
+  databaseService: DatabaseService,
   limit = 10,
   offset = 0
 ): Promise<PayoutHistoryItem[]> => {
-  const { data, error } = await supabaseClient
-    .from('creator_payouts')
-    .select(`
+  const { rows: data } = await databaseService.query(`
+    SELECT 
       id, 
       created_at, 
       amount, 
       status, 
       destination_last_four,
       earnings_count
-    `)
-    .eq('creator_id', creatorId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+    FROM 
+      creator_payouts
+    WHERE 
+      creator_id = $1
+    ORDER BY 
+      created_at DESC
+    LIMIT $2 OFFSET $3
+  `, [creatorId, limit, offset]);
 
-  if (error) {
-    console.error('Failed to fetch payout history:', error);
-    throw new Error('Failed to fetch payout history');
+  if (!data || data.length === 0) {
+    return [];
   }
 
-  return data.map(item => ({
+  return data.map((item: any) => ({
     id: item.id,
     date: new Date(item.created_at).toISOString().split('T')[0],
     amount: item.amount,
@@ -296,7 +318,7 @@ export const getPayoutHistory = async (
  * @returns Results of payout processing
  */
 export const processScheduledPayouts = async (
-  supabaseClient: EnhancedSupabaseClient
+  databaseService: DatabaseService
 ) => {
   const results = {
     processed: 0,
@@ -307,20 +329,22 @@ export const processScheduledPayouts = async (
 
   try {
     // Get all creators with pending earnings above the minimum threshold
-    const { data: eligibleCreators, error } = await supabaseClient.rpc(
-      'get_creators_eligible_for_payout',
-      { minimum_amount: stripeConfig.minimumPayoutAmount }
-    ) as {
-      data: Array<{
-        creator_id: string;
-        pending_amount: number;
-      }> | null;
-      error: Error | null;
-    };
+    const { rows: eligibleCreators } = await databaseService.query(`
+      SELECT 
+        creator_id, 
+        SUM(amount) as pending_amount
+      FROM 
+        creator_earnings
+      WHERE 
+        status = 'pending'
+      GROUP BY 
+        creator_id
+      HAVING 
+        SUM(amount) >= $1
+    `, [stripeConfig.minimumPayoutAmount]);
 
-    if (error) {
-      console.error('Failed to fetch eligible creators:', error);
-      throw new Error('Failed to fetch eligible creators for payout');
+    if (!eligibleCreators || eligibleCreators.length === 0) {
+      return results;
     }
 
     // Process payouts for each eligible creator
@@ -332,18 +356,21 @@ export const processScheduledPayouts = async (
         const payoutResult = await processCreatorPayout(
           creator.creator_id,
           creator.pending_amount,
-          supabaseClient
+          databaseService
         );
 
         if (payoutResult.success) {
           // Update earnings records to 'paid' status
-          await supabaseClient.rpc(
-            'mark_creator_earnings_as_paid',
-            { 
-              creator_id: creator.creator_id,
-              payout_id: payoutResult.payoutId
-            }
-          );
+          await databaseService.query(`
+            UPDATE creator_earnings
+            SET 
+              status = 'paid',
+              payout_id = $1,
+              updated_at = NOW()
+            WHERE 
+              creator_id = $2
+              AND status = 'pending'
+          `, [payoutResult.payoutId, creator.creator_id]);
 
           results.processed++;
           results.details.push({

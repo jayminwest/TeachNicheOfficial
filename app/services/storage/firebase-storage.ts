@@ -1,19 +1,25 @@
 import { StorageService } from './interface';
-import { storage } from '../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getStorage } from 'firebase/storage';
+import { getApp } from 'firebase/app';
 
 export class FirebaseStorage implements StorageService {
   async uploadFile(path: string, file: File | Blob | Buffer): Promise<string> {
     try {
+      // Get storage instance
+      const storage = getStorage(getApp());
+      
       // Create a reference to the file location in Firebase Storage
       const storageRef = ref(storage, path);
       
       // Convert Buffer to Blob if needed
       let fileData: File | Blob;
-      if (file instanceof Buffer) {
+      if (Buffer.isBuffer(file)) {
         fileData = new Blob([file]);
-      } else {
+      } else if (file instanceof Blob || file instanceof File) {
         fileData = file;
+      } else {
+        throw new Error('Unsupported file type');
       }
       
       // Upload the file
@@ -37,11 +43,10 @@ export class FirebaseStorage implements StorageService {
     }
   }
   
-  async deleteFile(path: string): Promise<boolean> {
+  async deleteFile(path: string): Promise<void> {
     try {
       const storageRef = ref(storage, path);
       await deleteObject(storageRef);
-      return true;
     } catch (error) {
       console.error('Error deleting file from Firebase Storage:', error);
       throw error;

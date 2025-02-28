@@ -4,7 +4,7 @@ import type { PoolClient } from 'pg';
 import { DatabaseService } from './interface';
 
 export class CloudSqlDatabase implements DatabaseService {
-  private pool: Pool;
+  private pool: typeof Pool;
   
   constructor() {
     this.pool = new Pool({
@@ -37,7 +37,7 @@ export class CloudSqlDatabase implements DatabaseService {
     const client = await this.getClient();
     try {
       const result = await client.query(text, params);
-      return { rows: result.rows, rowCount: result.rowCount };
+      return { rows: result.rows, rowCount: result.rowCount || 0 };
     } finally {
       client.release();
     }

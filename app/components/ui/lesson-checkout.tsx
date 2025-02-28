@@ -40,15 +40,15 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
             const auth = getAuth(getApp());
             const unsubscribe = onAuthStateChanged(auth, user => {
               unsubscribe();
-              resolve({ data: { session: user ? { user } : null }, error: null });
+              resolve({ data: { session: user ? { user } : null } });
             });
           }).catch(error => {
             console.error('Error importing Firebase app:', error);
-            resolve({ data: { session: null }, error: null });
+            resolve({ data: { session: null } });
           });
         }).catch(error => {
           console.error('Error importing Firebase auth:', error);
-          resolve({ data: { session: null }, error: null });
+          resolve({ data: { session: null } });
         });
       });
       

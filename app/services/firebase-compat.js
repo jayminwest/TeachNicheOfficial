@@ -52,7 +52,7 @@ try {
     // Get the existing app by name
     try {
       app = getApp();
-    } catch (_) {
+    } catch (initError) {
       // If getApp fails, initialize with config again as fallback
       app = initializeApp(firebaseConfig, 'teach-niche-app');
     }
@@ -253,7 +253,7 @@ export const firebaseClient = {
           }
           
           // Delete the document
-          const docRef = doc(firestore, collectionName, querySnapshot.docs[0].id);
+          const docRef = doc(firestore, querySnapshot.docs[0].ref.path);
           await deleteDoc(docRef);
           
           return {

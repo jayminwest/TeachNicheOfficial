@@ -129,8 +129,8 @@ async function getLessonsHandler(request: Request) {
     // TODO: Implement limit for Firebase
     
     // Execute the query
-    // Temporary placeholder to avoid errors
-    const { data: lessons } = await Promise.resolve({ data: [] });
+    // Use the queryBuilder to get lessons
+    const { data: lessons } = await queryBuilder.get();
     
     return NextResponse.json({ lessons });
   } catch {

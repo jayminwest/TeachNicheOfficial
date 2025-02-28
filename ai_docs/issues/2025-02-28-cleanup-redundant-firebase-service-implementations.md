@@ -74,7 +74,7 @@ Both `file.d.ts` and `global.d.ts` define the same `FileConstructor` interface a
 ## Implementation Plan
 
 ### Step 1: Identify Affected Files
-First, search for imports of the files to be deleted to identify which files need to be updated:
+We searched for imports of the files to be deleted to identify which files need to be updated:
 
 ```bash
 # Check for imports of firebase-auth.ts
@@ -96,12 +96,10 @@ grep -r "from '@/app/services/storage/firebase-storage'" --include="*.ts" --incl
 grep -r "from '@/app/types/file'" --include="*.ts" --include="*.tsx" .
 ```
 
-### Step 2: Update Imports
-For each file identified in Step 1, update the imports to reference the canonical implementations:
-
-- Replace `from '@/app/services/auth/firebase-auth'` with `from '@/app/services/auth/firebase-auth-service'`
-- Replace `from '@/app/services/auth/firebase-auth-adapter'` with `from '@/app/services/auth/firebase-auth-service'`
-- Replace `from '@/app/services/storage/firebase-storage'` with `from '@/app/services/storage/firebase-storage-service'`
+### Results
+Our search found no imports of these files in the codebase, which means:
+1. These files are completely unused
+2. We can safely delete them without updating any imports
 
 ### Step 3: Delete Redundant Files
 After updating all imports and verifying the changes, delete the redundant files:

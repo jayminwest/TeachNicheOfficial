@@ -15,10 +15,22 @@
  */
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
+
+// Only import Auth in client components
+let Auth: any;
+let getAuth: any;
+let connectAuthEmulator: any;
+
+// Dynamically import auth in client-side only
+if (typeof window !== 'undefined') {
+  const authModule = require('firebase/auth');
+  Auth = authModule.Auth;
+  getAuth = authModule.getAuth;
+  connectAuthEmulator = authModule.connectAuthEmulator;
+}
 
 // Check for required environment variables
 const requiredEnvVars = [
@@ -71,7 +83,7 @@ if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.proj
 
 // Initialize Firebase only once
 let app: FirebaseApp;
-let auth: Auth;
+let auth: any = null;
 let firestore: Firestore;
 let storage: FirebaseStorage;
 let functions: Functions;
@@ -90,23 +102,16 @@ try {
   
   // Initialize services with special handling for server-side
   if (isServer) {
-    // Server-side initialization
-    try {
-      auth = getAuth(app);
-      firestore = getFirestore(app);
-      storage = getStorage(app);
-      functions = getFunctions(app);
-    } catch (serverError) {
-      console.error('Server-side Firebase initialization error:', serverError);
-      // Create placeholder objects for server-side rendering
-      auth = {} as Auth;
-      firestore = {} as Firestore;
-      storage = {} as FirebaseStorage;
-      functions = {} as Functions;
-    }
+    // Server-side initialization - don't initialize auth
+    console.log('Server-side Firebase initialization - skipping auth');
+    firestore = getFirestore(app);
+    storage = getStorage(app);
+    functions = getFunctions(app);
   } else {
     // Client-side initialization (normal)
-    auth = getAuth(app);
+    if (getAuth) {
+      auth = getAuth(app);
+    }
     firestore = getFirestore(app);
     storage = getStorage(app);
     functions = getFunctions(app);
@@ -118,7 +123,9 @@ try {
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === 'true') {
     if (typeof window !== 'undefined') {
       // Only connect to emulators in browser environment
-      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+      if (auth && connectAuthEmulator) {
+        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+      }
       connectFirestoreEmulator(firestore, 'localhost', 8080);
       connectStorageEmulator(storage, 'localhost', 9199);
       connectFunctionsEmulator(functions, 'localhost', 5001);

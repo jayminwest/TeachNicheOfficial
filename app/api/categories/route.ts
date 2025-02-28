@@ -1,25 +1,19 @@
 import { NextResponse } from 'next/server'
-import { firestore } from '@/app/lib/firebase'
-import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+
+// Mock categories for development until Firestore is properly set up
+const mockCategories = [
+  { id: '1', name: 'Kendama Basics', description: 'Fundamental techniques for beginners' },
+  { id: '2', name: 'Intermediate Tricks', description: 'More advanced techniques' },
+  { id: '3', name: 'Advanced Combos', description: 'Complex combinations for experts' },
+  { id: '4', name: 'Competition Skills', description: 'Techniques for competitive play' }
+];
 
 export async function GET() {
   try {
-    // Auth is initialized but not used - this is intentional for future use
-    
-    // Create a query against the collection
-    const categoriesRef = collection(firestore, 'categories');
-    const categoriesQuery = query(categoriesRef, orderBy('name'));
-    
-    // Execute the query
-    const querySnapshot = await getDocs(categoriesQuery);
-    
-    // Map the documents to an array of categories
-    const categories = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    return NextResponse.json(categories);
+    // Return mock categories for now
+    // This will be replaced with actual Firestore queries once the Firebase
+    // server-side issues are resolved
+    return NextResponse.json(mockCategories);
   } catch (error) {
     console.error('Error in categories endpoint:', error);
     return NextResponse.json(

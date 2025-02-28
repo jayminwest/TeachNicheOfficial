@@ -5,8 +5,9 @@ import { cookies } from 'next/headers'
 // Function to create a session cookie on the server
 export async function createSessionCookie(idToken: string, expiresIn = 60 * 60 * 24 * 5 * 1000) {
   try {
-    const { getAuth } = await import('firebase-admin/auth')
-    const adminAuth = getAuth()
+    // Import the full firebase-admin package to avoid node: scheme issues
+    const admin = await import('firebase-admin')
+    const adminAuth = admin.auth()
     
     // Create a session cookie
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn })
@@ -85,8 +86,9 @@ export async function signOut() {
 // Function to get the current session
 export async function getSession() {
   try {
-    const { getAuth } = await import('firebase-admin/auth')
-    const adminAuth = getAuth()
+    // Import the full firebase-admin package to avoid node: scheme issues
+    const admin = await import('firebase-admin')
+    const adminAuth = admin.auth()
     
     // Get the session cookie
     const sessionCookie = cookies().get('__session')?.value

@@ -4,6 +4,29 @@ import type { PoolClient } from 'pg';
 import { DatabaseService } from './interface';
 
 export class CloudSqlDatabase implements DatabaseService {
+  async create<T = unknown>(table: string, data: Record<string, unknown>): Promise<T | string> {
+    const client = await this.getClient();
+    try {
+      // Convert data object to columns and values for SQL insert
+      const columns = Object.keys(data);
+      const placeholders = columns.map((_, index) => `$${index + 1}`).join(', ');
+      const values = Object.values(data);
+      
+      const query = `
+        INSERT INTO ${table} (${columns.join(', ')})
+        VALUES (${placeholders})
+        RETURNING id
+      `;
+      
+      const result = await client.query(query, values);
+      return result.rows[0]?.id || 'unknown-id';
+    } catch (error) {
+      console.error(`Error creating record in ${table}:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
   private pool: pkg.Pool;
   
   constructor() {

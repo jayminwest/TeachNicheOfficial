@@ -1,18 +1,23 @@
 import { verifyConnectedAccount } from '@/app/services/stripe';
 import { NextResponse } from 'next/server';
+import { getAuth, getApp } from 'firebase/auth';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
     // Get the session from the cookie
-    const { data: { session }, error: sessionError } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    const { session, error: sessionError } = await new Promise<{ session: { user: any } | null, error: any }>(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve({ 
+          session: user ? { user } : null, 
+          error: null 
+        });
+      });
+    });
     
     if (sessionError || !session) {
       return NextResponse.redirect(
@@ -30,6 +35,11 @@ export async function GET(request: Request) {
       );
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
     // Verify the connected account using our utility
     const { verified, status } = await verifyConnectedAccount(user.uid, accountId, supabase);
 

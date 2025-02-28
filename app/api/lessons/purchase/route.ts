@@ -3,6 +3,7 @@ import { stripe, stripeConfig } from '@/app/services/stripe'
 import { calculateFees } from '@/app/lib/utils'
 import { getAuth, User } from "firebase/auth"
 import { getApp } from "firebase/app"
+import { firebaseClient } from '@/app/services/firebase-compat'
 
 // Define the auth response type
 interface AuthResponse {

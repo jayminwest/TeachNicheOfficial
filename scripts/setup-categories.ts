@@ -166,5 +166,6 @@ async function main() {
 // Run the script
 main().catch(error => {
   console.error(`${colors.red}Unhandled error:${colors.reset}`, error);
-  process.exit(1);
+  // Ensure we exit properly
+  setTimeout(() => process.exit(1), 100);
 });

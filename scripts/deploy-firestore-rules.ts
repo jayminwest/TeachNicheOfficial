@@ -80,10 +80,29 @@ function createFirestoreIndexes() {
 function deployRules() {
   try {
     console.log(`${colors.blue}Deploying Firestore rules...${colors.reset}`);
+    
+    // First validate the rules file
+    try {
+      const rulesContent = fs.readFileSync(path.join(process.cwd(), 'firestore.rules'), 'utf8');
+      
+      // Check for duplicate rules_version declarations
+      const rulesVersionCount = (rulesContent.match(/rules_version\s*=\s*['"]2['"]\s*;/g) || []).length;
+      if (rulesVersionCount > 1) {
+        console.error(`${colors.red}Error: Multiple rules_version declarations found in firestore.rules${colors.reset}`);
+        console.log(`${colors.yellow}Please fix the file to have only one rules_version declaration${colors.reset}`);
+        return false;
+      }
+    } catch (readError) {
+      console.error(`${colors.red}Error reading firestore.rules:${colors.reset}`, readError);
+      return false;
+    }
+    
     execSync('firebase deploy --only firestore:rules', { stdio: 'inherit' });
     console.log(`${colors.green}Successfully deployed Firestore rules!${colors.reset}`);
+    return true;
   } catch (error) {
     console.error(`${colors.red}Error deploying Firestore rules:${colors.reset}`, error);
+    return false;
   }
 }
 
@@ -112,7 +131,12 @@ function main() {
   createFirestoreIndexes();
   
   // Deploy Firestore rules
-  deployRules();
+  const success = deployRules();
+  
+  // Exit with appropriate code
+  if (!success) {
+    process.exit(1);
+  }
 }
 
 // Run the script

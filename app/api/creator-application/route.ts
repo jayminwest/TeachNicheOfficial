@@ -58,8 +58,9 @@ export async function POST(request: Request) {
     const { data: existingApplications, error: queryError } = await firebaseClient
       .from('creator_applications')
       .select()
-      .eq('user_id', user.uid)
-      .in('status', ['pending', 'approved']);
+      .where('user_id', '==', user.uid)
+      .where('status', 'in', ['pending', 'approved'])
+      .get();
     
     if (queryError) {
       console.error('Error checking existing applications:', queryError);

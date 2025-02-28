@@ -105,30 +105,27 @@ async function getLessonsHandler(request: Request) {
     // Firebase is already initialized in @/app/lib/firebase;
     
     // Use Firebase client
-    let queryBuilder = firebaseClient
-      .from('lessons')
-      .select();
+    let queryBuilder = firebaseClient.from('lessons');
     
     if (category) {
-      queryBuilder = queryBuilder.eq('category', category);
+      queryBuilder = queryBuilder.where('category', '==', category);
     }
     
     // Apply sorting
     if (sort === 'newest') {
-      queryBuilder = queryBuilder.order('created_at', 'desc');
+      queryBuilder = queryBuilder.orderBy('created_at', 'desc');
     } else if (sort === 'oldest') {
-      queryBuilder = queryBuilder.order('created_at', 'asc');
+      queryBuilder = queryBuilder.orderBy('created_at', 'asc');
     } else if (sort === 'price_low') {
-      queryBuilder = queryBuilder.order('price', 'asc');
+      queryBuilder = queryBuilder.orderBy('price', 'asc');
     } else if (sort === 'price_high') {
-      queryBuilder = queryBuilder.order('price', 'desc');
+      queryBuilder = queryBuilder.orderBy('price', 'desc');
     }
     
     // Apply limit
     // TODO: Implement limit for Firebase
     
     // Execute the query
-    // Use the queryBuilder to get lessons
     const { data: lessons } = await queryBuilder.get();
     
     return NextResponse.json({ lessons });
@@ -170,12 +167,13 @@ async function updateLessonHandler(request: Request) {
 
     // Check if user has permission to update this lesson
     // Use Firebase client
-    const { data: lesson } = await firebaseClient
+    const { data: lessons } = await firebaseClient
       .from('lessons')
-      .select()
-      .eq('id', id)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+      .where('id', '==', id)
+      .limit(1)
+      .get();
+    
+    const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
       
     if (!lesson) {
       return NextResponse.json(
@@ -194,7 +192,8 @@ async function updateLessonHandler(request: Request) {
     
     const { data: updatedLesson } = await firebaseClient
       .from('lessons')
-      .update(id, updateData);
+      .doc(id)
+      .update(updateData);
 
     return NextResponse.json(updatedLesson);
   } catch {
@@ -234,12 +233,13 @@ async function deleteLessonHandler(request: Request) {
     }
 
     // Use Firebase client
-    const { data: lesson } = await firebaseClient
+    const { data: lessons } = await firebaseClient
       .from('lessons')
-      .select()
-      .eq('id', id)
-      ;
-// TODO: Implement equivalent of single() for Firebase
+      .where('id', '==', id)
+      .limit(1)
+      .get();
+    
+    const lesson = lessons && lessons.length > 0 ? lessons[0] : null;
 
     if (!lesson) {
       return NextResponse.json(
@@ -259,7 +259,8 @@ async function deleteLessonHandler(request: Request) {
 
     await firebaseClient
       .from('lessons')
-      .delete(id)
+      .doc(id)
+      .delete()
 
     return NextResponse.json({ success: true });
   } catch {

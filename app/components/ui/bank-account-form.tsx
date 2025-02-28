@@ -86,7 +86,10 @@ export function BankAccountForm({
       setIsLoading(true);
       
       // Get the current session
-      const result = await new Promise(resolve => {
+      const result = await new Promise<{ 
+        data: { session: { user: { uid: string } } | null }, 
+        error: null | Error 
+      }>(resolve => {
         const auth = getAuth(getApp());
         const unsubscribe = auth.onAuthStateChanged(user => {
           unsubscribe();

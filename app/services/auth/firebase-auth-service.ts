@@ -34,13 +34,25 @@ export class FirebaseAuthService implements AuthService {
       // Always use the imported auth instance to ensure consistency
       this.auth = auth;
       
-      if (!this.auth) {
+      // Check if we're in a browser environment
+      const isBrowser = typeof window !== 'undefined';
+      
+      // Only validate auth in browser environment
+      if (isBrowser && !this.auth) {
         console.error('Firebase auth is not initialized');
         throw new Error('Firebase auth is not initialized');
       }
+      
+      // In server environment, we'll use a placeholder
+      if (!isBrowser) {
+        console.log('Server-side auth initialization - using placeholder');
+      }
     } catch (error) {
       console.error('Error initializing Firebase Auth service:', error);
-      throw new Error('Failed to initialize Firebase Auth service. Check your Firebase configuration.');
+      // Don't throw in server environment
+      if (typeof window !== 'undefined') {
+        throw new Error('Failed to initialize Firebase Auth service. Check your Firebase configuration.');
+      }
     }
   }
 
@@ -228,6 +240,12 @@ export async function signOut() {
 }
 
 export async function getCurrentUser() {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') {
+    console.log('getCurrentUser called in server environment - returning null');
+    return null;
+  }
+  
   if (!auth) {
     console.error('Auth instance is not initialized');
     return null;
@@ -235,7 +253,7 @@ export async function getCurrentUser() {
   
   return new Promise<AuthUser | null>((resolve) => {
     try {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
         unsubscribe();
         resolve(user ? transformUser(user) : null);
       }, (error) => {

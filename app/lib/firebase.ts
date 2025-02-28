@@ -76,6 +76,9 @@ let firestore: Firestore;
 let storage: FirebaseStorage;
 let functions: Functions;
 
+// Server-side Firebase initialization needs special handling
+const isServer = typeof window === 'undefined';
+
 try {
   // Check if we have the minimum required configuration
   if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
@@ -85,11 +88,29 @@ try {
   // Initialize Firebase
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   
-  // Initialize services
-  auth = getAuth(app);
-  firestore = getFirestore(app);
-  storage = getStorage(app);
-  functions = getFunctions(app);
+  // Initialize services with special handling for server-side
+  if (isServer) {
+    // Server-side initialization
+    try {
+      auth = getAuth(app);
+      firestore = getFirestore(app);
+      storage = getStorage(app);
+      functions = getFunctions(app);
+    } catch (serverError) {
+      console.error('Server-side Firebase initialization error:', serverError);
+      // Create placeholder objects for server-side rendering
+      auth = {} as Auth;
+      firestore = {} as Firestore;
+      storage = {} as FirebaseStorage;
+      functions = {} as Functions;
+    }
+  } else {
+    // Client-side initialization (normal)
+    auth = getAuth(app);
+    firestore = getFirestore(app);
+    storage = getStorage(app);
+    functions = getFunctions(app);
+  }
   
   console.log('Firebase initialized successfully with project:', firebaseConfig.projectId);
   

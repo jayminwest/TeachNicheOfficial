@@ -68,13 +68,11 @@ export async function GET(request: Request) {
           
           if (matchingProfile) {
             // Update the profile if found
-            await firebaseClient.from('profiles').insert(
+            await firebaseClient.from('profiles').update(
               { 
-                id: user.uid,
                 stripe_onboarding_complete: true 
-              },
-              { upsert: true }
-            );
+              }
+            ).eq('id', user.uid);
           }
         }
       } catch (updateError) {

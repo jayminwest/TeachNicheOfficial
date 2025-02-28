@@ -25,7 +25,7 @@ export function ContentManagement() {
           <p className="text-muted-foreground">Manage your lessons and courses</p>
         </div>
         <Button asChild disabled={!canCreate}>
-          <Link href="/lessons/new">Create New Lesson</Link>
+          <Link href="/dashboard/lessons/new">Create New Lesson</Link>
         </Button>
       </div>
       

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { firebaseClient } from '@/app/services/firebase-compat';
-import { getAuth, getApp } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { getApp } from 'firebase/app';
 
 interface LessonData {
   title: string;
@@ -17,13 +18,13 @@ interface LessonData {
 async function createLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    const session = await new Promise(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user ? { user } : null);
+      });
+    });
     
     if (!session?.user) {
       return NextResponse.json(
@@ -33,6 +34,7 @@ async function createLessonHandler(request: Request) {
     }
     
     // Get user from session
+    const user = session.user;
 
     const data = await request.json();
     const { 
@@ -144,13 +146,13 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    const session = await new Promise(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user ? { user } : null);
+      });
+    });
     
     if (!session?.user) {
       return NextResponse.json(
@@ -160,6 +162,7 @@ async function updateLessonHandler(request: Request) {
     }
     
     // Get user from session
+    const user = session.user;
 
     const data = await request.json();
     const { id, ...updateData } = data;
@@ -211,13 +214,13 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get the current user using the route handler client
-    const { data: { session } } = await new Promise(resolve => {
-  const auth = getAuth(getApp());
-  const unsubscribe = auth.onAuthStateChanged(user => {
-    unsubscribe();
-    resolve({ data: { session: user ? { user } : null }, error: null });
-  });
-});
+    const session = await new Promise(resolve => {
+      const auth = getAuth(getApp());
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user ? { user } : null);
+      });
+    });
     
     if (!session?.user) {
       return NextResponse.json(
@@ -227,6 +230,7 @@ async function deleteLessonHandler(request: Request) {
     }
     
     // Get user from session
+    const user = session.user;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

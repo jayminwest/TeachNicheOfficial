@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as muxService from '@/app/services/mux';
 import { getCurrentUser } from '@/app/services/auth';
-import { initializeFirebaseAdmin } from '@/app/services/firebase/admin';
 
-// Initialize Firebase
-initializeFirebaseAdmin();
+// We'll handle Firebase initialization in the getCurrentUser function
 
 export async function POST(request: NextRequest) {
   try {

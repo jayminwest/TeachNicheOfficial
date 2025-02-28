@@ -130,16 +130,16 @@ async function getLessonsHandler(request: Request) {
       sortDirection = 'desc';
     }
     
-    // Build query using Firebase client methods
-    let queryBuilder = lessonsRef.select();
+    // Create a query builder and apply filters and sorting
+    const queryBuilder = lessonsRef.select();
     
-    // Add filters
-    for (const [key, value] of Object.entries(queryParams)) {
-      queryBuilder = queryBuilder.eq(key, value);
-    }
+    // Apply filters
+    Object.entries(queryParams).forEach(([key, value]) => {
+      queryBuilder.eq(key, value);
+    });
     
-    // Add sorting
-    queryBuilder = queryBuilder.order(sortField, { ascending: sortDirection === 'asc' });
+    // Apply sorting
+    queryBuilder.order(sortField, { ascending: sortDirection === 'asc' });
     
     // Execute the query
     const { data: lessons, error } = await queryBuilder.get();

@@ -53,7 +53,7 @@ resource "google_storage_bucket" "media_bucket" {
   uniform_bucket_level_access = true
   
   cors {
-    origin          = ["https://teach-niche.com", "https://*.teach-niche.com"]
+    origin          = ["https://teach-niche.com", "https://*.teach-niche.com", "http://localhost:3000"]
     method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
     response_header = ["*"]
     max_age_seconds = 3600

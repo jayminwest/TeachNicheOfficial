@@ -82,7 +82,7 @@ resource "google_storage_bucket" "media_bucket" {
   }
   
   cors {
-    origin          = ["https://teachniche.com"]
+    origin          = ["https://teach-niche.com"]
     method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
     response_header = ["*"]
     max_age_seconds = 3600

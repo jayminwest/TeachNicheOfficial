@@ -121,11 +121,14 @@ jest.mock('@stripe/stripe-js', () => ({
   }),
 }))
 
+// Import React for JSX in mock components
+import React from 'react';
+
 // Mock MUX
 jest.mock('@mux/mux-player-react', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(({ src, ...props }) => {
-    return <div data-testid="mux-player" data-src={src} {...props} />;
+    return React.createElement('div', { 'data-testid': 'mux-player', 'data-src': src, ...props });
   })
 }));
 
@@ -133,7 +136,7 @@ jest.mock('@mux/mux-player-react', () => ({
 jest.mock('@mux/mux-uploader-react', () => ({
   __esModule: true,
   MuxUploader: jest.fn().mockImplementation((props) => {
-    return <div data-testid="mux-uploader" {...props} />;
+    return React.createElement('div', { 'data-testid': 'mux-uploader', ...props });
   })
 }));
 

@@ -1,5 +1,5 @@
 import { UserMetadata } from 'firebase/auth';
-import { Request } from 'next/dist/server/web/spec-extension/request';
+import type { NextRequest } from 'next/server';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ParsedQs } from 'qs';
 
@@ -40,3 +40,19 @@ export type MockRequest<T = any> = T & {
   _setParameter: (key: string, value?: string) => void;
   _addBody: (key: string, value?: any) => void;
 };
+
+/**
+ * Type for Firebase User with extended metadata
+ */
+export interface FirebaseUserWithMetadata {
+  uid: string;
+  email: string | null;
+  metadata: ExtendedUserMetadata;
+}
+
+/**
+ * Type assertion for jest mocked functions
+ */
+export interface MockedFunctionWithOptions<T extends (...args: any[]) => any> extends jest.MockedFunction<T> {
+  lastCallOptions?: any;
+}

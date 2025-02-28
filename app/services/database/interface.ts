@@ -6,5 +6,6 @@ export interface DatabaseService {
     offset?: number, 
     filters?: Record<string, string | number | boolean>
   ): Promise<Record<string, unknown>[]>;
+  create<T = unknown>(table: string, data: Record<string, unknown>): Promise<T>;
   // Add other database methods as needed
 }

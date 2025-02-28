@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
+import { databaseService } from '@/app/services/database';
 import { PayoutHistoryItem, getPayoutHistory } from '@/app/services/earnings';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
@@ -26,7 +27,7 @@ export default function PayoutHistory() {
       try {
         const payoutHistory = await getPayoutHistory(
           user.uid, 
-          supabase, 
+          databaseService, 
           pageSize, 
           page * pageSize
         );

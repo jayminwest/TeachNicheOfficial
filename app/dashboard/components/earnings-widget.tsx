@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
+import { databaseService } from '@/app/services/database';
 import { EarningsSummary, getEarningsSummary } from '@/app/services/earnings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
@@ -21,7 +22,7 @@ export default function EarningsWidget() {
       }
 
       try {
-        const earningsSummary = await getEarningsSummary(user.uid, supabase);
+        const earningsSummary = await getEarningsSummary(user.uid, databaseService);
         setEarnings(earningsSummary);
         setError(null);
       } catch (err) {

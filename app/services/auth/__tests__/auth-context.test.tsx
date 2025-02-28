@@ -87,8 +87,9 @@ describe('AuthContext', () => {
     
     // Act - simulate user sign in
     await act(async () => {
-      const { __simulateAuthStateChange } = require('firebase/auth');
-      __simulateAuthStateChange({ uid: '123', email: 'test@example.com' });
+      // Import the mock module
+      const firebaseAuthMock = jest.requireMock('firebase/auth');
+      firebaseAuthMock.__simulateAuthStateChange({ uid: '123', email: 'test@example.com' });
     });
     
     // Assert - user is now signed in
@@ -116,8 +117,9 @@ describe('AuthContext', () => {
     
     // Act - simulate user sign out
     await act(async () => {
-      const { __simulateAuthStateChange } = require('firebase/auth');
-      __simulateAuthStateChange(null);
+      // Import the mock module
+      const firebaseAuthMock = jest.requireMock('firebase/auth');
+      firebaseAuthMock.__simulateAuthStateChange(null);
     });
     
     // Assert - user is now signed out

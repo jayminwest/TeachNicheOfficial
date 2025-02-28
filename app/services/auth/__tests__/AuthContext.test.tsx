@@ -1,6 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../AuthContext';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Use Jest's testing functions
 const { describe, it, expect, beforeEach } = global;

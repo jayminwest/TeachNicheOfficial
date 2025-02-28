@@ -19,7 +19,6 @@ export const AuthContext = createContext<AuthContextType>({
 })
 
 // We'll initialize auth in useEffect to ensure it only runs on the client
-let auth: Auth | null = null;
 
 export function AuthProvider({ 
   children, 

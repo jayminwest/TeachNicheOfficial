@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Button } from "./button";
 import { Input } from "./input";
 import { motion } from "framer-motion";
-import { collection, addDoc } from "firebase/firestore";
-import { getFirestore } from "@/app/lib/firebase";
-const firestore = getFirestore();
+import { collection, addDoc, getFirestore as getFirestoreSDK } from "firebase/firestore";
+import { getApp } from "firebase/app";
+
+// Get Firestore instance directly from the SDK to ensure it's not null
+const firestore = getFirestoreSDK(getApp());
 
 export function EmailSignup() {
   const [email, setEmail] = useState("");
@@ -19,10 +21,14 @@ export function EmailSignup() {
 
     try {
       // Add email to Firebase waitlist collection
-      await addDoc(collection(firestore, "waitlist"), {
-        email,
-        signed_up_at: new Date().toISOString()
-      });
+      if (firestore) {
+        await addDoc(collection(firestore, "waitlist"), {
+          email,
+          signed_up_at: new Date().toISOString()
+        });
+      } else {
+        throw new Error("Firestore is not available");
+      }
 
       setStatus("success");
       setMessage("Thanks for joining our waitlist! We'll keep you updated.");

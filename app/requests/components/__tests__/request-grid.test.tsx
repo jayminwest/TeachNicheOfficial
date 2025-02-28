@@ -4,6 +4,46 @@ import { getRequests } from '@/app/lib/firebase/requests'
 
 jest.mock('@/app/lib/firebase/requests')
 
+// Mock Firebase auth
+jest.mock('@/app/services/firebase', () => ({
+  auth: {
+    useDeviceLanguage: jest.fn(),
+    currentUser: null,
+    onAuthStateChanged: jest.fn().mockImplementation((callback) => {
+      callback(null);
+      return jest.fn();
+    }),
+  },
+  firestore: {
+    collection: jest.fn().mockReturnThis(),
+    doc: jest.fn().mockReturnThis(),
+    get: jest.fn().mockResolvedValue({
+      data: () => ({}),
+      exists: true,
+    }),
+  },
+}))
+
+// Mock getFirebaseAuth
+jest.mock('@/app/lib/firebase/client', () => ({
+  getFirebaseAuth: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null })
+  }),
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null })
+  }
+}))
+
+jest.mock('@/app/services/auth/AuthContext', () => ({
+  useAuth: () => ({ user: null })
+}))
+
 describe('RequestGrid', () => {
   const mockRequests = [
     {

@@ -34,7 +34,8 @@ jest.mock('../../../lib/firebase/client', () => {
   
   return {
     createClient: jest.fn().mockReturnValue(mockClient),
-    createRouteHandlerClient: jest.fn().mockReturnValue(mockClient)
+    createRouteHandlerClient: jest.fn().mockReturnValue(mockClient),
+    supabase: mockClient
   };
 });
 

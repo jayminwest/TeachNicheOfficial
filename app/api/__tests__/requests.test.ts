@@ -3,7 +3,13 @@ import { createRouteHandlerClient } from '@/app/lib/firebase/client'
 
 // Mock dependencies
 jest.mock('@/app/lib/firebase/client', () => ({
-  createRouteHandlerClient: jest.fn()
+  createRouteHandlerClient: jest.fn(),
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    match: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null })
+  }
 }))
 
 jest.mock('next/server', () => ({

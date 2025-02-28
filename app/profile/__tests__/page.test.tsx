@@ -98,7 +98,13 @@ jest.mock('@/app/lib/firebase/client', () => ({
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     single: jest.fn().mockResolvedValue({ data: {}, error: null })
-  }
+  },
+  getFirebaseAuth: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: {}, error: null })
+  })
 }))
 
 // Add jest-axe matcher

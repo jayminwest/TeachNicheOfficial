@@ -32,10 +32,10 @@ export default async function globalSetup(config: FullConfig) {
     
     // Add test-specific properties to the browser context
     await context.addInitScript(() => {
-      // @ts-ignore - These are for testing purposes
-      window.PLAYWRIGHT_TEST_MODE = true;
-      window.mockGoogleSignInError = false;
-      window.signInWithGoogleCalled = false;
+      // These are for testing purposes
+      (window as any).PLAYWRIGHT_TEST_MODE = true;
+      (window as any).mockGoogleSignInError = false;
+      (window as any).signInWithGoogleCalled = false;
     });
     
     // Basic verification that browser launches correctly

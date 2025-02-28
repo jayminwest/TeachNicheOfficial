@@ -2,7 +2,7 @@ import { test as setup } from '@playwright/test';
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import fs from 'fs';
 
-let testEnv: RulesTestEnvironment;
+let testEnv: RulesTestEnvironment | undefined;
 
 setup.beforeAll(async () => {
   testEnv = await initializeTestEnvironment({

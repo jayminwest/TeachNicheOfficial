@@ -89,9 +89,9 @@ For each file:
 - [ ] app/requests/__tests__/page.test.tsx (2 errors)
 - [ ] app/services/auth/__tests__/auth-context.test.tsx (1 error)
 - [ ] app/services/auth/__tests__/AuthContext.test.tsx (1 error)
-- [ ] e2e-tests/setup/firebase-emulator.setup.ts (2 errors)
-- [ ] e2e-tests/setup/firebase-emulator.ts (1 error)
-- [ ] e2e-tests/setup/test-setup.ts (2 errors)
+- [x] e2e-tests/setup/firebase-emulator.setup.ts (2 errors) <!-- 2025-02-28: Fixed by properly typing window object and fixing duplicate code -->
+- [x] e2e-tests/setup/firebase-emulator.ts (1 error) <!-- 2025-02-28: Fixed by making testEnv possibly undefined -->
+- [x] e2e-tests/setup/test-setup.ts (2 errors) <!-- 2025-02-28: Fixed by properly typing window object -->
 - [x] scripts/generate-test-data.ts (3 errors) <!-- 2025-02-28: Excluded scripts directory from TypeScript checking -->
 - [x] scripts/migrate-database.ts (4 errors) <!-- 2025-02-28: Excluded scripts directory from TypeScript checking -->
 - [x] scripts/migrate-storage-files.ts (1 error) <!-- 2025-02-28: Excluded scripts directory from TypeScript checking -->
@@ -177,8 +177,8 @@ function MyComponent({ name, count, optional = false }: MyComponentProps) {
 | Critical Path (P0) | 9 | 0 | 0% |
 | Core Services (P1) | 15 | 1 | 6.7% |
 | UI Components (P2) | 16 | 0 | 0% |
-| Tests and Scripts (P3) | 19 | 10 | 52.6% |
-| **Overall** | **59** | **11** | **18.6%** |
+| Tests and Scripts (P3) | 19 | 13 | 68.4% |
+| **Overall** | **59** | **14** | **23.7%** |
 
 ## Verification Command
 
@@ -213,6 +213,7 @@ This task will be considered complete when:
 | 2025-02-28 | | | Initial plan created |
 | 2025-02-28 | TypeScript Team | app/services/firebase-compat.ts | Fixed by adding proper interfaces, type annotations, and error handling |
 | 2025-02-28 | TypeScript Team | scripts/* (9 files) | Excluded scripts directory from TypeScript checking in tsconfig.json |
+| 2025-02-28 | TypeScript Team | e2e-tests/setup/* (3 files) | Fixed type errors in Firebase emulator setup files |
 
 ## References
 

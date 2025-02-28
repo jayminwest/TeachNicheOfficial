@@ -244,6 +244,12 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Ensure purchase has the correct type
+    const purchaseRecord = {
+      id: purchaseId,
+      ...purchaseData
+    };
+    
     // Create Stripe checkout session with proper typing
     const sessionParams: StripeCheckoutSessionParams = {
       line_items: [
@@ -265,7 +271,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         lessonId,
         userId,
-        purchaseId: purchase.id,
+        purchaseId: purchaseId,
         creatorId: lesson.creator_id,
       },
       customer_email: user.email || undefined,
@@ -279,7 +285,7 @@ export async function POST(request: NextRequest) {
       .update({
         stripe_session_id: checkoutSession.id,
         payment_intent_id: checkoutSession.payment_intent as string,
-      }, { eq: ['id', purchase.id] });
+      }, { eq: ['id', purchaseId] });
     
     return NextResponse.json({
       url: checkoutSession.url,

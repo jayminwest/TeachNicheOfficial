@@ -40,8 +40,21 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789012:web:abcdef1234567890"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase or get existing instance
+let app;
+try {
+  // Try to get existing Firebase app instance
+  app = initializeApp(firebaseConfig);
+} catch (error) {
+  // If error is about duplicate app, get the existing instance
+  if (error.code === 'app/duplicate-app') {
+    app = initializeApp();
+  } else {
+    // Re-throw if it's a different error
+    throw error;
+  }
+}
+
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 

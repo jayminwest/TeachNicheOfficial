@@ -40,9 +40,9 @@ export function LessonCreationRestriction({ className }: LessonCreationRestricti
       <AlertDescription>
         For security reasons, new accounts must wait 48 hours before creating lessons.
         {timeRemaining && (
-          <p className="mt-2">
+          <div className="mt-2">
             Time remaining: {timeRemaining.hours} hours and {timeRemaining.minutes} minutes
-          </p>
+          </div>
         )}
       </AlertDescription>
     </Alert>

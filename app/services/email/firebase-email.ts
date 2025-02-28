@@ -7,8 +7,8 @@ export class FirebaseEmail implements EmailService {
 
   constructor() {
     try {
-      this.app = getApp() as any;
-    } catch (_error: unknown) {
+      this.app = getApp();
+    } catch (error: unknown) {
       // Initialize a new app if one doesn't exist
       this.app = admin.initializeApp({
         credential: admin.credential.applicationDefault(),

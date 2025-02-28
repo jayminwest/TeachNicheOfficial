@@ -99,8 +99,8 @@ export const recordCreatorEarnings = async (
     // Calculate fees
     const { platformFee, creatorEarnings } = calculateFees(amount);
     
-    // @ts-ignore - DatabaseService interface needs to be updated
-    await (databaseService as any).create('creator_earnings', {
+    // @ts-expect-error - DatabaseService interface needs to be updated
+    await (databaseService as DatabaseService).create('creator_earnings', {
       creator_id: creatorId,
       payment_intent_id: paymentIntentId,
       amount: creatorEarnings,
@@ -382,9 +382,15 @@ export const processScheduledPayouts = async (
         // Import dynamically to avoid circular dependencies
         const { processCreatorPayout } = await import('./payouts');
         
+        // Define proper types for creator
+        interface EligibleCreator {
+          creator_id: string;
+          pending_amount: number;
+        }
+        
         const payoutResult = await processCreatorPayout(
-          (creator as any).creator_id,
-          (creator as any).pending_amount,
+          (creator as EligibleCreator).creator_id,
+          (creator as EligibleCreator).pending_amount,
           databaseService
         );
 
@@ -399,13 +405,13 @@ export const processScheduledPayouts = async (
             WHERE 
               creator_id = $2
               AND status = 'pending'
-          `, [payoutResult.payoutId, (creator as any).creator_id]);
+          `, [payoutResult.payoutId, (creator as EligibleCreator).creator_id]);
 
           results.processed++;
           results.details.push({
-            creatorId: (creator as any).creator_id,
+            creatorId: (creator as EligibleCreator).creator_id,
             status: 'success',
-            amount: (creator as any).pending_amount
+            amount: (creator as EligibleCreator).pending_amount
           });
         } else {
           results.failed++;

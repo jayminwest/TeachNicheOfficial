@@ -1,4 +1,4 @@
-import { auth } from '@/app/lib/firebase'
+import { getAuth } from 'firebase/auth'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth'
 import { cookies } from 'next/headers'
 
@@ -37,6 +37,7 @@ export async function createSessionCookie(idToken: string, expiresIn = 60 * 60 *
 // Function to sign in and create a session
 export async function signInWithSession(email: string, password: string) {
   try {
+    const auth = getAuth();
     // Sign in with Firebase Authentication
     const userCredential = await signInWithEmailAndPassword(auth, email, password)
     
@@ -55,6 +56,7 @@ export async function signInWithSession(email: string, password: string) {
 // Function to sign up and create a session
 export async function signUpWithSession(email: string, password: string) {
   try {
+    const auth = getAuth();
     // Create user with Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     
@@ -73,6 +75,7 @@ export async function signUpWithSession(email: string, password: string) {
 // Function to sign out
 export async function signOut() {
   try {
+    const auth = getAuth();
     // Sign out from Firebase
     await firebaseSignOut(auth)
     

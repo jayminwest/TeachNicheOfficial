@@ -29,7 +29,7 @@ describe('AuthContext', () => {
     const mockUser = { uid: '123', email: 'test@example.com' };
     
     // Mock the auth state change
-    (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
+    (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback: (user: { uid: string, email: string } | null) => void) => {
       // Call the callback with the mock user immediately
       setTimeout(() => callback(mockUser), 0);
       return () => {};
@@ -53,7 +53,7 @@ describe('AuthContext', () => {
 
   it('should handle no authenticated user', async () => {
     // Mock the auth state change to happen after a delay
-    let authCallback: ((user: any) => void) | null = null;
+    let authCallback: ((user: { uid: string, email: string } | null) => void) | null = null;
     (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
       authCallback = callback;
       // Don't call the callback immediately

@@ -260,10 +260,25 @@ async function updateLessonHandler(request: Request) {
       );
     }
     
-    const { data: updatedLesson } = await firebaseClient
+    // Update the lesson
+    const { data: updatedLesson, error: updateError } = await firebaseClient
       .from('lessons')
-      .update(updateData)
-      .eq('id', id);
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      }, { eq: ['id', id] });
+      
+    if (updateError) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to update lesson',
+          details: typeof updateError === 'object' && updateError !== null && 'message' in updateError 
+            ? String(updateError.message) 
+            : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(updatedLesson);
   } catch (error) {

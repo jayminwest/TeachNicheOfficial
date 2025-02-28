@@ -77,7 +77,7 @@ async function createLessonHandler(request: Request) {
       return NextResponse.json(
         { 
           error: 'Failed to create lesson',
-          details: error.message
+          details: error.message || 'Unknown error'
         },
         { status: 500 }
       );
@@ -129,9 +129,12 @@ async function getLessonsHandler(request: Request) {
     const { data: lessons } = await queryBuilder.get();
     
     return NextResponse.json({ lessons });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: { message: 'Internal server error' } },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -197,9 +200,12 @@ async function updateLessonHandler(request: Request) {
       .get();
 
     return NextResponse.json(updatedLesson);
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -264,9 +270,12 @@ async function deleteLessonHandler(request: Request) {
       .eq('id', id)
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

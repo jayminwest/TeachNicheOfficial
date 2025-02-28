@@ -13,7 +13,7 @@ import { auth } from '@/app/services/firebase';
 import { AuthUser } from './interface';
 
 // Ensure auth is properly typed
-const firebaseAuth: Auth = auth as Auth;
+const firebaseAuth: Auth = auth as unknown as Auth;
 
 export async function signInWithGoogle(): Promise<AuthUser> {
   try {

@@ -67,7 +67,8 @@ const getFirebaseAuth = async (): Promise<{
       updateEmail: firebaseAuth.updateEmail,
       updatePassword: firebaseAuth.updatePassword,
       onAuthStateChanged: firebaseAuth.onAuthStateChanged,
-      signInWithPopup: firebaseAuth.signInWithPopup,
+      signInWithPopup: (auth: Auth, provider: unknown) => 
+        firebaseAuth.signInWithPopup(auth, provider as AuthProvider),
       GoogleAuthProvider: firebaseAuth.GoogleAuthProvider
     };
   } catch (error) {
@@ -359,13 +360,17 @@ export async function signInWithGoogle(): Promise<{
     const provider = new GoogleAuthProvider();
     
     // Add scopes for better user info
-    provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-    provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
-    
-    // Set custom parameters for better UX
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
+    if (typeof provider.addScope === 'function') {
+      provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+      provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+      
+      // Set custom parameters for better UX
+      if (typeof provider.setCustomParameters === 'function') {
+        provider.setCustomParameters({
+          prompt: 'select_account'
+        });
+      }
+    }
     
     const userCredential = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(userCredential);

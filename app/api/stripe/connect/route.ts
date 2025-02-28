@@ -140,6 +140,7 @@ export async function POST(request: Request) {
         // Import the database service
         const { FirestoreDatabase } = await import('@/app/services/database/firebase-database');
         // Create a database service
+        const { FirestoreDatabase } = await import('@/app/services/database/firebase-database');
         const db = new FirestoreDatabase();
         
         // Update the profile with the Stripe account ID

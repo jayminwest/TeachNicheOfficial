@@ -25,7 +25,7 @@ export async function createSessionCookie(idToken: string, expiresIn = 60 * 60 *
     
     // Set the cookie
     const cookieStore = cookies()
-    cookieStore.set(options)
+    await cookieStore.set(options)
     
     return { success: true }
   } catch (error) {
@@ -81,7 +81,7 @@ export async function signOut() {
     
     // Clear the session cookie
     const cookieStore = cookies()
-    cookieStore.delete('__session')
+    await cookieStore.delete('__session')
     
     return { success: true }
   } catch (error) {
@@ -99,7 +99,7 @@ export async function getSession() {
     
     // Get the session cookie
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('__session')?.value
+    const sessionCookie = (await cookieStore).get('__session')?.value
     
     if (!sessionCookie) {
       return { data: { session: null } }

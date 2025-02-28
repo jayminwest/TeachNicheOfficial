@@ -81,7 +81,7 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session): Promise<
       { field: 'id', operator: '==', value: purchaseId }
     ]);
     
-    if (!purchaseSnapshot || purchaseSnapshot.length === 0) {
+    if (!purchaseSnapshot || !purchaseSnapshot.rows || purchaseSnapshot.rows.length === 0) {
       console.error('Purchase not found:', purchaseId);
       return;
     }
@@ -110,12 +110,12 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     { field: 'payment_intent_id', operator: '==', value: paymentIntent.id }
   ]);
   
-  if (!purchaseSnapshot || purchaseSnapshot.length === 0) {
+  if (!purchaseSnapshot || !purchaseSnapshot.rows || purchaseSnapshot.rows.length === 0) {
     console.error('Purchase not found for payment intent:', paymentIntent.id);
     return;
   }
   
-  const purchase = purchaseSnapshot[0];
+  const purchase = purchaseSnapshot.rows[0];
 
   // Record the earnings in creator_earnings table
   try {
@@ -170,12 +170,12 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
     { field: 'payment_intent_id', operator: '==', value: paymentIntentId }
   ]);
   
-  if (!purchaseSnapshot || purchaseSnapshot.length === 0) {
+  if (!purchaseSnapshot || !purchaseSnapshot.rows || purchaseSnapshot.rows.length === 0) {
     console.error('Purchase not found for refund:', paymentIntentId);
     return;
   }
   
-  const purchase = purchaseSnapshot[0];
+  const purchase = purchaseSnapshot.rows[0];
   
   // Update purchase status
   try {
@@ -200,12 +200,12 @@ async function handleRefund(charge: Stripe.Charge): Promise<void> {
       { field: 'payment_intent_id', operator: '==', value: paymentIntentId }
     ]);
     
-    if (!earningsSnapshot || earningsSnapshot.length === 0) {
+    if (!earningsSnapshot || !earningsSnapshot.rows || earningsSnapshot.rows.length === 0) {
       console.error('Earnings not found for refund:', paymentIntentId);
       return;
     }
     
-    const earnings = earningsSnapshot[0];
+    const earnings = earningsSnapshot.rows[0];
     
     // Calculate refunded earnings amount (proportional to refund amount)
     const refundRatio = refundAmount / purchase.amount;

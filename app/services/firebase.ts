@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, browserPopupRedirectResolver } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
@@ -109,4 +109,10 @@ const extendedFirestore = {
   }
 };
 
-export { app, extendedFirestore as firestore, auth, storage };
+export { 
+  app, 
+  extendedFirestore as firestore, 
+  auth, 
+  storage,
+  browserPopupRedirectResolver 
+};

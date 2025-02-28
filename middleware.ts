@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getAuth } from 'firebase-admin/auth'
-// Polyfill for node:stream
-import stream from 'stream'
 
 // Define paths that should be restricted to authenticated users
 const RESTRICTED_PATHS: string[] = [
@@ -23,36 +20,6 @@ const PUBLIC_PATHS = [
   '/api/requests' // Keep requests API accessible
 ]
 
-// Initialize Firebase Admin if not already initialized
-let firebaseAdminInitialized = false
-const initializeFirebaseAdmin = async () => {
-  if (!firebaseAdminInitialized) {
-    try {
-      // Dynamic import to avoid node: scheme issues
-      const admin = await import('firebase-admin')
-      
-      try {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-          }),
-        })
-        firebaseAdminInitialized = true
-      } catch (error: any) {
-        // App might already be initialized
-        if (!/already exists/i.test(error.message)) {
-          console.error('Firebase admin initialization error', error)
-        }
-      }
-    } catch (error) {
-      console.error('Error importing firebase-admin:', error)
-    }
-  }
-  return getAuth()
-}
-
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const path = req.nextUrl.pathname
@@ -63,25 +30,36 @@ export async function middleware(req: NextRequest) {
   
   if (sessionCookie) {
     try {
-      // Initialize Firebase Admin
-      const adminAuth = await initializeFirebaseAdmin()
+      // Call our auth verification API instead of using firebase-admin directly
+      // This avoids Edge Runtime limitations with dynamic code evaluation
+      const verifyResponse = await fetch(new URL('/api/auth/verify-session', req.url), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionCookie }),
+      })
       
-      // Verify the session cookie
-      const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true)
-      
-      // Set user info in session
-      session = {
-        user: {
-          id: decodedClaims.uid,
-          email: decodedClaims.email || '',
+      if (verifyResponse.ok) {
+        const userData = await verifyResponse.json()
+        
+        // Set user info in session
+        session = {
+          user: {
+            id: userData.uid,
+            email: userData.email || '',
+          }
         }
+        
+        // You can add the user to the request headers if needed
+        res.headers.set('X-User-ID', userData.uid)
+      } else {
+        // Invalid session cookie
+        res.cookies.delete('__session')
       }
-      
-      // You can add the user to the request headers if needed
-      res.headers.set('X-User-ID', decodedClaims.uid)
     } catch (error) {
-      // Invalid session cookie
-      console.error('Error verifying session cookie:', error)
+      // Error verifying session
+      console.error('Error verifying session:', error)
       
       // Optionally clear the invalid cookie
       res.cookies.delete('__session')

@@ -1,5 +1,4 @@
 import { FirebaseAuthService } from '../firebase-auth-service';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { 
   getAuth,
   signInWithEmailAndPassword,
@@ -9,12 +8,12 @@ import {
 } from 'firebase/auth';
 
 // Mock Firebase auth
-vi.mock('firebase/auth', () => ({
-  getAuth: vi.fn(() => ({})),
-  signInWithEmailAndPassword: vi.fn(),
-  createUserWithEmailAndPassword: vi.fn(),
-  signOut: vi.fn(),
-  updateProfile: vi.fn()
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(() => ({})),
+  signInWithEmailAndPassword: jest.fn(),
+  createUserWithEmailAndPassword: jest.fn(),
+  signOut: jest.fn(),
+  updateProfile: jest.fn()
 }));
 
 describe('FirebaseAuthService', () => {
@@ -22,12 +21,12 @@ describe('FirebaseAuthService', () => {
   
   beforeEach(() => {
     authService = new FirebaseAuthService();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should sign in with email/password', async () => {
     const mockUser = { uid: '123', email: 'test@example.com' };
-    (signInWithEmailAndPassword as vi.Mock).mockResolvedValue({ user: mockUser });
+    (signInWithEmailAndPassword as jest.Mock).mockResolvedValue({ user: mockUser });
     
     const result = await authService.signIn('test@example.com', 'password');
     
@@ -45,7 +44,7 @@ describe('FirebaseAuthService', () => {
   });
 
   it('should handle sign-in errors', async () => {
-    (signInWithEmailAndPassword as vi.Mock).mockRejectedValue(new Error('Auth failed'));
+    (signInWithEmailAndPassword as jest.Mock).mockRejectedValue(new Error('Auth failed'));
     
     await expect(authService.signIn('invalid@example.com', 'wrong'))
       .rejects.toThrow('Authentication failed');
@@ -53,7 +52,7 @@ describe('FirebaseAuthService', () => {
 
   it('should sign up new users', async () => {
     const mockUser = { uid: '456', email: 'new@example.com' };
-    (createUserWithEmailAndPassword as vi.Mock).mockResolvedValue({ user: mockUser });
+    (createUserWithEmailAndPassword as jest.Mock).mockResolvedValue({ user: mockUser });
     
     const result = await authService.signUp('new@example.com', 'password', 'New User');
     

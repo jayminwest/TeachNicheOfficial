@@ -130,12 +130,20 @@ async function getLessonsHandler(request: Request) {
       sortDirection = 'desc';
     }
     
-    // Execute the query with all parameters
-    const { data: lessons, error } = await lessonsRef.select()
-      .where(queryParams)
-      .orderBy(sortField, sortDirection)
-      .get();
-      
+    // Build query using Firebase client methods
+    let query = lessonsRef.select();
+    
+    // Add filters
+    Object.entries(queryParams).forEach(([key, value]) => {
+      query = query.eq(key, value);
+    });
+    
+    // Add sorting
+    query = query.order(sortField, { ascending: sortDirection === 'asc' });
+    
+    // Execute the query
+    const { data: lessons, error } = await query.get();
+    
     if (error) {
       return NextResponse.json(
         { 

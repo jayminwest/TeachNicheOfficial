@@ -106,27 +106,31 @@ async function getLessonsHandler(request: Request) {
   try {
     // Firebase is already initialized in @/app/lib/firebase;
     
-    // Build query with filters
-    let queryRef = firebaseClient.from('lessons').select();
+    // Create a query builder
+    const queryBuilder = firebaseClient.from('lessons');
     
-    // Apply filters before executing the query
+    // Build the query with filters
+    let query = queryBuilder.select();
+    
+    // Apply filters
     if (category) {
-      queryRef = queryRef.eq('category', category);
+      // We need to apply filters before executing the query
+      query = query.eq('category', category);
     }
     
     // Apply sorting
     if (sort === 'newest') {
-      queryRef = queryRef.orderBy('created_at', 'desc');
+      query = query.order('created_at', { ascending: false });
     } else if (sort === 'oldest') {
-      queryRef = queryRef.orderBy('created_at', 'asc');
+      query = query.order('created_at', { ascending: true });
     } else if (sort === 'price_low') {
-      queryRef = queryRef.orderBy('price', 'asc');
+      query = query.order('price', { ascending: true });
     } else if (sort === 'price_high') {
-      queryRef = queryRef.orderBy('price', 'desc');
+      query = query.order('price', { ascending: false });
     }
     
     // Execute the query
-    const { data: lessons } = await queryRef.get();
+    const { data: lessons } = await query;
     
     return NextResponse.json({ lessons });
   } catch (error) {

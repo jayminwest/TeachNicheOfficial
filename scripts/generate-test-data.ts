@@ -218,12 +218,116 @@ async function initDatabase() {
       const client = await pool.connect();
       console.log(`${colors.green}Successfully connected to database${colors.reset}`);
       client.release();
+      
+      // Create database tables
+      await createDatabaseTables();
     } catch (error) {
       console.error(`${colors.red}Failed to connect to database:${colors.reset}`, error);
       process.exit(1);
     }
   } else {
     console.log(`${colors.yellow}Skipping database connection in dry run mode${colors.reset}`);
+  }
+}
+
+/**
+ * Create database tables if they don't exist
+ */
+async function createDatabaseTables() {
+  if (dryRun) return;
+  
+  console.log(`${colors.cyan}Creating database tables if they don't exist...${colors.reset}`);
+  
+  try {
+    const client = await pool.connect();
+    
+    // Create users table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255) NOT NULL,
+        photo_url TEXT,
+        is_instructor BOOLEAN DEFAULT FALSE,
+        bio TEXT,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL
+      )
+    `);
+    
+    // Create categories table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id UUID PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL
+      )
+    `);
+    
+    // Create lessons table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS lessons (
+        id UUID PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        instructor_id UUID NOT NULL REFERENCES users(id),
+        category_id UUID NOT NULL REFERENCES categories(id),
+        price DECIMAL(10, 2) NOT NULL,
+        content TEXT,
+        published BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL,
+        thumbnail_url TEXT,
+        mux_asset_id VARCHAR(255),
+        mux_playback_id VARCHAR(255)
+      )
+    `);
+    
+    // Create reviews table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id UUID PRIMARY KEY,
+        lesson_id UUID NOT NULL REFERENCES lessons(id),
+        user_id UUID NOT NULL REFERENCES users(id),
+        rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+        comment TEXT,
+        created_at TIMESTAMP NOT NULL
+      )
+    `);
+    
+    // Create payments table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS payments (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id),
+        lesson_id UUID NOT NULL REFERENCES lessons(id),
+        amount DECIMAL(10, 2) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP NOT NULL,
+        processing_fee DECIMAL(10, 2) NOT NULL,
+        platform_fee DECIMAL(10, 2) NOT NULL,
+        instructor_earnings DECIMAL(10, 2) NOT NULL
+      )
+    `);
+    
+    // Create purchases table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS purchases (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id),
+        lesson_id UUID NOT NULL REFERENCES lessons(id),
+        payment_id UUID NOT NULL REFERENCES payments(id),
+        created_at TIMESTAMP NOT NULL
+      )
+    `);
+    
+    client.release();
+    console.log(`${colors.green}Database tables created successfully${colors.reset}`);
+  } catch (error) {
+    console.error(`${colors.red}Error creating database tables:${colors.reset}`, error);
+    process.exit(1);
   }
 }
 
@@ -659,8 +763,8 @@ async function saveToFirestore() {
         photoURL: user.photoURL,
         isInstructor: user.isInstructor,
         bio: user.bio,
-        createdAt: admin.firestore.Timestamp.fromDate(user.createdAt),
-        updatedAt: admin.firestore.Timestamp.fromDate(user.updatedAt)
+        createdAt: firebase.Timestamp.fromDate(user.createdAt),
+        updatedAt: firebase.Timestamp.fromDate(user.updatedAt)
       });
     } catch (error) {
       console.error(`${colors.red}Failed to save user to Firestore:${colors.reset}`, error);
@@ -674,8 +778,8 @@ async function saveToFirestore() {
       await firebase.firestore.collection(`${collectionPrefix}categories`).doc(category.id).set({
         name: category.name,
         description: category.description,
-        createdAt: admin.firestore.Timestamp.fromDate(category.createdAt),
-        updatedAt: admin.firestore.Timestamp.fromDate(category.updatedAt)
+        createdAt: firebase.Timestamp.fromDate(category.createdAt),
+        updatedAt: firebase.Timestamp.fromDate(category.updatedAt)
       });
     } catch (error) {
       console.error(`${colors.red}Failed to save category to Firestore:${colors.reset}`, error);
@@ -694,8 +798,8 @@ async function saveToFirestore() {
         price: lesson.price,
         content: lesson.content,
         published: lesson.published,
-        createdAt: admin.firestore.Timestamp.fromDate(lesson.createdAt),
-        updatedAt: admin.firestore.Timestamp.fromDate(lesson.updatedAt),
+        createdAt: firebase.Timestamp.fromDate(lesson.createdAt),
+        updatedAt: firebase.Timestamp.fromDate(lesson.updatedAt),
         thumbnailUrl: lesson.thumbnailUrl
       });
     } catch (error) {
@@ -712,7 +816,7 @@ async function saveToFirestore() {
         userId: review.userId,
         rating: review.rating,
         comment: review.comment,
-        createdAt: admin.firestore.Timestamp.fromDate(review.createdAt)
+        createdAt: firebase.Timestamp.fromDate(review.createdAt)
       });
     } catch (error) {
       console.error(`${colors.red}Failed to save review to Firestore:${colors.reset}`, error);
@@ -728,7 +832,7 @@ async function saveToFirestore() {
         lessonId: payment.lessonId,
         amount: payment.amount,
         status: payment.status,
-        createdAt: admin.firestore.Timestamp.fromDate(payment.createdAt),
+        createdAt: firebase.Timestamp.fromDate(payment.createdAt),
         processingFee: payment.processingFee,
         platformFee: payment.platformFee,
         instructorEarnings: payment.instructorEarnings
@@ -741,7 +845,7 @@ async function saveToFirestore() {
           userId: payment.userId,
           lessonId: payment.lessonId,
           paymentId: payment.id,
-          createdAt: admin.firestore.Timestamp.fromDate(payment.createdAt)
+          createdAt: firebase.Timestamp.fromDate(payment.createdAt)
         });
       }
     } catch (error) {

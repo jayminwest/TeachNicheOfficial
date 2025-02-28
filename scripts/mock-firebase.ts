@@ -4,6 +4,30 @@
 
 import { randomUUID } from 'crypto';
 
+// Mock Firebase Timestamp
+export class Timestamp {
+  seconds: number;
+  nanoseconds: number;
+
+  constructor(seconds: number, nanoseconds: number) {
+    this.seconds = seconds;
+    this.nanoseconds = nanoseconds;
+  }
+
+  static now() {
+    const now = new Date();
+    return new Timestamp(Math.floor(now.getTime() / 1000), 0);
+  }
+
+  static fromDate(date: Date) {
+    return new Timestamp(Math.floor(date.getTime() / 1000), 0);
+  }
+
+  toDate() {
+    return new Date(this.seconds * 1000);
+  }
+}
+
 // Mock Firebase Auth
 export const mockAuth = {
   createUser: async (userData: any) => {
@@ -94,6 +118,7 @@ export function initMockFirebase() {
   return {
     auth: mockAuth,
     firestore: mockFirestore,
-    storage: mockStorage
+    storage: mockStorage,
+    Timestamp: Timestamp
   };
 }

@@ -5,6 +5,12 @@ import { EmailSignup } from "@/components/ui/email-signup";
 export default function Home() {
   return (
     <div className="flex flex-col">
+      {/* Construction Banner */}
+      <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4" role="alert">
+        <p className="font-bold">Site Under Construction</p>
+        <p>We apologize for the inconvenience. Our site had difficulties launching and is currently under construction. Thank you for your patience.</p>
+      </div>
+      
       <div className="flex flex-col items-center justify-center p-8">
         <Hero />
       </div>

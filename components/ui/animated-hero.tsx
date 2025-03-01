@@ -37,7 +37,7 @@ function Hero() {
       </div>
       {/* Construction Banner - Fixed position to stay visible */}
       <div className="bg-red-600 text-white py-4 px-6 text-center shadow-md fixed top-16 left-0 right-0 z-50" role="alert">
-        <h2 className="font-bold text-xl">🚧 Site Under Construction 🚧</h2>
+        <h2 className="font-bold text-xl">Site Under Construction</h2>
         <p className="text-base">We apologize for the inconvenience. Our site had difficulties launching and is currently under construction.</p>
         <p className="text-base mt-1">Core video lessons will be available soon. Expected to be fully operational by March 3.</p>
       </div>

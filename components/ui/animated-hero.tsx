@@ -35,10 +35,10 @@ function Hero() {
           className="w-full h-full object-cover filter grayscale opacity-20"
         />
       </div>
-      {/* Construction Banner */}
-      <div className="bg-red-600 text-white py-3 px-4 text-center shadow-md absolute top-0 left-0 right-0 z-20" role="alert">
-        <h2 className="font-bold text-lg">🚧 Site Under Construction 🚧</h2>
-        <p>We apologize for the inconvenience. Our site had difficulties launching and is currently under construction.</p>
+      {/* Construction Banner - Fixed position to stay visible */}
+      <div className="bg-red-600 text-white py-4 px-6 text-center shadow-md fixed top-16 left-0 right-0 z-50" role="alert">
+        <h2 className="font-bold text-xl">🚧 Site Under Construction 🚧</h2>
+        <p className="text-base">We apologize for the inconvenience. Our site had difficulties launching and is currently under construction.</p>
       </div>
       <div className="container mx-auto relative z-10 h-full">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">

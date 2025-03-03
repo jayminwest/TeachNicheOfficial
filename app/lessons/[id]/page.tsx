@@ -2,15 +2,13 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-interface PageProps {
+export default async function Page({
+  params,
+}: {
   params: {
     id: string;
   };
-}
-
-export default async function Page({
-  params,
-}: PageProps) {
+}) {
   const supabase = createServerSupabaseClient();
   
   // Check if the lesson exists before rendering the component

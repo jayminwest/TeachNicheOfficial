@@ -83,7 +83,7 @@ describe('SignInPage', () => {
 
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
-    const user = userEvent.setup();
+    const userEvents = userEvent.setup();
     // Mock successful sign-in
     (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
     
@@ -106,7 +106,7 @@ describe('SignInPage', () => {
     render(<SignInPage onSignInSuccess={jest.fn()} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    await userEvents.click(signInButton);
     
     expect(signInWithGoogle).toHaveBeenCalled();
     
@@ -118,7 +118,7 @@ describe('SignInPage', () => {
   });
 
   it('shows loading state during Google sign-in', async () => {
-    const user = userEvent.setup();
+    const userEvents = userEvent.setup();
     // Make the sign-in function wait
     (signInWithGoogle as jest.Mock).mockImplementation(() => new Promise(resolve => {
       setTimeout(resolve, 100);
@@ -127,7 +127,7 @@ describe('SignInPage', () => {
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    await userEvents.click(signInButton);
     
     // Check for spinner
     expect(screen.getByTestId('spinner-icon')).toHaveClass('animate-spin');
@@ -135,14 +135,14 @@ describe('SignInPage', () => {
   });
 
   it('displays error message when Google sign-in fails', async () => {
-    const user = userEvent.setup();
+    const userEvents = userEvent.setup();
     const errorMessage = 'Failed to authenticate with Google';
     (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    await userEvents.click(signInButton);
     
     // Wait for the error message to appear
     await waitFor(() => {
@@ -152,7 +152,7 @@ describe('SignInPage', () => {
 
   // This test is no longer applicable as the component doesn't have a sign up link
   it('handles sign in flow correctly', async () => {
-    const user = userEvent.setup();
+    const userEvents = userEvent.setup();
     
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
@@ -183,14 +183,14 @@ describe('SignInPage', () => {
   });
 
   it('announces errors to screen readers', async () => {
-    const user = userEvent.setup();
+    const userEvents = userEvent.setup();
     const errorMessage = 'Failed to authenticate with Google';
     (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    await userEvents.click(signInButton);
     
     // Wait for the error message to appear and check it's accessible
     await waitFor(() => {

@@ -157,8 +157,8 @@ export const createMockQueryBuilder = (config: MockConfig = {}) => {
     
     // Define base data for responses
     single: createAsyncMock({ id: 'mock-id', created_at: '2023-01-01T00:00:00.000Z' }, config),
-    maybeSingle: createAsyncMock(baseData, config),
-    execute: createAsyncMock([baseData], config),
+    maybeSingle: createAsyncMock({ id: 'mock-id', created_at: '2023-01-01T00:00:00.000Z' }, config),
+    execute: createAsyncMock([{ id: 'mock-id', created_at: '2023-01-01T00:00:00.000Z' }], config),
     count: createAsyncMock([{ count: 5 }], config)
   };
 };

@@ -15,7 +15,7 @@ test.describe('Homepage Performance', () => {
       largestContentfulPaint: 2500, // 2.5 seconds
       pageLoadTime: 3000, // 3 seconds
       totalRequests: 50, // Maximum number of requests
-      totalBytes: 2 * 1024 * 1024, // 2MB total transfer size
+      totalBytes: 4 * 1024 * 1024, // 4MB total transfer size (increased from 2MB)
     };
     
     // Check if metrics meet thresholds

@@ -46,14 +46,6 @@ export function ProfileForm() {
     },
   })
   
-  // We'll use a single useEffect that calls our fetchProfileData function
-  useEffect(() => {
-    if (user?.id) {
-      console.log('User changed, fetching profile data');
-      fetchProfileData();
-    }
-  }, [user?.id, fetchProfileData]); // Include fetchProfileData in dependencies
-
   // Use useCallback to memoize the function
   const fetchProfileData = useCallback(async () => {
     if (!user?.id) return;
@@ -138,7 +130,13 @@ export function ProfileForm() {
     }
   }, [user?.id, user?.user_metadata]);
 
-  // Remove the duplicate useEffect - we already have one above
+  // We'll use a single useEffect that calls our fetchProfileData function
+  useEffect(() => {
+    if (user?.id) {
+      console.log('User changed, fetching profile data');
+      fetchProfileData();
+    }
+  }, [user?.id, fetchProfileData]); // Include fetchProfileData in dependencies
 
   async function onSubmit(data: ProfileFormValues) {
     if (!user?.id || !user?.email) {

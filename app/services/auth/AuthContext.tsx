@@ -33,7 +33,8 @@ export function AuthProvider({
   }
   
   const setAuthStateTyped = (updater: (prev: AuthState) => AuthState) => {
-    setAuthState(updater as any);
+    // Using type assertion to React.SetStateAction instead of any
+    setAuthState(updater as React.SetStateAction<AuthState>);
   };
   
   const [authState, setAuthState] = useState<AuthState>({
@@ -155,7 +156,7 @@ export function AuthProvider({
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [])
+  }, [setAuthStateTyped]) // Add setAuthStateTyped to the dependency array
 
   return (
     <AuthContext.Provider value={{ 

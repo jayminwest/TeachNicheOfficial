@@ -1,4 +1,4 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -23,9 +23,45 @@ const PUBLIC_PATHS = [
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
   
-  const { data: { session } } = await supabase.auth.getSession()
+  // Get auth cookie from request
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Missing Supabase environment variables')
+    return res
+  }
+  
+  // Create a Supabase client
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  })
+  
+  // Get the session from the cookie
+  const authCookie = req.cookies.get('sb-auth-token')?.value
+  let session = null
+  
+  if (authCookie) {
+    try {
+      // Set the auth cookie for this request
+      supabase.auth.setSession({
+        access_token: authCookie,
+        refresh_token: ''
+      })
+      
+      // Get the session
+      const { data } = await supabase.auth.getSession()
+      session = data.session
+    } catch (error) {
+      console.error('Error getting session:', error)
+    }
+  }
+  
   const path = req.nextUrl.pathname
 
   // Check auth restrictions

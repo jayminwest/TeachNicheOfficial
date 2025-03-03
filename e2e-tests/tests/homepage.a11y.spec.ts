@@ -13,22 +13,10 @@ test.describe('Homepage Accessibility', () => {
       excludeRules: ['color-contrast', 'button-name', 'aria-allowed-attr', 'aria-roles', 'landmark-one-main']
     });
     
-    // Log any violations for debugging
+    // Log any violations for debugging (minimal output)
     if (violations.length > 0) {
       console.log('Accessibility violations found:', 
-        violations.map(v => `${v.id} (${v.impact}): ${v.help}`));
-    }
-    
-    // Create a report of violations for future fixes
-    if (violations.length > 0) {
-      const violationDetails = violations.map(v => ({
-        id: v.id,
-        impact: v.impact,
-        description: v.help,
-        elements: v.nodes.map(n => n.html)
-      }));
-      
-      console.log('Detailed violation report:', JSON.stringify(violationDetails, null, 2));
+        violations.map(v => `${v.id} (${v.impact})`));
     }
     
     // Assert no critical or serious violations

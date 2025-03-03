@@ -118,20 +118,20 @@ export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
       
       // Check if we're stuck in a keyboard trap
       if (elementKey === previousFocusedElement) {
-        console.log(`Possible keyboard trap detected at tab press ${i+1}:`, focusedElement);
+        console.log(`Possible keyboard trap detected at tab press ${i+1}`);
       }
       
       // Track this element
       focusedElements.add(elementKey);
       previousFocusedElement = elementKey;
-      
-      console.log(`Tab press ${i+1} focused:`, focusedElement);
     }
     
     // Success if we were able to focus on at least 3 different elements
     const success = focusedElements.size >= 3;
-    console.log(`Keyboard navigation test: ${success ? 'PASSED' : 'FAILED'}`);
-    console.log(`Unique elements focused: ${focusedElements.size}`);
+    
+    if (!success) {
+      console.log(`Keyboard navigation test failed: Only ${focusedElements.size} elements focused`);
+    }
     
     return success;
   } catch (error) {

@@ -13,7 +13,7 @@ test.describe('Error Handling', () => {
     expect(errorText).toContain("doesn't exist");
     
     // Check for "Go back" or "Return home" button
-    await expect(page.locator('a', { hasText: /home|back/i })).toBeVisible();
+    await expect(page.locator('a[href="/lessons"]')).toBeVisible();
   });
   
   test('should handle payment failure gracefully', async ({ page }) => {

@@ -6,6 +6,7 @@
       "varsIgnorePattern": "^_",
       "caughtErrorsIgnorePattern": "^_"
     }],
-    "@typescript-eslint/ban-ts-comment": "off"
+    "@typescript-eslint/ban-ts-comment": "off",
+    "unused-imports/no-unused-imports": "off"
   }
 }

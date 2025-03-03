@@ -105,110 +105,34 @@ export function ProfileForm() {
     
     setIsLoading(true);
     try {
-      console.log('Updating profile with data:', data);
-      
-      // Try to update the profile using RPC (stored procedure)
-      const { error: rpcError } = await supabase.rpc('create_profile', {
-        user_id: user.id,
-        user_full_name: data.full_name,
-        user_bio: data.bio,
-        user_social_media: data.social_media_tag,
-        user_email: user.email || '',
+      // First, update the user metadata via auth
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          full_name: data.full_name,
+          bio: data.bio,
+          social_media_tag: data.social_media_tag,
+        }
       });
       
-      // If RPC fails or doesn't exist, fall back to direct update with auth
-      let updateError = rpcError;
-      
-      if (rpcError) {
-        console.warn('RPC update failed, trying direct update:', rpcError.message);
-        
-        // First check if the profile exists
-        const { data: existingProfile, error: fetchError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id);
-          
-        if (fetchError) {
-          throw new Error(`Error checking profile: ${fetchError.message}`);
-        }
-        
-        if (existingProfile && existingProfile.length > 0) {
-          // Profile exists, use update instead of upsert
-          const { error } = await supabase.auth.updateUser({
-            data: {
-              full_name: data.full_name,
-              bio: data.bio,
-              social_media_tag: data.social_media_tag,
-            }
-          });
-          
-          updateError = error;
-        } else {
-          // For new profiles, we need admin intervention or a server-side API
-          // This is a temporary workaround - create a minimal profile
-          const { error } = await supabase.auth.updateUser({
-            data: {
-              full_name: data.full_name,
-              bio: data.bio,
-              social_media_tag: data.social_media_tag,
-            }
-          });
-          
-          updateError = error;
-          
-          // Also try to notify the server about the missing profile
-          try {
-            console.log('Attempting to create profile via API');
-            
-            // Create a payload with all required fields
-            const payload = {
-              id: user.id,
-              full_name: data.full_name || '',
-              bio: data.bio || '',
-              social_media_tag: data.social_media_tag || '',
-              email: user.email || '',
-            };
-            
-            console.log('Profile creation payload:', payload);
-            
-            const response = await fetch('/api/profiles/create', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(payload),
-              // Important: include credentials to send cookies with the request
-              credentials: 'same-origin',
-            });
-            
-            console.log('Profile creation response status:', response.status);
-            
-            let result;
-            try {
-              result = await response.json();
-            } catch (jsonError) {
-              console.error('Failed to parse API response:', jsonError);
-              throw new Error('Invalid API response');
-            }
-            
-            if (!response.ok) {
-              console.error('Profile creation API error:', result);
-              throw new Error(result.error || result.details || `Failed to create profile: ${response.status}`);
-            }
-            console.log('Profile creation API response:', result);
-            
-            if (result.success) {
-              console.log('Profile created successfully via API');
-            }
-          } catch (fetchError) {
-            console.error('Failed to create profile via API:', fetchError);
-            // Don't throw here, we'll still show success if the user metadata was updated
-          }
-        }
+      if (authError) {
+        console.error('Error updating user metadata:', authError.message);
       }
       
-      if (updateError) {
-        throw new Error(updateError.message);
+      // Then, update or insert the profile record
+      const { error: upsertError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: data.full_name,
+          bio: data.bio,
+          social_media_tag: data.social_media_tag,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
+        });
+      
+      if (upsertError) {
+        throw new Error(`Error updating profile: ${upsertError.message}`);
       }
       
       toast({
@@ -219,7 +143,7 @@ export function ProfileForm() {
       console.error('Profile update failed:', error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {

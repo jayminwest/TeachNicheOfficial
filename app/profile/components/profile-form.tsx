@@ -47,79 +47,13 @@ export function ProfileForm() {
     },
   })
   
-  // Fetch existing profile data when component mounts
+  // We'll use a single useEffect that calls our fetchProfileData function
   useEffect(() => {
-    async function fetchProfileData() {
-      if (!user?.id) return;
-      
-      setIsLoading(true);
-      try {
-        console.log('Fetching profile data for user ID:', user.id);
-        
-        // First try to get data from profiles table
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')  // Select all fields to see what's available
-          .eq('id', user.id)
-          .single();
-          
-        console.log('Raw profile data response:', { data, error });
-        
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // No profile found, try to use data from user metadata
-            console.log('No profile found, using user metadata');
-            console.log('User metadata:', user.user_metadata);
-            
-            if (user.user_metadata) {
-              const userData = {
-                full_name: user.user_metadata.full_name || user.user_metadata.name || "",
-                bio: user.user_metadata.bio || "",
-                social_media_tag: user.user_metadata.social_media_tag || "",
-              };
-              console.log('Setting form data from user metadata:', userData);
-              
-              // Force update the form values
-              setTimeout(() => {
-                form.setValue('full_name', userData.full_name);
-                form.setValue('bio', userData.bio);
-                form.setValue('social_media_tag', userData.social_media_tag);
-              }, 0);
-            }
-          } else {
-            console.error('Error fetching profile data:', error.message);
-          }
-          return;
-        }
-        
-        // Profile found, update form
-        if (data) {
-          console.log('Profile data loaded:', data);
-          
-          // Force update the form values in the next tick
-          setTimeout(() => {
-            // Use setValue for each field individually to ensure they're properly updated
-            form.setValue('full_name', data.full_name || "");
-            form.setValue('bio', data.bio || "");
-            form.setValue('social_media_tag', data.social_media_tag || "");
-            
-            // Log the current form values after setting
-            console.log('Form values after setting:', {
-              full_name: form.getValues('full_name'),
-              bio: form.getValues('bio'),
-              social_media_tag: form.getValues('social_media_tag')
-            });
-          }, 0);
-        }
-      } catch (err) {
-        console.error('Unexpected error fetching profile data:', err);
-      } finally {
-        setIsLoading(false);
-      }
+    if (user?.id) {
+      console.log('User changed, fetching profile data');
+      fetchProfileData();
     }
-    
-    fetchProfileData();
-  }, [user, form]);
+  }, [user?.id]); // Only depend on user.id to prevent unnecessary fetches
 
   // Define fetchProfileData outside useEffect so we can call it from the refresh button
   async function fetchProfileData() {
@@ -152,10 +86,8 @@ export function ProfileForm() {
             };
             console.log('Setting form data from user metadata:', userData);
             
-            // Force update the form values
-            form.setValue('full_name', userData.full_name);
-            form.setValue('bio', userData.bio);
-            form.setValue('social_media_tag', userData.social_media_tag);
+            // Directly set form values
+            form.reset(userData);
           }
         } else {
           console.error('Error fetching profile data:', error.message);
@@ -167,17 +99,20 @@ export function ProfileForm() {
       if (data) {
         console.log('Profile data loaded:', data);
         
-        // Use setValue for each field individually to ensure they're properly updated
-        form.setValue('full_name', data.full_name || "");
-        form.setValue('bio', data.bio || "");
-        form.setValue('social_media_tag', data.social_media_tag || "");
+        // Create a clean object with just the fields we need
+        const formData = {
+          full_name: data.full_name || "",
+          bio: data.bio || "",
+          social_media_tag: data.social_media_tag || "",
+        };
+        
+        console.log('Setting form data:', formData);
+        
+        // Reset the entire form with all values at once
+        form.reset(formData);
         
         // Log the current form values after setting
-        console.log('Form values after setting:', {
-          full_name: form.getValues('full_name'),
-          bio: form.getValues('bio'),
-          social_media_tag: form.getValues('social_media_tag')
-        });
+        console.log('Form values after setting:', form.getValues());
       }
     } catch (err) {
       console.error('Unexpected error fetching profile data:', err);
@@ -186,10 +121,7 @@ export function ProfileForm() {
     }
   }
 
-  // Use the fetchProfileData function in useEffect
-  useEffect(() => {
-    fetchProfileData();
-  }, [user]);
+  // Remove the duplicate useEffect - we already have one above
 
   async function onSubmit(data: ProfileFormValues) {
     if (!user?.id || !user?.email) {
@@ -259,20 +191,34 @@ export function ProfileForm() {
           {user?.email && (
             <p>Email: {user.email}</p>
           )}
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            className="mt-2"
-            onClick={() => {
-              if (user?.id) {
-                console.log('Current form values:', form.getValues());
-                fetchProfileData();
-              }
-            }}
-          >
-            Refresh Profile Data
-          </Button>
+          <div className="flex items-center gap-2 mt-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (user?.id) {
+                  console.log('Current form values:', form.getValues());
+                  fetchProfileData();
+                }
+              }}
+            >
+              Refresh Profile Data
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                console.log('Debug - Current form state:', {
+                  values: form.getValues(),
+                  formState: form.formState
+                });
+              }}
+            >
+              Debug Form
+            </Button>
+          </div>
         </div>
         <FormField
           control={form.control}

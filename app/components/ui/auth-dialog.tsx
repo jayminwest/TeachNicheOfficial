@@ -16,7 +16,6 @@ interface AuthDialogProps {
 export function AuthDialog({ 
   open, 
   onOpenChange, 
-  title = 'Authentication',
   onSuccess
 }: AuthDialogProps) {
   const { isAuthenticated, loading, error: authError } = useAuth()

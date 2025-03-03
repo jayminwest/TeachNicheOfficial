@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage } from '../sign-in';
-import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth';
+import { signInWithGoogle, onAuthStateChange } from '@/app/services/auth/supabaseAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 
@@ -170,7 +170,7 @@ describe('SignInPage', () => {
   });
 
   it('maintains focus management during form interaction', async () => {
-    const user = userEvent.setup();
+    const userEvent = userEvent.setup();
     
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     

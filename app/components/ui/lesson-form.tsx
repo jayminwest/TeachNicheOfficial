@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, safeNumberValue } from "@/app/lib/utils";
+import { cn } from "@/app/lib/utils";
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkdownEditor } from "./markdown-editor";
@@ -60,7 +60,6 @@ export function LessonForm({
 
   const [videoUploaded, setVideoUploaded] = useState(false);
   const [formIsDirty, setFormIsDirty] = useState(false);
-  const hasVideo = videoUploaded || !!form.watch("muxAssetId");
   
   // Track form dirty state
   useEffect(() => {

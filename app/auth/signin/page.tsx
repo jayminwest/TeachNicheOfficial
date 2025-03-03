@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';

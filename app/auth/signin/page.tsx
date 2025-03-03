@@ -1,40 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { createClientSupabaseClient } from '@/app/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Check for error parameters on page load
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    const messageParam = searchParams.get('message');
+    
+    if (errorParam) {
+      let errorMessage = 'Authentication failed';
+      
+      if (errorParam === 'callback_failed') {
+        errorMessage = messageParam || 'Failed to complete authentication';
+      } else if (errorParam === 'no_code') {
+        errorMessage = 'No authentication code received';
+      } else if (errorParam === 'no_session') {
+        errorMessage = 'No session created';
+      } else if (errorParam === 'exception') {
+        errorMessage = messageParam || 'An unexpected error occurred';
+      } else {
+        errorMessage = `Error: ${errorParam}`;
+      }
+      
+      setError(errorMessage);
+    }
+  }, [searchParams]);
   
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      const supabase = createClientSupabaseClient();
-      
-      // Use the proper redirect URL
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
+      const { error } = await signInWithGoogle();
       
       if (error) {
         console.error('Sign in error:', error);
-        setError(error.message);
+        setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
       }
     } catch (err) {
       console.error('Exception during sign in:', err);

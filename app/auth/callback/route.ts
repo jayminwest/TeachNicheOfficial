@@ -9,27 +9,36 @@ export async function GET(request: NextRequest) {
     // Get the code from the URL
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get('code')
+    const error = requestUrl.searchParams.get('error')
+    const state = requestUrl.searchParams.get('state')
     
     // Debug information
     console.log('Auth callback received with code:', !!code)
+    console.log('Auth callback state:', !!state)
+    console.log('Auth callback error param:', error)
+    
+    if (error) {
+      console.error('OAuth error from provider:', error)
+      return NextResponse.redirect(new URL(`/auth/signin?error=${error}`, request.url))
+    }
     
     if (!code) {
       console.error('No code provided in callback')
-      return NextResponse.redirect(new URL('/?auth_error=no_code', request.url))
+      return NextResponse.redirect(new URL('/auth/signin?error=no_code', request.url))
     }
     
-    // Get cookies in a way that works with Next.js - AWAIT this call
-    const cookieStore = await cookies()
+    // Get cookies in a way that works with Next.js
+    const cookieStore = cookies()
     
     // Create a Supabase client for the Route Handler
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Exchange the code for a session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (error) {
-      console.error('Auth callback error:', error)
-      return NextResponse.redirect(new URL('/auth/signin?error=callback_failed', request.url))
+    if (sessionError) {
+      console.error('Auth callback error:', sessionError)
+      return NextResponse.redirect(new URL(`/auth/signin?error=callback_failed&message=${encodeURIComponent(sessionError.message)}`, request.url))
     }
     
     if (!data.session) {
@@ -43,6 +52,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/profile', request.url))
   } catch (err) {
     console.error('Exception in auth callback:', err)
-    return NextResponse.redirect(new URL('/auth/signin?error=exception', request.url))
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.redirect(new URL(`/auth/signin?error=exception&message=${encodeURIComponent(errorMessage)}`, request.url))
   }
 }

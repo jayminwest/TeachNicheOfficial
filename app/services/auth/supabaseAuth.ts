@@ -71,15 +71,18 @@ export const signInWithGoogle = async (redirectTo?: string) => {
   try {
     const supabase = createClientSupabaseClient()
     
-    // Use the proper redirect URL with state preservation
+    // Clear any existing auth cookies to prevent state conflicts
+    if (typeof document !== 'undefined') {
+      document.cookie = 'sb-qvxtrhiyzawrtdlehtga-auth-token-code-verifier=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'sb-127-auth-token-code-verifier=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    }
+    
+    // Use a simpler OAuth configuration to reduce potential issues
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
+        // Remove queryParams that might be causing issues
         skipBrowserRedirect: false,
       },
     });

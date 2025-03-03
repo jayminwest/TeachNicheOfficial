@@ -94,10 +94,10 @@ export function ProfileForm() {
   }, [user, form]);
 
   async function onSubmit(data: ProfileFormValues) {
-    if (!user?.id) {
+    if (!user?.id || !user?.email) {
       toast({
         title: "Error",
-        description: "You must be logged in to update your profile.",
+        description: "You must be logged in with a valid email to update your profile.",
         variant: "destructive",
       });
       return;
@@ -105,11 +105,12 @@ export function ProfileForm() {
     
     setIsLoading(true);
     try {
-      // Update the profile directly - this will work once RLS policies are in place
+      // Update the profile directly - include email which is a required field
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
+          email: user.email,
           full_name: data.full_name,
           bio: data.bio,
           social_media_tag: data.social_media_tag,

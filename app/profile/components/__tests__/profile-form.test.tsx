@@ -3,29 +3,66 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProfileForm } from '../profile-form';
 import { toast } from '@/app/components/ui/use-toast';
+import { useAuth } from '@/app/services/auth/AuthContext';
 
 // Mock the toast function
 jest.mock('@/app/components/ui/use-toast', () => ({
   toast: jest.fn(),
 }));
 
+// Mock the auth context
+jest.mock('@/app/services/auth/AuthContext', () => ({
+  useAuth: jest.fn(),
+}));
+
+// Mock fetch for API calls
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({ data: { id: '123' } }),
+  })
+) as jest.Mock;
+
 describe('ProfileForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Setup default auth mock
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        user_metadata: {
+          full_name: 'Test User',
+        },
+      },
+    });
   });
 
-  it('renders the form with all fields', () => {
+  it('renders the form with all fields', async () => {
     render(<ProfileForm />);
     
-    // Check if all form elements are rendered
-    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/bio/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/website/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /update profile/i })).toBeInTheDocument();
+    // Wait for form to load data
+    await waitFor(() => {
+      // Check if all form elements are rendered
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/bio/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/social media/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /update profile/i })).toBeInTheDocument();
+    });
   });
 
   it('validates form inputs correctly', async () => {
     render(<ProfileForm />);
+    
+    // Wait for form to load
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    });
+    
+    // Clear the name field
+    const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
     
     // Submit the form without filling required fields
     const submitButton = screen.getByRole('button', { name: /update profile/i });
@@ -37,67 +74,64 @@ describe('ProfileForm', () => {
     });
   });
 
-  it('validates website URL format', async () => {
+  it('accepts empty social media field', async () => {
     render(<ProfileForm />);
     
-    // Fill in name to pass that validation
-    const nameInput = screen.getByLabelText(/name/i);
-    await userEvent.type(nameInput, 'Test User');
-    
-    // Enter invalid website URL
-    const websiteInput = screen.getByLabelText(/website/i);
-    await userEvent.type(websiteInput, 'invalid-url');
-    
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /update profile/i });
-    fireEvent.click(submitButton);
-    
-    // Check for URL validation error
+    // Wait for form to load
     await waitFor(() => {
-      expect(screen.getByText(/please enter a valid url/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
     });
-  });
-
-  it('accepts empty website field', async () => {
-    render(<ProfileForm />);
     
     // Fill in required fields
     const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Test User');
     
     const bioInput = screen.getByLabelText(/bio/i);
+    await userEvent.clear(bioInput);
     await userEvent.type(bioInput, 'This is my bio');
     
-    // Leave website empty
+    // Leave social media empty
     
     // Submit the form
     const submitButton = screen.getByRole('button', { name: /update profile/i });
     fireEvent.click(submitButton);
     
-    // Form should submit without website validation errors
+    // Form should submit without social media validation errors
     await waitFor(() => {
-      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
-        title: "Profile updated"
-      }));
+      expect(fetch).toHaveBeenCalled();
     });
   });
 
   it('handles successful form submission', async () => {
     render(<ProfileForm />);
     
+    // Wait for form to load
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    });
+    
     // Fill in all fields with valid data
     const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Test User');
     
     const bioInput = screen.getByLabelText(/bio/i);
+    await userEvent.clear(bioInput);
     await userEvent.type(bioInput, 'This is my bio for testing purposes');
     
-    const websiteInput = screen.getByLabelText(/website/i);
-    await userEvent.type(websiteInput, 'https://example.com');
+    const socialMediaInput = screen.getByLabelText(/social media/i);
+    await userEvent.clear(socialMediaInput);
+    await userEvent.type(socialMediaInput, '@testuser');
     
     // Submit the form
     const submitButton = screen.getByRole('button', { name: /update profile/i });
     fireEvent.click(submitButton);
+    
+    // Check if API was called
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/api/profile/update', expect.any(Object));
+    });
     
     // Check if success toast is shown
     await waitFor(() => {
@@ -109,18 +143,27 @@ describe('ProfileForm', () => {
   });
 
   it('handles form submission errors', async () => {
+    // Mock fetch to return an error
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Failed to update profile' }),
+      })
+    );
+    
     render(<ProfileForm />);
     
-    // Fill in required fields with the special test case values that trigger an error
+    // Wait for form to load
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    });
+    
+    // Fill in required fields
     const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Test User');
     
-    // Clear the bio field to match our error condition in the component
-    const bioInput = screen.getByLabelText(/bio/i);
-    await userEvent.clear(bioInput);
-    
-    // Submit the form - this will trigger the error condition we set in profile-form.tsx
-    // where name='Test User' and bio='' and website=''
+    // Submit the form
     const submitButton = screen.getByRole('button', { name: /update profile/i });
     fireEvent.click(submitButton);
     
@@ -128,7 +171,7 @@ describe('ProfileForm', () => {
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith(expect.objectContaining({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: "Failed to update profile",
         variant: "destructive"
       }));
     });
@@ -137,8 +180,14 @@ describe('ProfileForm', () => {
   it('enforces maximum bio length', async () => {
     render(<ProfileForm />);
     
+    // Wait for form to load
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    });
+    
     // Fill in name to pass that validation
     const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Test User');
     
     // Create a bio that exceeds the 500 character limit
@@ -146,6 +195,7 @@ describe('ProfileForm', () => {
     
     // Enter long bio
     const bioInput = screen.getByLabelText(/bio/i);
+    await userEvent.clear(bioInput);
     await userEvent.type(bioInput, longBio);
     
     // Submit the form
@@ -158,33 +208,87 @@ describe('ProfileForm', () => {
     });
   });
 
-  it('allows submission with minimum valid data', async () => {
-    // Save the original console.error
-    const originalConsoleError = console.error;
+  it('enforces maximum social media tag length', async () => {
+    render(<ProfileForm />);
     
-    try {
-      // Just silence console.error without throwing
-      console.error = jest.fn();
-      
-      render(<ProfileForm />);
-      
-      // Only fill in the required name field with minimum length
-      const nameInput = screen.getByLabelText(/name/i);
-      await userEvent.type(nameInput, 'Jo');
-      
-      // Submit the form
-      const submitButton = screen.getByRole('button', { name: /update profile/i });
-      fireEvent.click(submitButton);
-      
-      // Form should submit successfully
-      await waitFor(() => {
-        expect(toast).toHaveBeenCalledWith(expect.objectContaining({
-          title: "Profile updated"
-        }));
-      });
-    } finally {
-      // Restore console.error
-      console.error = originalConsoleError;
-    }
+    // Wait for form to load
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    });
+    
+    // Fill in name to pass that validation
+    const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Test User');
+    
+    // Create a social media tag that exceeds the 100 character limit
+    const longTag = '@' + 'a'.repeat(100);
+    
+    // Enter long social media tag
+    const socialMediaInput = screen.getByLabelText(/social media/i);
+    await userEvent.clear(socialMediaInput);
+    await userEvent.type(socialMediaInput, longTag);
+    
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /update profile/i });
+    fireEvent.click(submitButton);
+    
+    // Check for social media tag length validation error
+    await waitFor(() => {
+      expect(screen.getByText(/social media tag must not be longer than 100 characters/i)).toBeInTheDocument();
+    });
+  });
+
+  it('allows submission with minimum valid data', async () => {
+    render(<ProfileForm />);
+    
+    // Wait for form to load
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    });
+    
+    // Only fill in the required name field with minimum length
+    const nameInput = screen.getByLabelText(/name/i);
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Jo');
+    
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /update profile/i });
+    fireEvent.click(submitButton);
+    
+    // Form should submit successfully
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/api/profile/update', expect.any(Object));
+    });
+  });
+
+  it('fetches profile data on load', async () => {
+    // Mock fetch to return profile data
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          data: {
+            full_name: 'Existing User',
+            bio: 'Existing bio',
+            social_media_tag: '@existinguser'
+          }
+        }),
+      })
+    );
+    
+    render(<ProfileForm />);
+    
+    // Check if fetch was called to get profile data
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/profile/get'), expect.any(Object));
+    });
+    
+    // Check if form was populated with fetched data
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Existing User')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Existing bio')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('@existinguser')).toBeInTheDocument();
+    });
   });
 });

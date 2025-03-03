@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase/client';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { z } from 'zod';
 
@@ -84,9 +83,8 @@ async function createLessonHandler(request: Request) {
       mux_playback_id: muxPlaybackId
     };
 
-    const dbClient = createClient();
-    
-    const { data: lesson, error: dbError } = await dbClient
+    // With RLS, this will only succeed if the user is allowed to insert
+    const { data: lesson, error: dbError } = await supabase
       .from('lessons')
       .insert(lessonData)
       .select()
@@ -156,11 +154,14 @@ async function getLessonsHandler(request: Request) {
 
 async function updateLessonHandler(request: Request) {
   try {
-    // Authenticate the request
-    const { authenticated, user, error } = await authenticateRequest();
+    // Get authenticated client - RLS will enforce permissions
+    const supabase = createServerSupabaseClient();
     
-    if (!authenticated) {
-      return createErrorResponse(error!, 401);
+    // Get the current user's session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return createErrorResponse('Authentication required', 401);
     }
     
     const data = await request.json();

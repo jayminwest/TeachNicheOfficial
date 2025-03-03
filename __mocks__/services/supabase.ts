@@ -97,8 +97,40 @@ export const createMockStorageFile = (overrides = {}): StorageFile => ({
 });
 
 // Create configurable query builder
+// Mock data for RLS simulation
+const mockData = {
+  lessons: [
+    { 
+      id: 'lesson-1', 
+      title: 'Public Lesson', 
+      status: 'published', 
+      creator_id: 'other-user-id',
+      created_at: '2023-01-01T00:00:00.000Z'
+    },
+    { 
+      id: 'lesson-2', 
+      title: 'Private Lesson', 
+      status: 'draft', 
+      creator_id: 'test-user-id',
+      created_at: '2023-01-02T00:00:00.000Z'
+    }
+  ],
+  categories: [
+    { id: 'cat-1', name: 'Category 1' },
+    { id: 'cat-2', name: 'Category 2' }
+  ],
+  profiles: [
+    { id: 'profile-1', user_id: 'test-user-id', role: 'user' }
+  ],
+  purchases: [
+    { id: 'purchase-1', user_id: 'test-user-id', lesson_id: 'lesson-1' }
+  ]
+};
+
 export const createMockQueryBuilder = (config: MockConfig = {}) => {
-  const baseData = { id: 1, created_at: '2023-01-01T00:00:00.000Z' };
+  let currentFilters: Record<string, any> = {};
+  let currentTable: string = '';
+  let currentUser: SupabaseUser | null = createMockUser();
   
   return {
     eq: jest.fn().mockReturnThis(),

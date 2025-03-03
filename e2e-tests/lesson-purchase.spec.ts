@@ -8,6 +8,9 @@ async function login(page: any) {
   await page.fill('[data-testid="password-input"]', 'TestPassword123!');
   await page.click('[data-testid="submit-sign-in"]');
   await page.waitForSelector('[data-testid="user-avatar"]');
+  
+  // Ensure the session is properly established for RLS
+  await page.waitForTimeout(1000);
 }
 
 test.describe('Lesson purchase flow', () => {

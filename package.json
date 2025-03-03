@@ -13,7 +13,8 @@
     "test:e2e": "npx playwright test --config=e2e-tests/playwright.config.ts",
     "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests' --config=e2e-tests/playwright.config.ts",
     "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "rls:migrate": "ts-node scripts/run-rls-migration.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",

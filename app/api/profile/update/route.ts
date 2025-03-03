@@ -1,11 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
     const requestData = await request.json();
-    const { full_name, bio, social_media_tag } = requestData;
+    const { full_name, bio, social_media_tag, userId, userEmail } = requestData;
+    
+    // Validate required fields from the client
+    if (!userId || !userEmail) {
+      return NextResponse.json(
+        { error: 'User ID and email are required' },
+        { status: 400 }
+      );
+    }
     
     // Create a Supabase admin client that bypasses RLS
     const supabase = createClient(
@@ -18,52 +25,7 @@ export async function POST(request: NextRequest) {
       }
     );
     
-    // Get the user's session from cookies to authenticate the request
-    const cookieStore = cookies();
-    const supabaseAuthCookie = cookieStore.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`)?.value;
-    
-    if (!supabaseAuthCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-    
-    // Parse the auth cookie to get the user ID
-    let userId, userEmail;
-    try {
-      const parsedCookie = JSON.parse(supabaseAuthCookie);
-      const accessToken = parsedCookie.access_token;
-      
-      // Verify the token and get user info
-      const { data: userData, error: authError } = await supabase.auth.getUser(accessToken);
-      
-      if (authError || !userData.user) {
-        console.error('Auth error:', authError);
-        return NextResponse.json(
-          { error: 'Invalid authentication' },
-          { status: 401 }
-        );
-      }
-      
-      userId = userData.user.id;
-      userEmail = userData.user.email;
-    } catch (error) {
-      console.error('Error parsing auth cookie:', error);
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
-    
-    // We already have userId and userEmail from the auth cookie verification above
-    
-    if (!userEmail) {
-      return NextResponse.json(
-        { error: 'User email is required' },
-        { status: 400 }
-      );
-    }
+    // We already validated userId and userEmail from the request body above
     
     // Update the profile using the server-side client
     const { error } = await supabase

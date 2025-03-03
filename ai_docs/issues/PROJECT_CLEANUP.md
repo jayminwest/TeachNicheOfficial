@@ -10,6 +10,7 @@ The project requires significant cleanup and stabilization to ensure all core fe
 - ✅ Created custom hooks for data fetching
 - ✅ Refactored key components to use new services
 - ✅ Added authentication test helpers for E2E tests
+- ✅ Consolidated and improved use-lesson-access hook
 - 🔄 In progress: Updating remaining components
 - 🔄 In progress: Optimizing test suite
 
@@ -207,6 +208,7 @@ Based on the codebase review, several areas need immediate attention:
 **Client-Side Data Hooks**
 - [x] Create `app/hooks/use-lessons.ts` for lesson data fetching
 - [x] Create `app/hooks/use-lesson-access.ts` for access checking
+- [x] Consolidate duplicate implementations in `use-lesson-access.ts`
 - [ ] Create `app/hooks/use-profile.ts` for profile data fetching
 - [ ] Create `app/hooks/use-purchases.ts` for purchase data fetching
 - [x] Add proper loading, error, and state management to hooks
@@ -354,11 +356,12 @@ Based on the codebase review, several areas need immediate attention:
 - All components use consistent patterns for data fetching and error handling
 
 ## Next Steps
-1. Complete the refactoring of remaining lesson components
-2. Implement unit tests for database services and hooks
-3. Refactor purchase-related components
-4. Optimize and clean up the test suite
-5. Document the new architecture and patterns
+1. Create `use-profile.ts` hook for profile data fetching
+2. Complete the refactoring of remaining lesson components
+3. Implement unit tests for database services and hooks
+4. Refactor purchase-related components
+5. Optimize and clean up the test suite
+6. Document the new architecture and patterns
 
 ## Additional Context
 This cleanup is critical for project stability and should be approached with a focus on simplicity and reliability rather than adding new features. The goal is to have a stable, working product with the existing feature set properly implemented and tested.

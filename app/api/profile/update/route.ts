@@ -1,17 +1,32 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
     const requestData = await request.json();
     const { full_name, bio, social_media_tag } = requestData;
     
-    // Create a Supabase client with the user's session cookie
+    // Create a Supabase server client using the new approach
     const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    });
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: any) {
+            // This is a read-only operation in an API route
+          },
+          remove(name: string, options: any) {
+            // This is a read-only operation in an API route
+          },
+        },
+      }
+    );
     
     // Get the user's session to verify they're authenticated
     const { data: { session } } = await supabase.auth.getSession();

@@ -38,8 +38,12 @@ export async function POST(request: NextRequest) {
         social_media_tag,
         updated_at: new Date().toISOString(),
       }, {
-        onConflict: 'id'
+        onConflict: 'id',
+        returning: 'minimal'  // Don't need to return the row
       });
+    
+    // Log the result for debugging
+    console.log('Profile update result:', { error });
     
     if (error) {
       console.error('Server profile update error:', error);

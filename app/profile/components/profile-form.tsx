@@ -67,12 +67,19 @@ export function ProfileForm() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')  // Select all fields to see what's available
-        .eq('id', user.id)
+        .filter('id', 'eq', user.id)  // Use filter instead of eq
         .single();
         
       console.log('Raw profile data response:', { data, error });
       
       if (error) {
+        console.error('Profile fetch error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        
         if (error.code === 'PGRST116') {
           // No profile found, try to use data from user metadata
           console.log('No profile found, using user metadata');
@@ -167,6 +174,11 @@ export function ProfileForm() {
         bio: data.bio,
         social_media_tag: data.social_media_tag,
       });
+      
+      // Fetch the updated profile data to ensure the form shows the latest data
+      setTimeout(() => {
+        fetchProfileData();
+      }, 500); // Small delay to ensure the database has updated
     } catch (error) {
       console.error('Profile update failed:', error);
       toast({

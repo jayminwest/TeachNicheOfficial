@@ -146,15 +146,9 @@ describe('Lessons API', () => {
       // Add a valid URL to the request
       req.url = 'http://localhost/api/lessons?limit=5&category=programming&sort=newest';
 
+      // Get the mock Supabase client
       const mockSupabase = getMockSupabase();
-      mockSupabase.data = [];
       
-      // Mock the response
-      const mockResponseData = { lessons: [] };
-      jest.mocked(NextResponse.json).mockReturnValueOnce(
-        NextResponse.json(mockResponseData, { status: 200 }) as NextResponse
-      );
-
       // Reset mock functions to ensure they're tracking calls
       mockSupabase.from.mockClear();
       mockSupabase.select.mockClear();
@@ -162,19 +156,29 @@ describe('Lessons API', () => {
       mockSupabase.order.mockClear();
       mockSupabase.limit.mockClear();
       
-      // Set up the mock to return the expected data
+      // Set up the mock to return itself for chaining
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.order.mockReturnValue(mockSupabase);
       mockSupabase.limit.mockReturnValue(mockSupabase);
-
+      
+      // Set up the mock data response
+      mockSupabase.data = [];
+      
       // Mock the createRouteHandlerClient to return our mockSupabase
       const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');
       createRouteHandlerClient.mockReturnValue(mockSupabase);
+      
+      // Mock the response
+      const mockResponseData = { lessons: [] };
+      jest.mocked(NextResponse.json).mockReturnValueOnce(
+        NextResponse.json(mockResponseData, { status: 200 }) as NextResponse
+      );
 
       await GET(req);
 
+      // Verify the Supabase client was called with the correct parameters
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
       expect(mockSupabase.eq).toHaveBeenCalledWith('category', 'programming');
       expect(mockSupabase.limit).toHaveBeenCalledWith(5);

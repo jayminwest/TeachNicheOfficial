@@ -25,11 +25,21 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
       const data = await getRequests({ category, sortBy })
       setRequests(data)
     } catch (error) {
+      // Improved error handling with detailed logging
+      const errorDetails = typeof error === 'object' 
+        ? JSON.stringify(error, Object.getOwnPropertyNames(error)) 
+        : String(error);
+      
       const errorMessage = error instanceof Error 
         ? error.message 
-        : 'Unknown error occurred while loading requests';
+        : `Unknown error (${errorDetails})`;
       
-      console.error('Failed to load requests:', error);
+      console.error('Failed to load requests:', { 
+        error, 
+        errorType: typeof error,
+        errorDetails
+      });
+      
       onError?.(new Error(`Failed to load requests: ${errorMessage}`));
     } finally {
       setIsLoading(false)

@@ -7,10 +7,14 @@ import { test, expect } from '@playwright/test';
  * Note: When running for the first time or after UI changes, use:
  * npx playwright test --update-snapshots
  */
+
+// Get base URL from environment or use default
+const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+
 test.describe('Homepage Visual Regression', () => {
   test('should match homepage screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('http://localhost:3001/');
+    await page.goto(baseUrl);
     
     // Wait for all animations to complete
     await page.waitForTimeout(1000);
@@ -25,7 +29,7 @@ test.describe('Homepage Visual Regression', () => {
   
   test('should match hero section screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('http://localhost:3001/');
+    await page.goto(baseUrl);
     
     // Wait for any content to be visible
     await page.waitForSelector('h1, .hero, header', { state: 'visible', timeout: 5000 }).catch(() => {
@@ -47,7 +51,7 @@ test.describe('Homepage Visual Regression', () => {
   
   test('should match navigation menu screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('http://localhost:3001/');
+    await page.goto(baseUrl);
     
     // Take a screenshot of the main navigation menu using a more specific selector
     // Use aria-label to target the specific nav element
@@ -60,7 +64,7 @@ test.describe('Homepage Visual Regression', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     
     // Navigate to the homepage
-    await page.goto('http://localhost:3001/');
+    await page.goto(baseUrl);
     
     // Wait for the page to be fully loaded
     await page.waitForLoadState('networkidle');
@@ -101,7 +105,7 @@ test.describe('Homepage Visual Regression', () => {
   
   test('should match dark mode screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('http://localhost:3001/');
+    await page.goto(baseUrl);
     
     // Enable dark mode
     await page.evaluate(() => {

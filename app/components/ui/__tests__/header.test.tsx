@@ -156,7 +156,7 @@ describe('Header', () => {
         
       render(<Header />)
       expect(screen.getByText('Profile')).toBeInTheDocument()
-      expect(screen.getByText('Sign Out')).toBeInTheDocument()
+      expect(screen.getByText('Sign out')).toBeInTheDocument()
     })
 
     it('renders theme toggle', () => {

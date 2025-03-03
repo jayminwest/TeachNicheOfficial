@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 export async function POST(request: Request) {
   try {
     // Create a server-side Supabase client that can access cookies
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     
     // Verify the user is authenticated using the server client
     const { data: { session } } = await supabase.auth.getSession();
@@ -72,10 +72,10 @@ export async function POST(request: Request) {
       email: body.email || '',
     });
     
-    // Create the profile
+    // Create the profile - this will work with RLS because we're authenticated as the user
     const { error } = await supabase
       .from('profiles')
-      .insert({
+      .upsert({
         id: body.id,
         full_name: body.full_name || '',
         bio: body.bio || '',
@@ -83,6 +83,8 @@ export async function POST(request: Request) {
         email: body.email || '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
       });
       
     if (error) {

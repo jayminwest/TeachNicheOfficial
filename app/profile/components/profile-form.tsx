@@ -183,11 +183,17 @@ export function ProfileForm() {
             
             console.log('Profile creation response status:', response.status);
             
-            const result = await response.json();
+            let result;
+            try {
+              result = await response.json();
+            } catch (jsonError) {
+              console.error('Failed to parse API response:', jsonError);
+              throw new Error('Invalid API response');
+            }
             
             if (!response.ok) {
               console.error('Profile creation API error:', result);
-              throw new Error(result.error || `Failed to create profile: ${response.status}`);
+              throw new Error(result.error || result.details || `Failed to create profile: ${response.status}`);
             }
             console.log('Profile creation API response:', result);
             

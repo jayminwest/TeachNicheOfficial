@@ -66,45 +66,62 @@ VALUES
 -- Insert reviews
 INSERT INTO reviews (id, user_id, lesson_id, rating, comment, created_at, updated_at)
 VALUES
-  ('rrrr1111-aaaa-1111-aaaa-rrrrrrrrrrrr', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '11111111-aaaa-1111-aaaa-111111111111', 5, 'Excellent introduction to kendama! The instructor explains everything clearly.', now() - interval '8 days', now() - interval '8 days'),
+  (gen_random_uuid(), 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '11111111-aaaa-1111-aaaa-111111111111', 5, 'Excellent introduction to kendama! The instructor explains everything clearly.', now() - interval '8 days', now() - interval '8 days'),
   
-  ('rrrr2222-aaaa-2222-aaaa-rrrrrrrrrrrr', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-aaaa-2222-aaaa-222222222222', 4, 'Great advanced techniques, though some parts were a bit too fast-paced.', now() - interval '4 days', now() - interval '4 days'),
+  (gen_random_uuid(), 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-aaaa-2222-aaaa-222222222222', 4, 'Great advanced techniques, though some parts were a bit too fast-paced.', now() - interval '4 days', now() - interval '4 days'),
   
-  ('rrrr3333-aaaa-3333-aaaa-rrrrrrrrrrrr', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '33333333-aaaa-3333-aaaa-333333333333', 5, 'This competition guide helped me place in my first tournament!', now() - interval '2 days', now() - interval '2 days'),
+  (gen_random_uuid(), 'cccccccc-cccc-cccc-cccc-cccccccccccc', '33333333-aaaa-3333-aaaa-333333333333', 5, 'This competition guide helped me place in my first tournament!', now() - interval '2 days', now() - interval '2 days'),
   
-  ('rrrr4444-aaaa-4444-aaaa-rrrrrrrrrrrr', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '44444444-aaaa-4444-aaaa-444444444444', 3, 'Useful maintenance tips, but I wish there were more visual examples.', now() - interval '12 hours', now() - interval '12 hours');
+  (gen_random_uuid(), 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '44444444-aaaa-4444-aaaa-444444444444', 3, 'Useful maintenance tips, but I wish there were more visual examples.', now() - interval '12 hours', now() - interval '12 hours');
 
 -- Insert lesson requests
 INSERT INTO lesson_requests (id, title, description, created_at, user_id, status, vote_count, category, instagram_handle)
 VALUES
-  ('req11111-1111-1111-1111-req1111111111', 'Lunar Flip Variations', 'Would love to see a detailed breakdown of different lunar flip variations and transitions.', now() - interval '30 days', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'open', 12, 'Advanced Tricks', '@kendama_student'),
+  (gen_random_uuid(), 'Lunar Flip Variations', 'Would love to see a detailed breakdown of different lunar flip variations and transitions.', now() - interval '30 days', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'open', 12, 'Advanced Tricks', '@kendama_student'),
   
-  ('req22222-2222-2222-2222-req2222222222', 'Beginner-Friendly String Theory', 'Please create a lesson explaining string theory concepts for complete beginners.', now() - interval '25 days', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'open', 8, 'Beginner Tutorials', '@admin'),
+  (gen_random_uuid(), 'Beginner-Friendly String Theory', 'Please create a lesson explaining string theory concepts for complete beginners.', now() - interval '25 days', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'open', 8, 'Beginner Tutorials', '@admin'),
   
-  ('req33333-3333-3333-3333-req3333333333', 'Competition Judging Criteria', 'It would be helpful to understand how judges score different tricks in competitions.', now() - interval '15 days', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'in_progress', 15, 'Competition Skills', '@kendama_student'),
+  (gen_random_uuid(), 'Competition Judging Criteria', 'It would be helpful to understand how judges score different tricks in competitions.', now() - interval '15 days', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'in_progress', 15, 'Competition Skills', '@kendama_student'),
   
-  ('req44444-4444-4444-4444-req4444444444', 'Kendama Selection Guide', 'Could you create a comprehensive guide for selecting the right kendama based on play style?', now() - interval '10 days', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'open', 7, 'Maintenance & Care', '@admin'),
+  (gen_random_uuid(), 'Kendama Selection Guide', 'Could you create a comprehensive guide for selecting the right kendama based on play style?', now() - interval '10 days', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'open', 7, 'Maintenance & Care', '@admin'),
   
-  ('req55555-5555-5555-5555-req5555555555', 'Lighthouse Combo Tutorial', 'Would love to see a tutorial on lighthouse-based combo sequences.', now() - interval '5 days', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'open', 4, 'Advanced Tricks', '@kendama_student');
+  (gen_random_uuid(), 'Lighthouse Combo Tutorial', 'Would love to see a tutorial on lighthouse-based combo sequences.', now() - interval '5 days', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'open', 4, 'Advanced Tricks', '@kendama_student');
 
 -- Insert lesson request votes
+-- We need to get the IDs of the lesson requests we just inserted
+WITH request_ids AS (
+  SELECT id FROM lesson_requests ORDER BY created_at DESC LIMIT 5
+)
 INSERT INTO lesson_request_votes (id, request_id, user_id, vote_type, created_at)
-VALUES
-  ('vote1111-1111-1111-1111-vote1111111', 'req11111-1111-1111-1111-req1111111111', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'up', now() - interval '29 days'),
-  ('vote2222-2222-2222-2222-vote2222222', 'req11111-1111-1111-1111-req1111111111', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'up', now() - interval '28 days'),
-  ('vote3333-3333-3333-3333-vote3333333', 'req22222-2222-2222-2222-req2222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'up', now() - interval '24 days'),
-  ('vote4444-4444-4444-4444-vote4444444', 'req33333-3333-3333-3333-req3333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'up', now() - interval '14 days'),
-  ('vote5555-5555-5555-5555-vote5555555', 'req44444-4444-4444-4444-req4444444444', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'up', now() - interval '9 days'),
-  ('vote6666-6666-6666-6666-vote6666666', 'req55555-5555-5555-5555-req5555555555', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'up', now() - interval '4 days');
+SELECT 
+  gen_random_uuid(),
+  id,
+  CASE WHEN row_number() OVER (ORDER BY id) % 2 = 0 THEN 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' ELSE 'cccccccc-cccc-cccc-cccc-cccccccccccc' END,
+  'up',
+  now() - (row_number() OVER (ORDER BY id) * interval '5 days')
+FROM request_ids;
+
+-- Add a few more votes to make some requests more popular
+WITH request_ids AS (
+  SELECT id FROM lesson_requests ORDER BY created_at DESC LIMIT 3
+)
+INSERT INTO lesson_request_votes (id, request_id, user_id, vote_type, created_at)
+SELECT 
+  gen_random_uuid(),
+  id,
+  CASE WHEN row_number() OVER (ORDER BY id) % 2 = 0 THEN 'cccccccc-cccc-cccc-cccc-cccccccccccc' ELSE 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' END,
+  'up',
+  now() - (row_number() OVER (ORDER BY id) * interval '3 days')
+FROM request_ids;
 
 -- Insert waitlist entries
 INSERT INTO waitlist (id, email, signed_up_at, created_at)
 VALUES
-  ('wait1111-1111-1111-1111-wait1111111', 'interested1@example.com', now() - interval '60 days', now() - interval '60 days'),
-  ('wait2222-2222-2222-2222-wait2222222', 'interested2@example.com', now() - interval '45 days', now() - interval '45 days'),
-  ('wait3333-3333-3333-3333-wait3333333', 'interested3@example.com', now() - interval '30 days', now() - interval '30 days'),
-  ('wait4444-4444-4444-4444-wait4444444', 'interested4@example.com', now() - interval '15 days', now() - interval '15 days'),
-  ('wait5555-5555-5555-5555-wait5555555', 'interested5@example.com', now() - interval '7 days', now() - interval '7 days');
+  (gen_random_uuid(), 'interested1@example.com', now() - interval '60 days', now() - interval '60 days'),
+  (gen_random_uuid(), 'interested2@example.com', now() - interval '45 days', now() - interval '45 days'),
+  (gen_random_uuid(), 'interested3@example.com', now() - interval '30 days', now() - interval '30 days'),
+  (gen_random_uuid(), 'interested4@example.com', now() - interval '15 days', now() - interval '15 days'),
+  (gen_random_uuid(), 'interested5@example.com', now() - interval '7 days', now() - interval '7 days');
 
 -- Create storage buckets if they don't exist
 DO $$

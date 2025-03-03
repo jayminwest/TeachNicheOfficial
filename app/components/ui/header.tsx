@@ -38,6 +38,8 @@ export function Header() {
     
     // Check for auth parameter to show sign-in dialog
     useEffect(() => {
+        if (!searchParams) return;
+        
         const authParam = searchParams.get('auth');
         if (authParam === 'signin') {
             setDialogOpen(true);

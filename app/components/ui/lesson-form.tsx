@@ -201,7 +201,7 @@ export function LessonForm({
             </div>
             
             <VideoUploader
-              endpoint="/api/video/upload"
+              endpoint="/api/mux/upload"
               onUploadComplete={async (assetId) => {
                 try {
                   form.setValue("muxAssetId", assetId, { 

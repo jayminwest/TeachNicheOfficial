@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 
 interface UseVideoUploadOptions {
+  endpoint?: string;
   onUploadComplete?: (assetId: string) => void;
   onError?: (error: Error) => void;
   onProgress?: (progress: number) => void;
@@ -59,6 +60,7 @@ async function withRetry<T>(
 }
 
 export function useVideoUpload({
+  endpoint = '/api/mux/upload',
   onUploadComplete,
   onError,
   onProgress
@@ -82,7 +84,7 @@ export function useVideoUpload({
   }, []);
 
   const getUploadUrl = useCallback(async (): Promise<string> => {
-    const response = await fetch('/api/mux/upload', {
+    const response = await fetch(endpoint, {
       method: 'POST'
     });
     

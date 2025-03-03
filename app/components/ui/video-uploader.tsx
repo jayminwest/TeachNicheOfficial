@@ -6,6 +6,7 @@ import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload, Loader2 } from "lucide-react";
 import MuxUploader from "@mux/mux-uploader-react";
 import { useVideoUpload } from "@/app/hooks/use-video-upload";
+import { useEffect } from "react";
 
 
 interface VideoUploaderProps {
@@ -137,7 +138,14 @@ export function VideoUploader({
     }
   };
 
-  // Wait for the uploadEndpoint to be resolved before rendering the uploader
+  // Automatically start the upload process when the component mounts
+  useEffect(() => {
+    if (status === 'idle') {
+      startUpload();
+    }
+  }, [status, startUpload]);
+
+  // Show loading state while waiting for the upload endpoint
   if (!uploadEndpoint) {
     return (
       <div className="flex items-center justify-center p-4">

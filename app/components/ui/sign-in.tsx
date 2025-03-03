@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from './button'
 import {
@@ -10,6 +10,7 @@ import {
 import { Icons } from './icons'
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
+import { supabase } from '@/app/services/supabase'
 
 interface SignInPageProps {
   onSwitchToSignUp: () => void;
@@ -21,6 +22,25 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
   const router = useRouter()
   const { user, loading } = useAuth()
 
+  // Listen for auth state changes to handle redirection
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, !!session);
+        if (event === 'SIGNED_IN' && session) {
+          console.log('User signed in, redirecting to dashboard');
+          if (typeof window !== 'undefined' && window.nextRouterMock) {
+            window.nextRouterMock.push('/dashboard');
+          } else {
+            window.location.href = '/dashboard';
+          }
+        }
+      }
+    );
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
@@ -29,7 +49,9 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         window.signInWithGoogleCalled = true;
       }
       
+      console.log('Starting Google sign-in process...');
       const result = await signInWithGoogle()
+      
       if (result?.error) {
         // Check for specific provider not enabled error
         const errorMessage = result.error.message || '';
@@ -42,16 +64,16 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       
       console.log('Google sign-in initiated successfully');
       
-      // Add explicit redirection after successful sign-in
-      if (typeof window !== 'undefined' && window.nextRouterMock) {
-        // Use the mock in test environment
-        window.nextRouterMock.push('/dashboard');
-      } else {
-        // Use actual navigation in real environment
-        window.location.href = '/dashboard';
-      }
+      // Check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session after sign-in attempt:', !!session);
       
-      // We don't set isLoading to false here because we're redirecting
+      // We don't redirect here - the onAuthStateChange listener will handle it
+      // Keep loading state until auth state change or timeout
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 5000); // Safety timeout in case auth state doesn't change
+      
     } catch (err) {
       console.error('Google sign-in error:', err);
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google');

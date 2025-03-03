@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/app/components/ui/button'
 import {
@@ -10,6 +10,7 @@ import {
 import { Icons } from '@/app/components/ui/icons'
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
+import { supabase } from '@/app/services/supabase'
 
 interface SignUpPageProps {
   onSwitchToSignIn: () => void;
@@ -21,6 +22,25 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
   const router = useRouter()
   const { loading, user } = useAuth()
 
+  // Listen for auth state changes to handle redirection
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, !!session);
+        if (event === 'SIGNED_IN' && session) {
+          console.log('User signed in, redirecting to dashboard');
+          if (typeof window !== 'undefined' && window.nextRouterMock) {
+            window.nextRouterMock.push('/dashboard');
+          } else {
+            window.location.href = '/dashboard';
+          }
+        }
+      }
+    );
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
@@ -30,21 +50,34 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
         window.signInWithGoogleCalled = true;
       }
       
+      console.log('Starting Google sign-up process...');
       const result = await signInWithGoogle()
-      if (result.error) {
-        throw result.error
+      
+      if (result?.error) {
+        // Check for specific provider not enabled error
+        const errorMessage = result.error.message || '';
+        if (errorMessage.includes('provider is not enabled') || 
+            errorMessage.includes('Unsupported provider')) {
+          throw new Error('Google sign-in is not configured. Please enable Google provider in Supabase dashboard.');
+        }
+        throw result.error;
       }
       
-      if (typeof window !== 'undefined' && window.nextRouterMock) {
-        // Use the mock in test environment
-        window.nextRouterMock.push('/dashboard');
-      } else {
-        // Use actual navigation in real environment
-        window.location.href = '/dashboard';
-      }
+      console.log('Google sign-up initiated successfully');
+      
+      // Check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session after sign-up attempt:', !!session);
+      
+      // We don't redirect here - the onAuthStateChange listener will handle it
+      // Keep loading state until auth state change or timeout
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 5000); // Safety timeout in case auth state doesn't change
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
-    } finally {
+      console.error('Google sign-up error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to sign up with Google')
       setIsLoading(false)
     }
   }

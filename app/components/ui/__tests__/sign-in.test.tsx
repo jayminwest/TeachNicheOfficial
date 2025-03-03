@@ -5,6 +5,7 @@ import { SignInPage } from '../sign-in';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
+import { supabase } from '@/app/services/supabase';
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
@@ -17,6 +18,17 @@ jest.mock('@/app/services/auth/supabaseAuth', () => ({
 
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn(),
+}));
+
+jest.mock('@/app/services/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: jest.fn().mockReturnValue({ 
+        data: { subscription: { unsubscribe: jest.fn() } } 
+      }),
+    },
+  },
 }));
 
 describe('SignInPage', () => {

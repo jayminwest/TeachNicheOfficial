@@ -26,11 +26,13 @@ export function AuthProvider({
   children: React.ReactNode;
   initialUser?: User | null;
 }) {
-  const [authState, setAuthState] = useState<{
+  type AuthState = {
     user: User | null;
     loading: boolean;
     error: Error | null;
-  }>({
+  }
+  
+  const [authState, setAuthState] = useState<AuthState>({
     user: initialUser,
     loading: true,
     error: null
@@ -99,11 +101,7 @@ export function AuthProvider({
             
             // Handle auth state changes
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              setAuthState((prev: {
-                user: User | null;
-                loading: boolean;
-                error: Error | null;
-              }) => ({
+              setAuthState((prev) => ({
                 ...prev,
                 user: session?.user || null,
                 loading: false
@@ -123,11 +121,7 @@ export function AuthProvider({
                 }
               }
             } else if (event === 'SIGNED_OUT') {
-              setAuthState((prev: {
-                user: User | null;
-                loading: boolean;
-                error: Error | null;
-              }) => ({
+              setAuthState((prev) => ({
                 ...prev,
                 user: null,
                 loading: false
@@ -141,11 +135,7 @@ export function AuthProvider({
         }
       } catch (error) {
         if (isMounted) {
-          setAuthState((prev: {
-            user: User | null;
-            loading: boolean;
-            error: Error | null;
-          }) => ({
+          setAuthState((prev) => ({
             ...prev,
             user: null,
             loading: false,

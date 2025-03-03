@@ -64,8 +64,8 @@ function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProp
     try {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
-        // @ts-expect-error - for testing purposes
-        window.signInWithGoogleCalled = true;
+        // Add property to window object for testing
+        (window as any).signInWithGoogleCalled = true;
       }
       
       // Add the redirect_to parameter to the OAuth URL

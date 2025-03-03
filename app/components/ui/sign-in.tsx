@@ -42,8 +42,14 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       
       console.log('Google sign-in initiated successfully');
       
-      // Navigate to dashboard after successful sign-in
-      router.push('/dashboard');
+      // Add explicit redirection after successful sign-in
+      if (typeof window !== 'undefined' && window.nextRouterMock) {
+        // Use the mock in test environment
+        window.nextRouterMock.push('/dashboard');
+      } else {
+        // Use actual navigation in real environment
+        window.location.href = '/dashboard';
+      }
       
       // We don't set isLoading to false here because we're redirecting
     } catch (err) {

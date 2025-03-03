@@ -141,6 +141,9 @@ export function Header() {
                                     <Button variant="ghost">Sign In</Button>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 bg-background">
+                                    <DialogTitle className="sr-only">
+                                        {showSignIn ? "Sign In" : "Sign Up"}
+                                    </DialogTitle>
                                     {showSignIn ? (
                                         <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
                                     ) : (

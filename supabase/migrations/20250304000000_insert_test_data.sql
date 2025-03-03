@@ -98,13 +98,21 @@ SET
   updated_at = now();
 
 -- Insert creator earnings
-INSERT INTO creator_earnings (id, creator_id, payment_intent_id, amount, lesson_id, status, created_at, updated_at)
+INSERT INTO creator_earnings (creator_id, payment_intent_id, amount, lesson_id, status, created_at, updated_at)
 VALUES
-  ('11111111-eeee-1111-eeee-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi_test1', 1700, '11111111-aaaa-1111-aaaa-111111111111', 'paid', now() - interval '9 days', now() - interval '9 days'),
-  ('22222222-eeee-2222-eeee-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi_test2', 2125, '22222222-aaaa-2222-aaaa-222222222222', 'paid', now() - interval '4 days', now() - interval '4 days'),
-  ('33333333-eeee-3333-eeee-333333333333', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'pi_test3', 2975, '33333333-aaaa-3333-aaaa-333333333333', 'paid', now() - interval '2 days', now() - interval '2 days'),
-  ('44444444-eeee-4444-eeee-444444444444', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'pi_test4', 850, '44444444-aaaa-4444-aaaa-444444444444', 'pending', now() - interval '1 day', now() - interval '1 day'),
-  ('55555555-eeee-5555-eeee-555555555555', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi_test5', 2125, '22222222-aaaa-2222-aaaa-222222222222', 'pending', now() - interval '12 hours', now() - interval '12 hours');
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi_test1', 1700, '11111111-aaaa-1111-aaaa-111111111111', 'paid', now() - interval '9 days', now() - interval '9 days'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi_test2', 2125, '22222222-aaaa-2222-aaaa-222222222222', 'paid', now() - interval '4 days', now() - interval '4 days'),
+  ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'pi_test3', 2975, '33333333-aaaa-3333-aaaa-333333333333', 'paid', now() - interval '2 days', now() - interval '2 days'),
+  ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'pi_test4', 850, '44444444-aaaa-4444-aaaa-444444444444', 'pending', now() - interval '1 day', now() - interval '1 day'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pi_test5', 2125, '22222222-aaaa-2222-aaaa-222222222222', 'pending', now() - interval '12 hours', now() - interval '12 hours')
+ON CONFLICT (id) DO UPDATE 
+SET 
+  creator_id = EXCLUDED.creator_id,
+  payment_intent_id = EXCLUDED.payment_intent_id,
+  amount = EXCLUDED.amount,
+  lesson_id = EXCLUDED.lesson_id,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- Insert reviews
 INSERT INTO reviews (id, user_id, lesson_id, rating, comment, created_at, updated_at)

@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
@@ -7,39 +7,56 @@ export async function POST(request: NextRequest) {
     const requestData = await request.json();
     const { full_name, bio, social_media_tag } = requestData;
     
-    // Create a Supabase server client using the new approach
-    const cookieStore = cookies();
-    
-    const supabase = createServerClient(
+    // Create a Supabase admin client that bypasses RLS
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key to bypass RLS
       {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            // This is a read-only operation in an API route
-          },
-          remove(name: string, options: any) {
-            // This is a read-only operation in an API route
-          },
-        },
+        auth: {
+          persistSession: false,
+        }
       }
     );
     
-    // Get the user's session to verify they're authenticated
-    const { data: { session } } = await supabase.auth.getSession();
+    // Get the user's session from cookies to authenticate the request
+    const cookieStore = cookies();
+    const supabaseAuthCookie = cookieStore.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`)?.value;
     
-    if (!session) {
+    if (!supabaseAuthCookie) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
     
-    const userId = session.user.id;
-    const userEmail = session.user.email;
+    // Parse the auth cookie to get the user ID
+    let userId, userEmail;
+    try {
+      const parsedCookie = JSON.parse(supabaseAuthCookie);
+      const accessToken = parsedCookie.access_token;
+      
+      // Verify the token and get user info
+      const { data: userData, error: authError } = await supabase.auth.getUser(accessToken);
+      
+      if (authError || !userData.user) {
+        console.error('Auth error:', authError);
+        return NextResponse.json(
+          { error: 'Invalid authentication' },
+          { status: 401 }
+        );
+      }
+      
+      userId = userData.user.id;
+      userEmail = userData.user.email;
+    } catch (error) {
+      console.error('Error parsing auth cookie:', error);
+      return NextResponse.json(
+        { error: 'Invalid session' },
+        { status: 401 }
+      );
+    }
+    
+    // We already have userId and userEmail from the auth cookie verification above
     
     if (!userEmail) {
       return NextResponse.json(

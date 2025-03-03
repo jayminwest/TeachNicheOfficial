@@ -156,13 +156,11 @@ describe('Lessons API', () => {
       );
 
       // Set up the mock to return the expected data
-      const mockSupabase = getMockSupabase();
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.order.mockReturnValue(mockSupabase);
       mockSupabase.limit.mockReturnValue(mockSupabase);
-      mockSupabase.data = [];
 
       // Mock the createRouteHandlerClient to return our mockSupabase
       const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');

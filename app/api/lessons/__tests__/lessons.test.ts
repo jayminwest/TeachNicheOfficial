@@ -146,13 +146,13 @@ describe('Lessons API', () => {
       // Add a valid URL to the request
       req.url = 'http://localhost/api/lessons?limit=5&category=programming&sort=newest';
 
-      // Create a fresh mock for this test
+      // Create a fresh mock for this test with explicit jest.fn() for each method
       const mockSupabase = {
-        from: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
+        from: jest.fn(() => mockSupabase),
+        select: jest.fn(() => mockSupabase),
+        eq: jest.fn(() => mockSupabase),
+        order: jest.fn(() => mockSupabase),
+        limit: jest.fn(() => mockSupabase),
         data: [],
         error: null
       };

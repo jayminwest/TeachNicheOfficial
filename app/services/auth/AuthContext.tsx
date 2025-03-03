@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '@/app/services/supabase'
+import { createClientSupabaseClient } from '@/app/lib/supabase/client'
 
 interface AuthContextType {
   user: User | null
@@ -31,6 +31,7 @@ export function AuthProvider({
     // Check active sessions and sets the user
     async function getInitialSession() {
       try {
+        const supabase = createClientSupabaseClient()
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
         setLoading(false)
@@ -50,7 +51,8 @@ export function AuthProvider({
       if (process.env.NODE_ENV === 'test') {
         // Mock subscription for tests
         setLoading(false)
-      } else if (supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
+      } else if (typeof window !== 'undefined') {
+        const supabase = createClientSupabaseClient()
         const authStateChange = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth state changed:', event, session?.user?.id)
           setUser(session?.user ?? null)

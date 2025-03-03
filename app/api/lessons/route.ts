@@ -1,20 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { z } from 'zod';
 
 // Add these helper functions at the top of the file
-async function authenticateRequest() {
-  const supabase = createRouteHandlerClient({ cookies });
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-  
-  if (sessionError || !session?.user) {
-    return { authenticated: false, user: null, error: 'Authentication required' };
-  }
-  
-  return { authenticated: true, user: session.user, error: null };
-}
 
 function createErrorResponse(message: string, status: number, details?: any) {
   return NextResponse.json(
@@ -48,11 +37,14 @@ const lessonCreateSchema = z.object({
 // Helper functions (not exported)
 async function createLessonHandler(request: Request) {
   try {
-    // Authenticate the request
-    const { authenticated, user, error } = await authenticateRequest();
+    // Get authenticated client - RLS will enforce permissions
+    const supabase = createServerSupabaseClient();
     
-    if (!authenticated) {
-      return createErrorResponse(error!, 401);
+    // Get the current user's session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return createErrorResponse('Authentication required', 401);
     }
     
     // Parse and validate the request body

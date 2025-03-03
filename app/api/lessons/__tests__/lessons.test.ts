@@ -108,7 +108,8 @@ describe('Lessons API', () => {
       mockSupabase.data = mockLessons;
       
       // Create a NextRequest object
-      const req = new NextRequest(new URL('http://localhost/api/lessons?limit=10'));
+      const req = new Request('http://localhost/api/lessons?limit=10');
+      const nextReq = NextRequest.from(req);
       
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
@@ -118,7 +119,7 @@ describe('Lessons API', () => {
         json: () => data
       }));
 
-      const result = await GET(req);
+      const result = await GET(nextReq);
 
       expect(result.status).toBe(200);
       expect(result.body).toEqual(expect.objectContaining({
@@ -131,7 +132,8 @@ describe('Lessons API', () => {
       mockSupabase.error = { message: 'Database error' };
       
       // Create a NextRequest object
-      const req = new NextRequest(new URL('http://localhost/api/lessons'));
+      const req = new Request('http://localhost/api/lessons');
+      const nextReq = NextRequest.from(req);
       
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
@@ -167,13 +169,11 @@ describe('Lessons API', () => {
       mockSupabase.data = { id: 'lesson-123', ...lessonData };
       
       // Create a NextRequest object with JSON body
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons'),
-        { 
-          method: 'POST',
-          body: JSON.stringify(lessonData)
-        }
-      );
+      const req = new Request('http://localhost/api/lessons', {
+        method: 'POST',
+        body: JSON.stringify(lessonData)
+      });
+      const nextReq = NextRequest.from(req);
 
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
@@ -183,7 +183,7 @@ describe('Lessons API', () => {
         json: () => data
       }));
 
-      const response = await POST(req);
+      const response = await POST(nextReq);
 
       expect(response.status).toBe(201);
       
@@ -194,13 +194,11 @@ describe('Lessons API', () => {
 
     it('validates input data and returns 400 for invalid data', async () => {
       // Create a NextRequest object with incomplete data
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons'),
-        { 
-          method: 'POST',
-          body: JSON.stringify({ title: 'New Lesson' })
-        }
-      );
+      const req = new Request('http://localhost/api/lessons', {
+        method: 'POST',
+        body: JSON.stringify({ title: 'New Lesson' })
+      });
+      const nextReq = NextRequest.from(req);
 
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
@@ -225,13 +223,11 @@ describe('Lessons API', () => {
       };
       
       // Create a NextRequest object
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons'),
-        { 
-          method: 'POST',
-          body: JSON.stringify(lessonData)
-        }
-      );
+      const req = new Request('http://localhost/api/lessons', {
+        method: 'POST',
+        body: JSON.stringify(lessonData)
+      });
+      const nextReq = NextRequest.from(req);
 
       // Mock auth to fail
       jest.requireMock('../../../services/auth').getCurrentUser.mockImplementationOnce(() => Promise.resolve(null));
@@ -267,13 +263,11 @@ describe('Lessons API', () => {
       mockSupabase.data = { id: 'lesson-123', creator_id: 'user-123' };
       
       // Create a NextRequest object
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons/lesson-123'),
-        { 
-          method: 'PUT',
-          body: JSON.stringify(lessonUpdate)
-        }
-      );
+      const req = new Request('http://localhost/api/lessons/lesson-123', {
+        method: 'PUT',
+        body: JSON.stringify(lessonUpdate)
+      });
+      const nextReq = NextRequest.from(req);
 
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
@@ -283,7 +277,7 @@ describe('Lessons API', () => {
         json: () => data
       }));
 
-      const response = await PUT(req);
+      const response = await PUT(nextReq);
 
       expect(response.status).toBe(200);
       
@@ -299,13 +293,11 @@ describe('Lessons API', () => {
       };
       
       // Create a NextRequest object
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons/lesson-123'),
-        { 
-          method: 'PUT',
-          body: JSON.stringify(lessonUpdate)
-        }
-      );
+      const req = new Request('http://localhost/api/lessons/lesson-123', {
+        method: 'PUT',
+        body: JSON.stringify(lessonUpdate)
+      });
+      const nextReq = NextRequest.from(req);
 
       const mockSupabase = getMockSupabase();
       mockSupabase.data = { id: 'lesson-123', creator_id: 'different-user' };
@@ -335,10 +327,10 @@ describe('Lessons API', () => {
       mockSupabase.data = { id: 'lesson-123', creator_id: 'user-123' };
       
       // Create a NextRequest object
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons/lesson-123'),
-        { method: 'DELETE' }
-      );
+      const req = new Request('http://localhost/api/lessons/lesson-123', {
+        method: 'DELETE'
+      });
+      const nextReq = NextRequest.from(req);
 
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
@@ -348,7 +340,7 @@ describe('Lessons API', () => {
         json: () => data
       }));
 
-      const response = await DELETE(req);
+      const response = await DELETE(nextReq);
 
       expect(response.status).toBe(200);
       
@@ -362,10 +354,10 @@ describe('Lessons API', () => {
       mockSupabase.data = null;
       
       // Create a NextRequest object
-      const req = new NextRequest(
-        new URL('http://localhost/api/lessons/non-existent-lesson'),
-        { method: 'DELETE' }
-      );
+      const req = new Request('http://localhost/api/lessons/non-existent-lesson', {
+        method: 'DELETE'
+      });
+      const nextReq = NextRequest.from(req);
 
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');

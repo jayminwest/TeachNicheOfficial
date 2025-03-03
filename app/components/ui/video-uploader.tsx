@@ -98,7 +98,7 @@ export function VideoUploader({
     handleUploadSuccess,
     handleUploadError,
   } = useVideoUpload({
-    endpoint,
+    endpoint: endpoint,
     onUploadComplete,
     onError,
     onProgress: (progress) => {

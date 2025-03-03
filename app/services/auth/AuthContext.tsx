@@ -54,7 +54,7 @@ export function AuthProvider({
 
     // Handle auth state changes
     let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
-    
+        
     try {
       // In test environment, we might not have all Supabase methods available
       if (process.env.NODE_ENV === 'test') {
@@ -63,12 +63,21 @@ export function AuthProvider({
       } else if (typeof window !== 'undefined') {
         const authStateChange = onAuthStateChange(async (event, session) => {
           console.log('AuthContext: Auth state changed:', event, session?.user?.id)
-          
+              
           // Handle auth state changes
           if (event === 'SIGNED_IN') {
             console.log('AuthContext: User signed in:', session?.user?.id)
             setUser(session?.user ?? null)
-            
+                
+            // Check if there's a redirect URL in the query params
+            if (typeof window !== 'undefined') {
+              const params = new URLSearchParams(window.location.search);
+              const redirectTo = params.get('redirect');
+              if (redirectTo) {
+                window.location.href = redirectTo;
+              }
+            }
+                
             // Don't force a refresh - let the router handle navigation
             // This prevents issues with the auth flow
           } else if (event === 'SIGNED_OUT') {
@@ -81,7 +90,7 @@ export function AuthProvider({
             console.log('AuthContext: User updated:', session?.user?.id)
             setUser(session?.user ?? null)
           }
-          
+              
           setLoading(false)
         })
         

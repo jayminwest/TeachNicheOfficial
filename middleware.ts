@@ -20,7 +20,8 @@ const PUBLIC_PATHS = [
   '/requests',
   '/auth/callback', // Allow auth callback
   '/api/requests', // Keep requests API accessible
-  '/api/auth/verify-config' // Allow auth config verification
+  '/api/auth/verify-config', // Allow auth config verification
+  '/api/auth/callback' // Allow auth callback API
 ]
 
 export async function middleware(req: NextRequest) {
@@ -97,9 +98,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/profile', req.url))
   }
   
-  // Redirect unauthenticated users trying to access the profile to sign in
+  // For unauthenticated users trying to access the profile, redirect to home page
+  // The UI will handle showing the sign-in dialog
   if (path.startsWith('/profile') && !session) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
   // Check auth restrictions
@@ -108,7 +110,8 @@ export async function middleware(req: NextRequest) {
   )
 
   if (isRestrictedPath && !session) {
-    const redirectUrl = new URL('/auth/signin', req.url)
+    // Redirect to home page instead of non-existent /auth/signin
+    const redirectUrl = new URL('/', req.url)
     redirectUrl.searchParams.set('redirect', path)
     return NextResponse.redirect(redirectUrl)
   }

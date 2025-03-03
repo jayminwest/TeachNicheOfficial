@@ -35,8 +35,18 @@ function SignUpPage({ onSwitchToSignIn, onSignInSuccess }: SignUpPageProps) {
             onSignInSuccess();
           }
           
-          if (typeof window !== 'undefined' && window.nextRouterMock) {
-            window.nextRouterMock.push('/profile');
+          // Check if there's a redirect URL in the query params
+          if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const redirectTo = params.get('redirect');
+            
+            if (redirectTo) {
+              window.location.href = redirectTo;
+            } else if (window.nextRouterMock) {
+              window.nextRouterMock.push('/profile');
+            } else {
+              router.push('/profile');
+            }
           } else {
             router.push('/profile');
           }

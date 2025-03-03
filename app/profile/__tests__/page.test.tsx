@@ -1,10 +1,10 @@
-import { screen } from '@testing-library/react'
+import { screen, render as testingLibraryRender } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import ProfilePage from '../page'
-import { render } from '@testing-library/react'
 import { AuthContext } from '@/app/services/auth/AuthContext'
 import { toHaveNoViolations } from 'jest-axe'
+import { ThemeProvider } from 'next-themes'
 
 // Create mock functions
 const mockPush = jest.fn();
@@ -58,6 +58,32 @@ jest.mock('@/app/services/supabase', () => ({
   },
 }))
 
+// Mock dashboard components
+jest.mock('@/app/dashboard/components/dashboard-header', () => ({
+  __esModule: true,
+  default: () => <div data-testid="dashboard-header">Dashboard Header</div>
+}))
+
+jest.mock('@/app/dashboard/components/activity-feed', () => ({
+  __esModule: true,
+  default: () => <div data-testid="activity-feed">Activity Feed</div>
+}))
+
+jest.mock('@/app/dashboard/components/performance-metrics', () => ({
+  __esModule: true,
+  default: () => <div data-testid="performance-metrics">Performance Metrics</div>
+}))
+
+jest.mock('@/app/dashboard/components/analytics-section', () => ({
+  __esModule: true,
+  default: () => <div data-testid="analytics-section">Analytics Section</div>
+}))
+
+jest.mock('@/app/dashboard/components/lessons-grid', () => ({
+  __esModule: true,
+  default: () => <div data-testid="lessons-grid">Lessons Grid</div>
+}))
+
 // Add jest-axe matcher
 expect.extend(toHaveNoViolations);
 
@@ -78,10 +104,12 @@ function renderWithAuthContext(ui, authProps = {}) {
   // Merge default values with provided props
   const mergedProps = { ...defaultAuthValues, ...authProps };
   
-  return render(
-    <AuthContext.Provider value={mergedProps}>
-      {ui}
-    </AuthContext.Provider>
+  return testingLibraryRender(
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthContext.Provider value={mergedProps}>
+        {ui}
+      </AuthContext.Provider>
+    </ThemeProvider>
   );
 }
 
@@ -91,28 +119,32 @@ describe('ProfilePage', () => {
   describe('rendering', () => {
     it('renders loading state initially', async () => {
       // Use direct render with AuthContext
-      const { getByText } = render(
-        <AuthContext.Provider value={{ 
-          user: null,
-          loading: true,
-          isAuthenticated: false
-        }}>
-          <ProfilePage />
-        </AuthContext.Provider>
+      const { getByText } = testingLibraryRender(
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthContext.Provider value={{ 
+            user: null,
+            loading: true,
+            isAuthenticated: false
+          }}>
+            <ProfilePage />
+          </AuthContext.Provider>
+        </ThemeProvider>
       );
       expect(getByText('Loading...')).toBeInTheDocument()
     })
 
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
-      render(
-        <AuthContext.Provider value={{ 
-          user: null,
-          loading: false, // Not loading
-          isAuthenticated: false
-        }}>
-          <ProfilePage />
-        </AuthContext.Provider>
+      testingLibraryRender(
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthContext.Provider value={{ 
+            user: null,
+            loading: false, // Not loading
+            isAuthenticated: false
+          }}>
+            <ProfilePage />
+          </AuthContext.Provider>
+        </ThemeProvider>
       );
       
       // Verify the router.push was called

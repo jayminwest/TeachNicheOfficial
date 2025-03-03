@@ -6,6 +6,7 @@ import { ProfileForm } from "./components/profile-form"
 import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"
 import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
+import { SignOutButton } from "@/app/components/ui/sign-out-button"
 import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
 import { supabase } from "@/app/services/supabase"
@@ -27,7 +28,7 @@ export default function ProfilePage() {
   // Immediate redirect for unauthenticated users
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/');
+      router.push('/auth/signin?redirect=/profile');
     }
   }, [user, loading, router]);
 
@@ -72,18 +73,22 @@ export default function ProfilePage() {
   if (!isAuthenticated && !loading) {
     // For test environment, we need to handle this differently
     if (process.env.NODE_ENV === 'test') {
-      router.push('/');
-      return <div data-testid="unauthenticated-redirect">Redirecting to home...</div>;
+      router.push('/auth/signin?redirect=/profile');
+      return <div data-testid="unauthenticated-redirect">Redirecting to sign in...</div>;
     }
     
     // In production, actually redirect
-    router.push('/');
+    router.push('/auth/signin?redirect=/profile');
     return null;
   }
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Your Profile</h1>
+          <SignOutButton />
+        </div>
         <Card className="p-6">
           <Tabs defaultValue="dashboard" className="w-full">
             <TabsList className="grid w-full grid-cols-4">

@@ -75,14 +75,19 @@ export async function middleware(req: NextRequest) {
   
   const path = req.nextUrl.pathname
 
-  // Skip middleware for auth callback route
-  if (path.startsWith('/auth/callback')) {
+  // Skip middleware for auth routes
+  if (path.startsWith('/auth/callback') || path.startsWith('/auth/signin')) {
     return NextResponse.next()
   }
 
   // Redirect dashboard to profile
   if (path.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/profile', req.url))
+  }
+  
+  // Redirect unauthenticated users trying to access the profile to sign in
+  if (path.startsWith('/profile') && !session) {
+    return NextResponse.redirect(new URL('/auth/signin', req.url))
   }
 
   // Check auth restrictions
@@ -91,8 +96,8 @@ export async function middleware(req: NextRequest) {
   )
 
   if (isRestrictedPath && !session) {
-    const redirectUrl = new URL('/', req.url)
-    redirectUrl.searchParams.set('auth_required', 'true')
+    const redirectUrl = new URL('/auth/signin', req.url)
+    redirectUrl.searchParams.set('redirect', path)
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -107,6 +112,7 @@ export const config = {
     '/dashboard/:path*',
     '/api/:path*', // Protect all API routes by default
     '/auth/callback',
+    '/auth/signin',
     // Add other paths that need middleware checking
   ]
 }

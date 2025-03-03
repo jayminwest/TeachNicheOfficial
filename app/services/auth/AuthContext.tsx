@@ -68,10 +68,8 @@ export function AuthProvider({
             console.log('AuthContext: User signed in:', session?.user?.id)
             setUser(session?.user ?? null)
             
-            // Force a refresh of the page to ensure all components recognize the auth state
-            if (typeof window !== 'undefined') {
-              window.location.href = '/profile'
-            }
+            // Don't force a refresh - let the router handle navigation
+            // This prevents issues with the auth flow
           } else if (event === 'SIGNED_OUT') {
             console.log('AuthContext: User signed out')
             setUser(null)

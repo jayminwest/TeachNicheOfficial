@@ -45,7 +45,7 @@ export async function runAccessibilityTests(
       rules: options.includedImpacts.reduce((acc, impact) => {
         acc[impact] = { enabled: true };
         return acc;
-      }, {} as Record<string, { enabled: boolean }>))
+      }, {} as Record<string, { enabled: boolean }>)
     });
   }
   

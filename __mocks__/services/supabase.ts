@@ -154,9 +154,9 @@ export const createMockQueryBuilder = (config: MockConfig = {}) => {
     order: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
     range: jest.fn().mockReturnThis(),
-    const baseData = { id: 'mock-id', created_at: '2023-01-01T00:00:00.000Z' };
     
-    single: createAsyncMock(baseData, config),
+    // Define base data for responses
+    single: createAsyncMock({ id: 'mock-id', created_at: '2023-01-01T00:00:00.000Z' }, config),
     maybeSingle: createAsyncMock(baseData, config),
     execute: createAsyncMock([baseData], config),
     count: createAsyncMock([{ count: 5 }], config)

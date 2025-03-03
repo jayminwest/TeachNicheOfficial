@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { createClientSupabaseClient } from '@/app/lib/supabase/client';
 import { z } from 'zod';
 
 // Add these helper functions at the top of the file
@@ -77,7 +78,7 @@ async function createLessonHandler(request: Request) {
       price,
       content,
       status,
-      creator_id: user.id,
+      creator_id: session.user.id,
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId
@@ -111,7 +112,7 @@ async function getLessonsHandler(request: Request) {
   const sort = searchParams.get('sort') || 'newest';
   
   try {
-    const supabase = createClient();
+    const supabase = createClientSupabaseClient();
     
     let query = supabase
       .from('lessons')
@@ -172,7 +173,7 @@ async function updateLessonHandler(request: Request) {
     }
 
     // Check if user has permission to update this lesson
-    const dbClient = createClient();
+    const dbClient = createClientSupabaseClient();
     
     const { data: lesson, error: fetchError } = await dbClient
       .from('lessons')
@@ -216,11 +217,14 @@ async function updateLessonHandler(request: Request) {
 
 async function deleteLessonHandler(request: Request) {
   try {
-    // Authenticate the request
-    const { authenticated, user, error } = await authenticateRequest();
+    // Get authenticated client - RLS will enforce permissions
+    const supabase = createServerSupabaseClient();
     
-    if (!authenticated) {
-      return createErrorResponse(error!, 401);
+    // Get the current user's session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return createErrorResponse('Authentication required', 401);
     }
 
     const { searchParams } = new URL(request.url);
@@ -230,7 +234,7 @@ async function deleteLessonHandler(request: Request) {
       return createErrorResponse('Lesson ID is required', 400);
     }
 
-    const dbClient = createClient();
+    const dbClient = createClientSupabaseClient();
     
     const { data: lesson, error: fetchError } = await dbClient
       .from('lessons')
@@ -247,7 +251,7 @@ async function deleteLessonHandler(request: Request) {
     }
 
     // Check if user has permission to delete this lesson
-    const hasAccess = lesson.creator_id === user.id;
+    const hasAccess = lesson.creator_id === session.user.id;
     if (!hasAccess) {
       return createErrorResponse('You do not have permission to delete this lesson', 403);
     }

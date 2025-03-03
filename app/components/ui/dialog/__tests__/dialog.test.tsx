@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../dialog'
 
 describe('Dialog', () => {
   it('opens and closes dialog with content', () => {

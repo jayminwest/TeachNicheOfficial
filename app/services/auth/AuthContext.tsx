@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { getSession, onAuthStateChange } from './supabaseAuth'
+import { createClientSupabaseClient } from '@/app/lib/supabase/client'
 
 interface AuthContextType {
   user: User | null
@@ -37,6 +38,34 @@ export function AuthProvider({
 
   const isAuthenticated = !!authState.user
 
+  // Function to create or update user profile in the profiles table
+  const createOrUpdateProfile = async (user: User) => {
+    try {
+      const supabase = createClientSupabaseClient();
+      
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!existingProfile) {
+        // Create new profile if it doesn't exist
+        await supabase.from('profiles').insert({
+          id: user.id,
+          full_name: user.user_metadata?.full_name || '',
+          email: user.email || '',
+          avatar_url: user.user_metadata?.avatar_url || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Error creating/updating profile:', error);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true
     let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
@@ -67,6 +96,11 @@ export function AuthProvider({
                 user: session?.user || null,
                 loading: false
               }))
+              
+              // Create or update profile when user signs in
+              if (event === 'SIGNED_IN' && session?.user) {
+                createOrUpdateProfile(session.user);
+              }
               
               // Handle redirect if needed
               if (event === 'SIGNED_IN' && typeof window !== 'undefined') {

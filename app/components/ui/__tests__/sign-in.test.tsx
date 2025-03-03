@@ -153,7 +153,6 @@ describe('SignInPage', () => {
 
   // This test is no longer applicable as the component doesn't have a sign up link
   it('handles sign in flow correctly', async () => {
-    const user = userEvent.setup();
     
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     

@@ -22,7 +22,7 @@ export function AuthDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] p-0">
+      <DialogContent className="p-0 w-[425px]">
         <DialogTitle className="px-6 pt-6">
           {view === 'sign-in' ? 'Sign in to Teach Niche' : 'Join Teach Niche'}
         </DialogTitle>

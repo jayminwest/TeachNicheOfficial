@@ -47,7 +47,7 @@ export async function createUpload(): Promise<MuxUploadResponse> {
  */
 export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatusResponse> {
   try {
-    const upload = await video.uploads.get(uploadId);
+    const upload = await video.uploads.retrieve(uploadId);
     
     if (upload.asset_id) {
       return {
@@ -72,7 +72,7 @@ export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatus
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetStatusResponse> {
   try {
-    const asset = await video.assets.get(assetId);
+    const asset = await video.assets.retrieve(assetId);
     
     // Find the public playback ID
     const playbackId = asset.playback_ids?.find(

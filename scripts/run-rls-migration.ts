@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
+// @ts-ignore - Missing dotenv types
 import dotenv from 'dotenv';
 
 dotenv.config();

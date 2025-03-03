@@ -129,7 +129,8 @@ describe('ProfilePage', () => {
         <AuthContext.Provider value={{ 
           user: null,
           loading: true,
-          isAuthenticated: false
+          isAuthenticated: false,
+          error: null
         }}>
           <ProfilePage />
         </AuthContext.Provider>

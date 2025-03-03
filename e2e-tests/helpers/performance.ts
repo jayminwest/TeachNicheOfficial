@@ -67,9 +67,13 @@ export async function measurePagePerformance(page: Page, testName: string): Prom
     const resourceEntries = performance.getEntriesByType('resource');
     
     // Count requests by type
-    const jsRequests = resourceEntries.filter(entry => entry.initiatorType === 'script').length;
-    const cssRequests = resourceEntries.filter(entry => entry.initiatorType === 'css' || entry.initiatorType === 'link').length;
-    const imageRequests = resourceEntries.filter(entry => entry.initiatorType === 'img').length;
+    const jsRequests = resourceEntries.filter(entry => 
+      (entry as ResourcePerformanceEntry).initiatorType === 'script').length;
+    const cssRequests = resourceEntries.filter(entry => 
+      (entry as ResourcePerformanceEntry).initiatorType === 'css' || 
+      (entry as ResourcePerformanceEntry).initiatorType === 'link').length;
+    const imageRequests = resourceEntries.filter(entry => 
+      (entry as ResourcePerformanceEntry).initiatorType === 'img').length;
     const fontRequests = resourceEntries.filter(entry => {
       const url = entry.name.toLowerCase();
       return url.endsWith('.woff') || url.endsWith('.woff2') || url.endsWith('.ttf') || url.endsWith('.otf');
@@ -79,7 +83,8 @@ export async function measurePagePerformance(page: Page, testName: string): Prom
     // Calculate total bytes transferred
     const totalBytes = resourceEntries.reduce((total, entry) => {
       // Use transferSize if available, otherwise use encodedBodySize
-      return total + (entry.transferSize || entry.encodedBodySize || 0);
+      return total + ((entry as ResourcePerformanceEntry).transferSize || 
+        (entry as ResourcePerformanceEntry).encodedBodySize || 0);
     }, 0);
     
     return {

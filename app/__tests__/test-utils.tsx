@@ -54,7 +54,7 @@ export function renderWithAuth(
             user: user as User | null,
             loading: loading as boolean,
             isAuthenticated: isAuthenticated as boolean,
-            error: error
+            error: error || null
           }}
         >
           {children}

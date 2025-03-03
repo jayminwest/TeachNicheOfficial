@@ -42,7 +42,10 @@ export async function runAccessibilityTests(
     axeBuilder = axeBuilder.options({
       resultTypes: ['violations'],
       // Specify which impact levels to include
-      rules: options.includedImpacts.map(impact => ({ impact }))
+      rules: options.includedImpacts.reduce((acc, impact) => {
+        acc[impact] = { enabled: true };
+        return acc;
+      }, {} as Record<string, { enabled: boolean }>))
     });
   }
   

@@ -87,11 +87,8 @@ export default defineConfig({
       name: 'Slow Network',
       use: { 
         ...devices['Desktop Chrome'],
-        networkConditions: {
-          download: 1 * 1024 * 1024 / 8, // 1 Mbps
-          upload: 500 * 1024 / 8, // 500 Kbps
-          latency: 100 // 100ms
-        }
+        // Custom network throttling not supported directly in config
+        // Use page.route or context.route for network throttling instead
       },
     },
   ],

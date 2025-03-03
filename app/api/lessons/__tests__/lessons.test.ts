@@ -32,6 +32,39 @@ function createMockNextRequest(url: string, options: { method?: string; body?: a
   };
 }
 
+// Mock the Supabase auth helpers
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createRouteHandlerClient: jest.fn().mockImplementation(() => {
+    return {
+      from: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      single: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      match: jest.fn().mockReturnThis(),
+      data: null,
+      error: null,
+      auth: {
+        getSession: jest.fn().mockResolvedValue({
+          data: {
+            session: {
+              user: {
+                id: 'user-123',
+                email: 'test@example.com'
+              }
+            }
+          }
+        })
+      }
+    };
+  }),
+  createClientComponentClient: jest.fn()
+}));
+
 // Mock the database client
 jest.mock('../../../lib/supabase/client', () => {
   const mockClient = {
@@ -93,6 +126,38 @@ jest.mock('next/headers', () => ({
     get: jest.fn().mockReturnValue(null),
     set: jest.fn(),
     delete: jest.fn()
+  })
+}));
+
+// Mock the server Supabase client
+jest.mock('../../../lib/supabase/server', () => ({
+  createServerSupabaseClient: jest.fn().mockImplementation(() => {
+    return {
+      from: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      single: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      match: jest.fn().mockReturnThis(),
+      data: null,
+      error: null,
+      auth: {
+        getSession: jest.fn().mockResolvedValue({
+          data: {
+            session: {
+              user: {
+                id: 'user-123',
+                email: 'test@example.com'
+              }
+            }
+          }
+        })
+      }
+    };
   })
 }));
 

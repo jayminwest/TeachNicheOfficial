@@ -2,12 +2,11 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function Page({
   params,
 }: {
   params: { id: string };
-}): Promise<any> {
+}): Promise<JSX.Element> {
   const supabase = createServerSupabaseClient();
   
   // Check if the lesson exists before rendering the component

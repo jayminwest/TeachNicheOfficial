@@ -146,15 +146,11 @@ describe('Lessons API', () => {
       // Add a valid URL to the request
       req.url = 'http://localhost/api/lessons?limit=5&category=programming&sort=newest';
 
-      // Get the mock Supabase client
+      // Get the mock Supabase client and ensure it's properly set up
       const mockSupabase = getMockSupabase();
       
       // Reset mock functions to ensure they're tracking calls
-      mockSupabase.from.mockClear();
-      mockSupabase.select.mockClear();
-      mockSupabase.eq.mockClear();
-      mockSupabase.order.mockClear();
-      mockSupabase.limit.mockClear();
+      jest.clearAllMocks();
       
       // Set up the mock to return itself for chaining
       mockSupabase.from.mockReturnValue(mockSupabase);
@@ -169,6 +165,9 @@ describe('Lessons API', () => {
       // Mock the createRouteHandlerClient to return our mockSupabase
       const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');
       createRouteHandlerClient.mockReturnValue(mockSupabase);
+      
+      // Ensure the route handler will use our mock
+      jest.requireMock('../../../lib/supabase/client').createClient.mockReturnValue(mockSupabase);
       
       // Mock the response
       const mockResponseData = { lessons: [] };

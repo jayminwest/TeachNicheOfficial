@@ -63,27 +63,21 @@ export function ProfileForm() {
     try {
       console.log('Fetching profile data for user ID:', user.id);
       
-      // First try to get data from profiles table
+      // First try to get data from profiles table - use simpler query approach
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')  // Select all fields to see what's available
-        .filter('id', 'eq', user.id)  // Use filter instead of eq
-        .single();
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no record exists
         
       console.log('Raw profile data response:', { data, error });
       
       if (error) {
-        console.error('Profile fetch error details:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
+        console.error('Profile fetch error:', error.message);
         
-        if (error.code === 'PGRST116') {
-          // No profile found, try to use data from user metadata
-          console.log('No profile found, using user metadata');
-          console.log('User metadata:', user.user_metadata);
+        // No matter what the error is, try to use user metadata as fallback
+        console.log('Error fetching profile, using user metadata as fallback');
+        console.log('User metadata:', user.user_metadata);
           
           if (user.user_metadata) {
             const userData = {
@@ -115,11 +109,29 @@ export function ProfileForm() {
         
         console.log('Setting form data:', formData);
         
-        // Reset the entire form with all values at once
-        form.reset(formData);
+        // Set each field individually to ensure they're updated
+        form.setValue('full_name', formData.full_name);
+        form.setValue('bio', formData.bio);
+        form.setValue('social_media_tag', formData.social_media_tag);
         
         // Log the current form values after setting
         console.log('Form values after setting:', form.getValues());
+      } else {
+        // No data found, try to use user metadata
+        console.log('No profile data found, using user metadata as fallback');
+        if (user.user_metadata) {
+          const userData = {
+            full_name: user.user_metadata.full_name || user.user_metadata.name || "",
+            bio: user.user_metadata.bio || "",
+            social_media_tag: user.user_metadata.social_media_tag || "",
+          };
+          console.log('Setting form data from user metadata:', userData);
+          
+          // Set each field individually
+          form.setValue('full_name', userData.full_name);
+          form.setValue('bio', userData.bio);
+          form.setValue('social_media_tag', userData.social_media_tag);
+        }
       }
     } catch (err) {
       console.error('Unexpected error fetching profile data:', err);

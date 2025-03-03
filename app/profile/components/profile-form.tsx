@@ -57,21 +57,31 @@ export function ProfileForm() {
         const { data, error } = await supabase
           .from('profiles')
           .select('full_name, bio, social_media_tag')
-          .eq('id', user.id)
-          .single();
+          .eq('id', user.id);
           
         if (error) {
           console.error('Error fetching profile data:', error.message);
           return;
         }
         
-        if (data) {
+        // Check if we have exactly one profile
+        if (data && data.length === 1) {
           // Update form with existing data
           form.reset({
-            full_name: data.full_name || "",
-            bio: data.bio || "",
-            social_media_tag: data.social_media_tag || "",
+            full_name: data[0].full_name || "",
+            bio: data[0].bio || "",
+            social_media_tag: data[0].social_media_tag || "",
           });
+        } else if (data && data.length > 1) {
+          console.warn(`Found multiple profiles for user ${user.id}, using the first one`);
+          form.reset({
+            full_name: data[0].full_name || "",
+            bio: data[0].bio || "",
+            social_media_tag: data[0].social_media_tag || "",
+          });
+        } else {
+          console.warn(`No profile found for user ${user.id}`);
+          // Keep default empty values
         }
       } catch (err) {
         console.error('Unexpected error fetching profile data:', err);

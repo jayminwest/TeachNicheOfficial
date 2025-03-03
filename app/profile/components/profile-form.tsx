@@ -43,22 +43,9 @@ export function ProfileForm() {
     try {
       console.log('Updating profile with data:', data);
       
-      // Special case for testing error handling
-      if (data.name === 'Test User' && data.bio === '' && data.website === '') {
-        // This specific combination is used in the error test
-        throw new Error('Test error');
-      }
-      
-      // We'll keep this line but wrap it in try/catch to prevent it from breaking tests
-      try {
-        console.error('Profile update check');
-      } catch {
-        // If console.error throws (which it will in the test), we'll catch it here
-        // and rethrow it to trigger our error handling
-        throw new Error('Error during profile update');
-      }
-      
       // TODO: Implement profile update logic with Supabase
+      // For now, just simulate a successful update
+      
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",

@@ -21,13 +21,15 @@ import { Textarea } from "@/app/components/ui/textarea"
 import { toast } from "@/app/components/ui/use-toast"
 
 const profileFormSchema = z.object({
-  name: z.string().min(2, {
+  full_name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
   bio: z.string().max(500, {
     message: "Bio must not be longer than 500 characters.",
   }),
-  website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+  social_media_tag: z.string().max(100, {
+    message: "Social media tag must not be longer than 100 characters.",
+  }).optional().or(z.literal("")),
 })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
@@ -39,9 +41,9 @@ export function ProfileForm() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: "",
+      full_name: "",
       bio: "",
-      website: "",
+      social_media_tag: "",
     },
   })
   
@@ -54,7 +56,7 @@ export function ProfileForm() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('name, bio, website')
+          .select('full_name, bio, social_media_tag')
           .eq('id', user.id)
           .single();
           
@@ -66,9 +68,9 @@ export function ProfileForm() {
         if (data) {
           // Update form with existing data
           form.reset({
-            name: data.name || "",
+            full_name: data.full_name || "",
             bio: data.bio || "",
-            website: data.website || "",
+            social_media_tag: data.social_media_tag || "",
           });
         }
       } catch (err) {
@@ -100,9 +102,9 @@ export function ProfileForm() {
         .from('profiles')
         .upsert({
           id: user.id,
-          name: data.name,
+          full_name: data.full_name,
           bio: data.bio,
-          website: data.website,
+          social_media_tag: data.social_media_tag,
           updated_at: new Date().toISOString(),
         });
       
@@ -131,7 +133,7 @@ export function ProfileForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="name"
+          name="full_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Name</FormLabel>
@@ -167,15 +169,15 @@ export function ProfileForm() {
         />
         <FormField
           control={form.control}
-          name="website"
+          name="social_media_tag"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Website</FormLabel>
+              <FormLabel>Social Media</FormLabel>
               <FormControl>
-                <Input placeholder="https://your-website.com" {...field} />
+                <Input placeholder="@yourusername" {...field} />
               </FormControl>
               <FormDescription>
-                Your personal or professional website.
+                Your social media handle (e.g., Twitter, Instagram).
               </FormDescription>
               <FormMessage />
             </FormItem>

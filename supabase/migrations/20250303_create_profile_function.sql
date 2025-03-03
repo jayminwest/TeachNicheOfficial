@@ -1,3 +1,4 @@
+-- Migration: 20250303000000
 -- Create a function to safely create profiles with proper permissions
 CREATE OR REPLACE FUNCTION create_profile(
   user_id UUID,

@@ -14,6 +14,7 @@ import { VisuallyHidden } from '@/app/components/ui/visually-hidden'
 
 interface SignUpPageProps {
   onSwitchToSignIn: () => void;
+  onSignInSuccess?: () => void;
 }
 
 function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
@@ -28,18 +29,23 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
       (event, session) => {
         console.log('Auth state changed:', event, !!session);
         if (event === 'SIGNED_IN' && session) {
-          console.log('User signed in, redirecting to dashboard');
+          console.log('User signed in, redirecting to profile');
+          // Call the success callback to close the dialog
+          if (onSignInSuccess) {
+            onSignInSuccess();
+          }
+          
           if (typeof window !== 'undefined' && window.nextRouterMock) {
-            window.nextRouterMock.push('/dashboard');
+            window.nextRouterMock.push('/profile');
           } else {
-            router.push('/dashboard');
+            router.push('/profile');
           }
         }
       }
     );
     
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, onSignInSuccess]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -93,7 +99,7 @@ function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
           </div>
         </div>
       ) : user ? (
-        <>{router.push('/')}</>
+        <>{router.push('/profile')}</>
       ) : (
         <div className="flex min-h-[inherit] items-center justify-center p-6">
           <Card className="w-full max-w-[400px] mx-auto">

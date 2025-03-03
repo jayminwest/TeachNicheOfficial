@@ -80,8 +80,15 @@ jest.mock('@/app/components/ui/sign-in', () => ({
   SignInPage: () => <div>Sign In</div>
 }))
 
-jest.mock('@/app/components/ui/sign-up', () => ({
-  SignUpPage: () => <div>Sign Up</div>
+jest.mock('@/app/components/ui/auth-dialog', () => ({
+  AuthDialog: ({ children, open, onOpenChange, defaultView }: { 
+    children?: React.ReactNode, 
+    open: boolean, 
+    onOpenChange: (open: boolean) => void,
+    defaultView?: string
+  }) => (
+    <div data-testid="auth-dialog">Auth Dialog: {defaultView}</div>
+  )
 }))
 
 

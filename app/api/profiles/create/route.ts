@@ -5,13 +5,17 @@ import { getSession } from '@/app/services/auth/supabaseAuth';
 export async function POST(request: Request) {
   try {
     // Verify the user is authenticated
-    const { data: { session } } = await getSession();
-    if (!session) {
+    const sessionResult = await getSession();
+    
+    if (!sessionResult?.data?.session) {
+      console.error('Auth session missing in profile creation!', sessionResult);
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - No valid session found' },
         { status: 401 }
       );
     }
+    
+    const session = sessionResult.data.session;
 
     // Get the request body
     const body = await request.json();
@@ -27,12 +31,23 @@ export async function POST(request: Request) {
     // Create a server-side Supabase client that can bypass RLS
     const supabase = createServerSupabaseClient();
     
+    console.log('Creating profile for user:', session.user.id);
+    
     // Check if profile already exists
-    const { data: existingProfile } = await supabase
+    const { data: existingProfiles, error: profileCheckError } = await supabase
       .from('profiles')
       .select('id')
-      .eq('id', body.id)
-      .single();
+      .eq('id', body.id);
+      
+    if (profileCheckError) {
+      console.error('Error checking for existing profile:', profileCheckError);
+      return NextResponse.json(
+        { error: profileCheckError.message },
+        { status: 500 }
+      );
+    }
+    
+    const existingProfile = existingProfiles && existingProfiles.length > 0 ? existingProfiles[0] : null;
       
     if (existingProfile) {
       // Profile exists, just return success

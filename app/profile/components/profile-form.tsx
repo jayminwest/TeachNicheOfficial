@@ -158,7 +158,7 @@ export function ProfileForm() {
           
           // Also try to notify the server about the missing profile
           try {
-            await fetch('/api/profiles/create', {
+            const response = await fetch('/api/profiles/create', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -170,7 +170,14 @@ export function ProfileForm() {
                 social_media_tag: data.social_media_tag,
                 email: user.email,
               }),
+              // Important: include credentials to send cookies with the request
+              credentials: 'include',
             });
+            
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.error || 'Failed to create profile');
+            }
           } catch (fetchError) {
             console.error('Failed to notify server about missing profile:', fetchError);
           }

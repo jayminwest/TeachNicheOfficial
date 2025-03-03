@@ -6,6 +6,7 @@ DO $$
 DECLARE
   google_user_id UUID := gen_random_uuid();
   google_creator_id UUID := gen_random_uuid();
+  google_lesson_id UUID;
 BEGIN
 
 -- Insert test Google users into auth.users
@@ -190,8 +191,7 @@ SELECT
   'muxasset_google',
   'playback_google'
 FROM auth.users u
-WHERE u.email = 'google-creator@example.com'
-RETURNING id, creator_id INTO google_lesson_id, google_creator_id;
+WHERE u.email = 'google-creator@example.com';
 
 -- Connect the Google creator's lesson to categories
 INSERT INTO lesson_category (lesson_id, category_id)

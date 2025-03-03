@@ -38,7 +38,7 @@ const lessonCreateSchema = z.object({
 async function createLessonHandler(request: Request) {
   try {
     // Get authenticated client - RLS will enforce permissions
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     
     // Get the current user's session
     const { data: { session } } = await supabase.auth.getSession();
@@ -158,7 +158,7 @@ async function getLessonsHandler(request: Request) {
 async function updateLessonHandler(request: Request) {
   try {
     // Get authenticated client - RLS will enforce permissions
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     
     // Get the current user's session
     const { data: { session } } = await supabase.auth.getSession();
@@ -220,7 +220,7 @@ async function updateLessonHandler(request: Request) {
 async function deleteLessonHandler(request: Request) {
   try {
     // Get authenticated client - RLS will enforce permissions
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     
     // Get the current user's session
     const { data: { session } } = await supabase.auth.getSession();

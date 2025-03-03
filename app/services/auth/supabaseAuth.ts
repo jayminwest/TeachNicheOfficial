@@ -67,20 +67,27 @@ export function onAuthStateChange(callback: (event: string, session: any) => voi
   }
 }
 
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (redirectTo?: string) => {
   try {
     const supabase = createClientSupabaseClient()
     
-    // For local development, we need to specify the redirectTo
-    // This ensures the OAuth flow returns to your local development server
+    // Use the proper redirect URL with state preservation
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      }
-    })
+        redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        skipBrowserRedirect: false,
+      },
+    });
     
-    console.log('Google sign-in initiated:', { data })
+    // Log the URL for debugging
+    if (data?.url) {
+      console.log('Auth redirect URL:', data.url);
+    }
     
     if (error) {
       console.error('Google sign-in error:', error)

@@ -12,7 +12,6 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/app/services/supabase"
 import { useRouter } from "next/navigation"
 
-// Dynamically import dashboard components to make testing easier
 
 export default function ProfilePage() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -87,28 +86,12 @@ export default function ProfilePage() {
           <SignOutButton />
         </div>
         <Card className="p-6">
-          <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
-            <TabsContent value="dashboard">
-              <div className="space-y-6">
-                <DashboardHeader />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                  <AnalyticsSection />
-                  <ActivityFeed />
-                  <PerformanceMetrics />
-                </div>
-
-                <div className="mt-6">
-                  <LessonsGrid />
-                </div>
-              </div>
-            </TabsContent>
             <TabsContent value="profile">
               <ProfileForm />
             </TabsContent>

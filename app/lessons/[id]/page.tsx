@@ -2,14 +2,10 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-interface LessonPageParams {
-  id: string;
-}
-
 export default async function Page({
   params,
 }: {
-  params: LessonPageParams;
+  params: { id: string };
 }) {
   const supabase = createServerSupabaseClient();
   

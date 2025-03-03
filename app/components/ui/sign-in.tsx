@@ -34,11 +34,14 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         throw result.error
       }
       
-      // Use the router for navigation in both test and real environments
-      router.push('/dashboard');
+      // Google OAuth will redirect to the callback URL
+      // No need to navigate here as the redirect will happen automatically
+      console.log('Google sign-in initiated successfully')
+      
+      // We don't set isLoading to false here because we're redirecting
     } catch (err) {
+      console.error('Google sign-in error:', err)
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
-    } finally {
       setIsLoading(false)
     }
   }

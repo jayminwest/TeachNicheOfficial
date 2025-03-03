@@ -55,7 +55,22 @@ export function AuthProvider({
         const supabase = createClientSupabaseClient()
         const authStateChange = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth state changed:', event, session?.user?.id)
-          setUser(session?.user ?? null)
+          
+          // Handle auth state changes
+          if (event === 'SIGNED_IN') {
+            console.log('User signed in:', session?.user?.id)
+            setUser(session?.user ?? null)
+          } else if (event === 'SIGNED_OUT') {
+            console.log('User signed out')
+            setUser(null)
+          } else if (event === 'TOKEN_REFRESHED') {
+            console.log('Token refreshed for user:', session?.user?.id)
+            setUser(session?.user ?? null)
+          } else if (event === 'USER_UPDATED') {
+            console.log('User updated:', session?.user?.id)
+            setUser(session?.user ?? null)
+          }
+          
           setLoading(false)
         })
         

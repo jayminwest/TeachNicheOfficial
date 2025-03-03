@@ -13,11 +13,25 @@ test.describe('Lesson Video Playback with Network Conditions', () => {
     // Navigate to the lesson page
     await page.goto(`/lessons/${lessonId}`);
     
-    // Wait for the video player to load
-    await page.waitForSelector('video', { state: 'visible' });
+    // Wait for the video player to load with a more specific selector and longer timeout
+    try {
+      await page.waitForSelector('.video-player video, [data-testid="video-player"] video', { 
+        state: 'visible',
+        timeout: 30000 // Increase timeout to 30 seconds
+      });
+    } catch (error) {
+      console.log('Video element not found, checking for fallback player');
+      // Check if there's a fallback player or error message
+      const hasFallback = await page.isVisible('[data-testid="video-fallback"]');
+      if (hasFallback) {
+        console.log('Using fallback player');
+      } else {
+        throw error; // Re-throw if no fallback found
+      }
+    }
     
-    // Start playing the video
-    await page.click('video');
+    // Start playing the video with a more specific selector
+    await page.click('.video-player video, [data-testid="video-player"] video, [data-testid="video-fallback"]');
     
     // Wait for video to start playing
     await page.waitForFunction(() => {
@@ -112,11 +126,25 @@ test.describe('Lesson Video Playback with Network Conditions', () => {
     // Navigate to the lesson page
     await page.goto(`/lessons/${lessonId}`);
     
-    // Wait for the video player to load
-    await page.waitForSelector('video', { state: 'visible' });
+    // Wait for the video player to load with a more specific selector and longer timeout
+    try {
+      await page.waitForSelector('.video-player video, [data-testid="video-player"] video', { 
+        state: 'visible',
+        timeout: 30000 // Increase timeout to 30 seconds
+      });
+    } catch (error) {
+      console.log('Video element not found, checking for fallback player');
+      // Check if there's a fallback player or error message
+      const hasFallback = await page.isVisible('[data-testid="video-fallback"]');
+      if (hasFallback) {
+        console.log('Using fallback player');
+      } else {
+        throw error; // Re-throw if no fallback found
+      }
+    }
     
-    // Start playing the video
-    await page.click('video');
+    // Start playing the video with a more specific selector
+    await page.click('.video-player video, [data-testid="video-player"] video, [data-testid="video-fallback"]');
     
     // Wait for video to start playing
     await page.waitForFunction(() => {

@@ -28,10 +28,11 @@ test.describe('Homepage Visual Regression', () => {
     await page.goto('/');
     
     // Wait for the hero section to be visible
-    await page.waitForSelector('section.hero', { state: 'visible' });
+    // Use a more reliable selector with data-testid
+    await page.waitForSelector('[data-testid="hero-section"]', { state: 'visible' });
     
     // Take a screenshot of just the hero section
-    const heroSection = page.locator('section.hero');
+    const heroSection = page.locator('[data-testid="hero-section"]');
     await expect(heroSection).toHaveScreenshot('homepage-hero.png', {
       // More strict threshold for critical UI elements
       maxDiffPixelRatio: 0.005,
@@ -42,8 +43,9 @@ test.describe('Homepage Visual Regression', () => {
     // Navigate to the homepage
     await page.goto('/');
     
-    // Take a screenshot of the navigation menu
-    const navMenu = page.locator('nav');
+    // Take a screenshot of the main navigation menu using a more specific selector
+    // Use aria-label to target the specific nav element
+    const navMenu = page.locator('nav[aria-label="Main"]');
     await expect(navMenu).toHaveScreenshot('homepage-nav.png');
   });
   

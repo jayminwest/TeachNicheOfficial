@@ -37,7 +37,8 @@ export async function runAccessibilityTests(
   
   // Apply options
   if (options.includedImpacts) {
-    axeBuilder = axeBuilder.withOnlyImpacts(options.includedImpacts);
+    // The correct method is 'includeImpacts' not 'withOnlyImpacts'
+    axeBuilder = axeBuilder.includeImpacts(options.includedImpacts);
   }
   
   if (options.excludeRules) {

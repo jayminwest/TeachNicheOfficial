@@ -6,7 +6,7 @@ test.describe('Lesson Video Playback with Network Conditions', () => {
   
   test.beforeEach(async ({ page }) => {
     // Load authentication state for a user with access to the lesson
-    await page.context().storageState({ path: './e2e-tests/test-data/buyerAuth.json' });
+    await page.context().storageState({ path: './test-data/buyerAuth.json' });
   });
   
   test('should adapt video quality under poor network conditions', async ({ page }) => {

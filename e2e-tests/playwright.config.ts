@@ -12,8 +12,8 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
  * - Comprehensive reporting
  */
 const config: PlaywrightTestConfig = {
-  testDir: './tests',
-  testMatch: '**/*.spec.ts',
+  testDir: '.',
+  testMatch: 'tests/**/*.spec.ts',
   // Increased timeout for more thorough tests, especially on CI
   timeout: process.env.CI ? 60000 : 30000,
   // More retries on CI to handle flakiness
@@ -23,8 +23,8 @@ const config: PlaywrightTestConfig = {
   // Parallel tests for faster execution
   workers: process.env.CI ? 4 : undefined,
   // Global setup and teardown for test data management
-  globalSetup: './global-setup.ts',
-  globalTeardown: './global-teardown.ts',
+  globalSetup: require.resolve('./helpers/global-setup.ts'),
+  globalTeardown: require.resolve('./helpers/global-teardown.ts'),
   
   webServer: {
     command: 'npm run build && npx serve -s .next -p 3000',

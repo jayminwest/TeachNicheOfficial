@@ -18,7 +18,7 @@ test.describe('Error Handling', () => {
   
   test('should handle payment failure gracefully', async ({ page }) => {
     // Load authentication state
-    await page.context().storageState({ path: './e2e-tests/test-data/buyerAuth.json' });
+    await page.context().storageState({ path: './test-data/buyerAuth.json' });
     
     // Navigate to a lesson page
     await page.goto('/lessons/test-paid-lesson');

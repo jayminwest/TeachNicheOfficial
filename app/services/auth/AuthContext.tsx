@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { getSession, onAuthStateChange } from './supabaseAuth'
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
@@ -32,11 +32,6 @@ export function AuthProvider({
     error: Error | null;
   }
   
-  const setAuthStateTyped = (updater: (prev: AuthState) => AuthState) => {
-    // Using type assertion to React.SetStateAction instead of any
-    setAuthState(updater as React.SetStateAction<AuthState>);
-  };
-  
   const [authState, setAuthState] = useState<AuthState>({
     user: initialUser,
     loading: true,
@@ -44,6 +39,11 @@ export function AuthProvider({
   })
 
   const isAuthenticated = !!authState.user
+  
+  // Use useCallback to memoize the function so it doesn't change on every render
+  const setAuthStateTyped = useCallback((updater: (prev: AuthState) => AuthState) => {
+    setAuthState((prevState) => updater(prevState));
+  }, []);
 
   // Function to create or update user profile in the profiles table
   const createOrUpdateProfile = async (user: User) => {

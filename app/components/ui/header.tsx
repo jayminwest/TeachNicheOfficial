@@ -141,9 +141,9 @@ export function Header() {
                                     <Button variant="ghost">Sign In</Button>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 bg-background">
-                                    <div className="sr-only">
+                                    <DialogTitle className="sr-only">
                                         {showSignIn ? "Sign In" : "Sign Up"}
-                                    </div>
+                                    </DialogTitle>
                                     {showSignIn ? (
                                         <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
                                     ) : (
@@ -200,9 +200,9 @@ export function Header() {
                                                 <Button variant="ghost" className="w-full">Sign In</Button>
                                             </DialogTrigger>
                                             <DialogContent className="p-0 bg-background">
-                                                <div className="sr-only">
+                                                <DialogTitle className="sr-only">
                                                     {showSignIn ? "Sign In" : "Sign Up"}
-                                                </div>
+                                                </DialogTitle>
                                                 {showSignIn ? (
                                                     <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
                                                 ) : (

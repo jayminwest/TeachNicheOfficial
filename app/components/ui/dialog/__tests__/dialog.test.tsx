@@ -21,4 +21,20 @@ describe('Dialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
+
+  it('renders with visually hidden title for accessibility', () => {
+    render(
+      <Dialog open={true} onOpenChange={() => {}}>
+        <DialogContent>
+          <DialogTitle className="sr-only">Hidden Title</DialogTitle>
+          <p>Dialog content</p>
+        </DialogContent>
+      </Dialog>
+    )
+
+    // The title should be in the document but not visible
+    const title = screen.getByText('Hidden Title')
+    expect(title).toBeInTheDocument()
+    expect(title).toHaveClass('sr-only')
+  })
 })

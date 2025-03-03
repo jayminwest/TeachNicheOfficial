@@ -77,6 +77,24 @@ jest.mock('@/app/services/supabase', () => ({
 // Add jest-axe matcher
 expect.extend(toHaveNoViolations);
 
+// Mock Supabase client
+jest.mock('@/app/services/supabase', () => ({
+  supabase: {
+    from: jest.fn().mockImplementation(() => ({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockImplementation(() => ({
+        data: [{ stripe_account_id: 'acct_test123' }],
+        error: null
+      }))
+    })),
+    auth: {
+      getSession: jest.fn().mockResolvedValue({
+        data: { session: null },
+      }),
+    },
+  },
+}))
+
 // Create a helper function instead of mocking
 function renderWithAuthContext(ui, authProps = {}) {
   const defaultAuthValues = {
@@ -139,10 +157,15 @@ describe('ProfilePage', () => {
     })
 
     it('renders profile page for authenticated users', async () => {
-      const { getByText } = renderWithAuthContext(<ProfilePage />);
-      expect(getByText('Profile')).toBeInTheDocument()
-      expect(getByText('Content')).toBeInTheDocument()
-      expect(getByText('Settings')).toBeInTheDocument()
+      const { getByText, findByText } = renderWithAuthContext(<ProfilePage />);
+      
+      // Wait for the profile data to load
+      await findByText('Your Profile');
+      
+      // Now check for tab content
+      expect(getByText('Profile', { selector: '[role="tab"]' })).toBeInTheDocument();
+      expect(getByText('Content', { selector: '[role="tab"]' })).toBeInTheDocument();
+      expect(getByText('Settings', { selector: '[role="tab"]' })).toBeInTheDocument();
     })
 
     it('meets accessibility requirements', async () => {
@@ -155,11 +178,14 @@ describe('ProfilePage', () => {
   describe('interactions', () => {
     it('allows switching between tabs', async () => {
       const user = userEvent.setup()
-      const { getByRole, getByText } = renderWithAuthContext(<ProfilePage />);
+      const { getByRole, getByText, findByText } = renderWithAuthContext(<ProfilePage />);
+      
+      // Wait for the profile data to load
+      await findByText('Your Profile');
 
       // Click on Content tab
       await user.click(getByRole('tab', { name: 'Content' }))
-      expect(getByText('Create New Lesson')).toBeInTheDocument()
+      expect(getByText('Your Content')).toBeInTheDocument()
 
       // Click on Settings tab
       await user.click(getByRole('tab', { name: 'Settings' }))
@@ -167,7 +193,10 @@ describe('ProfilePage', () => {
     })
 
     it('displays stripe connect button with account ID', async () => {
-      const { getByRole, getByText } = renderWithAuthContext(<ProfilePage />);
+      const { getByRole, getByText, findByText } = renderWithAuthContext(<ProfilePage />);
+      
+      // Wait for the profile data to load
+      await findByText('Your Profile');
       
       // Navigate to settings tab
       await userEvent.click(getByRole('tab', { name: 'Settings' }))

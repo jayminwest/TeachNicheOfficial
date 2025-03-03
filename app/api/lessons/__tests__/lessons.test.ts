@@ -155,6 +155,13 @@ describe('Lessons API', () => {
         NextResponse.json(mockResponseData, { status: 200 }) as NextResponse
       );
 
+      // Reset mock functions to ensure they're tracking calls
+      mockSupabase.from.mockClear();
+      mockSupabase.select.mockClear();
+      mockSupabase.eq.mockClear();
+      mockSupabase.order.mockClear();
+      mockSupabase.limit.mockClear();
+      
       // Set up the mock to return the expected data
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);

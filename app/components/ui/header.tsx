@@ -7,7 +7,6 @@ import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { AuthDialog } from "./auth-dialog";
 import { SignOutButton } from "./sign-out-button";
-import { Dialog, DialogTrigger } from "./dialog";
 
 interface NavigationItem {
     title: string;

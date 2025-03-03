@@ -170,7 +170,7 @@ describe('SignInPage', () => {
   });
 
   it('maintains focus management during form interaction', async () => {
-    const userEvent = userEvent.setup();
+    const user = userEvent.setup();
     
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     

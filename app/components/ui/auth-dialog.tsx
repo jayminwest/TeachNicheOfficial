@@ -9,7 +9,6 @@ import { useSearchParams } from 'next/navigation'
 interface AuthDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  title?: string
   onSuccess?: () => void
 }
 

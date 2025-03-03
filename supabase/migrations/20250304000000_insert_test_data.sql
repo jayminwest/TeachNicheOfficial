@@ -250,22 +250,24 @@ BEGIN
         WHERE table_schema = 'storage' 
         AND table_name = 'objects'
     ) THEN
-        -- Insert sample lesson thumbnails
+        -- Insert sample lesson thumbnails with ON CONFLICT DO NOTHING
         INSERT INTO storage.objects (bucket_id, name, owner, metadata, created_at)
         VALUES
             ('lesson-media', 'thumbnails/kendama-basics.jpg', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"size": 256000, "mimetype": "image/jpeg", "width": 1280, "height": 720}', now() - interval '30 days'),
             ('lesson-media', 'thumbnails/advanced-spikes.jpg', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"size": 312000, "mimetype": "image/jpeg", "width": 1280, "height": 720}', now() - interval '25 days'),
             ('lesson-media', 'thumbnails/competition-guide.jpg', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '{"size": 287000, "mimetype": "image/jpeg", "width": 1280, "height": 720}', now() - interval '20 days'),
             ('lesson-media', 'thumbnails/maintenance-101.jpg', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '{"size": 198000, "mimetype": "image/jpeg", "width": 1280, "height": 720}', now() - interval '15 days'),
-            ('lesson-media', 'thumbnails/upcoming-tricks.jpg', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"size": 245000, "mimetype": "image/jpeg", "width": 1280, "height": 720}', now() - interval '10 days');
+            ('lesson-media', 'thumbnails/upcoming-tricks.jpg', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"size": 245000, "mimetype": "image/jpeg", "width": 1280, "height": 720}', now() - interval '10 days')
+        ON CONFLICT ON CONSTRAINT bucketid_objname DO NOTHING;
             
-        -- Insert sample user avatars
+        -- Insert sample user avatars with ON CONFLICT DO NOTHING
         INSERT INTO storage.objects (bucket_id, name, owner, metadata, created_at)
         VALUES
             ('user-media', 'avatars/creator1.jpg', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"size": 124000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '45 days'),
             ('user-media', 'avatars/student1.jpg', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '{"size": 118000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '40 days'),
             ('user-media', 'avatars/admin1.jpg', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '{"size": 132000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '35 days'),
-            ('user-media', 'avatars/creator2.jpg', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '{"size": 127000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '30 days');
+            ('user-media', 'avatars/creator2.jpg', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '{"size": 127000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '30 days')
+        ON CONFLICT ON CONSTRAINT bucketid_objname DO NOTHING;
     ELSE
         RAISE NOTICE 'Storage objects table not found. Skipping sample objects insertion.';
     END IF;

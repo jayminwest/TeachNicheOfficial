@@ -118,7 +118,8 @@ describe('SignInPage', () => {
   });
 
   it('shows loading state during Google sign-in', async () => {
-    const user = userEvent.setup();
+    // Setup userEvent
+    const userEvent = userEvent.setup();
     // Make the sign-in function wait
     (signInWithGoogle as jest.Mock).mockImplementation(() => new Promise(resolve => {
       setTimeout(resolve, 100);
@@ -127,7 +128,7 @@ describe('SignInPage', () => {
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    await userEvent.click(signInButton);
     
     // Check for spinner
     expect(screen.getByTestId('spinner-icon')).toHaveClass('animate-spin');

@@ -10,12 +10,14 @@ interface AuthDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
+  defaultView?: 'sign-in' | 'sign-up'
 }
 
 export function AuthDialog({ 
   open, 
   onOpenChange, 
-  onSuccess
+  onSuccess,
+  defaultView = 'sign-in'
 }: AuthDialogProps) {
   const { isAuthenticated, loading, error: authError } = useAuth()
   const [error, setError] = useState<string | null>(null)

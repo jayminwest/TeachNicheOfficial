@@ -158,6 +158,7 @@ export function ProfileForm() {
           
           // Also try to notify the server about the missing profile
           try {
+            console.log('Attempting to create profile via API');
             const response = await fetch('/api/profiles/create', {
               method: 'POST',
               headers: {
@@ -171,15 +172,24 @@ export function ProfileForm() {
                 email: user.email,
               }),
               // Important: include credentials to send cookies with the request
-              credentials: 'include',
+              credentials: 'same-origin',
             });
             
-            const result = await response.json();
             if (!response.ok) {
-              throw new Error(result.error || 'Failed to create profile');
+              const result = await response.json();
+              console.error('Profile creation API error:', result);
+              throw new Error(result.error || `Failed to create profile: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('Profile creation API response:', result);
+            
+            if (result.success) {
+              console.log('Profile created successfully via API');
             }
           } catch (fetchError) {
-            console.error('Failed to notify server about missing profile:', fetchError);
+            console.error('Failed to create profile via API:', fetchError);
+            // Don't throw here, we'll still show success if the user metadata was updated
           }
         }
       }

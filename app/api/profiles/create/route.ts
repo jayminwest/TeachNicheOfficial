@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import { getSession } from '@/app/services/auth/supabaseAuth';
 
 export async function POST(request: Request) {
   try {
-    // Verify the user is authenticated
-    const sessionResult = await getSession();
+    // Create a server-side Supabase client that can access cookies
+    const supabase = createServerSupabaseClient();
     
-    if (!sessionResult?.data?.session) {
-      console.error('Auth session missing in profile creation!', sessionResult);
+    // Verify the user is authenticated using the server client
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      console.error('Auth session missing in profile creation!');
       return NextResponse.json(
         { error: 'Unauthorized - No valid session found' },
         { status: 401 }
       );
     }
-    
-    const session = sessionResult.data.session;
 
     // Get the request body
     const body = await request.json();
@@ -28,8 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create a server-side Supabase client that can bypass RLS
-    const supabase = createServerSupabaseClient();
+    // We already created the supabase client above
     
     console.log('Creating profile for user:', session.user.id);
     

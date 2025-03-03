@@ -4,6 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/app/components/ui/button"
+import { useAuth } from "@/app/services/auth/AuthContext"
+import { supabase } from "@/app/services/supabase"
+import { useEffect, useState } from "react"
 import {
   Form,
   FormControl,
@@ -30,6 +33,9 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export function ProfileForm() {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -38,25 +44,85 @@ export function ProfileForm() {
       website: "",
     },
   })
+  
+  // Fetch existing profile data when component mounts
+  useEffect(() => {
+    async function fetchProfileData() {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('name, bio, website')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching profile data:', error.message);
+          return;
+        }
+        
+        if (data) {
+          // Update form with existing data
+          form.reset({
+            name: data.name || "",
+            bio: data.bio || "",
+            website: data.website || "",
+          });
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching profile data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchProfileData();
+  }, [user, form]);
 
   async function onSubmit(data: ProfileFormValues) {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to update your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
     try {
       console.log('Updating profile with data:', data);
       
-      // TODO: Implement profile update logic with Supabase
-      // For now, just simulate a successful update
+      // Update the profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          name: data.name,
+          bio: data.bio,
+          website: data.website,
+          updated_at: new Date().toISOString(),
+        });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
       
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
-      })
+      });
     } catch (error) {
       console.error('Profile update failed:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
-      })
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -115,7 +181,9 @@ export function ProfileForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Update profile</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Updating..." : "Update profile"}
+        </Button>
       </form>
     </Form>
   )

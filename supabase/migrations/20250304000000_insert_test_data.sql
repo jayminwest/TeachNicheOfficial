@@ -126,55 +126,78 @@ VALUES
 -- Create storage buckets if they don't exist
 DO $$
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_catalog.pg_tables 
-        WHERE schemaname = 'storage' 
-        AND tablename = 'buckets'
+    -- Check if storage schema exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.schemata 
+        WHERE schema_name = 'storage'
     ) THEN
-        -- Storage extension might not be enabled yet
-        RAISE NOTICE 'Storage schema not found. Skipping bucket creation.';
+        -- Check if buckets table exists
+        IF EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = 'storage' 
+            AND table_name = 'buckets'
+        ) THEN
+            -- Insert lesson-media bucket if it doesn't exist
+            IF NOT EXISTS (
+                SELECT 1 FROM storage.buckets WHERE name = 'lesson-media'
+            ) THEN
+                INSERT INTO storage.buckets (id, name, public)
+                VALUES ('lesson-media', 'lesson-media', true);
+                
+                -- Check if policies table exists before inserting
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.tables 
+                    WHERE table_schema = 'storage' 
+                    AND table_name = 'policies'
+                ) THEN
+                    -- Set up storage policy for lesson-media
+                    INSERT INTO storage.policies (name, bucket_id, operation, expression)
+                    VALUES 
+                        ('Public Read Access', 'lesson-media', 'SELECT', 'true'),
+                        ('Creator Upload Access', 'lesson-media', 'INSERT', '(auth.uid() = creator_id)'),
+                        ('Creator Update Access', 'lesson-media', 'UPDATE', '(auth.uid() = creator_id)'),
+                        ('Creator Delete Access', 'lesson-media', 'DELETE', '(auth.uid() = creator_id)');
+                END IF;
+            END IF;
+            
+            -- Insert user-media bucket if it doesn't exist
+            IF NOT EXISTS (
+                SELECT 1 FROM storage.buckets WHERE name = 'user-media'
+            ) THEN
+                INSERT INTO storage.buckets (id, name, public)
+                VALUES ('user-media', 'user-media', true);
+                
+                -- Check if policies table exists before inserting
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.tables 
+                    WHERE table_schema = 'storage' 
+                    AND table_name = 'policies'
+                ) THEN
+                    -- Set up storage policy for user-media
+                    INSERT INTO storage.policies (name, bucket_id, operation, expression)
+                    VALUES 
+                        ('Public Read Access', 'user-media', 'SELECT', 'true'),
+                        ('Owner Upload Access', 'user-media', 'INSERT', '(auth.uid() = owner)'),
+                        ('Owner Update Access', 'user-media', 'UPDATE', '(auth.uid() = owner)'),
+                        ('Owner Delete Access', 'user-media', 'DELETE', '(auth.uid() = owner)');
+                END IF;
+            END IF;
+        ELSE
+            RAISE NOTICE 'Storage buckets table not found. Skipping bucket creation.';
+        END IF;
     ELSE
-        -- Insert lesson-media bucket if it doesn't exist
-        IF NOT EXISTS (
-            SELECT 1 FROM storage.buckets WHERE name = 'lesson-media'
-        ) THEN
-            INSERT INTO storage.buckets (id, name, public)
-            VALUES ('lesson-media', 'lesson-media', true);
-            
-            -- Set up storage policy for lesson-media
-            INSERT INTO storage.policies (name, bucket_id, operation, expression)
-            VALUES 
-                ('Public Read Access', 'lesson-media', 'SELECT', 'true'),
-                ('Creator Upload Access', 'lesson-media', 'INSERT', '(auth.uid() = creator_id)'),
-                ('Creator Update Access', 'lesson-media', 'UPDATE', '(auth.uid() = creator_id)'),
-                ('Creator Delete Access', 'lesson-media', 'DELETE', '(auth.uid() = creator_id)');
-        END IF;
-        
-        -- Insert user-media bucket if it doesn't exist
-        IF NOT EXISTS (
-            SELECT 1 FROM storage.buckets WHERE name = 'user-media'
-        ) THEN
-            INSERT INTO storage.buckets (id, name, public)
-            VALUES ('user-media', 'user-media', true);
-            
-            -- Set up storage policy for user-media
-            INSERT INTO storage.policies (name, bucket_id, operation, expression)
-            VALUES 
-                ('Public Read Access', 'user-media', 'SELECT', 'true'),
-                ('Owner Upload Access', 'user-media', 'INSERT', '(auth.uid() = owner)'),
-                ('Owner Update Access', 'user-media', 'UPDATE', '(auth.uid() = owner)'),
-                ('Owner Delete Access', 'user-media', 'DELETE', '(auth.uid() = owner)');
-        END IF;
+        RAISE NOTICE 'Storage schema not found. Skipping bucket creation.';
     END IF;
 END $$;
 
 -- Insert sample objects into storage buckets (metadata only)
 DO $$
 BEGIN
+    -- Check if storage schema and objects table exist
     IF EXISTS (
-        SELECT 1 FROM pg_catalog.pg_tables 
-        WHERE schemaname = 'storage' 
-        AND tablename = 'objects'
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'storage' 
+        AND table_name = 'objects'
     ) THEN
         -- Insert sample lesson thumbnails
         INSERT INTO storage.objects (bucket_id, name, owner, metadata, created_at)
@@ -192,5 +215,7 @@ BEGIN
             ('user-media', 'avatars/student1.jpg', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '{"size": 118000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '40 days'),
             ('user-media', 'avatars/admin1.jpg', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '{"size": 132000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '35 days'),
             ('user-media', 'avatars/creator2.jpg', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '{"size": 127000, "mimetype": "image/jpeg", "width": 512, "height": 512}', now() - interval '30 days');
+    ELSE
+        RAISE NOTICE 'Storage objects table not found. Skipping sample objects insertion.';
     END IF;
 END $$;

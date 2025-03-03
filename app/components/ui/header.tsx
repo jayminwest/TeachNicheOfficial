@@ -132,41 +132,24 @@ export function Header() {
                     {!loading && user ? (
                         <>
                             <Link href="/profile">
-                                <Button variant="ghost">Profile</Button>
+                                <Button variant="ghost" data-testid="profile-button">Profile</Button>
                             </Link>
-                            <Button 
-                                variant="ghost"
-                                onClick={async () => {
-                                    await signOut();
-                                    window.location.href = '/';
-                                }}
-                            >
-                                Sign Out
-                            </Button>
+                            <SignOutButton variant="ghost" />
                         </>
                     ) : !loading ? (
                         <>
-                            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost">Sign In</Button>
-                                </DialogTrigger>
-                                <DialogContent className="p-0 bg-background">
-                                    <DialogTitle className="sr-only">
-                                        {showSignIn ? "Sign In" : "Sign Up"}
-                                    </DialogTitle>
-                                    {showSignIn ? (
-                                        <SignInPage 
-                                            onSwitchToSignUp={() => setShowSignIn(false)} 
-                                            onSignInSuccess={() => setDialogOpen(false)}
-                                        />
-                                    ) : (
-                                        <SignUpPage 
-                                            onSwitchToSignIn={() => setShowSignIn(true)} 
-                                            onSignInSuccess={() => setDialogOpen(false)}
-                                        />
-                                    )}
-                                </DialogContent>
-                            </Dialog>
+                            <AuthDialog 
+                                open={dialogOpen} 
+                                onOpenChange={setDialogOpen}
+                                defaultView={showSignIn ? 'sign-in' : 'sign-up'}
+                            />
+                            <Button 
+                                variant="ghost" 
+                                onClick={() => setDialogOpen(true)}
+                                data-testid="sign-in-button"
+                            >
+                                Sign In
+                            </Button>
                             <Button 
                                 onClick={() => {
                                     if (pathname === '/') {

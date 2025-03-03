@@ -155,8 +155,8 @@ describe('ProfilePage', () => {
         </AuthContext.Provider>
       );
       
-      // Verify the router.push was called
-      expect(mockPush).toHaveBeenCalledWith('/')
+      // Verify the router.push was called with the signin URL
+      expect(mockPush).toHaveBeenCalledWith('/auth/signin?redirect=/profile')
       
       // Check for the redirect element in test mode
       expect(screen.getByTestId('unauthenticated-redirect')).toBeInTheDocument();

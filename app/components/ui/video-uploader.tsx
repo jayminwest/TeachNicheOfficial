@@ -156,7 +156,7 @@ export function VideoUploader({
         onProgress={handleProgress}
         onSuccess={(event) => {
           if (event instanceof CustomEvent && typeof event.detail === 'object' && event.detail && 'uploadId' in event.detail) {
-            // @ts-ignore - We've already checked that uploadId exists in event.detail
+            // @ts-expect-error - We've already checked that uploadId exists in event.detail
             handleUploadSuccess(event.detail.uploadId);
           }
         }}

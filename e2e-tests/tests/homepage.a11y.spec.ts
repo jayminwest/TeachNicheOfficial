@@ -30,6 +30,9 @@ test.describe('Homepage Accessibility', () => {
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
     
+    // Wait for any animations or transitions to complete
+    await page.waitForTimeout(500);
+    
     // Check keyboard navigation
     const isKeyboardNavigable = await checkKeyboardNavigation(page);
     

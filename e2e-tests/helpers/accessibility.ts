@@ -38,10 +38,9 @@ export async function runAccessibilityTests(
   
   // Apply options
   if (options.includedImpacts) {
-    // Use the correct method 'options' to filter by impact level
+    // Filter violations by impact level
     axeBuilder = axeBuilder.options({
-      resultTypes: ['violations'],
-      impactLevels: options.includedImpacts
+      resultTypes: ['violations']
     });
   }
   
@@ -65,8 +64,16 @@ export async function runAccessibilityTests(
   const resultsFile = path.join(resultsDir, `${testName}-${timestamp}.json`);
   fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
   
+  // Filter violations by impact level if specified
+  let filteredViolations = results.violations;
+  if (options.includedImpacts) {
+    filteredViolations = results.violations.filter(violation => 
+      options.includedImpacts?.includes(violation.impact as 'minor' | 'moderate' | 'serious' | 'critical')
+    );
+  }
+  
   // Return the violations for assertion in tests
-  return results.violations;
+  return filteredViolations;
 }
 
 /**
@@ -77,9 +84,11 @@ export async function runAccessibilityTests(
  */
 export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
   try {
+    // Wait for the page to be fully loaded
+    await page.waitForLoadState('networkidle');
+    
     // Press Tab key multiple times to navigate through the page
-    // This is more reliable than checking each element individually
-    const tabCount = 10; // Number of tab presses to test
+    const tabCount = 15; // Increased number of tab presses to test
     
     // Start by focusing on the body
     await page.focus('body');
@@ -87,10 +96,14 @@ export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
     // Track focused elements to detect keyboard traps
     const focusedElements = new Set<string>();
     let previousFocusedElement = '';
+    let trapCount = 0;
     
     for (let i = 0; i < tabCount; i++) {
       // Press Tab key
       await page.keyboard.press('Tab');
+      
+      // Add a small delay to ensure focus has changed
+      await page.waitForTimeout(100);
       
       // Get the currently focused element
       const focusedElement = await page.evaluate(() => {
@@ -101,7 +114,7 @@ export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
           tagName: active.tagName,
           id: active.id,
           className: active.className,
-          textContent: active.textContent?.trim(),
+          textContent: active.textContent?.trim().substring(0, 50), // Limit text length
           ariaLabel: active.getAttribute('aria-label'),
           tabIndex: active.getAttribute('tabindex'),
           role: active.getAttribute('role')
@@ -118,7 +131,17 @@ export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
       
       // Check if we're stuck in a keyboard trap
       if (elementKey === previousFocusedElement) {
+        trapCount++;
         console.log(`Possible keyboard trap detected at tab press ${i+1}`);
+        
+        // If we're stuck for 3 consecutive tabs, try to escape by pressing Escape
+        if (trapCount >= 3) {
+          console.log('Attempting to escape keyboard trap by pressing Escape');
+          await page.keyboard.press('Escape');
+          trapCount = 0;
+        }
+      } else {
+        trapCount = 0;
       }
       
       // Track this element
@@ -126,11 +149,13 @@ export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
       previousFocusedElement = elementKey;
     }
     
-    // Success if we were able to focus on at least 3 different elements
-    const success = focusedElements.size >= 3;
+    // Success if we were able to focus on at least 4 different elements
+    const success = focusedElements.size >= 4;
     
     if (!success) {
       console.log(`Keyboard navigation test failed: Only ${focusedElements.size} elements focused`);
+    } else {
+      console.log(`Keyboard navigation successful: ${focusedElements.size} elements focused`);
     }
     
     return success;

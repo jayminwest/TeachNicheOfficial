@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 // Add these helper functions at the top of the file
 
-function createErrorResponse(message: string, status: number, details?: any) {
+function createErrorResponse(message: string, status: number, details?: unknown) {
   return NextResponse.json(
     { 
       error: message,

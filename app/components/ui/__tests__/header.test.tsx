@@ -37,7 +37,7 @@ jest.mock('next/navigation', () => ({
     back: jest.fn()
   })),
   useSearchParams: jest.fn(() => ({
-    get: jest.fn((param) => null)
+    get: jest.fn(() => null)
   }))
 }))
 
@@ -84,7 +84,7 @@ jest.mock('@/app/components/ui/sign-in', () => ({
 }))
 
 jest.mock('@/app/components/ui/auth-dialog', () => ({
-  AuthDialog: ({ children, open, onOpenChange, defaultView }: { 
+  AuthDialog: ({ defaultView }: { 
     children?: React.ReactNode, 
     open: boolean, 
     onOpenChange: (open: boolean) => void,

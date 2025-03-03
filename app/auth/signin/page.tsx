@@ -11,7 +11,6 @@ import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
   
   // Check for error parameters on page load

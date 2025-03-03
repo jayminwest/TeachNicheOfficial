@@ -1,10 +1,9 @@
 import { createMocks } from 'node-mocks-http';
 import { GET, POST, PUT, DELETE } from '../route';
 import { MockConfig } from '../../../../__mocks__/utils/mock-helpers';
-import { NextRequest } from 'next/server';
 
 // Helper function to create a mock NextRequest
-function createMockNextRequest(url: string, options: { method?: string; body?: any } = {}) {
+function createMockNextRequest(url: string, options: { method?: string; body?: unknown } = {}) {
   const method = options.method || 'GET';
   const urlObj = new URL(url.startsWith('http') ? url : `http://localhost${url}`);
   
@@ -202,7 +201,7 @@ describe('Lessons API', () => {
       mockSupabase.data = mockLessons;
       
       // Create a mock request
-      const { req } = createMocks({
+      createMocks({
         method: 'GET',
         url: '/api/lessons?limit=10',
       });
@@ -252,7 +251,7 @@ describe('Lessons API', () => {
       mockSupabase.error = { message: 'Database error' };
       
       // Create a mock request
-      const { req } = createMocks({
+      createMocks({
         method: 'GET',
         url: '/api/lessons',
       });
@@ -315,7 +314,7 @@ describe('Lessons API', () => {
       mockSupabase.data = { id: 'lesson-123', ...lessonData };
       
       // Create a mock request
-      const { req } = createMocks({
+      createMocks({
         method: 'POST',
         url: '/api/lessons',
         body: lessonData

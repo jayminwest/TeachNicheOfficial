@@ -11,14 +11,8 @@ import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
 import { supabase } from "@/app/services/supabase"
 import { useRouter } from "next/navigation"
-import dynamic from 'next/dynamic'
 
 // Dynamically import dashboard components to make testing easier
-const DashboardHeader = dynamic(() => import('@/app/dashboard/components/dashboard-header'), { ssr: false })
-const ActivityFeed = dynamic(() => import('@/app/dashboard/components/activity-feed'), { ssr: false })
-const PerformanceMetrics = dynamic(() => import('@/app/dashboard/components/performance-metrics'), { ssr: false })
-const AnalyticsSection = dynamic(() => import('@/app/dashboard/components/analytics-section'), { ssr: false })
-const LessonsGrid = dynamic(() => import('@/app/dashboard/components/lessons-grid'), { ssr: false })
 
 export default function ProfilePage() {
   const { user, loading, isAuthenticated } = useAuth();

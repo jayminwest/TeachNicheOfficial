@@ -10,36 +10,66 @@ DECLARE
 BEGIN
 
 -- Insert test Google users into auth.users
-INSERT INTO auth.users (
-  id,
-  email,
-  raw_user_meta_data,
-  created_at,
-  updated_at,
-  last_sign_in_at
-)
-VALUES
-  (
-    google_user_id,
+-- First check if users with these emails already exist
+SELECT id INTO google_user_id FROM auth.users WHERE email = 'google-user@example.com' LIMIT 1;
+SELECT id INTO google_creator_id FROM auth.users WHERE email = 'google-creator@example.com' LIMIT 1;
+
+-- Insert or update users
+IF google_user_id IS NULL THEN
+  -- Insert new user
+  INSERT INTO auth.users (
+    id,
+    email,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    last_sign_in_at
+  )
+  VALUES (
+    gen_random_uuid(),
     'google-user@example.com',
     '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
     now(),
     now(),
     now()
-  ),
-  (
-    google_creator_id,
+  )
+  RETURNING id INTO google_user_id;
+ELSE
+  -- Update existing user
+  UPDATE auth.users
+  SET
+    raw_user_meta_data = '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
+    updated_at = now()
+  WHERE id = google_user_id;
+END IF;
+
+IF google_creator_id IS NULL THEN
+  -- Insert new creator
+  INSERT INTO auth.users (
+    id,
+    email,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    last_sign_in_at
+  )
+  VALUES (
+    gen_random_uuid(),
     'google-creator@example.com',
     '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
     now(),
     now(),
     now()
   )
-ON CONFLICT (email) DO UPDATE 
-SET 
-  raw_user_meta_data = EXCLUDED.raw_user_meta_data,
-  updated_at = now()
-RETURNING id INTO google_user_id, google_creator_id;
+  RETURNING id INTO google_creator_id;
+ELSE
+  -- Update existing creator
+  UPDATE auth.users
+  SET
+    raw_user_meta_data = '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
+    updated_at = now()
+  WHERE id = google_creator_id;
+END IF;
 
 -- Insert corresponding identities for Google authentication
 INSERT INTO auth.identities (

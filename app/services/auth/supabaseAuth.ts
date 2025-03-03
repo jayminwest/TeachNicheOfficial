@@ -1,32 +1,86 @@
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
-import { AuthError } from '@supabase/supabase-js'
+import { AuthError, User } from '@supabase/supabase-js'
 
-export const signInWithEmail = async (email: string, password: string) => {
-  const supabase = createClientSupabaseClient()
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-  if (error) throw error
-  return data
+/**
+ * Standard response type for all auth operations
+ */
+export interface AuthResponse<T = any> {
+  data: T | null
+  error: Error | null
+  success: boolean
 }
 
-export const signOut = async () => {
-  const supabase = createClientSupabaseClient()
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
+/**
+ * Sign in with email and password
+ */
+export async function signInWithEmail(email: string, password: string): Promise<AuthResponse> {
+  try {
+    const supabase = createClientSupabaseClient()
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    
+    return {
+      data,
+      error: error || null,
+      success: !error
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error('Failed to sign in'),
+      success: false
+    }
+  }
 }
 
-export const getCurrentUser = async () => {
-  const supabase = createClientSupabaseClient()
-  const { data: { session }, error } = await supabase.auth.getSession()
-  if (error) throw error
-  return session?.user || null
+/**
+ * Sign out the current user
+ */
+export async function signOut(): Promise<AuthResponse> {
+  try {
+    const supabase = createClientSupabaseClient()
+    const { error } = await supabase.auth.signOut()
+    
+    return {
+      data: null,
+      error: error || null,
+      success: !error
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error('Failed to sign out'),
+      success: false
+    }
+  }
+}
+
+/**
+ * Get the current user
+ */
+export async function getCurrentUser(): Promise<AuthResponse<User | null>> {
+  try {
+    const supabase = createClientSupabaseClient()
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    return {
+      data: session?.user || null,
+      error: error || null,
+      success: !error
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error('Failed to get current user'),
+      success: false
+    }
+  }
 }
 
 /**
  * Gets the current session
- * @returns Promise with the session data
  */
 export async function getSession() {
   const supabase = createClientSupabaseClient()
@@ -35,8 +89,6 @@ export async function getSession() {
 
 /**
  * Sets up a listener for auth state changes
- * @param callback Function to call when auth state changes
- * @returns Subscription that can be unsubscribed
  */
 export function onAuthStateChange(callback: (event: string, session: any) => void) {
   const supabase = createClientSupabaseClient()
@@ -55,7 +107,6 @@ export function onAuthStateChange(callback: (event: string, session: any) => voi
   try {
     return supabase.auth.onAuthStateChange(callback)
   } catch (error) {
-    console.error('Error setting up auth state change listener:', error)
     // Return a mock subscription if the real one fails
     return {
       data: {
@@ -67,79 +118,62 @@ export function onAuthStateChange(callback: (event: string, session: any) => voi
   }
 }
 
-export const signInWithGoogle = async (redirectTo?: string) => {
+/**
+ * Sign in with Google OAuth
+ */
+export async function signInWithGoogle(redirectTo?: string): Promise<AuthResponse> {
   try {
     const supabase = createClientSupabaseClient()
     
-    // Clear any existing auth cookies to prevent state conflicts
-    if (typeof document !== 'undefined') {
-      // Clear all supabase cookies to ensure a clean state
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i];
-        const eqPos = cookie.indexOf('=');
-        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-        if (name.startsWith('sb-')) {
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-        }
-      }
-    }
-    
-    // Use a very basic OAuth configuration to minimize issues
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
         skipBrowserRedirect: false,
       },
-    });
+    })
     
-    // Log the URL for debugging
-    if (data?.url) {
-      console.log('Auth redirect URL:', data.url);
+    return {
+      data,
+      error: error || null,
+      success: !error
     }
-    
-    if (error) {
-      console.error('Google sign-in error:', error)
-      
-      // Enhance error message for provider not enabled
-      if (error.message?.includes('provider is not enabled') || 
-          error.message?.includes('Unsupported provider')) {
-        console.error('Google provider is not enabled in Supabase. Please configure it in the Supabase dashboard.');
-      }
-      
-      return { data: null, error }
-    }
-    
-    return { data, error: null }
   } catch (err) {
-    console.error('Unexpected error during Google sign-in:', err)
-    return { 
-      data: null, 
-      error: err instanceof Error ? err : new Error('Failed to sign in with Google')
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error('Failed to sign in with Google'),
+      success: false
     }
   }
 }
 
-export const signUp = async (email: string, password: string) => {
-  console.log('Attempting signup with email:', email)
-  const supabase = createClientSupabaseClient()
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-      data: {
-        email: email,
+/**
+ * Sign up with email and password
+ */
+export async function signUp(email: string, password: string): Promise<AuthResponse> {
+  try {
+    const supabase = createClientSupabaseClient()
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          email: email,
+        }
       }
+    })
+    
+    return {
+      data,
+      error: error || null,
+      success: !error
     }
-  })
-  
-  if (error) {
-    console.error('Signup error:', error)
-    throw error
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error('Failed to sign up'),
+      success: false
+    }
   }
-  
-  console.log('Signup response:', data)
-  return data
 }

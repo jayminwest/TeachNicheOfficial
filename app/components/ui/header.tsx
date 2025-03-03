@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
-import { SignInPage } from "./sign-in";
-import { SignUpPage } from "./sign-up";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./dialog";
-import { signOut } from "@/app/services/auth/supabaseAuth";
+import { AuthDialog } from "./auth-dialog";
+import { SignOutButton } from "./sign-out-button";
+import { Dialog, DialogTrigger } from "./dialog";
 
 interface NavigationItem {
     title: string;
@@ -199,40 +198,22 @@ export function Header() {
                                         <Link href="/profile">
                                             <Button variant="ghost" className="w-full">Profile</Button>
                                         </Link>
-                                        <Button 
-                                            variant="ghost"
-                                            className="w-full"
-                                            onClick={async () => {
-                                                await signOut();
-                                                window.location.href = '/';
-                                            }}
-                                        >
-                                            Sign Out
-                                        </Button>
+                                        <SignOutButton variant="ghost" className="w-full" />
                                     </>
                                 ) : !loading ? (
                                     <>
-                                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" className="w-full">Sign In</Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="p-0 bg-background">
-                                                <DialogTitle className="sr-only">
-                                                    {showSignIn ? "Sign In" : "Sign Up"}
-                                                </DialogTitle>
-                                                {showSignIn ? (
-                                                    <SignInPage 
-                                                        onSwitchToSignUp={() => setShowSignIn(false)} 
-                                                        onSignInSuccess={() => setDialogOpen(false)}
-                                                    />
-                                                ) : (
-                                                    <SignUpPage 
-                                                        onSwitchToSignIn={() => setShowSignIn(true)} 
-                                                        onSignInSuccess={() => setDialogOpen(false)}
-                                                    />
-                                                )}
-                                            </DialogContent>
-                                        </Dialog>
+                                        <AuthDialog 
+                                            open={dialogOpen} 
+                                            onOpenChange={setDialogOpen}
+                                            defaultView={showSignIn ? 'sign-in' : 'sign-up'}
+                                        />
+                                        <Button 
+                                            variant="ghost" 
+                                            className="w-full"
+                                            onClick={() => setDialogOpen(true)}
+                                        >
+                                            Sign In
+                                        </Button>
                                         <Button 
                                             className="w-full"
                                             onClick={() => {

@@ -4,13 +4,16 @@ import { test, expect } from '@playwright/test';
 async function login(page: any) {
   await page.goto('/');
   await page.click('[data-testid="sign-in-button"]');
+  
+  // Wait for auth dialog to appear
+  await page.waitForSelector('[data-testid="auth-dialog"]');
+  
   await page.fill('[data-testid="email-input"]', 'test-buyer@example.com');
   await page.fill('[data-testid="password-input"]', 'TestPassword123!');
   await page.click('[data-testid="submit-sign-in"]');
-  await page.waitForSelector('[data-testid="user-avatar"]');
   
-  // Ensure the session is properly established for RLS
-  await page.waitForTimeout(1000);
+  // Wait for profile button to appear, indicating successful login
+  await page.waitForSelector('[data-testid="profile-button"]', { timeout: 5000 });
 }
 
 test.describe('Lesson purchase flow', () => {

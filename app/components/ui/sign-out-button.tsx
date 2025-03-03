@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from './button';
-import { signOut } from '@/app/lib/auth-helpers';
+import { signOut } from '@/app/services/auth/supabaseAuth';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -20,14 +20,14 @@ export function SignOutButton({
   const handleSignOut = async () => {
     try {
       setIsLoading(true);
-      const { success } = await signOut();
+      const { success, error } = await signOut();
       
       if (success) {
         // Redirect to home page after sign out
         router.push('/');
+      } else if (error) {
+        console.error('Error signing out:', error.message);
       }
-    } catch (error) {
-      console.error('Error signing out:', error);
     } finally {
       setIsLoading(false);
     }
@@ -39,6 +39,7 @@ export function SignOutButton({
       className={className}
       onClick={handleSignOut}
       disabled={isLoading}
+      data-testid="sign-out-button"
     >
       {isLoading ? 'Signing out...' : 'Sign out'}
     </Button>

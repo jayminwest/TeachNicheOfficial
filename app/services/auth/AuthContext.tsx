@@ -8,12 +8,14 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   isAuthenticated: boolean
+  error: Error | null
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAuthenticated: false,
+  error: null
 })
 
 export function AuthProvider({ 
@@ -23,97 +25,97 @@ export function AuthProvider({
   children: React.ReactNode;
   initialUser?: User | null;
 }) {
-  const [user, setUser] = useState<User | null>(initialUser)
-  const [loading, setLoading] = useState(true)
-  const isAuthenticated = !!user
+  const [authState, setAuthState] = useState<{
+    user: User | null;
+    loading: boolean;
+    error: Error | null;
+  }>({
+    user: initialUser,
+    loading: true,
+    error: null
+  })
+
+  const isAuthenticated = !!authState.user
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    async function getInitialSession() {
-      try {
-        console.log('AuthContext: Getting initial session')
-        const { data: { session } } = await getSession()
-        console.log('AuthContext: Initial session result:', !!session)
-        
-        if (session?.user) {
-          console.log('AuthContext: User found in session:', session.user.id)
-          setUser(session.user)
-        } else {
-          console.log('AuthContext: No user in session')
-          setUser(null)
-        }
-        setLoading(false)
-      } catch (error) {
-        console.error('AuthContext: Error getting initial session:', error)
-        setUser(null)
-        setLoading(false)
-      }
-    }
-
-    getInitialSession()
-
-    // Handle auth state changes
+    let isMounted = true
     let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
+
+    // Check active sessions and sets the user
+    async function initializeAuth() {
+      try {
+        // Get initial session
+        const { data: { session } } = await getSession()
         
-    try {
-      // In test environment, we might not have all Supabase methods available
-      if (process.env.NODE_ENV === 'test') {
-        // Mock subscription for tests
-        setLoading(false)
-      } else if (typeof window !== 'undefined') {
-        const authStateChange = onAuthStateChange(async (event, session) => {
-          console.log('AuthContext: Auth state changed:', event, session?.user?.id)
-              
-          // Handle auth state changes
-          if (event === 'SIGNED_IN') {
-            console.log('AuthContext: User signed in:', session?.user?.id)
-            setUser(session?.user ?? null)
-                
-            // Check if there's a redirect URL in the query params
-            if (typeof window !== 'undefined') {
-              const params = new URLSearchParams(window.location.search);
-              const redirectTo = params.get('redirect');
-              if (redirectTo) {
-                window.location.href = redirectTo;
-              }
-            }
-                
-            // Don't force a refresh - let the router handle navigation
-            // This prevents issues with the auth flow
-          } else if (event === 'SIGNED_OUT') {
-            console.log('AuthContext: User signed out')
-            setUser(null)
-          } else if (event === 'TOKEN_REFRESHED') {
-            console.log('AuthContext: Token refreshed for user:', session?.user?.id)
-            setUser(session?.user ?? null)
-          } else if (event === 'USER_UPDATED') {
-            console.log('AuthContext: User updated:', session?.user?.id)
-            setUser(session?.user ?? null)
-          }
-              
-          setLoading(false)
-        })
-        
-        if (authStateChange && authStateChange.data && authStateChange.data.subscription) {
-          subscription = authStateChange.data.subscription
+        if (isMounted) {
+          setAuthState(prev => ({
+            ...prev,
+            user: session?.user || null,
+            loading: false
+          }))
         }
-      } else {
-        // Fallback if method is not available
-        console.warn('Auth state change listener not available')
-        setLoading(false)
+
+        // Set up auth state change listener
+        if (process.env.NODE_ENV !== 'test' && typeof window !== 'undefined') {
+          const authStateChange = onAuthStateChange((event, session) => {
+            if (!isMounted) return
+            
+            // Handle auth state changes
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+              setAuthState(prev => ({
+                ...prev,
+                user: session?.user || null,
+                loading: false
+              }))
+              
+              // Handle redirect if needed
+              if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
+                const params = new URLSearchParams(window.location.search)
+                const redirectTo = params.get('redirect')
+                if (redirectTo) {
+                  window.location.href = redirectTo
+                }
+              }
+            } else if (event === 'SIGNED_OUT') {
+              setAuthState(prev => ({
+                ...prev,
+                user: null,
+                loading: false
+              }))
+            }
+          })
+          
+          if (authStateChange?.data?.subscription) {
+            subscription = authStateChange.data.subscription
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAuthState(prev => ({
+            ...prev,
+            user: null,
+            loading: false,
+            error: error instanceof Error ? error : new Error('Authentication error')
+          }))
+        }
       }
-    } catch (error) {
-      console.error('Error setting up auth listener:', error)
-      setLoading(false)
     }
+
+    initializeAuth()
 
     return () => {
+      isMounted = false
       subscription.unsubscribe()
     }
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated }}>
+    <AuthContext.Provider value={{ 
+      user: authState.user, 
+      loading: authState.loading, 
+      isAuthenticated,
+      error: authState.error
+    }}>
       {children}
     </AuthContext.Provider>
   )

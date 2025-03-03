@@ -23,13 +23,15 @@ interface AuthProviderProps {
   user?: User | null
   loading?: boolean
   isAuthenticated?: boolean
+  error?: Error | null
 }
 
 // Default auth context values
 const defaultAuthValues: AuthProviderProps = {
   user: mockUser,
   loading: false,
-  isAuthenticated: true
+  isAuthenticated: true,
+  error: null
 }
 
 // Render with auth context wrapper
@@ -44,13 +46,15 @@ export function renderWithAuth(
       const user = authProps.user !== undefined ? authProps.user : defaultAuthValues.user;
       const loading = authProps.loading !== undefined ? authProps.loading : defaultAuthValues.loading;
       const isAuthenticated = authProps.isAuthenticated !== undefined ? authProps.isAuthenticated : defaultAuthValues.isAuthenticated;
+      const error = authProps.error !== undefined ? authProps.error : defaultAuthValues.error;
       
       return (
         <AuthContext.Provider
           value={{
-            user: user as User | null, // Force the correct type
+            user: user as User | null,
             loading: loading as boolean,
-            isAuthenticated: isAuthenticated as boolean
+            isAuthenticated: isAuthenticated as boolean,
+            error: error
           }}
         >
           {children}

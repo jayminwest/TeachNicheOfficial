@@ -78,14 +78,23 @@ Based on the codebase review, several areas need immediate attention:
 ### Phase 1: Create Centralized Database Service (1-2 days)
 
 #### 1.1 Create Database Service Structure
-- [ ] Create `app/services/database.ts` with base error handling and retry logic
+
+**Server-Side Database Services**
+- [ ] Create `app/api/services/database.ts` with base error handling and retry logic
 - [ ] Define consistent error types and response formats
 - [ ] Implement connection management and error logging
 
+**Client-Side Database Interfaces**
+- [ ] Create `app/services/api-client.ts` for client-side API communication
+- [ ] Implement request/response handling with proper typing
+- [ ] Add error handling and retry logic for network requests
+
 #### 1.2 Implement Entity-Specific Database Functions
 
-##### Lessons Module
-- [ ] Create `app/services/database/lessons.ts` with the following functions:
+##### Server-Side Modules
+
+**Lessons Module**
+- [ ] Create `app/api/services/lessons.ts` with the following functions:
   - [ ] `getLessons(options?: { limit?: number, offset?: number, orderBy?: string }): Promise<Lesson[]>`
   - [ ] `getLessonById(id: string): Promise<Lesson | null>`
   - [ ] `createLesson(data: LessonCreateData): Promise<Lesson>`
@@ -93,50 +102,94 @@ Based on the codebase review, several areas need immediate attention:
   - [ ] `deleteLessonById(id: string): Promise<boolean>`
   - [ ] `getLessonWithReviews(id: string): Promise<LessonWithReviews | null>`
 
-##### Users/Profiles Module
-- [ ] Create `app/services/database/profiles.ts` with the following functions:
+**Users/Profiles Module**
+- [ ] Create `app/api/services/profiles.ts` with the following functions:
   - [ ] `getProfileById(id: string): Promise<Profile | null>`
   - [ ] `createProfile(data: ProfileCreateData): Promise<Profile>`
   - [ ] `updateProfile(id: string, data: Partial<ProfileUpdateData>): Promise<Profile>`
   - [ ] `getProfileByUserId(userId: string): Promise<Profile | null>`
 
-##### Purchases Module
-- [ ] Create `app/services/database/purchases.ts` with the following functions:
+**Purchases Module**
+- [ ] Create `app/api/services/purchases.ts` with the following functions:
   - [ ] `createPurchase(data: PurchaseCreateData): Promise<Purchase>`
   - [ ] `getPurchasesByUserId(userId: string): Promise<Purchase[]>`
   - [ ] `getPurchaseById(id: string): Promise<Purchase | null>`
   - [ ] `checkLessonAccess(userId: string, lessonId: string): Promise<LessonAccess>`
 
+##### Client-Side API Interfaces
+- [ ] Create `app/services/lessons-api.ts` with client-side API methods
+- [ ] Create `app/services/profiles-api.ts` with client-side API methods
+- [ ] Create `app/services/purchases-api.ts` with client-side API methods
+
 #### 1.3 Add Error Handling and Retry Logic
+
+**Server-Side**
 - [ ] Implement consistent error handling for database operations
 - [ ] Add retry logic for potentially flaky operations
 - [ ] Create error classification system for different types of database errors
+- [ ] Implement proper logging for server-side errors
+
+**Client-Side**
+- [ ] Create standardized API error handling
+- [ ] Implement user-friendly error messages
+- [ ] Add client-side retry logic for transient failures
+- [ ] Create error boundary components for React
 
 #### 1.4 Write Unit Tests
-- [ ] Create test suite for database service
+
+**Server-Side Tests**
+- [ ] Create test suite for server-side database services
 - [ ] Mock Supabase responses for testing
 - [ ] Test error handling and retry logic
 - [ ] Test each entity-specific function
 
+**Client-Side Tests**
+- [ ] Create test suite for client-side API interfaces
+- [ ] Mock API responses for testing
+- [ ] Test error handling in client components
+- [ ] Test retry logic and loading states
+
 #### 1.5 Update Components (Proof of Concept)
-- [ ] Refactor `app/lessons/page.tsx` to use the new database service
-- [ ] Refactor `app/lessons/new/page.tsx` to use the new database service
+- [ ] Refactor `app/lessons/page.tsx` to use the new client-side API
+- [ ] Create corresponding server-side route handlers
+- [ ] Refactor `app/lessons/new/page.tsx` to use the new client-side API
 - [ ] Verify functionality works as expected
 
 ### Phase 2: Authentication Stabilization (1-2 days)
 
 #### 2.1 Create Profile Service
-- [ ] Create `app/services/profile.ts` to handle profile management
-- [ ] Move profile creation logic from AuthContext to this service
+
+**Server-Side**
+- [ ] Create `app/api/services/profile.ts` to handle server-side profile management
+- [ ] Implement secure profile creation and validation
+- [ ] Add functions for profile updates with proper authorization checks
+
+**Client-Side**
+- [ ] Create `app/services/profile-api.ts` for client-side profile operations
+- [ ] Move profile creation UI logic from AuthContext to this service
 - [ ] Add functions for profile updates and retrieval
 
 #### 2.2 Refactor AuthContext
+
+**Server-Side Auth Handlers**
+- [ ] Create `app/api/auth/[...nextauth].ts` for server-side auth handling
+- [ ] Implement proper session management
+- [ ] Add secure token handling and validation
+
+**Client-Side Auth Context**
 - [ ] Simplify state management in `app/services/auth/AuthContext.tsx`
 - [ ] Remove nested state updates
-- [ ] Use the new profile service for profile operations
+- [ ] Use the new profile API service for profile operations
 - [ ] Improve error handling consistency
 
 #### 2.3 Simplify OAuth Flows
+
+**Server-Side**
+- [ ] Create dedicated OAuth handlers in API routes
+- [ ] Implement secure state validation
+- [ ] Add proper error handling for OAuth failures
+
+**Client-Side**
 - [ ] Refactor `app/services/auth/supabaseAuth.ts` to simplify redirect handling
 - [ ] Improve error classification
 - [ ] Add better type safety
@@ -146,9 +199,18 @@ Based on the codebase review, several areas need immediate attention:
 - [ ] Refactor `app/components/ui/auth-dialog.tsx` to separate UI from logic
 - [ ] Refactor `app/components/ui/sign-in.tsx` to use the simplified auth service
 - [ ] Implement consistent loading and error states
+- [ ] Create clear separation between auth UI and auth logic
 
 #### 2.5 Add Authentication Tests
-- [ ] Create test suite for authentication service
+
+**Server-Side Tests**
+- [ ] Create test suite for server-side auth handlers
+- [ ] Test session management
+- [ ] Test authorization logic
+- [ ] Test error handling
+
+**Client-Side Tests**
+- [ ] Create test suite for client-side authentication service
 - [ ] Test OAuth flows with mocked responses
 - [ ] Test error handling scenarios
 - [ ] Test auth state changes
@@ -156,46 +218,96 @@ Based on the codebase review, several areas need immediate attention:
 ### Phase 3: Component Refactoring (2-3 days)
 
 #### 3.1 Create Custom Hooks for Data Fetching
-- [ ] Create `app/hooks/use-lessons.ts` for lesson data fetching
-- [ ] Create `app/hooks/use-profile.ts` for profile data fetching
-- [ ] Create `app/hooks/use-purchases.ts` for purchase data fetching
+
+**Client-Side Data Hooks**
+- [ ] Create `app/hooks/use-lessons.ts` for lesson data fetching using client API
+- [ ] Create `app/hooks/use-profile.ts` for profile data fetching using client API
+- [ ] Create `app/hooks/use-purchases.ts` for purchase data fetching using client API
+- [ ] Add proper loading, error, and caching states to all hooks
+
+**Server-Side Data Fetching**
+- [ ] Create `app/lib/server/get-lessons.ts` for server component data fetching
+- [ ] Create `app/lib/server/get-profile.ts` for server component data fetching
+- [ ] Create `app/lib/server/get-purchases.ts` for server component data fetching
+- [ ] Implement proper error handling for server-side data fetching
 
 #### 3.2 Refactor Lesson Components
-- [ ] Update `app/components/ui/lesson-grid.tsx` to use the new hooks
+
+**Server Components**
+- [ ] Create server components for static lesson data
+- [ ] Implement proper data fetching in server components
+- [ ] Handle errors gracefully in server components
+
+**Client Components**
+- [ ] Update `app/components/ui/lesson-grid.tsx` to use the new client hooks
 - [ ] Update `app/components/ui/lesson-card.tsx` to use standardized props
 - [ ] Update `app/components/ui/lesson-form.tsx` to improve error handling
+- [ ] Clearly separate client-side interactive elements
 
 #### 3.3 Refactor Purchase Components
-- [ ] Update `app/components/ui/lesson-access-gate.tsx` to use the database service
+
+**Server Components**
+- [ ] Create server components for purchase verification
+- [ ] Implement secure access checking on the server
+
+**Client Components**
+- [ ] Update `app/components/ui/lesson-access-gate.tsx` to use the client API
 - [ ] Update `app/components/ui/lesson-preview-dialog.tsx` to use the new hooks
 - [ ] Standardize props and interfaces
+- [ ] Implement client-side purchase flow with proper error handling
 
 #### 3.4 Implement Consistent Loading and Error States
+
+**Server-Side Error Handling**
+- [ ] Create standardized error handling for server components
+- [ ] Implement proper error boundaries for server errors
+
+**Client-Side States**
 - [ ] Create reusable loading components
 - [ ] Create standardized error display components
-- [ ] Update all components to use these consistent patterns
+- [ ] Implement proper Suspense boundaries
+- [ ] Update all client components to use these consistent patterns
 
 ### Phase 4: Test Optimization (1-2 days)
 
 #### 4.1 Create Test Helpers
+
+**Server-Side Test Helpers**
+- [ ] Create `app/__tests__/helpers/server/database-mock.ts` for mocking database
+- [ ] Create `app/__tests__/helpers/server/auth-mock.ts` for mocking authentication
+- [ ] Create `app/__tests__/helpers/server/api-mock.ts` for mocking API responses
+
+**Client-Side Test Helpers**
 - [ ] Create `e2e-tests/helpers/auth.ts` with authentication helpers
 - [ ] Create `e2e-tests/helpers/navigation.ts` with navigation helpers
 - [ ] Create `e2e-tests/helpers/assertions.ts` with common assertions
+- [ ] Create `app/__tests__/helpers/client/hooks-mock.ts` for testing hooks
 
 #### 4.2 Refactor Core E2E Tests
 - [ ] Refactor `e2e-tests/lesson-purchase.spec.ts` to use the new helpers
 - [ ] Reduce reliance on specific test IDs
 - [ ] Focus on critical user flows
+- [ ] Separate server-dependent and client-only tests
 
 #### 4.3 Remove Redundant Tests
 - [ ] Identify and remove redundant authentication tests
 - [ ] Replace complex UI tests with simpler functional tests
 - [ ] Document which tests were removed and why
+- [ ] Separate client-side and server-side test concerns
 
 #### 4.4 Add Missing Unit Tests
-- [ ] Add tests for database service
-- [ ] Add tests for authentication service
+
+**Server-Side Tests**
+- [ ] Add tests for server API routes
+- [ ] Add tests for server-side database services
+- [ ] Add tests for server-side authentication
+- [ ] Test server-side error handling
+
+**Client-Side Tests**
+- [ ] Add tests for client API interfaces
+- [ ] Add tests for client-side authentication service
 - [ ] Add tests for custom hooks
+- [ ] Test client-side error handling and loading states
 
 ## Testing Strategy
 
@@ -225,21 +337,43 @@ Based on the codebase review, several areas need immediate attention:
    - Tests with excessive mocking that are difficult to maintain
    - Tests that depend on specific UI implementation details
 
-### Unit Tests to Add
-1. **Authentication Service**:
-   - Test all authentication methods
-   - Verify error handling
-   - Test token refresh logic
+### Server-Side Unit Tests to Add
+1. **API Route Tests**:
+   - Test all API endpoints
+   - Verify proper authorization checks
+   - Test error handling and status codes
+   - Verify data validation
 
-2. **Database Service**:
+2. **Server Database Service Tests**:
    - Test CRUD operations for each entity
    - Verify error handling and retry logic
    - Test transaction handling
+   - Test data integrity constraints
 
-3. **Component Logic**:
+3. **Server Authentication Tests**:
+   - Test authentication middleware
+   - Verify session handling
+   - Test authorization logic
+   - Test token validation and refresh
+
+### Client-Side Unit Tests to Add
+1. **Client API Interface Tests**:
+   - Test API client methods
+   - Verify error handling
+   - Test retry logic
+   - Test response parsing
+
+2. **Authentication Service Tests**:
+   - Test all authentication methods
+   - Verify error handling
+   - Test token refresh logic
+   - Test auth state management
+
+3. **Component Logic Tests**:
    - Test form validation
    - Test state management
    - Test conditional rendering logic
+   - Test loading and error states
 
 ## Weekly Review Checkpoints
 

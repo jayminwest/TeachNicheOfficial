@@ -6,17 +6,32 @@ test.describe('Homepage Accessibility', () => {
     // Navigate to the homepage
     await page.goto('/');
     
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle');
+    
     // Run accessibility tests
     const violations = await runAccessibilityTests(page, 'homepage', {
       includedImpacts: ['critical', 'serious'],
       // Exclude known issues that will be addressed separately
-      excludeRules: ['color-contrast', 'button-name', 'aria-allowed-attr', 'aria-roles', 'landmark-one-main']
+      excludeRules: [
+        'color-contrast', 
+        'button-name', 
+        'aria-allowed-attr', 
+        'aria-roles', 
+        'landmark-one-main'
+      ]
     });
     
-    // Log any violations for debugging (minimal output)
+    // Log any violations for debugging (detailed output for troubleshooting)
     if (violations.length > 0) {
-      console.log('Accessibility violations found:', 
-        violations.map(v => `${v.id} (${v.impact})`));
+      console.log('Accessibility violations found:');
+      violations.forEach(v => {
+        console.log(`- ${v.id} (${v.impact}): ${v.help}`);
+        console.log(`  ${v.description}`);
+        console.log(`  Affected nodes: ${v.nodes.length}`);
+      });
+    } else {
+      console.log('No critical or serious accessibility violations found');
     }
     
     // Assert no critical or serious violations

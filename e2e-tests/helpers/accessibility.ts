@@ -40,7 +40,9 @@ export async function runAccessibilityTests(
   if (options.includedImpacts) {
     // Filter violations by impact level
     axeBuilder = axeBuilder.options({
-      resultTypes: ['violations']
+      resultTypes: ['violations'],
+      // Specify which impact levels to include
+      rules: options.includedImpacts.map(impact => ({ impact }))
     });
   }
   
@@ -66,10 +68,14 @@ export async function runAccessibilityTests(
   
   // Filter violations by impact level if specified
   let filteredViolations = results.violations;
-  if (options.includedImpacts) {
+  if (options.includedImpacts && options.includedImpacts.length > 0) {
     filteredViolations = results.violations.filter(violation => 
       options.includedImpacts?.includes(violation.impact as 'minor' | 'moderate' | 'serious' | 'critical')
     );
+    
+    // Log the filtering that was applied
+    console.log(`Filtered violations by impact levels: ${options.includedImpacts.join(', ')}`);
+    console.log(`Found ${filteredViolations.length} violations of specified impact levels out of ${results.violations.length} total violations`);
   }
   
   // Return the violations for assertion in tests

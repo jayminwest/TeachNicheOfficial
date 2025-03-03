@@ -105,23 +105,21 @@ export function ProfileForm() {
     
     setIsLoading(true);
     try {
-      // Use the server-side API endpoint to update the profile
-      const response = await fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Update the profile directly - this will work once RLS policies are in place
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
           full_name: data.full_name,
           bio: data.bio,
           social_media_tag: data.social_media_tag,
-        }),
-      });
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
+        });
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to update profile');
+      if (error) {
+        throw new Error(`Error updating profile: ${error.message}`);
       }
       
       toast({

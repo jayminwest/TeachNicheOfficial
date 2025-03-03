@@ -6,7 +6,6 @@ INSERT INTO auth.users (
   id,
   email,
   raw_user_meta_data,
-  app_metadata,
   created_at,
   updated_at,
   last_sign_in_at
@@ -15,8 +14,7 @@ VALUES
   (
     'gggggggg-gggg-gggg-gggg-gggggggggggg',
     'google-user@example.com',
-    '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar"}',
-    '{"provider":"google", "providers":["google"]}',
+    '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
     now(),
     now(),
     now()
@@ -24,8 +22,7 @@ VALUES
   (
     'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
     'google-creator@example.com',
-    '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar"}',
-    '{"provider":"google", "providers":["google"]}',
+    '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
     now(),
     now(),
     now()
@@ -34,7 +31,6 @@ ON CONFLICT (id) DO UPDATE
 SET 
   email = EXCLUDED.email,
   raw_user_meta_data = EXCLUDED.raw_user_meta_data,
-  app_metadata = EXCLUDED.app_metadata,
   updated_at = now();
 
 -- Insert corresponding identities for Google authentication

@@ -77,6 +77,7 @@ INSERT INTO auth.identities (
   user_id,
   identity_data,
   provider,
+  provider_id,
   created_at,
   updated_at
 )
@@ -90,11 +91,17 @@ SELECT
       '{"sub":"google-oauth2|987654321", "email":"google-creator@example.com", "name":"Google Creator"}'::jsonb
   END,
   'google',
+  CASE 
+    WHEN email = 'google-user@example.com' THEN 
+      'google-oauth2|123456789'
+    ELSE 
+      'google-oauth2|987654321'
+  END,
   now(),
   now()
 FROM auth.users
 WHERE email IN ('google-user@example.com', 'google-creator@example.com')
-ON CONFLICT (id) DO UPDATE 
+ON CONFLICT (provider_id, provider) DO UPDATE 
 SET 
   identity_data = EXCLUDED.identity_data,
   updated_at = now();

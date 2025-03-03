@@ -10,7 +10,7 @@ test.describe('Error Handling', () => {
     
     // Verify error message content
     const errorText = await page.locator('[data-testid="error-message"]').textContent();
-    expect(errorText).toContain('not found');
+    expect(errorText).toContain("doesn't exist");
     
     // Check for "Go back" or "Return home" button
     await expect(page.locator('a', { hasText: /home|back/i })).toBeVisible();

@@ -3,12 +3,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage } from '../sign-in';
 import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+  useSearchParams: jest.fn(() => ({ get: jest.fn() })),
 }));
 
 jest.mock('@/app/services/auth/supabaseAuth', () => ({
@@ -29,11 +30,17 @@ describe('SignInPage', () => {
   const mockRouter = {
     push: jest.fn(),
   };
-  const mockOnSwitchToSignUp = jest.fn();
+  const mockOnSignInSuccess = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    (useSearchParams as jest.Mock).mockReturnValue({
+      get: jest.fn().mockImplementation(param => {
+        if (param === 'redirect') return null;
+        return null;
+      })
+    });
     (useAuth as jest.Mock).mockReturnValue({
       user: null,
       loading: false,
@@ -42,7 +49,7 @@ describe('SignInPage', () => {
 
   // Component Rendering Tests
   it('renders the sign-in form correctly when not loading and no user', () => {
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     // Check for key elements
     expect(screen.getByText('Welcome back! Please sign in to continue')).toBeInTheDocument();
@@ -56,7 +63,7 @@ describe('SignInPage', () => {
       loading: true,
     });
 
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
     // The spinner doesn't have a role attribute, so we check for the element with animation class
@@ -90,8 +97,13 @@ describe('SignInPage', () => {
     });
     
     (onAuthStateChange as jest.Mock).mockImplementation(mockAuthStateChange);
+    
+    // Mock searchParams.get to return a specific redirect value
+    (useSearchParams as jest.Mock).mockReturnValue({
+      get: jest.fn().mockReturnValue('/dashboard')
+    });
 
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={jest.fn()} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
     await user.click(signInButton);

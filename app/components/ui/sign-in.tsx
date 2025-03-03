@@ -36,8 +36,7 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
           
           // Check if there's a redirect URL in the query params
           if (typeof window !== 'undefined') {
-            const params = searchParams || new URLSearchParams(window.location.search);
-            const redirectTo = params.get('redirect');
+            const redirectTo = searchParams?.get('redirect');
             
             if (redirectTo) {
               window.location.href = redirectTo;
@@ -58,11 +57,9 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
     try {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
+        // @ts-ignore - for testing purposes
         window.signInWithGoogleCalled = true;
       }
-      
-      // Get the redirect URL from the query params
-      const redirectTo = searchParams?.get('redirect') || '/profile'
       
       // Add the redirect_to parameter to the OAuth URL
       const result = await signInWithGoogle()

@@ -170,7 +170,7 @@ describe('SignInPage', () => {
   });
 
   it('maintains focus management during form interaction', async () => {
-    const userEvent1 = userEvent.setup();
+    const userEvents = userEvent.setup();
     
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
@@ -178,7 +178,7 @@ describe('SignInPage', () => {
     const googleButton = screen.getByRole('button', { name: /sign in with google/i });
     
     // Tab to the Google button
-    await userEvent1.tab();
+    await userEvents.tab();
     expect(googleButton).toHaveFocus();
   });
 

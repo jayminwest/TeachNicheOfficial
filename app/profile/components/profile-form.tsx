@@ -128,7 +128,7 @@ export function ProfileForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, user?.user_metadata]);
+  }, [user?.id, user?.user_metadata, user?.email, form]);
 
   // We'll use a single useEffect that calls our fetchProfileData function
   useEffect(() => {

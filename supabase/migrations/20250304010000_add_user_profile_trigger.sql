@@ -5,12 +5,25 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, email, avatar_url)
+  INSERT INTO public.profiles (
+    id, 
+    full_name, 
+    email, 
+    avatar_url, 
+    bio,                  -- Add bio initialization
+    social_media_tag,     -- Add social_media_tag initialization
+    created_at,
+    updated_at
+  )
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
     COALESCE(NEW.email, ''),
-    COALESCE(NEW.raw_user_meta_data->>'avatar_url', '')
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', ''),
+    '',                   -- Initialize bio as empty string
+    '',                   -- Initialize social_media_tag as empty string
+    now(),
+    now()
   );
   RETURN NEW;
 END;
@@ -31,6 +44,8 @@ BEGIN
     full_name = COALESCE(NEW.raw_user_meta_data->>'full_name', profiles.full_name),
     email = COALESCE(NEW.email, profiles.email),
     avatar_url = COALESCE(NEW.raw_user_meta_data->>'avatar_url', profiles.avatar_url),
+    -- Don't update bio and social_media_tag from auth.users updates
+    -- as these are managed through the profile form
     updated_at = now()
   WHERE id = NEW.id;
   RETURN NEW;

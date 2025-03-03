@@ -25,22 +25,42 @@ export async function POST(request: NextRequest) {
       }
     );
     
-    // We already validated userId and userEmail from the request body above
-    
-    // Update the profile using the server-side client
-    const { error } = await supabase
+    // First check if profile exists
+    const { data: existingProfile } = await supabase
       .from('profiles')
-      .upsert({
-        id: userId,
-        email: userEmail,
-        full_name,
-        bio,
-        social_media_tag,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'id',
-        returning: 'minimal'  // Don't need to return the row
-      });
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    let result;
+    
+    if (existingProfile) {
+      // Update existing profile
+      result = await supabase
+        .from('profiles')
+        .update({
+          full_name,
+          bio,
+          social_media_tag,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+    } else {
+      // Create new profile
+      result = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: userEmail,
+          full_name,
+          bio,
+          social_media_tag,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+    }
+    
+    const { error } = result;
     
     // Log the result for debugging
     console.log('Profile update result:', { error });

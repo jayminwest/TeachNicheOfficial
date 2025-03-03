@@ -63,53 +63,34 @@ export function ProfileForm() {
     try {
       console.log('Fetching profile data for user ID:', user.id);
       
-      // First try to get data from profiles table - use simpler query approach
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no record exists
-        
-      console.log('Raw profile data response:', { data, error });
+      // Use the server-side API to fetch profile data to bypass RLS issues
+      const response = await fetch(`/api/profile/get?userId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
-      if (error) {
-        console.error('Profile fetch error:', error.message);
-        
-        // No matter what the error is, try to use user metadata as fallback
-        console.log('Error fetching profile, using user metadata as fallback');
-        console.log('User metadata:', user.user_metadata);
-          
-        if (user.user_metadata) {
-          const userData = {
-            full_name: user.user_metadata.full_name || user.user_metadata.name || "",
-            bio: user.user_metadata.bio || "",
-            social_media_tag: user.user_metadata.social_media_tag || "",
-          };
-          console.log('Setting form data from user metadata:', userData);
-          
-          // Directly set form values
-          form.reset(userData);
-        }
-        return;
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch profile');
       }
       
-      // Profile found, update form
-      if (data) {
-        console.log('Profile data loaded:', data);
+      if (result.data) {
+        console.log('Profile data loaded:', result.data);
         
         // Create a clean object with just the fields we need
         const formData = {
-          full_name: data.full_name || "",
-          bio: data.bio || "",
-          social_media_tag: data.social_media_tag || "",
+          full_name: result.data.full_name || "",
+          bio: result.data.bio || "",
+          social_media_tag: result.data.social_media_tag || "",
         };
         
         console.log('Setting form data:', formData);
         
-        // Set each field individually to ensure they're updated
-        form.setValue('full_name', formData.full_name);
-        form.setValue('bio', formData.bio);
-        form.setValue('social_media_tag', formData.social_media_tag);
+        // Reset the form with all values at once
+        form.reset(formData);
         
         // Log the current form values after setting
         console.log('Form values after setting:', form.getValues());
@@ -124,14 +105,35 @@ export function ProfileForm() {
           };
           console.log('Setting form data from user metadata:', userData);
           
-          // Set each field individually
-          form.setValue('full_name', userData.full_name);
-          form.setValue('bio', userData.bio);
-          form.setValue('social_media_tag', userData.social_media_tag);
+          // Reset the form with all values at once
+          form.reset(userData);
+          
+          // Create profile if it doesn't exist
+          try {
+            await fetch('/api/profile/update', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                ...userData,
+                userId: user.id,
+                userEmail: user.email,
+              }),
+            });
+            console.log('Created profile from metadata');
+          } catch (err) {
+            console.error('Failed to create profile from metadata:', err);
+          }
         }
       }
     } catch (err) {
       console.error('Unexpected error fetching profile data:', err);
+      toast({
+        title: "Error loading profile",
+        description: err instanceof Error ? err.message : "Failed to load profile data",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

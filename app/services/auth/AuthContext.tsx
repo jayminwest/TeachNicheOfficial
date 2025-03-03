@@ -57,9 +57,12 @@ export function AuthProvider({
           full_name: user.user_metadata?.full_name || '',
           email: user.email || '',
           avatar_url: user.user_metadata?.avatar_url || null,
+          bio: '',  // Initialize bio
+          social_media_tag: '',  // Initialize social_media_tag
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
+        console.log('Created new profile for user:', user.id);
       }
     } catch (error) {
       console.error('Error creating/updating profile:', error);
@@ -75,6 +78,11 @@ export function AuthProvider({
       try {
         // Get initial session
         const { data: { session } } = await getSession()
+        
+        if (session?.user) {
+          // Create or update profile when initializing auth
+          await createOrUpdateProfile(session.user);
+        }
         
         if (isMounted) {
           setAuthState(prev => ({

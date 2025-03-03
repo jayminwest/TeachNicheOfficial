@@ -156,23 +156,24 @@ describe('Lessons API', () => {
       );
 
       // Set up the mock to return the expected data
-      const supabaseMock = getMockSupabase();
-      supabaseMock.from.mockReturnValue(supabaseMock);
-      supabaseMock.select.mockReturnValue(supabaseMock);
-      supabaseMock.eq.mockReturnValue(supabaseMock);
-      supabaseMock.order.mockReturnValue(supabaseMock);
-      supabaseMock.limit.mockReturnValue(supabaseMock);
-      supabaseMock.data = [];
+      const mockSupabase = getMockSupabase();
+      mockSupabase.from.mockReturnValue(mockSupabase);
+      mockSupabase.select.mockReturnValue(mockSupabase);
+      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.order.mockReturnValue(mockSupabase);
+      mockSupabase.limit.mockReturnValue(mockSupabase);
+      mockSupabase.data = [];
 
-      // Mock the createRouteHandlerClient to return our supabaseMock
-      jest.requireMock('../../../lib/supabase/client').createRouteHandlerClient.mockReturnValue(supabaseMock);
+      // Mock the createRouteHandlerClient to return our mockSupabase
+      const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');
+      createRouteHandlerClient.mockReturnValue(mockSupabase);
 
       await GET(req);
 
-      expect(supabaseMock.from).toHaveBeenCalledWith('lessons');
-      expect(supabaseMock.eq).toHaveBeenCalledWith('category', 'programming');
-      expect(supabaseMock.limit).toHaveBeenCalledWith(5);
-      expect(supabaseMock.order).toHaveBeenCalled();
+      expect(mockSupabase.from).toHaveBeenCalledWith('lessons');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('category', 'programming');
+      expect(mockSupabase.limit).toHaveBeenCalledWith(5);
+      expect(mockSupabase.order).toHaveBeenCalled();
     });
 
     it('handles database errors gracefully', async () => {

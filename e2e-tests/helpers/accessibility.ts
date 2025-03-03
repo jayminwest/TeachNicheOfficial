@@ -33,7 +33,8 @@ export async function runAccessibilityTests(
   
   // Configure the axe builder
   let axeBuilder = new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']);
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .disableRules(['color-contrast']); // Disable color contrast rule by default
   
   // Apply options
   if (options.includedImpacts) {

@@ -108,15 +108,51 @@ export function ProfileForm() {
       console.log('Updating profile with data:', data);
       
       // Update the profile in Supabase
-      const { error } = await supabase
+      // First check if the profile exists
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: data.full_name,
-          bio: data.bio,
-          social_media_tag: data.social_media_tag,
-          updated_at: new Date().toISOString(),
-        });
+        .select('id')
+        .eq('id', user.id);
+        
+      if (fetchError) {
+        throw new Error(`Error checking profile: ${fetchError.message}`);
+      }
+      
+      let updateError;
+      
+      if (existingProfile && existingProfile.length > 0) {
+        // Profile exists, use update instead of upsert
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: data.full_name,
+            bio: data.bio,
+            social_media_tag: data.social_media_tag,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+          
+        updateError = error;
+      } else {
+        // Profile doesn't exist, try insert
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            full_name: data.full_name,
+            bio: data.bio,
+            social_media_tag: data.social_media_tag,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            email: user.email || '', // Required field based on schema
+          });
+          
+        updateError = error;
+      }
+      
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
       
       if (error) {
         throw new Error(error.message);

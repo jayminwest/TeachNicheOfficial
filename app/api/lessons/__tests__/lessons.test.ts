@@ -247,7 +247,9 @@ describe('Lessons API', () => {
 
     it('handles database errors gracefully', async () => {
       const mockSupabase = getMockSupabase();
+      // Set up the mock to return an error
       mockSupabase.error = { message: 'Database error' };
+      mockSupabase.data = null;
       
       // Create a mock request
       createMocks({

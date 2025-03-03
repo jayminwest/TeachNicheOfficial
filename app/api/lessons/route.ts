@@ -140,7 +140,9 @@ async function getLessonsHandler(request: Request) {
     const { data: lessons, error } = await query;
     
     if (error) {
-      return createErrorResponse('Failed to fetch lessons', 500, error.message);
+      return NextResponse.json({ 
+        error: { message: error.message } 
+      }, { status: 500 });
     }
     
     return NextResponse.json({ lessons });

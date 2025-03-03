@@ -85,7 +85,7 @@ export function AuthProvider({
         }
         
         if (isMounted) {
-          setAuthState(prev => ({
+          setAuthState((prev) => ({
             ...prev,
             user: session?.user || null,
             loading: false
@@ -99,7 +99,11 @@ export function AuthProvider({
             
             // Handle auth state changes
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              setAuthState(prev => ({
+              setAuthState((prev: {
+                user: User | null;
+                loading: boolean;
+                error: Error | null;
+              }) => ({
                 ...prev,
                 user: session?.user || null,
                 loading: false
@@ -119,7 +123,11 @@ export function AuthProvider({
                 }
               }
             } else if (event === 'SIGNED_OUT') {
-              setAuthState(prev => ({
+              setAuthState((prev: {
+                user: User | null;
+                loading: boolean;
+                error: Error | null;
+              }) => ({
                 ...prev,
                 user: null,
                 loading: false
@@ -133,7 +141,11 @@ export function AuthProvider({
         }
       } catch (error) {
         if (isMounted) {
-          setAuthState(prev => ({
+          setAuthState((prev: {
+            user: User | null;
+            loading: boolean;
+            error: Error | null;
+          }) => ({
             ...prev,
             user: null,
             loading: false,

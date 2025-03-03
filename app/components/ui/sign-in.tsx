@@ -24,6 +24,12 @@ function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProp
   const router = useRouter()
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
+  
+  // Use initialView to set up initial UI state if needed
+  useEffect(() => {
+    console.log(`Initial view set to: ${initialView}`);
+    // Future implementation can use this to switch between sign-in/sign-up views
+  }, [initialView]);
 
   // Listen for auth state changes to handle redirection
   useEffect(() => {

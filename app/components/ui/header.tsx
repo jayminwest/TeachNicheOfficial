@@ -7,7 +7,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { SignInPage } from "./sign-in";
 import { SignUpPage } from "./sign-up";
-import { Dialog, DialogContent, DialogTrigger } from "./dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./dialog";
 import { supabase } from "@/app/services/supabase";
 
 interface NavigationItem {
@@ -141,9 +141,9 @@ export function Header() {
                                     <Button variant="ghost">Sign In</Button>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 bg-background">
-                                    <DialogTitle className="sr-only">
+                                    <div className="sr-only">
                                         {showSignIn ? "Sign In" : "Sign Up"}
-                                    </DialogTitle>
+                                    </div>
                                     {showSignIn ? (
                                         <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
                                     ) : (
@@ -200,6 +200,9 @@ export function Header() {
                                                 <Button variant="ghost" className="w-full">Sign In</Button>
                                             </DialogTrigger>
                                             <DialogContent className="p-0 bg-background">
+                                                <div className="sr-only">
+                                                    {showSignIn ? "Sign In" : "Sign Up"}
+                                                </div>
                                                 {showSignIn ? (
                                                     <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
                                                 ) : (

@@ -17,7 +17,7 @@ interface SignUpPageProps {
   onSignInSuccess?: () => void;
 }
 
-function SignUpPage({ onSwitchToSignIn }: SignUpPageProps) {
+function SignUpPage({ onSwitchToSignIn, onSignInSuccess }: SignUpPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()

@@ -7,7 +7,7 @@ The project requires significant cleanup and stabilization to ensure all core fe
 - ✅ Created centralized database service with error handling and retry logic
 - ✅ Implemented entity-specific services for lessons and purchases
 - ✅ Simplified authentication context and extracted profile management
-- ✅ Created custom hooks for data fetching
+- ✅ Created custom hooks for data fetching (lessons, lesson access, profile)
 - ✅ Refactored key components to use new services
 - ✅ Added authentication test helpers for E2E tests
 - ✅ Consolidated and improved use-lesson-access hook
@@ -209,7 +209,7 @@ Based on the codebase review, several areas need immediate attention:
 - [x] Create `app/hooks/use-lessons.ts` for lesson data fetching
 - [x] Create `app/hooks/use-lesson-access.ts` for access checking
 - [x] Consolidate duplicate implementations in `use-lesson-access.ts`
-- [ ] Create `app/hooks/use-profile.ts` for profile data fetching
+- [x] Create `app/hooks/use-profile.ts` for profile data fetching
 - [ ] Create `app/hooks/use-purchases.ts` for purchase data fetching
 - [x] Add proper loading, error, and state management to hooks
 
@@ -356,7 +356,7 @@ Based on the codebase review, several areas need immediate attention:
 - All components use consistent patterns for data fetching and error handling
 
 ## Next Steps
-1. Create `use-profile.ts` hook for profile data fetching
+1. ✅ Create `use-profile.ts` hook for profile data fetching
 2. Complete the refactoring of remaining lesson components
 3. Implement unit tests for database services and hooks
 4. Refactor purchase-related components

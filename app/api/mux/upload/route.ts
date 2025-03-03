@@ -12,7 +12,7 @@ function getCorsHeaders(origin: string = '*') {
 }
 // Helper function to handle POST request (upload initialization)
 async function handlePostRequest() {
-  const headersList = headers();
+  const headersList = await headers();
   const origin = headersList.get('origin') || '*';
 
   try {
@@ -57,7 +57,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const headersList = headers();
+  const headersList = await headers();
   const origin = headersList.get('origin') || '*';
   
   // Get the upload URL from the query parameters
@@ -117,7 +117,7 @@ export async function PUT(request: Request) {
 }
 
 export async function OPTIONS() {
-  const headersList = headers();
+  const headersList = await headers();
   const origin = headersList.get('origin') || '*';
 
   return NextResponse.json(null, {

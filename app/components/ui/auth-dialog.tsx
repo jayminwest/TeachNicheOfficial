@@ -21,7 +21,7 @@ export function AuthDialog({
 }: AuthDialogProps) {
   const { isAuthenticated, loading, error: authError } = useAuth()
   const [error, setError] = useState<string | null>(null)
-  const [view, setView] = useState(defaultView)
+  const [view] = useState(defaultView)
   const searchParams = useSearchParams()
   
   // Handle authentication state changes

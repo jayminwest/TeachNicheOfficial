@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import MDEditor from "@uiw/react-md-editor";
 import { cn } from "@/app/lib/utils";
 import { useTheme } from "next-themes";
@@ -17,12 +18,18 @@ export function MarkdownEditor({
   disabled = false,
   className
 }: MarkdownEditorProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  
+  // Use a client-side effect to update the color mode after initial render
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
   
   return (
     <div 
       className={cn("w-full", disabled && "!cursor-not-allowed", className)} 
-      data-color-mode={theme === 'dark' ? 'dark' : 'light'}
+      data-color-mode={mounted ? (resolvedTheme === 'dark' ? 'dark' : 'light') : 'light'}
       data-testid="md-editor-wrapper"
     >
       <MDEditor

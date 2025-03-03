@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import React from 'react'
+import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MarkdownEditor } from '../markdown-editor'
 import { ThemeProvider } from 'next-themes'
@@ -27,7 +28,7 @@ describe('MarkdownEditor', () => {
     mockOnChange.mockClear()
   })
 
-  it('renders correctly', () => {
+  it('renders correctly', async () => {
     render(
       <ThemeProvider>
         <MarkdownEditor 
@@ -37,11 +38,16 @@ describe('MarkdownEditor', () => {
       </ThemeProvider>
     )
     
+    // Wait for useEffect to run
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    
     const editor = screen.getByTestId('md-editor')
     expect(editor).toBeInTheDocument()
   })
 
-  it('handles disabled state', () => {
+  it('handles disabled state', async () => {
     render(
       <ThemeProvider>
         <MarkdownEditor
@@ -51,6 +57,11 @@ describe('MarkdownEditor', () => {
         />
       </ThemeProvider>
     )
+
+    // Wait for useEffect to run
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
 
     const editorWrapper = screen.getByTestId('md-editor-wrapper')
     expect(editorWrapper).toHaveClass('!cursor-not-allowed')
@@ -67,6 +78,11 @@ describe('MarkdownEditor', () => {
         />
       </ThemeProvider>
     )
+
+    // Wait for useEffect to run
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
 
     const textarea = screen.getByTestId('md-editor').querySelector('textarea')
     await userEvent.type(textarea!, 'New content')

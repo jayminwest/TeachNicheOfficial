@@ -71,8 +71,8 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       ) : user ? (
         <>{router.push('/dashboard')}</>
       ) : (
-        <div className="flex min-h-[inherit] w-full items-center justify-center p-6">
-          <Card className="w-full max-w-[400px]">
+        <div className="flex min-h-[inherit] items-center justify-center p-6">
+          <Card className="w-full max-w-[400px] mx-auto">
             <CardHeader className="space-y-1">
               <CardDescription>Welcome back! Please sign in to continue</CardDescription>
             </CardHeader>

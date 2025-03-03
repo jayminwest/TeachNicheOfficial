@@ -146,28 +146,23 @@ describe('Lessons API', () => {
       // Add a valid URL to the request
       req.url = 'http://localhost/api/lessons?limit=5&category=programming&sort=newest';
 
-      // Get the mock Supabase client and ensure it's properly set up
-      const mockSupabase = getMockSupabase();
+      // Create a fresh mock for this test
+      const mockSupabase = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        data: [],
+        error: null
+      };
       
-      // Reset mock functions to ensure they're tracking calls
+      // Reset all mocks
       jest.clearAllMocks();
-      
-      // Set up the mock to return itself for chaining
-      mockSupabase.from.mockReturnValue(mockSupabase);
-      mockSupabase.select.mockReturnValue(mockSupabase);
-      mockSupabase.eq.mockReturnValue(mockSupabase);
-      mockSupabase.order.mockReturnValue(mockSupabase);
-      mockSupabase.limit.mockReturnValue(mockSupabase);
-      
-      // Set up the mock data response
-      mockSupabase.data = [];
       
       // Mock the createRouteHandlerClient to return our mockSupabase
       const { createRouteHandlerClient } = jest.requireMock('../../../lib/supabase/client');
       createRouteHandlerClient.mockReturnValue(mockSupabase);
-      
-      // Ensure the route handler will use our mock
-      jest.requireMock('../../../lib/supabase/client').createClient.mockReturnValue(mockSupabase);
       
       // Mock the response
       const mockResponseData = { lessons: [] };

@@ -78,10 +78,23 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
   try {
     const supabase = createClientSupabaseClient()
     
+    // Get the current URL to extract any redirect parameter
+    let redirectTo = `${window.location.origin}/auth/callback`
+    
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const redirectParam = params.get('redirect')
+      
+      if (redirectParam) {
+        // Add the redirect_to parameter to the callback URL
+        redirectTo = `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(redirectParam)}`
+      }
+    }
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
         skipBrowserRedirect: false,
       },
     })

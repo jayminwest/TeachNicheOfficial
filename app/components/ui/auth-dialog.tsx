@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from './dialog'
 import { SignInPage } from './sign-in'
 import { useAuth } from '@/app/services/auth/AuthContext'
+import { useSearchParams } from 'next/navigation'
 
 interface AuthDialogProps {
   open: boolean
@@ -18,7 +19,9 @@ export function AuthDialog({
   title = 'Authentication',
   onSuccess
 }: AuthDialogProps) {
-  const { isAuthenticated, loading, error } = useAuth()
+  const { isAuthenticated, loading, error: authError } = useAuth()
+  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
   
   // Handle authentication state changes
   useEffect(() => {
@@ -28,19 +31,15 @@ export function AuthDialog({
     }
   }, [isAuthenticated, open, onOpenChange, onSuccess])
 
-  // Handle URL parameters for OAuth callbacks
+  // Handle URL parameters for OAuth callbacks and errors
   useEffect(() => {
-    // Check if we're in a callback situation with error parameters
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href)
-      const errorParam = url.searchParams.get('error')
-      const errorDescription = url.searchParams.get('error_description')
-      
+    if (searchParams) {
+      const errorParam = searchParams.get('error')
       if (errorParam && open) {
-        console.error('OAuth error:', errorParam, errorDescription)
+        setError(errorParam)
       }
     }
-  }, [open])
+  }, [searchParams, open])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -52,9 +51,9 @@ export function AuthDialog({
           <div className="p-6 flex justify-center" data-testid="auth-loading">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
-        ) : error ? (
+        ) : authError || error ? (
           <div className="p-6 text-destructive" data-testid="auth-error">
-            {error.message || 'An error occurred during authentication'}
+            {authError?.message || error || 'An error occurred during authentication'}
           </div>
         ) : (
           <SignInPage 

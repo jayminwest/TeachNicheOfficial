@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Button } from './button'
 import {
   Card,
@@ -8,13 +9,12 @@ import {
   CardHeader,
 } from './card'
 import { Icons } from './icons'
-import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle, onAuthStateChange } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { VisuallyHidden } from './visually-hidden'
 
 interface SignInPageProps {
   onSignInSuccess?: () => void;
-  initialProvider?: string;
 }
 
 function SignInPage({ onSignInSuccess }: SignInPageProps) {
@@ -22,6 +22,7 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { user, loading } = useAuth()
+  const searchParams = useSearchParams()
 
   // Listen for auth state changes to handle redirection
   useEffect(() => {
@@ -35,25 +36,21 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
           
           // Check if there's a redirect URL in the query params
           if (typeof window !== 'undefined') {
-            const params = new URLSearchParams(window.location.search);
+            const params = searchParams || new URLSearchParams(window.location.search);
             const redirectTo = params.get('redirect');
             
             if (redirectTo) {
               window.location.href = redirectTo;
-            } else if (window.nextRouterMock) {
-              window.nextRouterMock.push('/profile');
             } else {
               router.push('/profile');
             }
-          } else {
-            router.push('/profile');
           }
         }
       }
     );
     
     return () => subscription.unsubscribe();
-  }, [router, onSignInSuccess]);
+  }, [router, onSignInSuccess, searchParams]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -64,6 +61,10 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
         window.signInWithGoogleCalled = true;
       }
       
+      // Get the redirect URL from the query params
+      const redirectTo = searchParams?.get('redirect') || '/profile'
+      
+      // Add the redirect_to parameter to the OAuth URL
       const result = await signInWithGoogle()
       
       if (result?.error) {

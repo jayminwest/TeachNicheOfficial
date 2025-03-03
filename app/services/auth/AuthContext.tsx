@@ -45,6 +45,7 @@ export function AuthProvider({
         setLoading(false)
       } catch (error) {
         console.error('AuthContext: Error getting initial session:', error)
+        setUser(null)
         setLoading(false)
       }
     }

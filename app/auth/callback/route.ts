@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?auth_error=no_code', request.url))
     }
     
-    // Get cookies in a way that works with Next.js
-    const cookieStore = cookies()
+    // Get cookies in a way that works with Next.js - AWAIT this call
+    const cookieStore = await cookies()
     
     // Create a Supabase client for the Route Handler
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })

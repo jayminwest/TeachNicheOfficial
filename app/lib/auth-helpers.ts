@@ -6,8 +6,8 @@ export async function signInWithGoogle(redirectTo?: string) {
   try {
     const supabase = createClientSupabaseClient();
     
-    // Use the proper redirect URL
-    const { error } = await supabase.auth.signInWithOAuth({
+    // Use the proper redirect URL with state preservation
+    const { error, data } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
@@ -15,8 +15,14 @@ export async function signInWithGoogle(redirectTo?: string) {
           access_type: 'offline',
           prompt: 'consent',
         },
+        skipBrowserRedirect: false,
       },
     });
+    
+    // Log the URL for debugging
+    if (data?.url) {
+      console.log('Auth redirect URL:', data.url);
+    }
     
     if (error) {
       console.error('Sign in error:', error);

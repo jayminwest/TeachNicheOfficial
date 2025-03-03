@@ -27,7 +27,6 @@ interface VideoUploaderProps {
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
 
 export function VideoUploader({ 
-  endpoint: _endpoint,
   onUploadComplete, 
   onError,
   onUploadStart,

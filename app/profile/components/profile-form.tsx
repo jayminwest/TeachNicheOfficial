@@ -5,8 +5,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/app/components/ui/button"
 import { useAuth } from "@/app/services/auth/AuthContext"
-import { supabase } from "@/app/services/supabase"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import {
   Form,
   FormControl,
@@ -53,10 +52,10 @@ export function ProfileForm() {
       console.log('User changed, fetching profile data');
       fetchProfileData();
     }
-  }, [user?.id]); // Only depend on user.id to prevent unnecessary fetches
+  }, [user?.id, fetchProfileData]); // Include fetchProfileData in dependencies
 
-  // Define fetchProfileData outside useEffect so we can call it from the refresh button
-  async function fetchProfileData() {
+  // Use useCallback to memoize the function
+  const fetchProfileData = useCallback(async () => {
     if (!user?.id) return;
     
     setIsLoading(true);
@@ -137,7 +136,7 @@ export function ProfileForm() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [user?.id, user?.user_metadata]);
 
   // Remove the duplicate useEffect - we already have one above
 

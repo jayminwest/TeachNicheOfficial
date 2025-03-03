@@ -1,5 +1,4 @@
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
 
 /**
  * Standard response type for auth operations

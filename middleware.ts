@@ -18,6 +18,7 @@ const PUBLIC_PATHS = [
   '/about',
   '/legal',
   '/requests',
+  '/auth/callback', // Allow auth callback
   '/api/requests' // Keep requests API accessible
 ]
 
@@ -64,6 +65,11 @@ export async function middleware(req: NextRequest) {
   
   const path = req.nextUrl.pathname
 
+  // Skip middleware for auth callback route
+  if (path.startsWith('/auth/callback')) {
+    return NextResponse.next()
+  }
+
   // Redirect dashboard to profile
   if (path.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/profile', req.url))
@@ -90,6 +96,7 @@ export const config = {
     '/profile/:path*',
     '/dashboard/:path*',
     '/api/:path*', // Protect all API routes by default
+    '/auth/callback',
     // Add other paths that need middleware checking
   ]
 }

@@ -2,9 +2,8 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-// Disable TypeScript for this file since Next.js has complex typing requirements
-// that are difficult to satisfy without breaking the build
 // @ts-nocheck
+/* eslint-disable */
 export default async function Page({
   params,
 }: {

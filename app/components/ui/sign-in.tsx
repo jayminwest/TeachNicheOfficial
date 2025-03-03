@@ -55,9 +55,11 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       
       // Use Supabase client directly for Google sign-in
       const supabase = createClientComponentClient<Database>();
-      const redirectUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`;
       
-      console.log('Using redirect URL:', redirectUrl);
+      // Use the exact redirect URL that's registered in Google Cloud Console
+      const redirectUrl = 'https://erhavrzwpyvnpefifsfu.supabase.co/auth/v1/callback';
+      
+      console.log('Using redirect URL for Google sign-in:', redirectUrl);
       
       const { data, error: signInError } = await supabase.auth.signInWithOAuth({
         provider: 'google',

@@ -19,7 +19,8 @@ const PUBLIC_PATHS = [
   '/legal',
   '/requests',
   '/auth/callback', // Allow auth callback
-  '/api/requests' // Keep requests API accessible
+  '/api/requests', // Keep requests API accessible
+  '/api/auth/verify-config' // Allow auth config verification
 ]
 
 export async function middleware(req: NextRequest) {
@@ -32,6 +33,17 @@ export async function middleware(req: NextRequest) {
   if (!supabaseUrl || !supabaseKey) {
     console.error('Missing Supabase environment variables')
     return res
+  }
+  
+  const path = req.nextUrl.pathname
+  
+  // Skip middleware for public paths
+  if (PUBLIC_PATHS.some(publicPath => path === publicPath) || 
+      path.startsWith('/auth/callback') || 
+      path.startsWith('/auth/signin') ||
+      path.startsWith('/api/auth/verify-config')) {
+    console.log('Middleware: Skipping auth check for public path:', path)
+    return NextResponse.next()
   }
   
   // Create a Supabase client
@@ -74,8 +86,6 @@ export async function middleware(req: NextRequest) {
       console.error('Middleware: Exception getting session:', error)
     }
   }
-  
-  const path = req.nextUrl.pathname
 
   // Skip middleware for auth routes
   if (path.startsWith('/auth/callback') || path.startsWith('/auth/signin')) {

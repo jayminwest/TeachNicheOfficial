@@ -6,9 +6,9 @@ import { Database } from '@/types/database';
  * This ensures the redirect URL matches what's configured in Google Cloud Console
  */
 export const getGoogleAuthRedirectUrl = () => {
-  // Use the environment variable if available, otherwise construct from Supabase URL
-  return process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URL || 
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`;
+  // For Google OAuth, we need to use the exact URL that's registered in Google Cloud Console
+  // This should match exactly what's in the authorized redirect URIs
+  return 'https://erhavrzwpyvnpefifsfu.supabase.co/auth/v1/callback';
 };
 
 /**

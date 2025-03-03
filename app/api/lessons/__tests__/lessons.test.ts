@@ -94,9 +94,7 @@ jest.mock('../../../lib/supabase/client', () => {
   };
   
   return {
-    createClient: jest.fn().mockReturnValue(mockClient),
-    createClientSupabaseClient: jest.fn().mockReturnValue(mockClient),
-    createRouteHandlerClient: jest.fn().mockReturnValue(mockClient)
+    createClientSupabaseClient: jest.fn().mockReturnValue(mockClient)
   };
 });
 
@@ -163,8 +161,8 @@ jest.mock('../../../lib/supabase/server', () => ({
 
 // Get the mock client for setting up test data
 const getMockSupabase = () => {
-  const { createClient } = jest.requireMock('../../../lib/supabase/client');
-  return createClient();
+  const { createClientSupabaseClient } = jest.requireMock('../../../lib/supabase/client');
+  return createClientSupabaseClient();
 };
 
 // Mock auth

@@ -211,34 +211,6 @@ export function ProfileForm() {
           {user?.email && (
             <p>Email: {user.email}</p>
           )}
-          <div className="flex items-center gap-2 mt-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                if (user?.id) {
-                  console.log('Current form values:', form.getValues());
-                  fetchProfileData();
-                }
-              }}
-            >
-              Refresh Profile Data
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                console.log('Debug - Current form state:', {
-                  values: form.getValues(),
-                  formState: form.formState
-                });
-              }}
-            >
-              Debug Form
-            </Button>
-          </div>
         </div>
         <FormField
           control={form.control}

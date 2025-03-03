@@ -66,7 +66,13 @@ function renderWithAuthContext(ui, authProps = {}) {
   const defaultAuthValues = {
     user: { id: 'test-user-id', email: 'test@example.com' },
     loading: false,
-    isAuthenticated: true
+    isAuthenticated: true,
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+    signUp: jest.fn(),
+    resetPassword: jest.fn(),
+    updateEmail: jest.fn(),
+    updatePassword: jest.fn()
   };
   
   // Merge default values with provided props

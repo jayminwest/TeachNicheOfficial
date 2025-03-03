@@ -155,12 +155,12 @@ export function VideoUploader({
         onUploadStart={handleUploadStart}
         onProgress={handleProgress}
         onSuccess={(event) => {
-          if (event instanceof CustomEvent && event.detail?.uploadId) {
+          if (event instanceof CustomEvent && typeof event.detail === 'object' && event.detail && 'uploadId' in event.detail) {
             handleUploadSuccess(event.detail.uploadId);
           }
         }}
         onError={(event) => {
-          if (event instanceof CustomEvent) {
+          if (event instanceof CustomEvent && event.detail) {
             const error = event.detail;
             handleUploadError(error instanceof Error ? error : new Error(String(error)));
           } else {

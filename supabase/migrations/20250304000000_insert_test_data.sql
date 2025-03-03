@@ -8,7 +8,11 @@ VALUES
   ('22222222-2222-2222-2222-222222222222', 'Advanced Tricks', now(), now()),
   ('33333333-3333-3333-3333-333333333333', 'Competition Skills', now(), now()),
   ('44444444-4444-4444-4444-444444444444', 'Beginner Tutorials', now(), now()),
-  ('55555555-5555-5555-5555-555555555555', 'Maintenance & Care', now(), now());
+  ('55555555-5555-5555-5555-555555555555', 'Maintenance & Care', now(), now())
+ON CONFLICT (id) DO UPDATE 
+SET 
+  name = EXCLUDED.name,
+  updated_at = now();
 
 -- Insert test profiles
 INSERT INTO profiles (id, full_name, email, bio, avatar_url, social_media_tag, created_at, updated_at, stripe_account_id)
@@ -16,7 +20,16 @@ VALUES
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Test Creator', 'creator@example.com', 'Professional kendama instructor with 10+ years of experience', 'https://randomuser.me/api/portraits/men/1.jpg', '@kendama_pro', now(), now(), 'acct_test1'),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Test Student', 'student@example.com', 'Kendama enthusiast learning new tricks', 'https://randomuser.me/api/portraits/women/1.jpg', '@kendama_student', now(), now(), null),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Admin User', 'admin@example.com', 'Platform administrator', 'https://randomuser.me/api/portraits/men/2.jpg', '@admin', now(), now(), null),
-  ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'Another Creator', 'creator2@example.com', 'Kendama world champion teaching advanced techniques', 'https://randomuser.me/api/portraits/women/2.jpg', '@kendama_champ', now(), now(), 'acct_test2');
+  ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'Another Creator', 'creator2@example.com', 'Kendama world champion teaching advanced techniques', 'https://randomuser.me/api/portraits/women/2.jpg', '@kendama_champ', now(), now(), 'acct_test2')
+ON CONFLICT (id) DO UPDATE 
+SET 
+  full_name = EXCLUDED.full_name,
+  email = EXCLUDED.email,
+  bio = EXCLUDED.bio,
+  avatar_url = EXCLUDED.avatar_url,
+  social_media_tag = EXCLUDED.social_media_tag,
+  updated_at = now(),
+  stripe_account_id = EXCLUDED.stripe_account_id;
 
 -- Insert lessons
 INSERT INTO lessons (id, title, description, price, creator_id, created_at, updated_at, stripe_product_id, stripe_price_id, content, thumbnail_url, is_featured, status, version, mux_asset_id, mux_playback_id)
@@ -29,7 +42,22 @@ VALUES
   
   ('44444444-aaaa-4444-aaaa-444444444444', 'Kendama Maintenance 101', 'Keep your kendama in top condition with these maintenance tips.', 999, 'dddddddd-dddd-dddd-dddd-dddddddddddd', now(), now(), 'prod_test4', 'price_test4', 'Learn how to break in new kendamas, maintain the perfect balance, and extend the life of your equipment.', 'https://images.unsplash.com/photo-1595429035839-c99c298ffdde', false, 'published', 1, 'muxasset4', 'playback4'),
   
-  ('55555555-aaaa-5555-aaaa-555555555555', 'Upcoming Trick Showcase', 'Preview of new tricks coming in future lessons.', 0, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', now(), now(), 'prod_test5', 'price_test5', 'This is a draft lesson that will showcase upcoming content.', 'https://images.unsplash.com/photo-1595429035839-c99c298ffdde', false, 'draft', 1, 'muxasset5', 'playback5');
+  ('55555555-aaaa-5555-aaaa-555555555555', 'Upcoming Trick Showcase', 'Preview of new tricks coming in future lessons.', 0, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', now(), now(), 'prod_test5', 'price_test5', 'This is a draft lesson that will showcase upcoming content.', 'https://images.unsplash.com/photo-1595429035839-c99c298ffdde', false, 'draft', 1, 'muxasset5', 'playback5')
+ON CONFLICT (id) DO UPDATE 
+SET 
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  price = EXCLUDED.price,
+  updated_at = now(),
+  stripe_product_id = EXCLUDED.stripe_product_id,
+  stripe_price_id = EXCLUDED.stripe_price_id,
+  content = EXCLUDED.content,
+  thumbnail_url = EXCLUDED.thumbnail_url,
+  is_featured = EXCLUDED.is_featured,
+  status = EXCLUDED.status,
+  version = EXCLUDED.version,
+  mux_asset_id = EXCLUDED.mux_asset_id,
+  mux_playback_id = EXCLUDED.mux_playback_id;
 
 -- Connect lessons to categories
 INSERT INTO lesson_category (lesson_id, category_id)
@@ -39,7 +67,8 @@ VALUES
   ('22222222-aaaa-2222-aaaa-222222222222', '22222222-2222-2222-2222-222222222222'),
   ('33333333-aaaa-3333-aaaa-333333333333', '33333333-3333-3333-3333-333333333333'),
   ('44444444-aaaa-4444-aaaa-444444444444', '55555555-5555-5555-5555-555555555555'),
-  ('55555555-aaaa-5555-aaaa-555555555555', '22222222-2222-2222-2222-222222222222');
+  ('55555555-aaaa-5555-aaaa-555555555555', '22222222-2222-2222-2222-222222222222')
+ON CONFLICT (lesson_id, category_id) DO NOTHING;
 
 -- Insert purchases
 INSERT INTO purchases (id, user_id, lesson_id, creator_id, purchase_date, stripe_session_id, amount, platform_fee, creator_earnings, payment_intent_id, fee_percentage, status, created_at, updated_at)
@@ -52,7 +81,21 @@ VALUES
   
   ('dddddddd-4444-dddd-4444-dddddddddddd', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '44444444-aaaa-4444-aaaa-444444444444', 'dddddddd-dddd-dddd-dddd-dddddddddddd', now() - interval '1 day', 'cs_test4', 999, 149, 850, 'pi_test4', 15, 'completed', now() - interval '1 day', now() - interval '1 day'),
   
-  ('eeeeeeee-5555-eeee-5555-eeeeeeeeeeee', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '22222222-aaaa-2222-aaaa-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', now() - interval '12 hours', 'cs_test5', 2499, 374, 2125, 'pi_test5', 15, 'pending', now() - interval '12 hours', now() - interval '12 hours');
+  ('eeeeeeee-5555-eeee-5555-eeeeeeeeeeee', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '22222222-aaaa-2222-aaaa-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', now() - interval '12 hours', 'cs_test5', 2499, 374, 2125, 'pi_test5', 15, 'pending', now() - interval '12 hours', now() - interval '12 hours')
+ON CONFLICT (id) DO UPDATE 
+SET 
+  user_id = EXCLUDED.user_id,
+  lesson_id = EXCLUDED.lesson_id,
+  creator_id = EXCLUDED.creator_id,
+  purchase_date = EXCLUDED.purchase_date,
+  stripe_session_id = EXCLUDED.stripe_session_id,
+  amount = EXCLUDED.amount,
+  platform_fee = EXCLUDED.platform_fee,
+  creator_earnings = EXCLUDED.creator_earnings,
+  payment_intent_id = EXCLUDED.payment_intent_id,
+  fee_percentage = EXCLUDED.fee_percentage,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- Insert creator earnings
 INSERT INTO creator_earnings (id, creator_id, payment_intent_id, amount, lesson_id, status, created_at, updated_at)

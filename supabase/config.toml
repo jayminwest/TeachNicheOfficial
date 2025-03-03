@@ -212,6 +212,15 @@ url = ""
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
 skip_nonce_check = false
 
+[auth.external.google]
+enabled = true
+client_id = "215486468598-6rgmp3tmdojumiqvnpgkrr6c8ibkrj8c.apps.googleusercontent.com"
+secret = "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"
+# Overrides the default auth redirectUrl.
+redirect_uri = "http://localhost:3000/auth/callback"
+# If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
+skip_nonce_check = true
+
 # Use Firebase Auth as a third-party provider alongside Supabase Auth.
 [auth.third_party.firebase]
 enabled = false

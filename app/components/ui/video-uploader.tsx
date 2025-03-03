@@ -130,7 +130,7 @@ export function VideoUploader({
   };
 
   // Handle progress events from MuxUploader
-  const handleProgress = (event: Event | CustomEvent<number>) => {
+  const handleProgress = (event: unknown) => {
     // Check if it's a CustomEvent with detail
     if (event instanceof CustomEvent && event.detail !== undefined) {
       handleUploadProgress(event.detail);
@@ -153,7 +153,7 @@ export function VideoUploader({
         className="mux-uploader"
         endpoint={uploadEndpoint}
         onUploadStart={handleUploadStart}
-        onProgress={(event: Event | CustomEvent<number>) => handleProgress(event)}
+        onProgress={handleProgress}
         onSuccess={(event) => {
           if (event instanceof CustomEvent && event.detail?.uploadId) {
             handleUploadSuccess(event.detail.uploadId);

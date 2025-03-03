@@ -61,37 +61,25 @@ jest.mock('@/app/services/supabase', () => ({
 // Add jest-axe matcher
 expect.extend(toHaveNoViolations);
 
-// Mock renderWithAuth if it's causing issues
-jest.mock('@/app/__tests__/test-utils', () => {
-  // Use mockRender to avoid the reference error
-  const mockRender = jest.fn().mockImplementation((ui, options) => {
-    return require('@testing-library/react').render(ui, options);
-  });
-  
-  return {
-    renderWithAuth: (ui, authProps = {}) => {
-      const defaultAuthValues = {
-        user: { id: 'test-user-id', email: 'test@example.com' },
-        loading: false,
-        isAuthenticated: true
-      };
-      
-      // Merge default values with provided props
-      const mergedProps = { ...defaultAuthValues, ...authProps };
-      
-      return mockRender(
-        <require('react').createElement(
-          require('@/app/services/auth/AuthContext').AuthContext.Provider,
-          { value: mergedProps },
-          ui
-        )
-      );
-    }
+// Create a helper function instead of mocking
+function renderWithAuthContext(ui, authProps = {}) {
+  const defaultAuthValues = {
+    user: { id: 'test-user-id', email: 'test@example.com' },
+    loading: false,
+    isAuthenticated: true
   };
-});
+  
+  // Merge default values with provided props
+  const mergedProps = { ...defaultAuthValues, ...authProps };
+  
+  return render(
+    <AuthContext.Provider value={mergedProps}>
+      {ui}
+    </AuthContext.Provider>
+  );
+}
 
-// Import the mocked function
-const { renderWithAuth } = require('@/app/__tests__/test-utils');
+// No need to import renderWithAuth since we're using our own helper
 
 describe('ProfilePage', () => {
   describe('rendering', () => {

@@ -62,24 +62,33 @@ jest.mock('@/app/services/supabase', () => ({
 expect.extend(toHaveNoViolations);
 
 // Mock renderWithAuth if it's causing issues
-jest.mock('@/app/__tests__/test-utils', () => ({
-  renderWithAuth: (ui, authProps = {}) => {
-    const defaultAuthValues = {
-      user: { id: 'test-user-id', email: 'test@example.com' },
-      loading: false,
-      isAuthenticated: true
-    };
-    
-    // Merge default values with provided props
-    const mergedProps = { ...defaultAuthValues, ...authProps };
-    
-    return render(
-      <AuthContext.Provider value={mergedProps}>
-        {ui}
-      </AuthContext.Provider>
-    );
-  }
-}));
+jest.mock('@/app/__tests__/test-utils', () => {
+  // Use mockRender to avoid the reference error
+  const mockRender = jest.fn().mockImplementation((ui, options) => {
+    return require('@testing-library/react').render(ui, options);
+  });
+  
+  return {
+    renderWithAuth: (ui, authProps = {}) => {
+      const defaultAuthValues = {
+        user: { id: 'test-user-id', email: 'test@example.com' },
+        loading: false,
+        isAuthenticated: true
+      };
+      
+      // Merge default values with provided props
+      const mergedProps = { ...defaultAuthValues, ...authProps };
+      
+      return mockRender(
+        <require('react').createElement(
+          require('@/app/services/auth/AuthContext').AuthContext.Provider,
+          { value: mergedProps },
+          ui
+        )
+      );
+    }
+  };
+});
 
 // Import the mocked function
 const { renderWithAuth } = require('@/app/__tests__/test-utils');
@@ -120,30 +129,14 @@ describe('ProfilePage', () => {
     })
 
     it('renders profile page for authenticated users', async () => {
-      const { getByText } = render(
-        <AuthContext.Provider value={{ 
-          user: { id: 'test-user-id', email: 'test@example.com' },
-          loading: false,
-          isAuthenticated: true
-        }}>
-          <ProfilePage />
-        </AuthContext.Provider>
-      );
+      const { getByText } = renderWithAuthContext(<ProfilePage />);
       expect(getByText('Profile')).toBeInTheDocument()
       expect(getByText('Content')).toBeInTheDocument()
       expect(getByText('Settings')).toBeInTheDocument()
     })
 
     it('meets accessibility requirements', async () => {
-      const { container } = render(
-        <AuthContext.Provider value={{ 
-          user: { id: 'test-user-id', email: 'test@example.com' },
-          loading: false,
-          isAuthenticated: true
-        }}>
-          <ProfilePage />
-        </AuthContext.Provider>
-      );
+      const { container } = renderWithAuthContext(<ProfilePage />);
       const results = await axe(container)
       expect(results).toHaveNoViolations()
     })
@@ -152,15 +145,7 @@ describe('ProfilePage', () => {
   describe('interactions', () => {
     it('allows switching between tabs', async () => {
       const user = userEvent.setup()
-      const { getByRole, getByText } = render(
-        <AuthContext.Provider value={{ 
-          user: { id: 'test-user-id', email: 'test@example.com' },
-          loading: false,
-          isAuthenticated: true
-        }}>
-          <ProfilePage />
-        </AuthContext.Provider>
-      );
+      const { getByRole, getByText } = renderWithAuthContext(<ProfilePage />);
 
       // Click on Content tab
       await user.click(getByRole('tab', { name: 'Content' }))
@@ -172,15 +157,7 @@ describe('ProfilePage', () => {
     })
 
     it('displays stripe connect button with account ID', async () => {
-      const { getByRole, getByText } = render(
-        <AuthContext.Provider value={{ 
-          user: { id: 'test-user-id', email: 'test@example.com' },
-          loading: false,
-          isAuthenticated: true
-        }}>
-          <ProfilePage />
-        </AuthContext.Provider>
-      );
+      const { getByRole, getByText } = renderWithAuthContext(<ProfilePage />);
       
       // Navigate to settings tab
       await userEvent.click(getByRole('tab', { name: 'Settings' }))

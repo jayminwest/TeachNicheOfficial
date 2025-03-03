@@ -52,10 +52,15 @@ export async function measurePagePerformance(page: Page, testName: string): Prom
     const firstContentfulPaint = paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
     
     // Get Largest Contentful Paint if available
-    let largestContentfulPaint;
+    let largestContentfulPaint = 0;
+    
+    // Check if there are already LCP entries
     const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
     if (lcpEntries && lcpEntries.length > 0) {
       largestContentfulPaint = lcpEntries[lcpEntries.length - 1].startTime;
+    } else {
+      // If no LCP entries, use FCP as a fallback
+      largestContentfulPaint = firstContentfulPaint;
     }
     
     // Get resource timing entries

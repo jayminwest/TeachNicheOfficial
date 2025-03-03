@@ -97,6 +97,7 @@ export function VideoUploader({
     handleUploadSuccess,
     handleUploadError,
   } = useVideoUpload({
+    endpoint,
     onUploadComplete,
     onError,
     onProgress: (progress) => {
@@ -106,7 +107,7 @@ export function VideoUploader({
     }
   });
   
-  const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {
+  const handleUploadStart: MuxUploaderProps["onUploadStart"] = async (event) => {
     const file = event.detail?.file;
 
     if (!file) {
@@ -114,14 +115,13 @@ export function VideoUploader({
       return;
     }
     
-    if (!uploadEndpoint) {
-      handleUploadError(new Error("Upload URL not available. Please try again."));
-      return;
-    }
-    
     try {
-      validateFile(file);
+      // First validate the file
+      await validateFile(file);
+      
+      // Then start the upload process to get the endpoint
       startUpload();
+      
       if (typeof onUploadStart === "function") {
         onUploadStart();
       }
@@ -138,15 +138,11 @@ export function VideoUploader({
     }
   };
 
-  // Automatically start the upload process when the component mounts
-  useEffect(() => {
-    if (status === 'idle') {
-      startUpload();
-    }
-  }, [status, startUpload]);
+  // We don't want to automatically start the upload process
+  // The upload will start when the user selects a file
 
-  // Show loading state while waiting for the upload endpoint
-  if (!uploadEndpoint) {
+  // Only show loading state if we're actively trying to get an upload endpoint
+  if (status !== 'idle' && !uploadEndpoint) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

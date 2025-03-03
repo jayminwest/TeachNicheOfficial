@@ -18,7 +18,17 @@ export async function POST(request: Request) {
     }
 
     // Get the request body
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+      console.log('Received profile creation request:', body);
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
     
     // Validate that the user ID in the request matches the authenticated user
     if (body.id !== session.user.id) {
@@ -53,6 +63,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Profile already exists' });
     }
     
+    // Log the profile data we're about to insert
+    console.log('Attempting to create profile with data:', {
+      id: body.id,
+      full_name: body.full_name || '',
+      bio: body.bio || '',
+      social_media_tag: body.social_media_tag || '',
+      email: body.email || '',
+    });
+    
     // Create the profile
     const { error } = await supabase
       .from('profiles')
@@ -77,8 +96,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Unexpected error in profile creation:', error);
+    
+    // Create a more detailed error response
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Unknown error';
+      
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error', 
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }

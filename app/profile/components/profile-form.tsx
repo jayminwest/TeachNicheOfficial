@@ -159,29 +159,36 @@ export function ProfileForm() {
           // Also try to notify the server about the missing profile
           try {
             console.log('Attempting to create profile via API');
+            
+            // Create a payload with all required fields
+            const payload = {
+              id: user.id,
+              full_name: data.full_name || '',
+              bio: data.bio || '',
+              social_media_tag: data.social_media_tag || '',
+              email: user.email || '',
+            };
+            
+            console.log('Profile creation payload:', payload);
+            
             const response = await fetch('/api/profiles/create', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({
-                id: user.id,
-                full_name: data.full_name,
-                bio: data.bio,
-                social_media_tag: data.social_media_tag,
-                email: user.email,
-              }),
+              body: JSON.stringify(payload),
               // Important: include credentials to send cookies with the request
               credentials: 'same-origin',
             });
             
+            console.log('Profile creation response status:', response.status);
+            
+            const result = await response.json();
+            
             if (!response.ok) {
-              const result = await response.json();
               console.error('Profile creation API error:', result);
               throw new Error(result.error || `Failed to create profile: ${response.status}`);
             }
-            
-            const result = await response.json();
             console.log('Profile creation API response:', result);
             
             if (result.success) {

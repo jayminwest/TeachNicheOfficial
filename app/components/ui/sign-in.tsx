@@ -57,7 +57,7 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
     try {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
-        // @ts-ignore - for testing purposes
+        // @ts-expect-error - for testing purposes
         window.signInWithGoogleCalled = true;
       }
       

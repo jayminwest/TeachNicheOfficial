@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/app/lib/utils";
-import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload, Loader2 } from "lucide-react";
@@ -28,7 +27,7 @@ interface VideoUploaderProps {
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
 
 export function VideoUploader({ 
-  endpoint,
+  endpoint: _endpoint,
   onUploadComplete, 
   onError,
   onUploadStart,

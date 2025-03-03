@@ -58,7 +58,6 @@ export function LessonForm({
     },
   });
 
-  const [videoUploaded, setVideoUploaded] = useState(false);
   const [formIsDirty, setFormIsDirty] = useState(false);
   
   // Track form dirty state
@@ -205,7 +204,6 @@ export function LessonForm({
               endpoint="/api/video/upload"
               onUploadComplete={async (assetId) => {
                 try {
-                  setVideoUploaded(true);
                   form.setValue("muxAssetId", assetId, { 
                     shouldValidate: true,
                     shouldDirty: true,

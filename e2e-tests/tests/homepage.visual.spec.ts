@@ -45,3 +45,83 @@ test.describe('Homepage Visual Tests', () => {
     await expect(footer).toHaveScreenshot('homepage-footer.png');
   });
 });
+import { test, expect } from '@playwright/test';
+
+test.describe('Homepage Visual Regression', () => {
+  test('should match homepage screenshot', async ({ page }) => {
+    // Navigate to the homepage
+    await page.goto('/');
+    
+    // Wait for all animations to complete
+    await page.waitForTimeout(1000);
+    
+    // Take a screenshot of the entire page
+    await expect(page).toHaveScreenshot('homepage-full.png', {
+      fullPage: true,
+      // More strict threshold for homepage
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+  
+  test('should match hero section screenshot', async ({ page }) => {
+    // Navigate to the homepage
+    await page.goto('/');
+    
+    // Wait for the hero section to be visible
+    await page.waitForSelector('section.hero', { state: 'visible' });
+    
+    // Take a screenshot of just the hero section
+    const heroSection = page.locator('section.hero');
+    await expect(heroSection).toHaveScreenshot('homepage-hero.png', {
+      // More strict threshold for critical UI elements
+      maxDiffPixelRatio: 0.005,
+    });
+  });
+  
+  test('should match navigation menu screenshot', async ({ page }) => {
+    // Navigate to the homepage
+    await page.goto('/');
+    
+    // Take a screenshot of the navigation menu
+    const navMenu = page.locator('nav');
+    await expect(navMenu).toHaveScreenshot('homepage-nav.png');
+  });
+  
+  test('should match mobile menu screenshot', async ({ page }) => {
+    // Set viewport to mobile size
+    await page.setViewportSize({ width: 375, height: 667 });
+    
+    // Navigate to the homepage
+    await page.goto('/');
+    
+    // Open the mobile menu if it's not visible by default
+    const menuButton = page.locator('[data-testid="mobile-menu-button"]');
+    if (await menuButton.isVisible()) {
+      await menuButton.click();
+      // Wait for any animations to complete
+      await page.waitForTimeout(500);
+    }
+    
+    // Take a screenshot of the mobile menu
+    await expect(page).toHaveScreenshot('homepage-mobile-menu.png');
+  });
+  
+  test('should match dark mode screenshot', async ({ page }) => {
+    // Navigate to the homepage
+    await page.goto('/');
+    
+    // Enable dark mode
+    await page.evaluate(() => {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    });
+    
+    // Wait for theme change to apply
+    await page.waitForTimeout(500);
+    
+    // Take a screenshot in dark mode
+    await expect(page).toHaveScreenshot('homepage-dark-mode.png', {
+      fullPage: true,
+    });
+  });
+});

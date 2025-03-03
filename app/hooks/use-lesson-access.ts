@@ -137,3 +137,53 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
 
   return { ...access, loading, error }
 }
+import { useState, useEffect } from 'react'
+import { purchasesService } from '@/app/services/database/purchasesService'
+import { useAuth } from '@/app/services/auth/AuthContext'
+
+export function useLessonAccess(lessonId: string) {
+  const [hasAccess, setHasAccess] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  const { user, loading: authLoading } = useAuth()
+  
+  useEffect(() => {
+    async function checkAccess() {
+      if (authLoading || !lessonId) {
+        return
+      }
+      
+      setLoading(true)
+      setError(null)
+      
+      try {
+        // If not logged in, no access
+        if (!user) {
+          setHasAccess(false)
+          setLoading(false)
+          return
+        }
+        
+        const { data, error, success } = await purchasesService.checkLessonAccess(
+          user.id,
+          lessonId
+        )
+        
+        if (!success || error) {
+          throw error || new Error('Failed to check lesson access')
+        }
+        
+        setHasAccess(data?.hasAccess || false)
+      } catch (err) {
+        console.error('Error checking lesson access:', err)
+        setError(err instanceof Error ? err : new Error('An unknown error occurred'))
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    checkAccess()
+  }, [lessonId, user, authLoading])
+  
+  return { hasAccess, loading, error }
+}

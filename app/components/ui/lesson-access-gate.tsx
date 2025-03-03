@@ -3,6 +3,7 @@
 import { Loader2 } from 'lucide-react';
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
 import { LessonCheckout } from './lesson-checkout';
+import { cn } from '@/app/lib/utils';
 
 interface LessonAccessGateProps {
   lessonId: string;
@@ -53,5 +54,5 @@ export function LessonAccessGate({
     );
   }
   
-  return <div className={className}>{children}</div>;
+  return <div className={cn(className)}>{children}</div>;
 }

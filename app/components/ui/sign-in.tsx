@@ -8,9 +8,11 @@ import {
   CardHeader,
 } from './card'
 import { Icons } from './icons'
-import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth'
+import { onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { VisuallyHidden } from './visually-hidden'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Database } from '@/types/database'
 
 interface SignInPageProps {
   onSwitchToSignUp: () => void;
@@ -50,19 +52,31 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       }
       
       console.log('Starting Google sign-in process...');
-      const result = await signInWithGoogle()
       
-      if (result?.error) {
+      // Use Supabase client directly for Google sign-in
+      const supabase = createClientComponentClient<Database>();
+      const redirectUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`;
+      
+      console.log('Using redirect URL:', redirectUrl);
+      
+      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+        }
+      });
+      
+      if (signInError) {
         // Check for specific provider not enabled error
-        const errorMessage = result.error.message || '';
+        const errorMessage = signInError.message || '';
         if (errorMessage.includes('provider is not enabled') || 
             errorMessage.includes('Unsupported provider')) {
           throw new Error('Google sign-in is not configured. Please enable Google provider in Supabase dashboard.');
         }
-        throw result.error;
+        throw signInError;
       }
       
-      console.log('Google sign-in initiated successfully');
+      console.log('Google sign-in initiated successfully', data);
       
       // Check if we have a session
       const { data: { session } } = await getSession();

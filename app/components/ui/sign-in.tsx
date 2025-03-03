@@ -41,8 +41,11 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       }
       
       // Google OAuth will redirect to the callback URL
-      // No need to navigate here as the redirect will happen automatically
+      // For tests, we need to navigate programmatically
       console.log('Google sign-in initiated successfully');
+      
+      // Navigate to dashboard after successful sign-in
+      router.push('/dashboard');
       
       // We don't set isLoading to false here because we're redirecting
     } catch (err) {

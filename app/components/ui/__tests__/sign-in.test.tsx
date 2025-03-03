@@ -72,6 +72,7 @@ describe('SignInPage', () => {
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
     const user = userEvent.setup();
+    // Mock successful sign-in
     (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
@@ -80,10 +81,11 @@ describe('SignInPage', () => {
     await user.click(signInButton);
     
     expect(signInWithGoogle).toHaveBeenCalled();
+    
     // Wait for the navigation to occur after successful sign-in
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
-    });
+    }, { timeout: 1000 });
   });
 
   it('shows loading state during Google sign-in', async () => {

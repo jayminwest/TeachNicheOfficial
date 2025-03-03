@@ -155,6 +155,14 @@ describe('Lessons API', () => {
         NextResponse.json(mockResponseData, { status: 200 }) as NextResponse
       );
 
+      // Set up the mock to return the expected data
+      mockSupabase.from.mockReturnValue(mockSupabase);
+      mockSupabase.select.mockReturnValue(mockSupabase);
+      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.order.mockReturnValue(mockSupabase);
+      mockSupabase.limit.mockReturnValue(mockSupabase);
+      mockSupabase.data = [];
+
       await GET(req);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('lessons');

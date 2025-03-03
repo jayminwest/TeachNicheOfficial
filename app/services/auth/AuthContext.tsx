@@ -101,7 +101,7 @@ export function AuthProvider({
 
         // Set up auth state change listener
         if (process.env.NODE_ENV !== 'test' && typeof window !== 'undefined') {
-          const authStateChange = onAuthStateChange((event, session) => {
+          const authStateChange = onAuthStateChange((event, session: { user?: User }) => {
             if (!isMounted) return
             
             // Handle auth state changes

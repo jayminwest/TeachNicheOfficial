@@ -96,7 +96,7 @@ INSERT INTO lesson_request_votes (id, request_id, user_id, vote_type, created_at
 SELECT 
   gen_random_uuid(),
   id,
-  CASE WHEN row_number() OVER (ORDER BY id) % 2 = 0 THEN 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' ELSE 'cccccccc-cccc-cccc-cccc-cccccccccccc' END,
+  CASE WHEN row_number() OVER (ORDER BY id) % 2 = 0 THEN 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid ELSE 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid END,
   'up',
   now() - (row_number() OVER (ORDER BY id) * interval '5 days')
 FROM request_ids;
@@ -109,7 +109,7 @@ INSERT INTO lesson_request_votes (id, request_id, user_id, vote_type, created_at
 SELECT 
   gen_random_uuid(),
   id,
-  CASE WHEN row_number() OVER (ORDER BY id) % 2 = 0 THEN 'cccccccc-cccc-cccc-cccc-cccccccccccc' ELSE 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' END,
+  CASE WHEN row_number() OVER (ORDER BY id) % 2 = 0 THEN 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid ELSE 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid END,
   'up',
   now() - (row_number() OVER (ORDER BY id) * interval '3 days')
 FROM request_ids;

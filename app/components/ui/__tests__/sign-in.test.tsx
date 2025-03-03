@@ -106,7 +106,8 @@ describe('SignInPage', () => {
     render(<SignInPage onSignInSuccess={jest.fn()} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    // Simulate click without using user event
+    signInButton.click();
     
     expect(signInWithGoogle).toHaveBeenCalled();
     
@@ -180,7 +181,6 @@ describe('SignInPage', () => {
   });
 
   it('announces errors to screen readers', async () => {
-    const user = userEvent.setup();
     const errorMessage = 'Failed to authenticate with Google';
     (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 

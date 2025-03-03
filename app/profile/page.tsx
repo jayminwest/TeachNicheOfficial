@@ -10,6 +10,11 @@ import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
 import { supabase } from "@/app/services/supabase"
 import { useRouter } from "next/navigation"
+import DashboardHeader from "@/app/dashboard/components/dashboard-header"
+import ActivityFeed from "@/app/dashboard/components/activity-feed"
+import PerformanceMetrics from "@/app/dashboard/components/performance-metrics"
+import AnalyticsSection from "@/app/dashboard/components/analytics-section"
+import LessonsGrid from "@/app/dashboard/components/lessons-grid"
 
 export default function ProfilePage() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -80,12 +85,28 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <Card className="p-6">
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="dashboard" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
+            <TabsContent value="dashboard">
+              <div className="space-y-6">
+                <DashboardHeader />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                  <AnalyticsSection />
+                  <ActivityFeed />
+                  <PerformanceMetrics />
+                </div>
+
+                <div className="mt-6">
+                  <LessonsGrid />
+                </div>
+              </div>
+            </TabsContent>
             <TabsContent value="profile">
               <ProfileForm />
             </TabsContent>

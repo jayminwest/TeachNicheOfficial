@@ -5,8 +5,8 @@ import type { NextRequest } from 'next/server'
 // Define paths that should be restricted to authenticated users
 const RESTRICTED_PATHS: string[] = [
   '/lessons/create',
-  '/profile/settings',
-  '/dashboard/analytics', 
+  '/profile',
+  '/dashboard', 
   '/api/checkout',
   '/api/stripe',
   '/api/video'
@@ -63,6 +63,11 @@ export async function middleware(req: NextRequest) {
   }
   
   const path = req.nextUrl.pathname
+
+  // Redirect dashboard to profile
+  if (path.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/profile', req.url))
+  }
 
   // Check auth restrictions
   const isRestrictedPath = RESTRICTED_PATHS.some(restrictedPath => 

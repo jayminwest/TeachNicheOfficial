@@ -54,34 +54,38 @@ export function ProfileForm() {
       
       setIsLoading(true);
       try {
+        // First try to get data from profiles table
         const { data, error } = await supabase
           .from('profiles')
           .select('full_name, bio, social_media_tag')
-          .eq('id', user.id);
+          .eq('id', user.id)
+          .single();
           
         if (error) {
-          console.error('Error fetching profile data:', error.message);
+          if (error.code === 'PGRST116') {
+            // No profile found, try to use data from user metadata
+            console.log('No profile found, using user metadata');
+            if (user.user_metadata) {
+              form.reset({
+                full_name: user.user_metadata.full_name || user.user_metadata.name || "",
+                bio: user.user_metadata.bio || "",
+                social_media_tag: user.user_metadata.social_media_tag || "",
+              });
+            }
+          } else {
+            console.error('Error fetching profile data:', error.message);
+          }
           return;
         }
         
-        // Check if we have exactly one profile
-        if (data && data.length === 1) {
-          // Update form with existing data
+        // Profile found, update form
+        if (data) {
+          console.log('Profile data loaded:', data);
           form.reset({
-            full_name: data[0].full_name || "",
-            bio: data[0].bio || "",
-            social_media_tag: data[0].social_media_tag || "",
+            full_name: data.full_name || "",
+            bio: data.bio || "",
+            social_media_tag: data.social_media_tag || "",
           });
-        } else if (data && data.length > 1) {
-          console.warn(`Found multiple profiles for user ${user.id}, using the first one`);
-          form.reset({
-            full_name: data[0].full_name || "",
-            bio: data[0].bio || "",
-            social_media_tag: data[0].social_media_tag || "",
-          });
-        } else {
-          console.warn(`No profile found for user ${user.id}`);
-          // Keep default empty values
         }
       } catch (err) {
         console.error('Unexpected error fetching profile data:', err);
@@ -152,6 +156,11 @@ export function ProfileForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {isLoading && (
+          <div className="text-center p-4">
+            <div className="animate-pulse">Loading profile data...</div>
+          </div>
+        )}
         <FormField
           control={form.control}
           name="full_name"

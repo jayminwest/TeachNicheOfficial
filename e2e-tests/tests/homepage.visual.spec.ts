@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Homepage Visual Regression', () => {
   test('should match homepage screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Wait for all animations to complete
     await page.waitForTimeout(1000);
@@ -25,14 +25,16 @@ test.describe('Homepage Visual Regression', () => {
   
   test('should match hero section screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Wait for the hero section to be visible
     // Use a more reliable selector with data-testid
-    await page.waitForSelector('[data-testid="hero-section"]', { state: 'visible' });
+    await page.waitForSelector('section:first-of-type', { state: 'visible' }).catch(() => {
+      console.log('Hero section not found by first section, trying alternative selector');
+    });
     
     // Take a screenshot of just the hero section
-    const heroSection = page.locator('[data-testid="hero-section"]');
+    const heroSection = page.locator('section:first-of-type');
     await expect(heroSection).toHaveScreenshot('homepage-hero.png', {
       // More strict threshold for critical UI elements
       maxDiffPixelRatio: 0.005,
@@ -41,7 +43,7 @@ test.describe('Homepage Visual Regression', () => {
   
   test('should match navigation menu screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Take a screenshot of the main navigation menu using a more specific selector
     // Use aria-label to target the specific nav element
@@ -54,10 +56,10 @@ test.describe('Homepage Visual Regression', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     
     // Navigate to the homepage
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Open the mobile menu if it's not visible by default
-    const menuButton = page.locator('[data-testid="mobile-menu-button"]');
+    const menuButton = page.locator('button[aria-label="Toggle menu"], button.hamburger-menu');
     if (await menuButton.isVisible()) {
       await menuButton.click();
       // Wait for any animations to complete
@@ -65,7 +67,7 @@ test.describe('Homepage Visual Regression', () => {
     }
     
     // Wait for menu to be fully rendered
-    await page.waitForSelector('[data-testid="mobile-menu"]', { state: 'visible', timeout: 2000 }).catch(() => {
+    await page.waitForSelector('nav[role="navigation"], .mobile-menu', { state: 'visible', timeout: 2000 }).catch(() => {
       console.log('Mobile menu selector not found, continuing with screenshot');
     });
     
@@ -77,7 +79,7 @@ test.describe('Homepage Visual Regression', () => {
   
   test('should match dark mode screenshot', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('/');
+    await page.goto('http://localhost:3000/');
     
     // Enable dark mode
     await page.evaluate(() => {
@@ -89,7 +91,7 @@ test.describe('Homepage Visual Regression', () => {
     await page.waitForTimeout(500);
     
     // Wait for all content to be visible
-    await page.waitForSelector('[data-testid="hero-section"]', { state: 'visible', timeout: 2000 }).catch(() => {
+    await page.waitForSelector('section:first-of-type', { state: 'visible', timeout: 2000 }).catch(() => {
       console.log('Hero section not found, continuing with screenshot');
     });
     

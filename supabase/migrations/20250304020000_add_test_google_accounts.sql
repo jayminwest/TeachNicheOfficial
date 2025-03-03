@@ -12,7 +12,7 @@ INSERT INTO auth.users (
 )
 VALUES
   (
-    'gggggggg-gggg-gggg-gggg-gggggggggggg',
+    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
     'google-user@example.com',
     '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
     now(),
@@ -20,7 +20,7 @@ VALUES
     now()
   ),
   (
-    'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
+    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
     'google-creator@example.com',
     '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
     now(),
@@ -44,16 +44,16 @@ INSERT INTO auth.identities (
 )
 VALUES
   (
-    'gggggggg-gggg-gggg-gggg-gggggggggggg',
-    'gggggggg-gggg-gggg-gggg-gggggggggggg',
+    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
+    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
     '{"sub":"google-oauth2|123456789", "email":"google-user@example.com", "name":"Google Test User"}',
     'google',
     now(),
     now()
   ),
   (
-    'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
-    'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
+    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
+    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
     '{"sub":"google-oauth2|987654321", "email":"google-creator@example.com", "name":"Google Creator"}',
     'google',
     now(),
@@ -78,7 +78,7 @@ INSERT INTO public.profiles (
 )
 VALUES
   (
-    'gggggggg-gggg-gggg-gggg-gggggggggggg',
+    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
     'Google Test User',
     'google-user@example.com',
     'Test user who signed up with Google',
@@ -89,7 +89,7 @@ VALUES
     null
   ),
   (
-    'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
+    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
     'Google Creator',
     'google-creator@example.com',
     'Content creator who signed up with Google',
@@ -128,8 +128,8 @@ INSERT INTO purchases (
 )
 VALUES
   (
-    'ffffffff-6666-ffff-6666-ffffffffffff',
-    'gggggggg-gggg-gggg-gggg-gggggggggggg',
+    'ffffffff-ffff-ffff-ffff-ffffffffffff',
+    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
     '33333333-aaaa-3333-aaaa-333333333333',
     'dddddddd-dddd-dddd-dddd-dddddddddddd',
     now() - interval '2 days',
@@ -166,11 +166,11 @@ INSERT INTO lessons (
 )
 VALUES
   (
-    '66666666-aaaa-6666-aaaa-666666666666',
+    '66666666-6666-6666-6666-666666666666',
     'Google Creator Special: Advanced Kendama Techniques',
     'Exclusive techniques shared by our Google-authenticated creator.',
     2999,
-    'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
+    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
     now() - interval '5 days',
     now() - interval '5 days',
     'prod_google_test',
@@ -202,6 +202,6 @@ SET
 -- Connect the Google creator's lesson to categories
 INSERT INTO lesson_category (lesson_id, category_id)
 VALUES
-  ('66666666-aaaa-6666-aaaa-666666666666', '22222222-2222-2222-2222-222222222222'),
-  ('66666666-aaaa-6666-aaaa-666666666666', '33333333-3333-3333-3333-333333333333')
+  ('66666666-6666-6666-6666-666666666666', '22222222-2222-2222-2222-222222222222'),
+  ('66666666-6666-6666-6666-666666666666', '33333333-3333-3333-3333-333333333333')
 ON CONFLICT (lesson_id, category_id) DO NOTHING;

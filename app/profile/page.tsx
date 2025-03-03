@@ -42,20 +42,28 @@ export default function ProfilePage() {
       
       setIsLoading(true);
       try {
+        // First try to get the profile without using .single()
         const { data, error } = await supabase
           .from('profiles')
           .select('stripe_account_id')
-          .eq('id', user.id)
-          .single();
+          .eq('id', user.id);
 
         if (error) {
           console.error('Error fetching profile:', error.message || 'Unknown error');
-          // Still set profile to null to avoid undefined errors
           setProfile(null);
           return;
         }
 
-        setProfile(data);
+        // Check if we have exactly one profile
+        if (data && data.length === 1) {
+          setProfile(data[0]);
+        } else if (data && data.length > 1) {
+          console.warn(`Found multiple profiles for user ${user.id}, using the first one`);
+          setProfile(data[0]);
+        } else {
+          console.warn(`No profile found for user ${user.id}`);
+          setProfile(null);
+        }
       } catch (err) {
         console.error('Unexpected error fetching profile:', err);
         setProfile(null);

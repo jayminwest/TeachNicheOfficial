@@ -2,10 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignUpPage } from '../sign-up';
-import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
+import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { supabase } from '@/app/services/supabase';
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
@@ -14,22 +13,16 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/app/services/auth/supabaseAuth', () => ({
   signInWithGoogle: jest.fn(),
+  onAuthStateChange: jest.fn().mockReturnValue({ 
+    data: { subscription: { unsubscribe: jest.fn() } } 
+  }),
+  getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
 }));
 
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('@/app/services/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
-      onAuthStateChange: jest.fn().mockReturnValue({ 
-        data: { subscription: { unsubscribe: jest.fn() } } 
-      }),
-    },
-  },
-}));
 
 describe('SignUpPage', () => {
   // Setup common mocks

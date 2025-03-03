@@ -8,9 +8,9 @@ import {
   CardHeader,
 } from './card'
 import { Icons } from './icons'
-import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { supabase } from '@/app/services/supabase'
+import { VisuallyHidden } from './visually-hidden'
 
 interface SignInPageProps {
   onSwitchToSignUp: () => void;
@@ -24,7 +24,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
 
   // Listen for auth state changes to handle redirection
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, !!session);
         if (event === 'SIGNED_IN' && session) {
@@ -32,14 +32,14 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
           if (typeof window !== 'undefined' && window.nextRouterMock) {
             window.nextRouterMock.push('/dashboard');
           } else {
-            window.location.href = '/dashboard';
+            router.push('/dashboard');
           }
         }
       }
     );
     
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -65,7 +65,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       console.log('Google sign-in initiated successfully');
       
       // Check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getSession();
       console.log('Session after sign-in attempt:', !!session);
       
       // We don't redirect here - the onAuthStateChange listener will handle it
@@ -87,6 +87,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
         <div className="flex min-h-[inherit] w-full items-center justify-center">
           <div className="text-center">
             <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+            <VisuallyHidden>Loading authentication status</VisuallyHidden>
             <p>Loading...</p>
           </div>
         </div>

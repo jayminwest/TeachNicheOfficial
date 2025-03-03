@@ -1,6 +1,16 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../dialog'
 
+// Mock auth service to prevent errors in tests
+jest.mock('@/app/services/auth/supabaseAuth', () => ({
+  onAuthStateChange: jest.fn().mockReturnValue({
+    data: { subscription: { unsubscribe: jest.fn() } }
+  }),
+  getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+  signInWithGoogle: jest.fn(),
+  signOut: jest.fn()
+}))
+
 describe('Dialog', () => {
   it('opens and closes dialog with content', () => {
     const onOpenChange = jest.fn()
@@ -27,6 +37,7 @@ describe('Dialog', () => {
       <Dialog open={true} onOpenChange={() => {}}>
         <DialogContent>
           <DialogTitle className="sr-only">Hidden Title</DialogTitle>
+          <DialogDescription>Dialog description for accessibility</DialogDescription>
           <p>Dialog content</p>
         </DialogContent>
       </Dialog>

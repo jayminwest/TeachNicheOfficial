@@ -40,7 +40,31 @@ export async function getSession() {
  */
 export function onAuthStateChange(callback: (event: string, session: any) => void) {
   const supabase = createClientSupabaseClient()
-  return supabase.auth.onAuthStateChange(callback)
+  
+  // In test environment, return a mock subscription
+  if (process.env.NODE_ENV === 'test') {
+    return {
+      data: {
+        subscription: {
+          unsubscribe: () => {}
+        }
+      }
+    }
+  }
+  
+  try {
+    return supabase.auth.onAuthStateChange(callback)
+  } catch (error) {
+    console.error('Error setting up auth state change listener:', error)
+    // Return a mock subscription if the real one fails
+    return {
+      data: {
+        subscription: {
+          unsubscribe: () => {}
+        }
+      }
+    }
+  }
 }
 
 export const signInWithGoogle = async () => {

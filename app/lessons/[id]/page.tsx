@@ -2,6 +2,7 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any                    
 export default async function Page({
   params,
 }: {

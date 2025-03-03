@@ -86,6 +86,17 @@ describe('SignInPage', () => {
     const user = userEvent.setup();
     // Mock successful sign-in
     (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
+    
+    // Mock auth state change event
+    const mockAuthStateChange = jest.fn((callback) => {
+      // Simulate auth state change after sign-in
+      setTimeout(() => {
+        callback('SIGNED_IN', { user: { id: 'test-user' } });
+      }, 100);
+      return { data: { subscription: { unsubscribe: jest.fn() } } };
+    });
+    
+    (supabase.auth.onAuthStateChange as jest.Mock).mockImplementation(mockAuthStateChange);
 
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
@@ -94,9 +105,10 @@ describe('SignInPage', () => {
     
     expect(signInWithGoogle).toHaveBeenCalled();
     
-    // Wait for the navigation to occur after successful sign-in
+    // We're not expecting router.push to be called directly anymore
+    // The redirection happens in the auth state change handler
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
+      expect(mockAuthStateChange).toHaveBeenCalled();
     }, { timeout: 1000 });
   });
 

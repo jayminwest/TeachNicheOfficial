@@ -30,6 +30,8 @@ export default function SignInPage() {
         errorMessage = 'No session created';
       } else if (errorParam === 'exception') {
         errorMessage = messageParam || 'An unexpected error occurred';
+      } else if (errorParam === 'flow_state_expired') {
+        errorMessage = 'Your authentication session expired. Please try signing in again.';
       } else {
         errorMessage = `Error: ${errorParam}`;
       }

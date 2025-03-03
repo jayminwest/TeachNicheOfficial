@@ -73,16 +73,23 @@ export const signInWithGoogle = async (redirectTo?: string) => {
     
     // Clear any existing auth cookies to prevent state conflicts
     if (typeof document !== 'undefined') {
-      document.cookie = 'sb-qvxtrhiyzawrtdlehtga-auth-token-code-verifier=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'sb-127-auth-token-code-verifier=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      // Clear all supabase cookies to ensure a clean state
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        if (name.startsWith('sb-')) {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      }
     }
     
-    // Use a simpler OAuth configuration to reduce potential issues
+    // Use a very basic OAuth configuration to minimize issues
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
-        // Remove queryParams that might be causing issues
         skipBrowserRedirect: false,
       },
     });

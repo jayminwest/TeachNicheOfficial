@@ -9,9 +9,15 @@ interface AuthDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultView?: 'sign-in' | 'sign-up'
+  title?: string
 }
 
-export function AuthDialog({ open, onOpenChange, defaultView = 'sign-in' }: AuthDialogProps) {
+export function AuthDialog({ 
+  open, 
+  onOpenChange, 
+  defaultView = 'sign-in',
+  title = 'Authentication' 
+}: AuthDialogProps) {
   const [view, setView] = useState<'sign-in' | 'sign-up'>(defaultView)
 
   return (

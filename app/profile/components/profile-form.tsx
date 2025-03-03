@@ -107,13 +107,13 @@ export function ProfileForm() {
     try {
       console.log('Updating profile with data:', data);
       
-      // Try to update the profile using RPC (stored procedure) to bypass RLS
-      // This assumes there's a function in Supabase that can update profiles
-      const { error: rpcError } = await supabase.rpc('update_user_profile', {
+      // Try to update the profile using RPC (stored procedure)
+      const { error: rpcError } = await supabase.rpc('create_profile', {
         user_id: user.id,
         user_full_name: data.full_name,
         user_bio: data.bio,
         user_social_media: data.social_media_tag,
+        user_email: user.email || '',
       });
       
       // If RPC fails or doesn't exist, fall back to direct update with auth

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
@@ -72,20 +73,14 @@ export async function POST(request: Request) {
       email: body.email || '',
     });
     
-    // Create the profile - this will work with RLS because we're authenticated as the user
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: body.id,
-        full_name: body.full_name || '',
-        bio: body.bio || '',
-        social_media_tag: body.social_media_tag || '',
-        email: body.email || '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'id'
-      });
+    // Use the RPC function we created in the migration
+    const { error } = await supabase.rpc('create_profile', {
+      user_id: body.id,
+      user_full_name: body.full_name || '',
+      user_bio: body.bio || '',
+      user_social_media: body.social_media_tag || '',
+      user_email: body.email || '',
+    });
       
     if (error) {
       console.error('Error creating profile:', error);

@@ -37,7 +37,10 @@ BEGIN
     RAISE EXCEPTION 'You can only modify your own profile';
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Enable RLS on the profiles table
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Create a policy to allow users to select their own profile
 CREATE POLICY select_own_profile ON profiles

@@ -66,11 +66,15 @@ export function ProfileForm() {
             // No profile found, try to use data from user metadata
             console.log('No profile found, using user metadata');
             if (user.user_metadata) {
-              form.reset({
+              const userData = {
                 full_name: user.user_metadata.full_name || user.user_metadata.name || "",
                 bio: user.user_metadata.bio || "",
                 social_media_tag: user.user_metadata.social_media_tag || "",
-              });
+              };
+              console.log('Setting form data from user metadata:', userData);
+              form.setValue('full_name', userData.full_name);
+              form.setValue('bio', userData.bio);
+              form.setValue('social_media_tag', userData.social_media_tag);
             }
           } else {
             console.error('Error fetching profile data:', error.message);
@@ -81,11 +85,10 @@ export function ProfileForm() {
         // Profile found, update form
         if (data) {
           console.log('Profile data loaded:', data);
-          form.reset({
-            full_name: data.full_name || "",
-            bio: data.bio || "",
-            social_media_tag: data.social_media_tag || "",
-          });
+          // Use setValue for each field individually to ensure they're properly updated
+          form.setValue('full_name', data.full_name || "");
+          form.setValue('bio', data.bio || "");
+          form.setValue('social_media_tag', data.social_media_tag || "");
         }
       } catch (err) {
         console.error('Unexpected error fetching profile data:', err);
@@ -161,6 +164,11 @@ export function ProfileForm() {
             <div className="animate-pulse">Loading profile data...</div>
           </div>
         )}
+        <div className="text-sm text-muted-foreground mb-4">
+          {user?.email && (
+            <p>Email: {user.email}</p>
+          )}
+        </div>
         <FormField
           control={form.control}
           name="full_name"

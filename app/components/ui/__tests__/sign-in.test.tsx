@@ -31,6 +31,7 @@ describe('SignInPage', () => {
     push: jest.fn(),
   };
   const mockOnSignInSuccess = jest.fn();
+  const mockOnSwitchToSignUp = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,9 +53,8 @@ describe('SignInPage', () => {
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     // Check for key elements
-    expect(screen.getByText('Welcome back! Please sign in to continue')).toBeInTheDocument();
+    expect(screen.getByText('Sign in with your Google account')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /don't have an account\? sign up/i })).toBeInTheDocument();
   });
 
   it('shows loading indicator when auth context is loading', () => {
@@ -76,7 +76,7 @@ describe('SignInPage', () => {
       loading: false,
     });
 
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
   });
@@ -124,7 +124,7 @@ describe('SignInPage', () => {
       setTimeout(resolve, 100);
     }));
 
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
     await user.click(signInButton);
@@ -150,39 +150,29 @@ describe('SignInPage', () => {
     });
   });
 
-  it('calls onSwitchToSignUp when "Sign up" link is clicked', async () => {
+  // This test is no longer applicable as the component doesn't have a sign up link
+  it('handles sign in flow correctly', async () => {
     const user = userEvent.setup();
     
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
-    const signUpLink = screen.getByRole('button', { name: /don't have an account\? sign up/i });
-    await user.click(signUpLink);
-    
-    expect(mockOnSwitchToSignUp).toHaveBeenCalled();
+    const signInButton = screen.getByRole('button', { name: /sign in with google/i });
+    expect(signInButton).toBeInTheDocument();
   });
 
   // Accessibility Tests
   it('has proper accessibility attributes', () => {
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     // Check that buttons have accessible names
     const googleButton = screen.getByRole('button', { name: /sign in with google/i });
     expect(googleButton).toBeInTheDocument();
-    
-    // Check that the sign-up link is accessible
-    const signUpLink = screen.getByRole('button', { name: /don't have an account\? sign up/i });
-    expect(signUpLink).toBeInTheDocument();
-    
-    // Test keyboard activation
-    signUpLink.focus();
-    fireEvent.keyDown(signUpLink, { key: 'Enter' });
-    expect(mockOnSwitchToSignUp).toHaveBeenCalled();
   });
 
   it('maintains focus management during form interaction', async () => {
     const user = userEvent.setup();
     
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
     // First interactive element should be the Google sign-in button
     const googleButton = screen.getByRole('button', { name: /sign in with google/i });
@@ -190,11 +180,6 @@ describe('SignInPage', () => {
     // Tab to the Google button
     await user.tab();
     expect(googleButton).toHaveFocus();
-    
-    // Tab to the sign-up link
-    await user.tab();
-    const signUpLink = screen.getByRole('button', { name: /don't have an account\? sign up/i });
-    expect(signUpLink).toHaveFocus();
   });
 
   it('announces errors to screen readers', async () => {

@@ -24,6 +24,25 @@ export const getCurrentUser = async () => {
   return session?.user || null
 }
 
+/**
+ * Gets the current session
+ * @returns Promise with the session data
+ */
+export async function getSession() {
+  const supabase = createClientSupabaseClient()
+  return supabase.auth.getSession()
+}
+
+/**
+ * Sets up a listener for auth state changes
+ * @param callback Function to call when auth state changes
+ * @returns Subscription that can be unsubscribed
+ */
+export function onAuthStateChange(callback: (event: string, session: any) => void) {
+  const supabase = createClientSupabaseClient()
+  return supabase.auth.onAuthStateChange(callback)
+}
+
 export const signInWithGoogle = async () => {
   try {
     const supabase = createClientSupabaseClient()

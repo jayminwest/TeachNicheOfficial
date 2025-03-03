@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     
     // Use the RPC function we created in the migration
     const { error } = await supabase.rpc(
-      'create_profile' as any, 
+      'create_profile' as unknown as string, 
       {
         user_id: body.id,
         user_full_name: body.full_name || '',

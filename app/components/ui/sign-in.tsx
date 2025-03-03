@@ -8,18 +8,16 @@ import {
   CardHeader,
 } from './card'
 import { Icons } from './icons'
-import { onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle, onAuthStateChange, getSession } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { VisuallyHidden } from './visually-hidden'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Database } from '@/types/database'
 
 interface SignInPageProps {
-  onSwitchToSignUp: () => void;
   onSignInSuccess?: () => void;
+  initialProvider?: string;
 }
 
-function SignInPage({ onSwitchToSignUp, onSignInSuccess }: SignInPageProps) {
+function SignInPage({ onSignInSuccess }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -29,9 +27,7 @@ function SignInPage({ onSwitchToSignUp, onSignInSuccess }: SignInPageProps) {
   useEffect(() => {
     const { data: { subscription } } = onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, !!session);
         if (event === 'SIGNED_IN' && session) {
-          console.log('User signed in, redirecting to profile');
           // Call the success callback to close the dialog
           if (onSignInSuccess) {
             onSignInSuccess();
@@ -61,44 +57,18 @@ function SignInPage({ onSwitchToSignUp, onSignInSuccess }: SignInPageProps) {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
+    setError(null)
     try {
       // For testing - set a flag that we can detect in tests
       if (typeof window !== 'undefined') {
         window.signInWithGoogleCalled = true;
       }
       
-      console.log('Starting Google sign-in process...');
+      const result = await signInWithGoogle()
       
-      // Use Supabase client directly for Google sign-in
-      const supabase = createClientComponentClient<Database>();
-      
-      // Use the exact redirect URL that's registered in Google Cloud Console
-      const redirectUrl = 'https://erhavrzwpyvnpefifsfu.supabase.co/auth/v1/callback';
-      
-      console.log('Using redirect URL for Google sign-in:', redirectUrl);
-      
-      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-        }
-      });
-      
-      if (signInError) {
-        // Check for specific provider not enabled error
-        const errorMessage = signInError.message || '';
-        if (errorMessage.includes('provider is not enabled') || 
-            errorMessage.includes('Unsupported provider')) {
-          throw new Error('Google sign-in is not configured. Please enable Google provider in Supabase dashboard.');
-        }
-        throw signInError;
+      if (result?.error) {
+        throw result.error;
       }
-      
-      console.log('Google sign-in initiated successfully', data);
-      
-      // Check if we have a session
-      const { data: { session } } = await getSession();
-      console.log('Session after sign-in attempt:', !!session);
       
       // We don't redirect here - the onAuthStateChange listener will handle it
       // Keep loading state until auth state change or timeout
@@ -129,7 +99,7 @@ function SignInPage({ onSwitchToSignUp, onSignInSuccess }: SignInPageProps) {
         <div className="flex min-h-[inherit] items-center justify-center p-6">
           <Card className="w-full max-w-[400px] mx-auto">
             <CardHeader className="space-y-1">
-              <CardDescription>Welcome back! Please sign in to continue</CardDescription>
+              <CardDescription>Sign in with your Google account</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="grid gap-4">
@@ -151,20 +121,6 @@ function SignInPage({ onSwitchToSignUp, onSignInSuccess }: SignInPageProps) {
                 {error && (
                   <p className="text-sm text-red-500 text-center">{error}</p>
                 )}
-                <div className="text-center">
-                  <Button
-                    variant="link"
-                    onClick={onSwitchToSignUp}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        onSwitchToSignUp();
-                      }
-                    }}
-                    className="text-sm"
-                  >
-                    Don&apos;t have an account? Sign up
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>

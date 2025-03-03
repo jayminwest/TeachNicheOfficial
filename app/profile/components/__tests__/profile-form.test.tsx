@@ -170,7 +170,7 @@ describe('ProfileForm', () => {
     // Check if error toast is shown
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith(expect.objectContaining({
-        title: "Error",
+        title: "Error loading profile",
         description: "Failed to update profile",
         variant: "destructive"
       }));

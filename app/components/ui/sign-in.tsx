@@ -16,9 +16,10 @@ import { Database } from '@/types/database'
 
 interface SignInPageProps {
   onSwitchToSignUp: () => void;
+  onSignInSuccess?: () => void;
 }
 
-function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
+function SignInPage({ onSwitchToSignUp, onSignInSuccess }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -30,18 +31,23 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       (event, session) => {
         console.log('Auth state changed:', event, !!session);
         if (event === 'SIGNED_IN' && session) {
-          console.log('User signed in, redirecting to dashboard');
+          console.log('User signed in, redirecting to profile');
+          // Call the success callback to close the dialog
+          if (onSignInSuccess) {
+            onSignInSuccess();
+          }
+          
           if (typeof window !== 'undefined' && window.nextRouterMock) {
-            window.nextRouterMock.push('/dashboard');
+            window.nextRouterMock.push('/profile');
           } else {
-            router.push('/dashboard');
+            router.push('/profile');
           }
         }
       }
     );
     
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, onSignInSuccess]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -108,7 +114,7 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
           </div>
         </div>
       ) : user ? (
-        <>{router.push('/dashboard')}</>
+        <>{router.push('/profile')}</>
       ) : (
         <div className="flex min-h-[inherit] items-center justify-center p-6">
           <Card className="w-full max-w-[400px] mx-auto">

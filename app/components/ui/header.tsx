@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
@@ -35,6 +35,7 @@ export function Header() {
     const { user, loading } = useAuth();
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const navigationItems: NavigationItem[] = [
         {
             title: "Home",
@@ -136,7 +137,7 @@ export function Header() {
                         </>
                     ) : !loading ? (
                         <>
-                            <Dialog>
+                            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="ghost">Sign In</Button>
                                 </DialogTrigger>
@@ -145,9 +146,15 @@ export function Header() {
                                         {showSignIn ? "Sign In" : "Sign Up"}
                                     </DialogTitle>
                                     {showSignIn ? (
-                                        <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
+                                        <SignInPage 
+                                            onSwitchToSignUp={() => setShowSignIn(false)} 
+                                            onSignInSuccess={() => setDialogOpen(false)}
+                                        />
                                     ) : (
-                                        <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
+                                        <SignUpPage 
+                                            onSwitchToSignIn={() => setShowSignIn(true)} 
+                                            onSignInSuccess={() => setDialogOpen(false)}
+                                        />
                                     )}
                                 </DialogContent>
                             </Dialog>
@@ -195,7 +202,7 @@ export function Header() {
                                     </>
                                 ) : !loading ? (
                                     <>
-                                        <Dialog>
+                                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                                             <DialogTrigger asChild>
                                                 <Button variant="ghost" className="w-full">Sign In</Button>
                                             </DialogTrigger>
@@ -204,9 +211,15 @@ export function Header() {
                                                     {showSignIn ? "Sign In" : "Sign Up"}
                                                 </DialogTitle>
                                                 {showSignIn ? (
-                                                    <SignInPage onSwitchToSignUp={() => setShowSignIn(false)} />
+                                                    <SignInPage 
+                                                        onSwitchToSignUp={() => setShowSignIn(false)} 
+                                                        onSignInSuccess={() => setDialogOpen(false)}
+                                                    />
                                                 ) : (
-                                                    <SignUpPage onSwitchToSignIn={() => setShowSignIn(true)} />
+                                                    <SignUpPage 
+                                                        onSwitchToSignIn={() => setShowSignIn(true)} 
+                                                        onSignInSuccess={() => setDialogOpen(false)}
+                                                    />
                                                 )}
                                             </DialogContent>
                                         </Dialog>

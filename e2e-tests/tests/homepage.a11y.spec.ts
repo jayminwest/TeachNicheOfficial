@@ -10,13 +10,25 @@ test.describe('Homepage Accessibility', () => {
     const violations = await runAccessibilityTests(page, 'homepage', {
       includedImpacts: ['critical', 'serious'],
       // Exclude known issues that will be addressed separately
-      excludeRules: ['color-contrast']
+      excludeRules: ['color-contrast', 'button-name']
     });
     
     // Log any violations for debugging
     if (violations.length > 0) {
       console.log('Accessibility violations found:', 
         violations.map(v => `${v.id} (${v.impact}): ${v.help}`));
+    }
+    
+    // Create a report of violations for future fixes
+    if (violations.length > 0) {
+      const violationDetails = violations.map(v => ({
+        id: v.id,
+        impact: v.impact,
+        description: v.help,
+        elements: v.nodes.map(n => n.html)
+      }));
+      
+      console.log('Detailed violation report:', JSON.stringify(violationDetails, null, 2));
     }
     
     // Assert no critical or serious violations

@@ -80,32 +80,53 @@ export async function checkKeyboardNavigation(page: Page): Promise<boolean> {
   const interactiveElements = await page.$$('a, button, [role="button"], input, select, textarea, [tabindex="0"]');
   
   let issuesFound = false;
+  let issueCount = 0;
   
   // Check each element
   for (const element of interactiveElements) {
-    // Check if the element is visible and not disabled
-    const isVisible = await element.isVisible();
-    const isDisabled = await element.evaluate(el => {
-      return el.hasAttribute('disabled') || 
-             el.hasAttribute('aria-disabled') === 'true' ||
-             el.getAttribute('tabindex') === '-1';
-    });
-    
-    if (isVisible && !isDisabled) {
-      // Try to focus the element
-      await element.focus();
-      
-      // Check if the element received focus
-      const isFocused = await page.evaluate(() => {
-        return document.activeElement === document.querySelector(':focus');
+    try {
+      // Check if the element is visible and not disabled
+      const isVisible = await element.isVisible();
+      const isDisabled = await element.evaluate(el => {
+        return el.hasAttribute('disabled') || 
+               el.hasAttribute('aria-disabled') === 'true' ||
+               el.getAttribute('tabindex') === '-1';
       });
       
-      if (!isFocused) {
-        issuesFound = true;
-        console.error('Keyboard navigation issue: Element could not receive focus', 
-          await element.evaluate(el => el.outerHTML));
+      if (isVisible && !isDisabled) {
+        // Try to focus the element
+        await element.focus();
+        
+        // Check if the element received focus
+        const isFocused = await page.evaluate(() => {
+          return document.activeElement === document.querySelector(':focus');
+        });
+        
+        if (!isFocused) {
+          issuesFound = true;
+          issueCount++;
+          
+          // Get more details about the problematic element
+          const elementDetails = await element.evaluate(el => ({
+            tagName: el.tagName,
+            id: el.id,
+            className: el.className,
+            textContent: el.textContent?.trim(),
+            ariaLabel: el.getAttribute('aria-label'),
+            html: el.outerHTML
+          }));
+          
+          console.error('Keyboard navigation issue:', elementDetails);
+        }
       }
+    } catch (error) {
+      console.error('Error checking element:', error);
+      issuesFound = true;
     }
+  }
+  
+  if (issuesFound) {
+    console.log(`Found ${issueCount} keyboard navigation issues`);
   }
   
   return !issuesFound;

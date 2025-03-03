@@ -98,10 +98,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/profile', req.url))
   }
   
-  // For unauthenticated users trying to access the profile, redirect to home page
+  // For unauthenticated users trying to access the profile, redirect to home page with auth=signin parameter
   // The UI will handle showing the sign-in dialog
   if (path.startsWith('/profile') && !session) {
-    return NextResponse.redirect(new URL('/', req.url))
+    const redirectUrl = new URL('/', req.url)
+    redirectUrl.searchParams.set('auth', 'signin')
+    return NextResponse.redirect(redirectUrl)
   }
 
   // Check auth restrictions
@@ -110,8 +112,9 @@ export async function middleware(req: NextRequest) {
   )
 
   if (isRestrictedPath && !session) {
-    // Redirect to home page instead of non-existent /auth/signin
+    // Redirect to home page with auth=signin parameter to trigger sign-in dialog
     const redirectUrl = new URL('/', req.url)
+    redirectUrl.searchParams.set('auth', 'signin')
     redirectUrl.searchParams.set('redirect', path)
     return NextResponse.redirect(redirectUrl)
   }

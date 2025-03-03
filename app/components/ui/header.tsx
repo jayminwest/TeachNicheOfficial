@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import React, { useState, useCallback, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";
@@ -36,6 +36,16 @@ export function Header() {
     const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const searchParams = useSearchParams();
+    
+    // Check for auth parameter to show sign-in dialog
+    useEffect(() => {
+        const authParam = searchParams.get('auth');
+        if (authParam === 'signin') {
+            setDialogOpen(true);
+            setShowSignIn(true);
+        }
+    }, [searchParams]);
     const navigationItems: NavigationItem[] = [
         {
             title: "Home",

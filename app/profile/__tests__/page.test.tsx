@@ -72,31 +72,7 @@ jest.mock('@/app/services/supabase', () => ({
   },
 }))
 
-// Mock dashboard components
-jest.mock('@/app/dashboard/components/dashboard-header', () => ({
-  __esModule: true,
-  default: () => <div data-testid="dashboard-header">Dashboard Header</div>
-}))
-
-jest.mock('@/app/dashboard/components/activity-feed', () => ({
-  __esModule: true,
-  default: () => <div data-testid="activity-feed">Activity Feed</div>
-}))
-
-jest.mock('@/app/dashboard/components/performance-metrics', () => ({
-  __esModule: true,
-  default: () => <div data-testid="performance-metrics">Performance Metrics</div>
-}))
-
-jest.mock('@/app/dashboard/components/analytics-section', () => ({
-  __esModule: true,
-  default: () => <div data-testid="analytics-section">Analytics Section</div>
-}))
-
-jest.mock('@/app/dashboard/components/lessons-grid', () => ({
-  __esModule: true,
-  default: () => <div data-testid="lessons-grid">Lessons Grid</div>
-}))
+// No need to mock dashboard components as they're not used in the profile page
 
 // Add jest-axe matcher
 expect.extend(toHaveNoViolations);

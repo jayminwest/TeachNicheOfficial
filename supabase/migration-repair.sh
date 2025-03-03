@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# First try to remove any existing entry for this migration
-echo "Attempting to remove existing migration entry..."
+# First try to remove any existing entries for these migrations
+echo "Attempting to remove existing migration entries..."
 supabase migration repair --status reverted 20250303000000
 supabase migration repair --status reverted 20250303
+supabase migration repair --status reverted 20250304010000
+supabase migration repair --status reverted 20250304020000
 
-# Then mark the migration as applied with the correct format
-echo "Marking migration as applied..."
+# Then mark the migrations as applied with the correct format
+echo "Marking migrations as applied..."
 supabase migration repair --status applied 20250303000000
 
-# Also handle the other migrations mentioned in the error
-echo "Handling additional migrations..."
-supabase migration repair --status applied 20250304010000
-supabase migration repair --status applied 20250304020000
+# Run db pull to verify the changes
+echo "Pulling database schema..."
+supabase db pull

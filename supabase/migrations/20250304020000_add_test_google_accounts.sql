@@ -1,6 +1,13 @@
 -- Migration: Add Test Google Accounts
 -- Description: Adds test users with Google authentication for development
 
+-- Declare variables for UUIDs
+DO $$
+DECLARE
+  google_user_id UUID := gen_random_uuid();
+  google_creator_id UUID := gen_random_uuid();
+BEGIN
+
 -- Insert test Google users into auth.users
 INSERT INTO auth.users (
   id,
@@ -12,7 +19,7 @@ INSERT INTO auth.users (
 )
 VALUES
   (
-    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
+    google_user_id,
     'google-user@example.com',
     '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
     now(),
@@ -20,18 +27,18 @@ VALUES
     now()
   ),
   (
-    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
+    google_creator_id,
     'google-creator@example.com',
     '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
     now(),
     now(),
     now()
   )
-ON CONFLICT (id) DO UPDATE 
+ON CONFLICT (email) DO UPDATE 
 SET 
-  email = EXCLUDED.email,
   raw_user_meta_data = EXCLUDED.raw_user_meta_data,
-  updated_at = now();
+  updated_at = now()
+RETURNING id INTO google_user_id, google_creator_id;
 
 -- Insert corresponding identities for Google authentication
 INSERT INTO auth.identities (
@@ -42,23 +49,20 @@ INSERT INTO auth.identities (
   created_at,
   updated_at
 )
-VALUES
-  (
-    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
-    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
-    '{"sub":"google-oauth2|123456789", "email":"google-user@example.com", "name":"Google Test User"}',
-    'google',
-    now(),
-    now()
-  ),
-  (
-    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
-    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
-    '{"sub":"google-oauth2|987654321", "email":"google-creator@example.com", "name":"Google Creator"}',
-    'google',
-    now(),
-    now()
-  )
+SELECT 
+  id,
+  id,
+  CASE 
+    WHEN email = 'google-user@example.com' THEN 
+      '{"sub":"google-oauth2|123456789", "email":"google-user@example.com", "name":"Google Test User"}'
+    ELSE 
+      '{"sub":"google-oauth2|987654321", "email":"google-creator@example.com", "name":"Google Creator"}'
+  END,
+  'google',
+  now(),
+  now()
+FROM auth.users
+WHERE email IN ('google-user@example.com', 'google-creator@example.com')
 ON CONFLICT (id) DO UPDATE 
 SET 
   identity_data = EXCLUDED.identity_data,
@@ -76,29 +80,33 @@ INSERT INTO public.profiles (
   updated_at,
   stripe_account_id
 )
-VALUES
-  (
-    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
-    'Google Test User',
-    'google-user@example.com',
-    'Test user who signed up with Google',
-    'https://lh3.googleusercontent.com/test-avatar',
-    '@google_user',
-    now(),
-    now(),
-    null
-  ),
-  (
-    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
-    'Google Creator',
-    'google-creator@example.com',
-    'Content creator who signed up with Google',
-    'https://lh3.googleusercontent.com/creator-avatar',
-    '@google_creator',
-    now(),
-    now(),
-    'acct_google_test'
-  )
+SELECT 
+  id,
+  CASE 
+    WHEN email = 'google-user@example.com' THEN 'Google Test User'
+    ELSE 'Google Creator'
+  END,
+  email,
+  CASE 
+    WHEN email = 'google-user@example.com' THEN 'Test user who signed up with Google'
+    ELSE 'Content creator who signed up with Google'
+  END,
+  CASE 
+    WHEN email = 'google-user@example.com' THEN 'https://lh3.googleusercontent.com/test-avatar'
+    ELSE 'https://lh3.googleusercontent.com/creator-avatar'
+  END,
+  CASE 
+    WHEN email = 'google-user@example.com' THEN '@google_user'
+    ELSE '@google_creator'
+  END,
+  now(),
+  now(),
+  CASE 
+    WHEN email = 'google-creator@example.com' THEN 'acct_google_test'
+    ELSE null
+  END
+FROM auth.users
+WHERE email IN ('google-user@example.com', 'google-creator@example.com')
 ON CONFLICT (id) DO UPDATE 
 SET 
   full_name = EXCLUDED.full_name,
@@ -126,24 +134,24 @@ INSERT INTO purchases (
   created_at,
   updated_at
 )
-VALUES
-  (
-    'ffffffff-ffff-ffff-ffff-ffffffffffff',
-    'aaaaaaaa-aaaa-aaaa-aaaa-gggggggggggg',
-    '33333333-aaaa-3333-aaaa-333333333333',
-    'dddddddd-dddd-dddd-dddd-dddddddddddd',
-    now() - interval '2 days',
-    'cs_google_test',
-    3499,
-    524,
-    2975,
-    'pi_google_test',
-    15,
-    'completed',
-    now() - interval '2 days',
-    now() - interval '2 days'
-  )
-ON CONFLICT (id) DO NOTHING;
+SELECT 
+  gen_random_uuid(),
+  u.id,
+  '33333333-aaaa-3333-aaaa-333333333333',
+  'dddddddd-dddd-dddd-dddd-dddddddddddd',
+  now() - interval '2 days',
+  'cs_google_test',
+  3499,
+  524,
+  2975,
+  'pi_google_test',
+  15,
+  'completed'::purchase_status,
+  now() - interval '2 days',
+  now() - interval '2 days'
+FROM auth.users u
+WHERE u.email = 'google-user@example.com'
+LIMIT 1;
 
 -- Add a lesson for the Google creator
 INSERT INTO lessons (
@@ -164,44 +172,39 @@ INSERT INTO lessons (
   mux_asset_id,
   mux_playback_id
 )
-VALUES
-  (
-    '66666666-6666-6666-6666-666666666666',
-    'Google Creator Special: Advanced Kendama Techniques',
-    'Exclusive techniques shared by our Google-authenticated creator.',
-    2999,
-    'bbbbbbbb-bbbb-bbbb-bbbb-hhhhhhhhhhhh',
-    now() - interval '5 days',
-    now() - interval '5 days',
-    'prod_google_test',
-    'price_google_test',
-    'This lesson covers exclusive techniques that combine traditional and modern kendama styles.',
-    'https://images.unsplash.com/photo-1595429035839-c99c298ffdde',
-    true,
-    'published',
-    1,
-    'muxasset_google',
-    'playback_google'
-  )
-ON CONFLICT (id) DO UPDATE
-SET
-  title = EXCLUDED.title,
-  description = EXCLUDED.description,
-  price = EXCLUDED.price,
-  updated_at = now(),
-  stripe_product_id = EXCLUDED.stripe_product_id,
-  stripe_price_id = EXCLUDED.stripe_price_id,
-  content = EXCLUDED.content,
-  thumbnail_url = EXCLUDED.thumbnail_url,
-  is_featured = EXCLUDED.is_featured,
-  status = EXCLUDED.status,
-  version = EXCLUDED.version,
-  mux_asset_id = EXCLUDED.mux_asset_id,
-  mux_playback_id = EXCLUDED.mux_playback_id;
+SELECT 
+  gen_random_uuid(),
+  'Google Creator Special: Advanced Kendama Techniques',
+  'Exclusive techniques shared by our Google-authenticated creator.',
+  2999,
+  u.id,
+  now() - interval '5 days',
+  now() - interval '5 days',
+  'prod_google_test',
+  'price_google_test',
+  'This lesson covers exclusive techniques that combine traditional and modern kendama styles.',
+  'https://images.unsplash.com/photo-1595429035839-c99c298ffdde',
+  true,
+  'published'::lesson_status,
+  1,
+  'muxasset_google',
+  'playback_google'
+FROM auth.users u
+WHERE u.email = 'google-creator@example.com'
+RETURNING id, creator_id INTO google_lesson_id, google_creator_id;
 
 -- Connect the Google creator's lesson to categories
 INSERT INTO lesson_category (lesson_id, category_id)
-VALUES
-  ('66666666-6666-6666-6666-666666666666', '22222222-2222-2222-2222-222222222222'),
-  ('66666666-6666-6666-6666-666666666666', '33333333-3333-3333-3333-333333333333')
+SELECT 
+  l.id, 
+  c.id
+FROM lessons l
+CROSS JOIN (
+  SELECT id FROM categories 
+  WHERE id IN ('22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333')
+) c
+WHERE l.creator_id = (SELECT id FROM auth.users WHERE email = 'google-creator@example.com')
+AND l.title = 'Google Creator Special: Advanced Kendama Techniques'
 ON CONFLICT (lesson_id, category_id) DO NOTHING;
+
+END $$;

@@ -43,23 +43,31 @@ export async function middleware(req: NextRequest) {
     }
   })
   
-  // Get the session from the cookie
-  const authCookie = req.cookies.get('sb-auth-token')?.value
+  // Get the session from the cookie - try both possible cookie names
+  const accessToken = req.cookies.get('sb-access-token')?.value || 
+                     req.cookies.get('sb-auth-token')?.value
+  const refreshToken = req.cookies.get('sb-refresh-token')?.value || ''
   let session = null
   
-  if (authCookie) {
+  if (accessToken) {
     try {
+      console.log('Middleware: Found auth token, attempting to set session')
       // Set the auth cookie for this request
       supabase.auth.setSession({
-        access_token: authCookie,
-        refresh_token: ''
+        access_token: accessToken,
+        refresh_token: refreshToken
       })
       
       // Get the session
-      const { data } = await supabase.auth.getSession()
-      session = data.session
+      const { data, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) {
+        console.error('Middleware: Error getting session:', sessionError)
+      } else {
+        console.log('Middleware: Session retrieved successfully', !!data.session)
+        session = data.session
+      }
     } catch (error) {
-      console.error('Error getting session:', error)
+      console.error('Middleware: Exception getting session:', error)
     }
   }
   

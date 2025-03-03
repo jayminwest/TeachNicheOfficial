@@ -31,11 +31,20 @@ export function AuthProvider({
     // Check active sessions and sets the user
     async function getInitialSession() {
       try {
+        console.log('AuthContext: Getting initial session')
         const { data: { session } } = await getSession()
-        setUser(session?.user ?? null)
+        console.log('AuthContext: Initial session result:', !!session)
+        
+        if (session?.user) {
+          console.log('AuthContext: User found in session:', session.user.id)
+          setUser(session.user)
+        } else {
+          console.log('AuthContext: No user in session')
+          setUser(null)
+        }
         setLoading(false)
       } catch (error) {
-        console.error('Error getting initial session:', error)
+        console.error('AuthContext: Error getting initial session:', error)
         setLoading(false)
       }
     }
@@ -52,20 +61,25 @@ export function AuthProvider({
         setLoading(false)
       } else if (typeof window !== 'undefined') {
         const authStateChange = onAuthStateChange(async (event, session) => {
-          console.log('Auth state changed:', event, session?.user?.id)
+          console.log('AuthContext: Auth state changed:', event, session?.user?.id)
           
           // Handle auth state changes
           if (event === 'SIGNED_IN') {
-            console.log('User signed in:', session?.user?.id)
+            console.log('AuthContext: User signed in:', session?.user?.id)
             setUser(session?.user ?? null)
+            
+            // Force a refresh of the page to ensure all components recognize the auth state
+            if (typeof window !== 'undefined') {
+              window.location.href = '/profile'
+            }
           } else if (event === 'SIGNED_OUT') {
-            console.log('User signed out')
+            console.log('AuthContext: User signed out')
             setUser(null)
           } else if (event === 'TOKEN_REFRESHED') {
-            console.log('Token refreshed for user:', session?.user?.id)
+            console.log('AuthContext: Token refreshed for user:', session?.user?.id)
             setUser(session?.user ?? null)
           } else if (event === 'USER_UPDATED') {
-            console.log('User updated:', session?.user?.id)
+            console.log('AuthContext: User updated:', session?.user?.id)
             setUser(session?.user ?? null)
           }
           

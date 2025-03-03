@@ -83,7 +83,6 @@ describe('SignInPage', () => {
 
   // Form Interactions Tests
   it('handles Google sign-in button click', async () => {
-    const user = userEvent.setup();
     // Mock successful sign-in
     (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
     
@@ -187,7 +186,8 @@ describe('SignInPage', () => {
     render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    // Simulate click directly
+    signInButton.click();
     
     // Wait for the error message to appear and check it's accessible
     await waitFor(() => {

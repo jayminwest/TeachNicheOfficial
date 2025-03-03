@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { createClientSupabaseClient } from '@/app/lib/supabase/client';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 // Add these helper functions at the top of the file
@@ -191,7 +192,7 @@ async function updateLessonHandler(request: Request) {
       return createErrorResponse('Lesson not found', 404);
     }
     
-    const hasAccess = lesson.creator_id === user.id;
+    const hasAccess = lesson.creator_id === session.user.id;
     if (!hasAccess) {
       return createErrorResponse('You do not have permission to update this lesson', 403);
     }

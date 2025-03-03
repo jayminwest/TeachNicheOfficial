@@ -7,9 +7,11 @@ export async function POST(request: NextRequest) {
     const requestData = await request.json();
     const { full_name, bio, social_media_tag } = requestData;
     
-    // Create a Supabase client with the user's session cookie - properly await cookies
+    // Create a Supabase client with the user's session cookie
     const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    });
     
     // Get the user's session to verify they're authenticated
     const { data: { session } } = await supabase.auth.getSession();

@@ -116,6 +116,7 @@ export function ProfileForm() {
           bio: data.bio,
           social_media_tag: data.social_media_tag,
         }),
+        credentials: 'same-origin', // Include cookies with the request
       });
       
       const result = await response.json();

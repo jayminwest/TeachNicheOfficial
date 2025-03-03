@@ -70,7 +70,7 @@ describe('SignInPage', () => {
     expect(screen.getByTestId('loading-spinner')).toHaveClass('animate-spin');
   });
 
-  it('redirects to dashboard when user is already authenticated', () => {
+  it('redirects to profile when user is already authenticated', () => {
     (useAuth as jest.Mock).mockReturnValue({
       user: { id: 'test-user-id' },
       loading: false,
@@ -78,7 +78,7 @@ describe('SignInPage', () => {
 
     render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
     
-    expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
+    expect(mockRouter.push).toHaveBeenCalledWith('/profile');
   });
 
   // Form Interactions Tests

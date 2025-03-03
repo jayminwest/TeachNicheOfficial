@@ -30,17 +30,30 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
         ? JSON.stringify(error, Object.getOwnPropertyNames(error)) 
         : String(error);
       
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : `Unknown error (${errorDetails})`;
+      // Check for specific Supabase JWT error
+      let userMessage = 'Failed to load requests';
+      if (errorDetails.includes('JWSError') || errorDetails.includes('Not valid base64url')) {
+        userMessage = 'Authentication error. Please try signing out and signing back in.';
+        console.error('Supabase JWT validation error detected:', { 
+          error, 
+          errorType: typeof error,
+          errorDetails
+        });
+      } else {
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : `Unknown error (${errorDetails})`;
+        
+        console.error('Failed to load requests:', { 
+          error, 
+          errorType: typeof error,
+          errorDetails
+        });
+        
+        userMessage = `Failed to load requests: ${errorMessage}`;
+      }
       
-      console.error('Failed to load requests:', { 
-        error, 
-        errorType: typeof error,
-        errorDetails
-      });
-      
-      onError?.(new Error(`Failed to load requests: ${errorMessage}`));
+      onError?.(new Error(userMessage));
     } finally {
       setIsLoading(false)
     }

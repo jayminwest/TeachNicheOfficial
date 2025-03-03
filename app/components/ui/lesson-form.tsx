@@ -1,7 +1,7 @@
 "use client";
 
 import { cn, safeNumberValue } from "@/app/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkdownEditor } from "./markdown-editor";
 import { useForm } from "react-hook-form";
@@ -59,14 +59,33 @@ export function LessonForm({
   });
 
   const [videoUploaded, setVideoUploaded] = useState(false);
+  const [formIsDirty, setFormIsDirty] = useState(false);
   const hasVideo = videoUploaded || !!form.watch("muxAssetId");
   
-  console.log("Form State:", {
-    muxAssetId: form.watch("muxAssetId"),
-    muxPlaybackId: form.watch("muxPlaybackId"),
-    hasVideo,
-    videoUploaded
-  });
+  // Track form dirty state
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (!formIsDirty && form.formState.isDirty) {
+        setFormIsDirty(true);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, formIsDirty]);
+  
+  // Add a beforeunload event listener to prevent accidental navigation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (formIsDirty && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formIsDirty, isSubmitting]);
 
   return (
     <Form {...form}>
@@ -143,44 +162,34 @@ export function LessonForm({
           <FormField
             control={form.control}
             name="price"
-            render={({ field }) => {
-              // Debug NaN values
-              if (typeof field.value === 'number' && Number.isNaN(field.value)) {
-                console.warn('NaN detected in price field value - Resetting to 0', field);
-                field.value = 0;
-              }
-
-              return (
-                <FormItem>
-                  <FormLabel>Price (USD)</FormLabel>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="999.99"
-                        className="pl-7"
-                        {...field} 
-                        value={safeNumberValue(field.value)}
-                        onChange={e => {
-                          // Handle empty string and invalid numbers
-                          const inputValue = e.target.value.trim();
-                          const numericValue = inputValue === '' ? 0 : parseFloat(inputValue);
-                          field.onChange(Number.isNaN(numericValue) ? 0 : numericValue);
-                        }}
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                  </div>
-                  <FormDescription>
-                    Set a fair price for your lesson content (leave at 0 for free)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price (USD)</FormLabel>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                  <FormControl>
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="999.99"
+                      className="pl-7"
+                      {...field} 
+                      value={field.value === 0 ? '' : field.value}
+                      onChange={e => {
+                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        field.onChange(isNaN(value) ? 0 : value);
+                      }}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                </div>
+                <FormDescription>
+                  Set a fair price for your lesson content (leave at 0 for free)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 
@@ -204,84 +213,30 @@ export function LessonForm({
                     shouldTouch: true
                   });
                   
-                  // Wait for the asset to be ready and get the playback ID
-                  // Log the asset ID we're using
-                  console.log("Lesson form using asset ID for status check:", assetId);
+                  // Get the playback ID from the asset
+                  const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
                   
-                  // Validate the asset ID format
-                  if (!assetId.match(/^[a-zA-Z0-9]{20,}$/)) {
-                    console.warn("Asset ID format looks suspicious:", assetId);
+                  if (!response.ok) {
+                    throw new Error(`Failed to get asset status: ${response.status}`);
                   }
                   
-                  // Add retry logic for checking asset status with exponential backoff
-                  const checkAssetStatus = async (retries = 5, initialDelay = 2000) => {
-                    for (let i = 0; i < retries; i++) {
-                      try {
-                        // Exponential backoff with jitter
-                        const currentDelay = initialDelay * Math.pow(1.5, i) * (0.75 + Math.random() * 0.5);
-                        console.log(`Checking asset status in form (attempt ${i + 1}/${retries}, delay: ${Math.round(currentDelay)}ms)...`);
-                        
-                        // Wait before checking (longer delays for later attempts)
-                        if (i > 0) {
-                          await new Promise(resolve => setTimeout(resolve, currentDelay));
-                        }
-                        
-                        const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
-                        
-                        if (!response.ok) {
-                          const errorText = await response.text();
-                          console.error(`Asset status check failed (${response.status}):`, errorText);
-                          
-                          // If this is the last retry, throw the error
-                          if (i === retries - 1) {
-                            throw new Error(`Failed to get asset status: ${response.status} ${errorText}`);
-                          }
-                        } else {
-                          // Success - return the response
-                          return response;
-                        }
-                      } catch (error) {
-                        console.error(`Asset status check error (attempt ${i + 1}/${retries}):`, error);
-                        
-                        // If this is the last retry, throw the error
-                        if (i === retries - 1) {
-                          throw error;
-                        }
-                      }
-                      
-                      // Wait before the next retry
-                      await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, i)));
-                    }
-                    
-                    // This should never be reached due to the throws above
-                    throw new Error("Failed to get asset status after multiple attempts");
-                  };
-                  
-                  const response = await checkAssetStatus();
-                  
                   const data = await response.json();
-                  console.log("Asset status response:", data);
-                  if (data.playbackId) {
-                    form.setValue("muxPlaybackId", data.playbackId, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                      shouldTouch: true
-                    });
-                    console.log("Asset and Playback IDs set:", {
-                      assetId,
-                      playbackId: data.playbackId
-                    });
-                  } else {
+                  
+                  if (!data.playbackId) {
                     throw new Error('No playback ID received');
                   }
                   
-                  console.log("Form values after upload:", form.getValues());
+                  form.setValue("muxPlaybackId", data.playbackId, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true
+                  });
+                  
                   toast({
                     title: "Video uploaded",
                     description: "Your video has been uploaded and processed successfully.",
                   });
                 } catch (error) {
-                  console.error("Error processing video:", error);
                   toast({
                     title: "Upload processing error",
                     description: error instanceof Error ? error.message : "Failed to process video",

@@ -2,63 +2,91 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/app/lib/supabase/client';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 
-interface LessonData {
-  title: string;
-  description: string;
-  price?: number;
-  muxAssetId?: string;
-  muxPlaybackId?: string;
-  content?: string;
-  status?: 'draft' | 'published' | 'archived';
-  category?: string;
+// Add these helper functions at the top of the file
+async function authenticateRequest() {
+  const supabase = createRouteHandlerClient({ cookies });
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session?.user) {
+    return { authenticated: false, user: null, error: 'Authentication required' };
+  }
+  
+  return { authenticated: true, user: session.user, error: null };
 }
+
+function createErrorResponse(message: string, status: number, details?: any) {
+  return NextResponse.json(
+    { 
+      error: message,
+      ...(details ? { details } : {})
+    },
+    { status }
+  );
+}
+
+// Define validation schemas
+const lessonCreateSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string()
+    .min(10, "Description must be at least 10 characters")
+    .max(500, "Description must be less than 500 characters"),
+  content: z.string()
+    .max(50000, "Content must be less than 50000 characters")
+    .optional(),
+  muxAssetId: z.string().optional(),
+  muxPlaybackId: z.string().optional(),
+  price: z.number()
+    .min(0, "Price must be positive")
+    .max(999.99, "Price must be less than $1000")
+    .optional(),
+  status: z.enum(['draft', 'published', 'archived']).optional(),
+  category: z.string().optional()
+});
 
 // Helper functions (not exported)
 async function createLessonHandler(request: Request) {
   try {
-    // Get the current user using the route handler client
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    // Authenticate the request
+    const { authenticated, user, error } = await authenticateRequest();
     
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+    if (!authenticated) {
+      return createErrorResponse(error!, 401);
+    }
+    
+    // Parse and validate the request body
+    const body = await request.json();
+    const validationResult = lessonCreateSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return createErrorResponse(
+        'Validation error', 
+        400, 
+        validationResult.error.format()
       );
     }
     
-    const user = session.user;
-
-    const data = await request.json();
     const { 
       title, 
       description, 
-      price, 
+      price = 0, 
       muxAssetId,
       muxPlaybackId,
       content = '',
       status = 'published',
       category
-    } = data as LessonData;
-
-    // Validate required fields
-    if (!title || !description) {
-      return NextResponse.json(
-        { error: 'Title and description are required' },
-        { status: 400 }
-      );
-    }
+    } = validationResult.data;
 
     // Create lesson in Supabase
     const lessonData = {
-      id: crypto.randomUUID(), // Add UUID here
+      id: crypto.randomUUID(),
       title,
       description,
-      price: price || 0,
+      price,
       content,
-      status: status as 'draft' | 'published' | 'archived',
-      creator_id: user.id, // Changed from user_id to creator_id to match database schema
+      status,
+      creator_id: user.id,
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId
@@ -66,31 +94,22 @@ async function createLessonHandler(request: Request) {
 
     const dbClient = createClient();
     
-    // Call from directly on the supabase client to match test expectations
-    const { data: lesson, error } = await dbClient
+    const { data: lesson, error: dbError } = await dbClient
       .from('lessons')
       .insert(lessonData)
       .select()
       .single();
 
-    if (error) {
-      return NextResponse.json(
-        { 
-          error: 'Failed to create lesson',
-          details: error.message
-        },
-        { status: 500 }
-      );
+    if (dbError) {
+      return createErrorResponse('Failed to create lesson', 500, dbError.message);
     }
 
     return NextResponse.json(lesson, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { 
-        error: 'Failed to create lesson',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    return createErrorResponse(
+      'Failed to create lesson',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
     );
   }
 }
@@ -104,7 +123,6 @@ async function getLessonsHandler(request: Request) {
   try {
     const supabase = createClient();
     
-    // Call from directly on the supabase client to match test expectations
     let query = supabase
       .from('lessons')
       .select('*');
@@ -128,143 +146,134 @@ async function getLessonsHandler(request: Request) {
     query = query.limit(limit);
     
     // Execute the query
-    const { data: lessons } = await query;
+    const { data: lessons, error } = await query;
+    
+    if (error) {
+      return createErrorResponse('Failed to fetch lessons', 500, error.message);
+    }
     
     return NextResponse.json({ lessons });
-  } catch {
-    return NextResponse.json(
-      { error: { message: 'Internal server error' } },
-      { status: 500 }
+  } catch (error) {
+    return createErrorResponse(
+      'Failed to fetch lessons',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
     );
   }
 }
 
 async function updateLessonHandler(request: Request) {
   try {
-    // Get the current user using the route handler client
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    // Authenticate the request
+    const { authenticated, user, error } = await authenticateRequest();
     
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!authenticated) {
+      return createErrorResponse(error!, 401);
     }
     
-    const user = session.user;
-
     const data = await request.json();
     const { id, ...updateData } = data;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson ID is required' },
-        { status: 400 }
-      );
+      return createErrorResponse('Lesson ID is required', 400);
     }
 
     // Check if user has permission to update this lesson
     const dbClient = createClient();
     
-    // Call from directly on the supabase client to match test expectations
-    const { data: lesson } = await dbClient
+    const { data: lesson, error: fetchError } = await dbClient
       .from('lessons')
-      .select('creator_id') // Changed from user_id to creator_id to match database schema
+      .select('creator_id')
       .eq('id', id)
       .single();
       
+    if (fetchError) {
+      return createErrorResponse('Failed to fetch lesson', 500, fetchError.message);
+    }
+    
     if (!lesson) {
-      return NextResponse.json(
-        { error: 'Lesson not found' },
-        { status: 404 }
-      );
+      return createErrorResponse('Lesson not found', 404);
     }
     
-    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id to match database schema
+    const hasAccess = lesson.creator_id === user.id;
     if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'You do not have permission to update this lesson' },
-        { status: 403 }
-      );
+      return createErrorResponse('You do not have permission to update this lesson', 403);
     }
     
-    const { data: updatedLesson } = await dbClient
+    const { data: updatedLesson, error: updateError } = await dbClient
       .from('lessons')
       .update(updateData)
-      .match({ id }) // Use match instead of eq to match test expectations
+      .match({ id })
       .select()
       .single();
+      
+    if (updateError) {
+      return createErrorResponse('Failed to update lesson', 500, updateError.message);
+    }
 
     return NextResponse.json(updatedLesson);
-  } catch {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+  } catch (error) {
+    return createErrorResponse(
+      'Failed to update lesson',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
     );
   }
 }
 
 async function deleteLessonHandler(request: Request) {
   try {
-    // Get the current user using the route handler client
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
+    // Authenticate the request
+    const { authenticated, user, error } = await authenticateRequest();
     
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!authenticated) {
+      return createErrorResponse(error!, 401);
     }
-    
-    const user = session.user;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson ID is required' },
-        { status: 400 }
-      );
+      return createErrorResponse('Lesson ID is required', 400);
     }
 
     const dbClient = createClient();
     
-    // Call from directly on the supabase client to match test expectations
-    const { data: lesson } = await dbClient
+    const { data: lesson, error: fetchError } = await dbClient
       .from('lessons')
       .select('*')
       .eq('id', id)
       .single();
+      
+    if (fetchError) {
+      return createErrorResponse('Failed to fetch lesson', 500, fetchError.message);
+    }
 
     if (!lesson) {
-      return NextResponse.json(
-        { error: 'Lesson not found' },
-        { status: 404 }
-      );
+      return createErrorResponse('Lesson not found', 404);
     }
 
     // Check if user has permission to delete this lesson
-    const hasAccess = lesson.creator_id === user.id; // Changed from user_id to creator_id to match database schema
+    const hasAccess = lesson.creator_id === user.id;
     if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'You do not have permission to delete this lesson' },
-        { status: 403 }
-      );
+      return createErrorResponse('You do not have permission to delete this lesson', 403);
     }
 
-    await dbClient
+    const { error: deleteError } = await dbClient
       .from('lessons')
       .delete()
-      .match({ id }) // Use match instead of eq to match test expectations
+      .match({ id });
+      
+    if (deleteError) {
+      return createErrorResponse('Failed to delete lesson', 500, deleteError.message);
+    }
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+  } catch (error) {
+    return createErrorResponse(
+      'Failed to delete lesson',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
     );
   }
 }

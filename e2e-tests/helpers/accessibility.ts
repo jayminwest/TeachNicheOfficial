@@ -37,8 +37,11 @@ export async function runAccessibilityTests(
   
   // Apply options
   if (options.includedImpacts) {
-    // Use the correct method 'withImpacts' to filter by impact level
-    axeBuilder = axeBuilder.withImpacts(options.includedImpacts);
+    // Use the correct method 'options' to filter by impact level
+    axeBuilder = axeBuilder.options({
+      resultTypes: ['violations'],
+      impactLevels: options.includedImpacts
+    });
   }
   
   if (options.excludeRules) {

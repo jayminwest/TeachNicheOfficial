@@ -28,7 +28,7 @@ IF google_user_id IS NULL THEN
   VALUES (
     gen_random_uuid(),
     'google-user@example.com',
-    '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
+    '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}'::jsonb,
     now(),
     now(),
     now()
@@ -38,7 +38,7 @@ ELSE
   -- Update existing user
   UPDATE auth.users
   SET
-    raw_user_meta_data = '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}',
+    raw_user_meta_data = '{"full_name":"Google Test User", "avatar_url":"https://lh3.googleusercontent.com/test-avatar", "provider":"google", "providers":["google"]}'::jsonb,
     updated_at = now()
   WHERE id = google_user_id;
 END IF;
@@ -56,7 +56,7 @@ IF google_creator_id IS NULL THEN
   VALUES (
     gen_random_uuid(),
     'google-creator@example.com',
-    '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
+    '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}'::jsonb,
     now(),
     now(),
     now()
@@ -66,7 +66,7 @@ ELSE
   -- Update existing creator
   UPDATE auth.users
   SET
-    raw_user_meta_data = '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}',
+    raw_user_meta_data = '{"full_name":"Google Creator", "avatar_url":"https://lh3.googleusercontent.com/creator-avatar", "provider":"google", "providers":["google"]}'::jsonb,
     updated_at = now()
   WHERE id = google_creator_id;
 END IF;
@@ -85,9 +85,9 @@ SELECT
   id,
   CASE 
     WHEN email = 'google-user@example.com' THEN 
-      '{"sub":"google-oauth2|123456789", "email":"google-user@example.com", "name":"Google Test User"}'
+      '{"sub":"google-oauth2|123456789", "email":"google-user@example.com", "name":"Google Test User"}'::jsonb
     ELSE 
-      '{"sub":"google-oauth2|987654321", "email":"google-creator@example.com", "name":"Google Creator"}'
+      '{"sub":"google-oauth2|987654321", "email":"google-creator@example.com", "name":"Google Creator"}'::jsonb
   END,
   'google',
   now(),

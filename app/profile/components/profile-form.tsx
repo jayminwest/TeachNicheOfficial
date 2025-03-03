@@ -105,21 +105,8 @@ export function ProfileForm() {
     
     setIsLoading(true);
     try {
-      // First, update the user metadata via auth
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
-          full_name: data.full_name,
-          bio: data.bio,
-          social_media_tag: data.social_media_tag,
-        }
-      });
-      
-      if (authError) {
-        console.error('Error updating user metadata:', authError.message);
-      }
-      
-      // Then, update or insert the profile record
-      const { error: upsertError } = await supabase
+      // Update the profile record directly
+      const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
@@ -131,13 +118,20 @@ export function ProfileForm() {
           onConflict: 'id'
         });
       
-      if (upsertError) {
-        throw new Error(`Error updating profile: ${upsertError.message}`);
+      if (error) {
+        throw new Error(`Error updating profile: ${error.message}`);
       }
       
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
+      });
+      
+      // Refresh the form with the updated data
+      form.reset({
+        full_name: data.full_name,
+        bio: data.bio,
+        social_media_tag: data.social_media_tag,
       });
     } catch (error) {
       console.error('Profile update failed:', error);

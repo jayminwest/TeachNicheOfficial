@@ -43,10 +43,12 @@ export async function middleware(req: NextRequest) {
     }
   })
   
-  // Get the session from the cookie - try both possible cookie names
+  // Get the session from the cookie - try all possible cookie names
   const accessToken = req.cookies.get('sb-access-token')?.value || 
-                     req.cookies.get('sb-auth-token')?.value
-  const refreshToken = req.cookies.get('sb-refresh-token')?.value || ''
+                     req.cookies.get('sb-auth-token')?.value ||
+                     req.cookies.get('sb-127-auth-token')?.value
+  const refreshToken = req.cookies.get('sb-refresh-token')?.value || 
+                      req.cookies.get('sb-127-refresh-token')?.value || ''
   let session = null
   
   if (accessToken) {

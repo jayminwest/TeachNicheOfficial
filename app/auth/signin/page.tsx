@@ -15,6 +15,8 @@ export default function SignInPage() {
   
   // Check for error parameters on page load
   useEffect(() => {
+    if (!searchParams) return;
+    
     const errorParam = searchParams.get('error');
     const messageParam = searchParams.get('message');
     

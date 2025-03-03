@@ -79,19 +79,16 @@ export function ProfileForm() {
         console.log('Error fetching profile, using user metadata as fallback');
         console.log('User metadata:', user.user_metadata);
           
-          if (user.user_metadata) {
-            const userData = {
-              full_name: user.user_metadata.full_name || user.user_metadata.name || "",
-              bio: user.user_metadata.bio || "",
-              social_media_tag: user.user_metadata.social_media_tag || "",
-            };
-            console.log('Setting form data from user metadata:', userData);
-            
-            // Directly set form values
-            form.reset(userData);
-          }
-        } else {
-          console.error('Error fetching profile data:', error.message);
+        if (user.user_metadata) {
+          const userData = {
+            full_name: user.user_metadata.full_name || user.user_metadata.name || "",
+            bio: user.user_metadata.bio || "",
+            social_media_tag: user.user_metadata.social_media_tag || "",
+          };
+          console.log('Setting form data from user metadata:', userData);
+          
+          // Directly set form values
+          form.reset(userData);
         }
         return;
       }
@@ -301,5 +298,5 @@ export function ProfileForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }

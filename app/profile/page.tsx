@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<{ 
     stripe_account_id: string | null;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [, setInitialLoadComplete] = useState(false);
 
   // Immediate redirect for unauthenticated users
@@ -39,25 +40,35 @@ export default function ProfilePage() {
     async function fetchProfile() {
       if (!user?.id) return;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('stripe_account_id')
-        .eq('id', user.id)
-        .single();
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('stripe_account_id')
+          .eq('id', user.id)
+          .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
+        if (error) {
+          console.error('Error fetching profile:', error.message || 'Unknown error');
+          // Still set profile to null to avoid undefined errors
+          setProfile(null);
+          return;
+        }
+
+        setProfile(data);
+      } catch (err) {
+        console.error('Unexpected error fetching profile:', err);
+        setProfile(null);
+      } finally {
+        setIsLoading(false);
       }
-
-      setProfile(data);
     }
 
     fetchProfile();
   }, [user, loading]);
 
-  // Show loading state before initial auth check completes
-  if (loading) {
+  // Show loading state before initial auth check completes or while fetching profile
+  if (loading || isLoading) {
     return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         Loading...

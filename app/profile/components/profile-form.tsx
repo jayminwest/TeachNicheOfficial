@@ -105,21 +105,23 @@ export function ProfileForm() {
     
     setIsLoading(true);
     try {
-      // Update the profile record directly
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
+      // Use the server-side API endpoint to update the profile
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           full_name: data.full_name,
           bio: data.bio,
           social_media_tag: data.social_media_tag,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'id'
-        });
+        }),
+      });
       
-      if (error) {
-        throw new Error(`Error updating profile: ${error.message}`);
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update profile');
       }
       
       toast({

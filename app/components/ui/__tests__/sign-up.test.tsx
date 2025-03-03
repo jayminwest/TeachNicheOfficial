@@ -59,8 +59,10 @@ describe('SignUpPage', () => {
     render(<SignUpPage onSwitchToSignIn={mockOnSwitchToSignIn} />);
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    // Check for the loading spinner
-    expect(screen.getByRole('heading', { level: 1, hidden: true })).toBeInTheDocument();
+    // Check for the loading spinner with VisuallyHidden component
+    const hiddenElement = screen.getByText('Loading authentication status');
+    expect(hiddenElement).toBeInTheDocument();
+    expect(hiddenElement.closest('span')).toHaveClass('absolute');
   });
 
   it('redirects to home when user is already authenticated', () => {

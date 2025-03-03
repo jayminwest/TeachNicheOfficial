@@ -2,7 +2,9 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import ProfilePage from '../page'
-import { renderWithAuth } from '@/app/__tests__/test-utils'
+import { render } from '@testing-library/react'
+import { AuthContext } from '@/app/services/auth/AuthContext'
+import { toHaveNoViolations } from 'jest-axe'
 
 // Create mock functions
 const mockPush = jest.fn();
@@ -57,40 +59,58 @@ jest.mock('@/app/services/supabase', () => ({
 }))
 
 // Add jest-axe matcher
-expect.extend({
-  toHaveNoViolations: (received) => {
-    if (received.violations.length === 0) {
-      return {
-        pass: true,
-        message: () => 'Expected accessibility violations but found none',
-      }
-    }
-    return {
-      pass: false,
-      message: () => `Expected no accessibility violations but found ${received.violations.length}`,
-    }
+expect.extend(toHaveNoViolations);
+
+// Mock renderWithAuth if it's causing issues
+jest.mock('@/app/__tests__/test-utils', () => ({
+  renderWithAuth: (ui, authProps = {}) => {
+    const defaultAuthValues = {
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      loading: false,
+      isAuthenticated: true
+    };
+    
+    // Merge default values with provided props
+    const mergedProps = { ...defaultAuthValues, ...authProps };
+    
+    return render(
+      <AuthContext.Provider value={mergedProps}>
+        {ui}
+      </AuthContext.Provider>
+    );
   }
-})
+}));
+
+// Import the mocked function
+const { renderWithAuth } = require('@/app/__tests__/test-utils');
 
 describe('ProfilePage', () => {
   describe('rendering', () => {
     it('renders loading state initially', async () => {
-      // Override the default mock to ensure loading state is true
-      const { getByText } = renderWithAuth(<ProfilePage />, { 
-        user: null,
-        loading: true,
-        isAuthenticated: false
-      })
+      // Use direct render with AuthContext
+      const { getByText } = render(
+        <AuthContext.Provider value={{ 
+          user: null,
+          loading: true,
+          isAuthenticated: false
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
+      );
       expect(getByText('Loading...')).toBeInTheDocument()
     })
 
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
-      renderWithAuth(<ProfilePage />, { 
-        user: null,
-        loading: false, // Not loading
-        isAuthenticated: false
-      })
+      render(
+        <AuthContext.Provider value={{ 
+          user: null,
+          loading: false, // Not loading
+          isAuthenticated: false
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
+      );
       
       // Verify the router.push was called
       expect(mockPush).toHaveBeenCalledWith('/')
@@ -100,14 +120,30 @@ describe('ProfilePage', () => {
     })
 
     it('renders profile page for authenticated users', async () => {
-      const { getByText } = renderWithAuth(<ProfilePage />)
+      const { getByText } = render(
+        <AuthContext.Provider value={{ 
+          user: { id: 'test-user-id', email: 'test@example.com' },
+          loading: false,
+          isAuthenticated: true
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
+      );
       expect(getByText('Profile')).toBeInTheDocument()
       expect(getByText('Content')).toBeInTheDocument()
       expect(getByText('Settings')).toBeInTheDocument()
     })
 
     it('meets accessibility requirements', async () => {
-      const { container } = renderWithAuth(<ProfilePage />)
+      const { container } = render(
+        <AuthContext.Provider value={{ 
+          user: { id: 'test-user-id', email: 'test@example.com' },
+          loading: false,
+          isAuthenticated: true
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
+      );
       const results = await axe(container)
       expect(results).toHaveNoViolations()
     })
@@ -116,7 +152,15 @@ describe('ProfilePage', () => {
   describe('interactions', () => {
     it('allows switching between tabs', async () => {
       const user = userEvent.setup()
-      const { getByRole, getByText } = renderWithAuth(<ProfilePage />)
+      const { getByRole, getByText } = render(
+        <AuthContext.Provider value={{ 
+          user: { id: 'test-user-id', email: 'test@example.com' },
+          loading: false,
+          isAuthenticated: true
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
+      );
 
       // Click on Content tab
       await user.click(getByRole('tab', { name: 'Content' }))
@@ -128,7 +172,15 @@ describe('ProfilePage', () => {
     })
 
     it('displays stripe connect button with account ID', async () => {
-      const { getByRole, getByText } = renderWithAuth(<ProfilePage />)
+      const { getByRole, getByText } = render(
+        <AuthContext.Provider value={{ 
+          user: { id: 'test-user-id', email: 'test@example.com' },
+          loading: false,
+          isAuthenticated: true
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
+      );
       
       // Navigate to settings tab
       await userEvent.click(getByRole('tab', { name: 'Settings' }))

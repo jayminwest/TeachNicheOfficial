@@ -17,7 +17,7 @@ jest.mock('@/app/services/supabase', () => ({
 }));
 
 // Import Header after mocks are set up
-import { Header } from '../index'
+import { Header } from '../header'
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({

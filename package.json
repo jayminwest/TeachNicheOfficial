@@ -95,3 +95,8 @@
     "whatwg-fetch": "^3.6.20"
   }
 }
+{
+  "scripts": {
+    "playwright": "playwright test --config=e2e-tests/playwright.config.ts"
+  }
+}

@@ -4,7 +4,21 @@ import { axe } from 'jest-axe'
 import ProfilePage from '../page'
 import { AuthContext } from '@/app/services/auth/AuthContext'
 import { toHaveNoViolations } from 'jest-axe'
-import { ThemeProvider } from 'next-themes'
+
+// Mock window.matchMedia - required for next-themes
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // Deprecated
+    removeListener: jest.fn(), // Deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
 // Create mock functions
 const mockPush = jest.fn();
@@ -105,11 +119,9 @@ function renderWithAuthContext(ui, authProps = {}) {
   const mergedProps = { ...defaultAuthValues, ...authProps };
   
   return testingLibraryRender(
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthContext.Provider value={mergedProps}>
-        {ui}
-      </AuthContext.Provider>
-    </ThemeProvider>
+    <AuthContext.Provider value={mergedProps}>
+      {ui}
+    </AuthContext.Provider>
   );
 }
 
@@ -120,15 +132,13 @@ describe('ProfilePage', () => {
     it('renders loading state initially', async () => {
       // Use direct render with AuthContext
       const { getByText } = testingLibraryRender(
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthContext.Provider value={{ 
-            user: null,
-            loading: true,
-            isAuthenticated: false
-          }}>
-            <ProfilePage />
-          </AuthContext.Provider>
-        </ThemeProvider>
+        <AuthContext.Provider value={{ 
+          user: null,
+          loading: true,
+          isAuthenticated: false
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
       );
       expect(getByText('Loading...')).toBeInTheDocument()
     })
@@ -136,15 +146,13 @@ describe('ProfilePage', () => {
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
       testingLibraryRender(
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthContext.Provider value={{ 
-            user: null,
-            loading: false, // Not loading
-            isAuthenticated: false
-          }}>
-            <ProfilePage />
-          </AuthContext.Provider>
-        </ThemeProvider>
+        <AuthContext.Provider value={{ 
+          user: null,
+          loading: false, // Not loading
+          isAuthenticated: false
+        }}>
+          <ProfilePage />
+        </AuthContext.Provider>
       );
       
       // Verify the router.push was called

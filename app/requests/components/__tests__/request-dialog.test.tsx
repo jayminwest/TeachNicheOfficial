@@ -67,7 +67,7 @@ describe('RequestDialog', () => {
     
     await user.click(screen.getByTestId('new-request-button'))
     
-    expect(screen.getByText(/join teach niche/i)).toBeInTheDocument()
+    expect(screen.getByText(/sign in to teach niche/i)).toBeInTheDocument()
   })
 
   it('shows request form when authenticated user clicks button', async () => {

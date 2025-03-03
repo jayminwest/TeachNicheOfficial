@@ -41,6 +41,13 @@ export const signInWithGoogle = async () => {
     
     if (error) {
       console.error('Google sign-in error:', error)
+      
+      // Enhance error message for provider not enabled
+      if (error.message?.includes('provider is not enabled') || 
+          error.message?.includes('Unsupported provider')) {
+        console.error('Google provider is not enabled in Supabase. Please configure it in the Supabase dashboard.');
+      }
+      
       return { data: null, error }
     }
     

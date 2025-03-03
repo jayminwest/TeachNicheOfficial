@@ -31,18 +31,24 @@ function SignInPage({ onSwitchToSignUp }: SignInPageProps) {
       
       const result = await signInWithGoogle()
       if (result?.error) {
-        throw result.error
+        // Check for specific provider not enabled error
+        const errorMessage = result.error.message || '';
+        if (errorMessage.includes('provider is not enabled') || 
+            errorMessage.includes('Unsupported provider')) {
+          throw new Error('Google sign-in is not configured. Please enable Google provider in Supabase dashboard.');
+        }
+        throw result.error;
       }
       
       // Google OAuth will redirect to the callback URL
       // No need to navigate here as the redirect will happen automatically
-      console.log('Google sign-in initiated successfully')
+      console.log('Google sign-in initiated successfully');
       
       // We don't set isLoading to false here because we're redirecting
     } catch (err) {
-      console.error('Google sign-in error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
-      setIsLoading(false)
+      console.error('Google sign-in error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+      setIsLoading(false);
     }
   }
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { cn } from "@/app/lib/utils";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload, Loader2 } from "lucide-react";
 import MuxUploader from "@mux/mux-uploader-react";
 import { useVideoUpload } from "@/app/hooks/use-video-upload";
-import { useEffect } from "react";
 
 
 interface VideoUploaderProps {
@@ -28,7 +28,7 @@ interface VideoUploaderProps {
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
 
 export function VideoUploader({ 
-  endpoint = '/api/mux/upload',
+  endpoint,
   onUploadComplete, 
   onError,
   onUploadStart,
@@ -98,7 +98,6 @@ export function VideoUploader({
     handleUploadSuccess,
     handleUploadError,
   } = useVideoUpload({
-    endpoint: endpoint,
     onUploadComplete,
     onError,
     onProgress: (progress) => {
@@ -108,7 +107,7 @@ export function VideoUploader({
     }
   });
   
-  const handleUploadStart: MuxUploaderProps["onUploadStart"] = async (event) => {
+  const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {
     const file = event.detail?.file;
 
     if (!file) {
@@ -116,13 +115,14 @@ export function VideoUploader({
       return;
     }
     
+    if (!uploadEndpoint) {
+      handleUploadError(new Error("Upload URL not available. Please try again."));
+      return;
+    }
+    
     try {
-      // First validate the file
-      await validateFile(file);
-      
-      // Then start the upload process to get the endpoint
+      validateFile(file);
       startUpload();
-      
       if (typeof onUploadStart === "function") {
         onUploadStart();
       }
@@ -131,19 +131,8 @@ export function VideoUploader({
     }
   };
 
-  // Handle progress events from MuxUploader
-  const handleProgress = (event: unknown) => {
-    // Check if it's a CustomEvent with detail
-    if (event instanceof CustomEvent && event.detail !== undefined) {
-      handleUploadProgress(event.detail);
-    }
-  };
-
-  // We don't want to automatically start the upload process
-  // The upload will start when the user selects a file
-
-  // Only show loading state if we're actively trying to get an upload endpoint
-  if (status !== 'idle' && !uploadEndpoint) {
+  // Wait for the uploadEndpoint to be resolved before rendering the uploader
+  if (!uploadEndpoint) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -158,15 +147,14 @@ export function VideoUploader({
         className="mux-uploader"
         endpoint={uploadEndpoint}
         onUploadStart={handleUploadStart}
-        onProgress={handleProgress}
+        onProgress={handleUploadProgress}
         onSuccess={(event) => {
-          if (event instanceof CustomEvent && typeof event.detail === 'object' && event.detail && 'uploadId' in event.detail) {
-            // @ts-expect-error - We've already checked that uploadId exists in event.detail
+          if (event instanceof CustomEvent && event.detail?.uploadId) {
             handleUploadSuccess(event.detail.uploadId);
           }
         }}
         onError={(event) => {
-          if (event instanceof CustomEvent && event.detail) {
+          if (event instanceof CustomEvent) {
             const error = event.detail;
             handleUploadError(error instanceof Error ? error : new Error(String(error)));
           } else {

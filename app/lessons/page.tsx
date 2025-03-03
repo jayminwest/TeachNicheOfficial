@@ -6,7 +6,7 @@ import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { LessonGrid } from "@/app/components/ui/lesson-grid";
 import Link from "next/link";
-import { supabase } from "@/app/services/supabase";
+import { createClientSupabaseClient } from "@/app/lib/supabase/client";
 import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 
@@ -19,6 +19,7 @@ export default function LessonsPage() {
   useEffect(() => {
     async function fetchLessons() {
       try {
+        const supabase = createClientSupabaseClient();
         const { data, error } = await supabase
           .from('lessons')
           .select(`

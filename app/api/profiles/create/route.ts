@@ -73,16 +73,14 @@ export async function POST(request: Request) {
     });
     
     // Use the RPC function we created in the migration
-    const { error } = await supabase.rpc(
-      'create_profile' as unknown as string, 
-      {
-        user_id: body.id,
-        user_full_name: body.full_name || '',
-        user_bio: body.bio || '',
-        user_social_media: body.social_media_tag || '',
-        user_email: body.email || '',
-      }
-    );
+    // @ts-ignore - Supabase typing issue with RPC in Next.js 15
+    const { error } = await supabase.rpc('create_profile', {
+      user_id: body.id,
+      user_full_name: body.full_name || '',
+      user_bio: body.bio || '',
+      user_social_media: body.social_media_tag || '',
+      user_email: body.email || '',
+    });
       
     if (error) {
       console.error('Error creating profile:', error);

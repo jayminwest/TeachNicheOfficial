@@ -49,6 +49,13 @@ export interface MuxAssetResponse {
   error?: MuxError;
 }
 
+export interface MuxUploadStatusResponse {
+  id: string;
+  status: 'waiting' | 'asset_created' | 'errored' | 'cancelled';
+  assetId?: string;
+  error?: MuxError;
+}
+
 export async function waitForAssetReady(assetId: string, options = {
   maxAttempts: 60,  // 10 minutes total
   interval: 10000,  // 10 seconds between checks
@@ -179,6 +186,40 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
         ? `Failed to initialize Mux upload: ${error.message}`
         : 'Failed to initialize Mux upload'
     );
+  }
+}
+
+/**
+ * Gets the status of a Mux upload
+ */
+export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatusResponse> {
+  if (!Video || typeof Video.uploads?.retrieve !== 'function') {
+    throw new Error('Mux Video client not properly initialized');
+  }
+
+  try {
+    const upload = await Video.uploads.retrieve(uploadId);
+    
+    if (!upload) {
+      throw new Error('Mux API returned null or undefined upload');
+    }
+    
+    return {
+      id: upload.id,
+      status: upload.status as 'waiting' | 'asset_created' | 'errored' | 'cancelled',
+      assetId: upload.asset_id,
+      error: undefined
+    };
+  } catch (error) {
+    console.error('Mux API error:', error);
+    return {
+      id: uploadId,
+      status: 'errored',
+      error: {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        type: 'api_error'
+      }
+    };
   }
 }
 

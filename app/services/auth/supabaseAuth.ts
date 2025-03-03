@@ -1,10 +1,10 @@
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
-import { User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 
 /**
  * Standard response type for auth operations
  */
-export interface AuthResponse<T = any> {
+export interface AuthResponse<T = unknown> {
   data: T | null
   error: Error | null
   success: boolean
@@ -43,7 +43,7 @@ export async function getSession() {
 /**
  * Sets up a listener for auth state changes
  */
-export function onAuthStateChange(callback: (event: string, session: any) => void) {
+export function onAuthStateChange(callback: (event: string, session: unknown) => void) {
   const supabase = createClientSupabaseClient()
   
   // In test environment, return a mock subscription
@@ -60,6 +60,7 @@ export function onAuthStateChange(callback: (event: string, session: any) => voi
   try {
     return supabase.auth.onAuthStateChange(callback)
   } catch (error) {
+    console.error('Error setting up auth state change listener:', error)
     // Return a mock subscription if the real one fails
     return {
       data: {

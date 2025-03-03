@@ -95,6 +95,7 @@ jest.mock('../../../lib/supabase/client', () => {
   
   return {
     createClient: jest.fn().mockReturnValue(mockClient),
+    createClientSupabaseClient: jest.fn().mockReturnValue(mockClient),
     createRouteHandlerClient: jest.fn().mockReturnValue(mockClient)
   };
 });
@@ -356,9 +357,9 @@ describe('Lessons API', () => {
 
       expect(response.status).toBe(201);
       
-      // Since we're using the createClient() in the route handler,
+      // Since we're using the createClientSupabaseClient() in the route handler,
       // we need to verify that it was called
-      expect(jest.requireMock('../../../lib/supabase/client').createClient).toHaveBeenCalled();
+      expect(jest.requireMock('../../../lib/supabase/client').createClientSupabaseClient).toHaveBeenCalled();
     });
 
     it('validates input data and returns 400 for invalid data', async () => {
@@ -447,9 +448,9 @@ describe('Lessons API', () => {
 
       expect(response.status).toBe(200);
       
-      // Since we're using the createClient() in the route handler,
+      // Since we're using the createClientSupabaseClient() in the route handler,
       // we need to verify that it was called
-      expect(jest.requireMock('../../../lib/supabase/client').createClient).toHaveBeenCalled();
+      expect(jest.requireMock('../../../lib/supabase/client').createClientSupabaseClient).toHaveBeenCalled();
     });
 
     it('enforces access control for lesson updates', async () => {
@@ -508,9 +509,9 @@ describe('Lessons API', () => {
 
       expect(response.status).toBe(200);
       
-      // Since we're using the createClient() in the route handler,
+      // Since we're using the createClientSupabaseClient() in the route handler,
       // we need to verify that it was called
-      expect(jest.requireMock('../../../lib/supabase/client').createClient).toHaveBeenCalled();
+      expect(jest.requireMock('../../../lib/supabase/client').createClientSupabaseClient).toHaveBeenCalled();
     });
 
     it('returns 404 for non-existent lessons', async () => {

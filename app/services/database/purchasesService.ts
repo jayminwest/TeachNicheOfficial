@@ -27,6 +27,11 @@ export class PurchasesService extends DatabaseService {
         apiVersion: '2025-01-27.acacia',
       });
       
+      // For testing purposes, if we're in a test environment and there's a mock
+      if (process.env.NODE_ENV === 'test' && typeof jest !== 'undefined') {
+        console.log('Using test mock for Stripe');
+      }
+      
       console.log(`Retrieving Stripe session: ${sessionId}`);
       
       // Retrieve the session from Stripe

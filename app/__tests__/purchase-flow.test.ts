@@ -3,12 +3,11 @@ import { NextRequest } from 'next/server';
 // Mock NextResponse
 jest.mock('next/server', () => {
   const mockJson = jest.fn().mockImplementation((body, options) => {
-    const response = {
+    return {
       status: options?.status || 200,
       headers: new Headers(),
-      json: jest.fn().mockResolvedValue(body)
+      json: () => Promise.resolve(body)
     };
-    return response;
   });
   
   return {
@@ -17,7 +16,8 @@ jest.mock('next/server', () => {
       json: mockJson,
       redirect: jest.fn().mockImplementation(url => ({ 
         url,
-        json: jest.fn().mockResolvedValue({ redirected: true })
+        status: 302,
+        json: () => Promise.resolve({ redirected: true })
       }))
     }
   };

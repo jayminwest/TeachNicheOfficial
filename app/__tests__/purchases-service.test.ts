@@ -22,15 +22,8 @@ jest.mock('stripe', () => {
     };
   };
   
-  // Make the mock function accessible for spying in tests
-  mockStripe.mockImplementation = jest.fn();
-  mockStripe.prototype = {
-    checkout: {
-      sessions: {
-        retrieve: mockRetrieve
-      }
-    }
-  };
+  // Make the mock function and its methods accessible for spying in tests
+  mockStripe.mockRetrieveImplementation = mockRetrieve;
   
   return mockStripe;
 });
@@ -44,24 +37,27 @@ describe('PurchasesService', () => {
     jest.resetAllMocks();
     
     // Setup Stripe mock
+    const mockRetrieve = jest.fn().mockResolvedValue({
+      id: 'cs_test_123',
+      payment_status: 'paid',
+      metadata: {
+        lessonId: 'lesson-123',
+        userId: 'user-123'
+      },
+      amount_total: 1000 // in cents
+    });
+    
     mockStripe = {
       checkout: {
         sessions: {
-          retrieve: jest.fn().mockResolvedValue({
-            id: 'cs_test_123',
-            payment_status: 'paid',
-            metadata: {
-              lessonId: 'lesson-123',
-              userId: 'user-123'
-            },
-            amount_total: 1000 // in cents
-          })
+          retrieve: mockRetrieve
         }
       }
     };
     
-    // Mock the Stripe constructor to return our mock
-    jest.spyOn(require('stripe'), 'mockImplementation').mockReturnValue(mockStripe);
+    // Replace the mock implementation
+    const stripeMock = require('stripe');
+    stripeMock.mockRetrieveImplementation = mockRetrieve;
     
     // Setup Supabase client mock
     mockSupabase = {
@@ -126,9 +122,8 @@ describe('PurchasesService', () => {
     
     it('should handle unpaid sessions correctly', async () => {
       // Mock an unpaid session
-      const Stripe = require('stripe');
-      const mockStripeInstance = new Stripe();
-      mockStripeInstance.checkout.sessions.retrieve.mockResolvedValueOnce({
+      const stripeMock = require('stripe');
+      stripeMock.mockRetrieveImplementation.mockResolvedValueOnce({
         id: 'cs_test_123',
         payment_status: 'unpaid',
         metadata: {
@@ -137,9 +132,6 @@ describe('PurchasesService', () => {
         },
         amount_total: 1000
       });
-      
-      // Override the mock for this test
-      jest.spyOn(require('stripe'), 'mockImplementation').mockReturnValue(mockStripeInstance);
       
       const { data, error } = await purchasesService.verifyStripeSession('cs_test_123');
       
@@ -157,16 +149,10 @@ describe('PurchasesService', () => {
       jest.spyOn(purchasesService as any, 'getClient').mockReturnValue(mockSupabase);
       
       // Override the Stripe mock for this test
-      const Stripe = require('stripe');
-      const mockStripeInstance = new Stripe();
-      mockStripeInstance.checkout.sessions.retrieve.mockRejectedValueOnce(
+      const stripeMock = require('stripe');
+      stripeMock.mockRetrieveImplementation.mockRejectedValueOnce(
         new Error('Invalid session ID')
       );
-      
-      // Mock require to return our mock
-      jest.mock('stripe', () => {
-        return jest.fn().mockImplementation(() => mockStripeInstance);
-      }, { virtual: true });
       
       const { data, error } = await purchasesService.verifyStripeSession('invalid-id');
       

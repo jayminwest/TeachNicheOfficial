@@ -47,6 +47,7 @@ describe('PurchasesService', () => {
       amount_total: 1000 // in cents
     });
     
+    // Create a proper mock Stripe instance
     mockStripe = {
       checkout: {
         sessions: {
@@ -58,6 +59,9 @@ describe('PurchasesService', () => {
     // Replace the mock implementation
     const stripeMock = require('stripe');
     stripeMock.mockRetrieveImplementation = mockRetrieve;
+    
+    // Override the purchasesService's getStripe method
+    jest.spyOn(purchasesService as any, 'getStripe').mockReturnValue(mockStripe);
     
     // Setup Supabase client mock
     mockSupabase = {

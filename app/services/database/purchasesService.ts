@@ -12,6 +12,17 @@ export interface PurchaseCreateData {
 
 export class PurchasesService extends DatabaseService {
   /**
+   * Get a Stripe instance
+   * @private
+   */
+  private getStripe() {
+    const Stripe = require('stripe');
+    return new Stripe(process.env.STRIPE_SECRET_KEY || 'test-key', {
+      apiVersion: '2025-01-27.acacia',
+    });
+  }
+
+  /**
    * Verify a Stripe session directly with the Stripe API
    */
   async verifyStripeSession(sessionId: string): Promise<DatabaseResponse<{
@@ -22,10 +33,7 @@ export class PurchasesService extends DatabaseService {
   }>> {
     try {
       // Initialize Stripe
-      const Stripe = require('stripe');
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'test-key', {
-        apiVersion: '2025-01-27.acacia',
-      });
+      const stripe = this.getStripe();
       
       // For testing purposes, if we're in a test environment and there's a mock
       if (process.env.NODE_ENV === 'test' && typeof jest !== 'undefined') {

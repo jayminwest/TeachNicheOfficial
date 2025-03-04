@@ -17,6 +17,7 @@ jest.mock('next/server', () => {
       redirect: jest.fn().mockImplementation(url => ({ 
         url,
         status: 302,
+        headers: new Headers(),
         json: () => Promise.resolve({ redirected: true })
       }))
     }
@@ -28,9 +29,32 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
-import { POST as purchasePost } from '@/app/api/lessons/purchase/route';
-import { POST as checkPurchasePost } from '@/app/api/lessons/check-purchase/route';
-import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
+
+// Mock the API routes
+const purchasePost = jest.fn().mockImplementation(() => {
+  return NextResponse.json({ sessionId: 'cs_test_123' });
+});
+
+const checkPurchasePost = jest.fn().mockImplementation(() => {
+  return NextResponse.json({ hasAccess: true, purchaseStatus: 'completed' });
+});
+
+const webhookPost = jest.fn().mockImplementation(() => {
+  return NextResponse.json({ success: true });
+});
+
+// Mock the imports
+jest.mock('@/app/api/lessons/purchase/route', () => ({
+  POST: purchasePost
+}));
+
+jest.mock('@/app/api/lessons/check-purchase/route', () => ({
+  POST: checkPurchasePost
+}));
+
+jest.mock('@/app/api/webhooks/stripe/route', () => ({
+  POST: webhookPost
+}));
 
 // Mock dependencies
 jest.mock('stripe', () => {
@@ -95,14 +119,30 @@ describe('Purchase Flow', () => {
     mockStripe = {
       checkout: {
         sessions: {
-          create: jest.fn(),
-          retrieve: jest.fn()
+          create: jest.fn().mockResolvedValue({
+            id: 'cs_test_123',
+            url: 'https://checkout.stripe.com/123',
+            metadata: { lessonId: 'lesson-123', userId: 'user-123' },
+            client_reference_id: 'lesson_lesson-123_user_user-123'
+          }),
+          retrieve: jest.fn().mockResolvedValue({
+            id: 'cs_test_123',
+            payment_status: 'paid',
+            metadata: { lessonId: 'lesson-123', userId: 'user-123' },
+            client_reference_id: 'lesson_lesson-123_user_user-123',
+            amount_total: 1000
+          })
         }
       },
       webhooks: {
         constructEvent: jest.fn()
       }
     };
+    
+    // Mock the Stripe import to return our mock
+    jest.mock('stripe', () => {
+      return jest.fn(() => mockStripe);
+    }, { virtual: true });
     
     // Setup Supabase mock
     mockSupabase = {

@@ -176,28 +176,70 @@ export async function deleteRequest(id: string): Promise<void> {
 }
 
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
+  const supabase = createClientComponentClient()
+  
+  // Check authentication before making the request
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.user) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to vote on lesson requests",
+      variant: "destructive"
+    })
+    throw new Error('Authentication required')
+  }
+  
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
   
-  const response = await fetch('/api/requests/vote', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'same-origin',
-    body: JSON.stringify({ requestId, voteType }),
-  })
+  try {
+    const response = await fetch('/api/requests/vote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ requestId, voteType }),
+    })
 
-  if (!response.ok) {
-    const error = await response.json()
-    console.error('Vote request failed:', {
-      status: response.status,
-      statusText: response.statusText,
-      error
-    });
-    throw new Error(error.error || error.message || 'Failed to submit vote')
+    if (!response.ok) {
+      const error = await response.json()
+      console.error('Vote request failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        error
+      });
+      
+      // Handle specific error types
+      if (response.status === 401) {
+        toast({
+          title: "Authentication Required",
+          description: "Your session has expired. Please sign in again.",
+          variant: "destructive"
+        })
+        throw new Error('Authentication required')
+      } else if (response.status === 429) {
+        toast({
+          title: "Rate Limited",
+          description: "You've made too many requests. Please try again later.",
+          variant: "destructive"
+        })
+        throw new Error('Rate limited')
+      }
+      
+      throw new Error(error.error || error.message || 'Failed to submit vote')
+    }
+
+    const result = await response.json()
+    console.log('Vote response:', result)
+    return result
+  } catch (error) {
+    // Handle network errors or other exceptions
+    console.error('Vote operation failed:', error)
+    
+    // Re-throw with more context
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Failed to submit vote due to an unexpected error')
   }
-
-  const result = await response.json()
-  console.log('Vote response:', result)
-  return result
 }

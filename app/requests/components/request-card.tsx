@@ -73,64 +73,124 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
 
       setIsVoting(true);
       
-      // Check if vote exists
-      const { data: existingVote, error: queryError } = await supabase
-        .from('lesson_request_votes')
-        .select()
-        .match({ request_id: request.id, user_id: user.id })
-        .maybeSingle();
-
-      if (queryError) throw queryError;
-
-      if (existingVote) {
-        // Remove vote if it exists
-        const { error: deleteError } = await supabase
-          .from('lesson_request_votes')
-          .delete()
-          .eq('request_id', request.id)
-          .eq('user_id', user.id);
-
-        if (deleteError) throw deleteError;
-        
-        setHasVoted(false);
-        setVoteCount(prev => prev - 1);
-        
-        toast({
-          title: "Success",
-          description: "Vote removed",
-        });
-      } else {
-        // Add vote if it doesn't exist
-        const { error: insertError } = await supabase
-          .from('lesson_request_votes')
-          .insert({
-            request_id: request.id,
-            user_id: user.id,
-            vote_type: 'up' as const
-          });
-
-        if (insertError) throw insertError;
-        
-        setHasVoted(true);
-        setVoteCount(prev => prev + 1);
-        
-        toast({
-          title: "Success",
-          description: "Vote added",
-        });
-      }
+      // Optimistic UI update
+      const isRemovingVote = hasVoted;
+      const newVoteCount = isRemovingVote ? voteCount - 1 : voteCount + 1;
       
-      await updateVoteCount();
-      onVote();
-    } catch (error) {
-      console.error('Vote failed:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit vote. Please try again.",
-        variant: "destructive"
-      })
+      // Update UI optimistically
+      setHasVoted(!isRemovingVote);
+      setVoteCount(newVoteCount);
+      
+      try {
+        // Check if vote exists
+        const { data: existingVote, error: queryError } = await supabase
+          .from('lesson_request_votes')
+          .select()
+          .match({ request_id: request.id, user_id: user.id })
+          .maybeSingle();
+
+        if (queryError) {
+          // Handle authentication errors specifically
+          if (queryError.code === 'PGRST301' || queryError.message?.includes('JWT')) {
+            toast({
+              title: "Session Expired",
+              description: "Your session has expired. Please sign in again.",
+              variant: "destructive"
+            });
+            // Revert optimistic update
+            setHasVoted(isRemovingVote);
+            setVoteCount(voteCount);
+            return;
+          }
+          throw queryError;
+        }
+
+        if (existingVote) {
+          // Remove vote if it exists
+          const { error: deleteError } = await supabase
+            .from('lesson_request_votes')
+            .delete()
+            .eq('request_id', request.id)
+            .eq('user_id', user.id);
+
+          if (deleteError) {
+            // Revert optimistic update on error
+            setHasVoted(true);
+            setVoteCount(voteCount);
+            throw deleteError;
+          }
+          
+          toast({
+            title: "Success",
+            description: "Vote removed",
+          });
+        } else {
+          // Add vote if it doesn't exist
+          const { error: insertError } = await supabase
+            .from('lesson_request_votes')
+            .insert({
+              request_id: request.id,
+              user_id: user.id,
+              vote_type: 'up' as const
+            });
+
+          if (insertError) {
+            // Check for duplicate vote error (in case of race condition)
+            if (insertError.code === '23505') { // Unique constraint violation
+              toast({
+                title: "Already Voted",
+                description: "You have already voted on this request",
+              });
+              return;
+            }
+            
+            // Revert optimistic update on error
+            setHasVoted(false);
+            setVoteCount(voteCount);
+            throw insertError;
+          }
+          
+          toast({
+            title: "Success",
+            description: "Vote added",
+          });
+        }
+        
+        // Refresh the actual vote count from the database
+        await updateVoteCount();
+        onVote();
+      } catch (error) {
+        console.error('Vote operation failed:', error);
+        
+        // Revert optimistic update on error
+        setHasVoted(isRemovingVote);
+        setVoteCount(voteCount);
+        
+        // Show appropriate error message
+        if (error instanceof Error) {
+          if (error.message.includes('JWT') || error.message.includes('auth')) {
+            toast({
+              title: "Authentication Error",
+              description: "Please sign out and sign in again to continue.",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: error.message || "Failed to submit vote. Please try again.",
+              variant: "destructive"
+            });
+          }
+        } else {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred. Please try again.",
+            variant: "destructive"
+          });
+        }
+      }
     } finally {
-      setIsVoting(false)
+      setIsVoting(false);
     }
   }
 

@@ -253,3 +253,110 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
     );
   }
 }
+import Mux from '@mux/mux-node';
+import { v4 as uuidv4 } from 'uuid';
+
+// Initialize Mux client
+const { Video } = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID,
+  tokenSecret: process.env.MUX_TOKEN_SECRET,
+});
+
+// Create a direct upload URL
+export async function createUpload() {
+  try {
+    if (!Video || typeof Video.Uploads?.create !== 'function') {
+      throw new Error('Mux Video client not properly initialized');
+    }
+
+    // Generate a unique ID for this upload
+    const uploadId = uuidv4();
+
+    // Create a new direct upload
+    const upload = await Video.Uploads.create({
+      cors_origin: '*',
+      new_asset_settings: {
+        playback_policy: ['public'],
+      },
+    });
+
+    // Validate the response
+    if (!upload || !upload.id || !upload.url) {
+      throw new Error('Invalid response from Mux API');
+    }
+
+    // Return the upload URL and ID
+    return {
+      url: upload.url,
+      uploadId: upload.id,
+    };
+  } catch (error) {
+    console.error('Error creating Mux upload:', error);
+    throw error;
+  }
+}
+
+// Get asset details
+export async function getAsset(assetId: string) {
+  try {
+    if (!Video || typeof Video.Assets?.get !== 'function') {
+      throw new Error('Mux Video client not properly initialized');
+    }
+
+    const asset = await Video.Assets.get(assetId);
+    return asset;
+  } catch (error) {
+    console.error(`Error getting Mux asset ${assetId}:`, error);
+    throw error;
+  }
+}
+
+// Get upload details
+export async function getUpload(uploadId: string) {
+  try {
+    if (!Video || typeof Video.Uploads?.get !== 'function') {
+      throw new Error('Mux Video client not properly initialized');
+    }
+
+    const upload = await Video.Uploads.get(uploadId);
+    return upload;
+  } catch (error) {
+    console.error(`Error getting Mux upload ${uploadId}:`, error);
+    throw error;
+  }
+}
+
+// Get playback ID for an asset
+export async function getPlaybackId(assetId: string) {
+  try {
+    if (!Video || typeof Video.Assets?.get !== 'function') {
+      throw new Error('Mux Video client not properly initialized');
+    }
+
+    const asset = await Video.Assets.get(assetId);
+    
+    if (!asset.playback_ids || asset.playback_ids.length === 0) {
+      throw new Error('No playback IDs found for this asset');
+    }
+    
+    return asset.playback_ids[0].id;
+  } catch (error) {
+    console.error(`Error getting playback ID for asset ${assetId}:`, error);
+    throw error;
+  }
+}
+
+// Delete an asset
+export async function deleteAsset(assetId: string) {
+  try {
+    if (!Video || typeof Video.Assets?.del !== 'function') {
+      throw new Error('Mux Video client not properly initialized');
+    }
+
+    await Video.Assets.del(assetId);
+    return true;
+  } catch (error) {
+    console.error(`Error deleting Mux asset ${assetId}:`, error);
+    throw error;
+  }
+}

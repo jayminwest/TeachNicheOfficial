@@ -17,6 +17,24 @@ async function handlePostRequest() {
   const origin = headersList.get('origin') || '*';
 
   try {
+    // Check if Mux environment variables are set
+    if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+      console.error('Missing Mux API credentials in environment variables');
+      return NextResponse.json(
+        { 
+          error: 'Mux API credentials not configured',
+          details: 'MUX_TOKEN_ID and MUX_TOKEN_SECRET must be set in environment variables'
+        },
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(origin)
+          }
+        }
+      );
+    }
+
     const upload = await createUpload();
     
     // Ensure the response has the required fields

@@ -10,7 +10,6 @@ import {
 } from "@/app/components/ui/card"
 import { useUserLessons } from "@/app/hooks/use-user-lessons"
 import { formatCurrency } from "@/app/utils/format"
-import { Skeleton } from "@/app/components/ui/skeleton"
 
 export function ContentManagement() {
   const { lessons, loading, error } = useUserLessons({ limit: 5 });
@@ -34,16 +33,9 @@ export function ContentManagement() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-16 w-24 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                </div>
-              ))}
+            <div className="py-4 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+              <p className="mt-2 text-sm text-muted-foreground">Loading your lessons...</p>
             </div>
           ) : error ? (
             <div className="text-red-500">

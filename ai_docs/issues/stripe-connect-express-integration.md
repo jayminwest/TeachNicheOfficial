@@ -422,7 +422,18 @@ In addition to the Express onboarding flow, we should implement OAuth for Stripe
 
 1. **OAuth Initiation Endpoint**:
    - Create `app/api/stripe/connect/oauth/route.ts`
-   - Implement GET handler to generate and return OAuth URL
+   - Implement GET handler to generate and return OAuth URL with STRIPE_CONNECT_CLIENT_ID
+   - Example:
+     ```typescript
+     // Generate OAuth URL
+     const stripeConnectUrl = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${
+       process.env.STRIPE_CONNECT_CLIENT_ID
+     }&scope=read_write&redirect_uri=${
+       encodeURIComponent(process.env.STRIPE_OAUTH_REDIRECT_URI || '')
+     }&state=${
+       session.user.id
+     }`;
+     ```
 
 2. **OAuth Callback Handler**:
    - Create `app/api/stripe/connect/oauth-callback/route.ts`

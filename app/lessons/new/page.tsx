@@ -50,37 +50,15 @@ export default function NewLessonPage() {
         return;
       }
       
-      // For paid lessons, verify Stripe account
-      if (data.price && data.price > 0) {
-        try {
-          const profileResponse = await fetch('/api/profile/get?userId=' + user.id);
-          if (!profileResponse.ok) {
-            throw new Error(`Failed to fetch profile: ${profileResponse.statusText}`);
-          }
-          
-          const profile = await profileResponse.json();
-          if (!profile.stripe_account_id) {
-            toast({
-              title: "Stripe Account Required",
-              description: "You need to connect a Stripe account to create paid lessons",
-              variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-          }
-        } catch (error) {
-          console.error('Error checking Stripe account:', error);
-          toast({
-            title: "Stripe Verification Failed",
-            description: "Unable to verify your Stripe account. Please try again or contact support.",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-      }
+      // Note: Stripe account verification is now handled in the LessonForm component
+      // so we don't need to check it again here
       
       console.log("Form submission data:", data); // Debug submission data
+      
+      // Add debug log for Stripe verification
+      if (data.price && data.price > 0) {
+        console.log("Stripe verification handled by LessonForm component");
+      }
 
       // Check if muxAssetId exists and is not empty
       if (!data.muxAssetId || data.muxAssetId.trim() === "") {

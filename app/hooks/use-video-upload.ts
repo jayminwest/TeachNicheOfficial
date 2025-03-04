@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 interface UseVideoUploadOptions {
   endpoint?: string;
@@ -7,7 +7,7 @@ interface UseVideoUploadOptions {
   onProgress?: (progress: number) => void;
 }
 
-type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
+type UploadStatus = 'idle' | 'initializing' | 'ready' | 'uploading' | 'processing' | 'complete' | 'error';
 
 interface UseVideoUploadReturn {
   status: UploadStatus;
@@ -84,45 +84,94 @@ export function useVideoUpload({
   }, []);
 
   const getUploadUrl = useCallback(async (): Promise<string> => {
-    const response = await fetch(endpoint, {
-      method: 'POST'
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'No error details available');
-      throw new Error(`Failed to get upload URL (HTTP ${response.status}): ${errorText}`);
-    }
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        let errorMessage = `Failed to get upload URL (HTTP ${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage += `: ${errorData.error}`;
+          }
+        } catch {
+          // If we can't parse JSON, try to get text
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage += `: ${errorText}`;
+            }
+          } catch {
+            // If we can't get text either, just use the status
+            errorMessage += ': No error details available';
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
 
-    const data = await response.json();
-    
-    if (!data.url || !data.uploadId) {
-      throw new Error('Invalid upload response: missing URL or upload ID');
+      const data = await response.json();
+      
+      if (!data.url || !data.uploadId) {
+        throw new Error('Invalid upload response: missing URL or upload ID');
+      }
+      
+      return data.url;
+    } catch (error) {
+      console.error('Upload URL error:', error);
+      throw error; // Let the retry mechanism handle it
     }
-    
-    return data.url;
-  }, []);
+  }, [endpoint]);
 
-  const handleUploadStart = useCallback(() => {
-    setStatus('uploading');
+  const initializeUpload = useCallback(async () => {
+    // Only initialize if we're in idle state
+    if (status !== 'idle') return;
+    
+    setStatus('initializing');
     setProgress(0);
     setError(null);
     
-    withRetry(
-      getUploadUrl,
-      {
-        retries: 3,
-        initialDelay: 1000,
-        onRetry: (attempt) => {
-          setError(`Preparing upload (attempt ${attempt})...`);
+    try {
+      const url = await withRetry(
+        getUploadUrl,
+        {
+          retries: 3,
+          initialDelay: 1000,
+          onRetry: (attempt) => {
+            // Don't set this as an error, use a separate state for status messages
+            console.log(`Preparing upload (attempt ${attempt})...`);
+          }
         }
-      }
-    )
-      .then((url) => {
-        setUploadEndpoint(url);
-        setError(null);
-      })
-      .catch(handleError);
-  }, [getUploadUrl, handleError]);
+      );
+      
+      setUploadEndpoint(url);
+      setStatus('ready'); // Set to 'ready' when URL is obtained
+    } catch (error) {
+      console.error('Failed to initialize upload:', error);
+      setStatus('error');
+      setError(error instanceof Error ? error.message : 'Failed to initialize upload');
+      if (onError) onError(error instanceof Error ? error : new Error('Failed to initialize upload'));
+    }
+  }, [getUploadUrl, onError, status]);
+
+  const handleUploadStart = useCallback(() => {
+    // Only start upload if we have an endpoint
+    if (!uploadEndpoint) {
+      // If no endpoint, initialize first
+      initializeUpload();
+      return;
+    }
+    
+    setStatus('uploading');
+    setProgress(0);
+    setError(null);
+  }, [uploadEndpoint, initializeUpload]);
 
   const handleUploadProgress = useCallback((value: number) => {
     setProgress(value);
@@ -191,7 +240,7 @@ export function useVideoUpload({
         }
       );
 
-      setStatus('ready');
+      setStatus('complete');
       setProgress(100);
       if (onProgress) onProgress(100);
       if (onUploadComplete) onUploadComplete(assetId);
@@ -200,11 +249,20 @@ export function useVideoUpload({
     }
   }, [handleError, onProgress, onUploadComplete]);
 
+  // Add an effect to automatically initialize on mount
+  useEffect(() => {
+    // Auto-initialize on mount if in idle state
+    if (status === 'idle') {
+      initializeUpload();
+    }
+  }, [initializeUpload, status]);
+
   return {
     status,
     progress,
     error,
     uploadEndpoint,
+    initializeUpload,
     handleUploadStart,
     handleUploadProgress,
     handleUploadSuccess,

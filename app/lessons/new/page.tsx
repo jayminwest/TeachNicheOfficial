@@ -26,6 +26,19 @@ export default function NewLessonPage() {
       router.push('/sign-in?redirect=/lessons/new');
     }
   }, [user, authLoading, router]);
+  const { user, isLoading: authLoading } = useAuth();
+  
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to create a lesson",
+        variant: "destructive",
+      });
+      router.push('/sign-in?redirect=/lessons/new');
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (data: {
     title: string;
@@ -36,6 +49,37 @@ export default function NewLessonPage() {
   }) => {
     setIsSubmitting(true);
     try {
+      // Check authentication
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to create a lesson",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        router.push('/sign-in?redirect=/lessons/new');
+        return;
+      }
+      
+      // For paid lessons, verify Stripe account
+      if (data.price && data.price > 0) {
+        const profileResponse = await fetch('/api/profile');
+        if (!profileResponse.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+        
+        const profile = await profileResponse.json();
+        if (!profile.stripe_account_id) {
+          toast({
+            title: "Stripe Account Required",
+            description: "You need to connect a Stripe account to create paid lessons",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
       console.log("Form submission data:", data); // Debug submission data
 
       // Check authentication
@@ -182,6 +226,26 @@ export default function NewLessonPage() {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  // Don't render the form if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
+        <div className="container max-w-4xl px-4 py-10">
+          <p className="text-muted-foreground">Redirecting to sign in page...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state while checking authentication
   if (authLoading) {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import jwt from 'jsonwebtoken';
 
-export async function POST(request: NextRequest) {
+export async function POST(request) {
   try {
     const { playbackId, lessonId } = await request.json();
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
         kid: process.env.MUX_SIGNING_KEY_ID,
       },
-      process.env.MUX_PRIVATE_KEY!,
+      process.env.MUX_PRIVATE_KEY,
       { algorithm: 'RS256' }
     );
 

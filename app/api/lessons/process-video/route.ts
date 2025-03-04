@@ -218,10 +218,11 @@ export async function POST(request: Request) {
       
       if (result.status === 'ready' && result.playbackId) {
         // Update lesson with playback ID and change status to published
+        // Make sure we're using a valid status enum value
         const { error } = await supabase
           .from('lessons')
           .update({ 
-            status: 'published',
+            status: 'published',  // This is a valid enum value
             mux_playback_id: result.playbackId
           })
           .eq('id', lessonId);

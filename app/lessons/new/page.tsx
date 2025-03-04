@@ -96,10 +96,11 @@ export default function NewLessonPage() {
         data.uploadId = uploadId;
       }
 
-      // Create lesson data object - set status to 'processing'
+      // Create lesson data object - set status to 'draft' instead of 'processing'
+      // This fixes the validation error with the enum values
       const lessonData = {
         ...data,
-        status: 'processing'
+        status: 'draft'
       };
 
       // Ensure we have the required fields
@@ -136,7 +137,7 @@ export default function NewLessonPage() {
               errorMessages.push(`Content: ${errorData.details.content._errors.join(', ')}`);
             }
             if (errorData.details.status) {
-              errorMessages.push(`Status: ${errorData.details.status._errors.join(', ')}`);
+              errorMessages.push(`Status: ${errorData.details.status._errors.join(', ')} (valid values: draft, published, archived)`);
             }
             
             // If we have specific field errors, show them
@@ -146,18 +147,28 @@ export default function NewLessonPage() {
           }
           
           // For other errors, use the provided message or a generic one
-          throw new Error(
-            errorData.details || 
-            errorData.message || 
-            `Failed to create lesson: ${response.statusText}`
-          );
+          const errorMessage = 
+            errorData.details ? 
+              (typeof errorData.details === 'string' ? 
+                errorData.details : 
+                JSON.stringify(errorData.details)
+              ) : 
+              errorData.message || 
+              `Failed to create lesson: ${response.statusText}`;
+          
+          throw new Error(errorMessage);
         } catch (parseError) {
           if (errorData) {
-            throw new Error(
-              errorData.details || 
-              errorData.message || 
-              `Failed to create lesson: ${response.statusText}`
-            );
+            const errorMessage = 
+              errorData.details ? 
+                (typeof errorData.details === 'string' ? 
+                  errorData.details : 
+                  JSON.stringify(errorData.details)
+                ) : 
+                errorData.message || 
+                `Failed to create lesson: ${response.statusText}`;
+            
+            throw new Error(errorMessage);
           } else {
             throw new Error(`Failed to create lesson: ${response.statusText}`);
           }
@@ -180,7 +191,9 @@ export default function NewLessonPage() {
         body: JSON.stringify({
           lessonId: lesson.id,
           muxAssetId: data.muxAssetId,
-          isPaid: data.price && data.price > 0
+          isPaid: data.price && data.price > 0,
+          // Include the current status for reference
+          currentStatus: 'draft'
         }),
       }).catch(error => {
         console.error('Failed to start background processing:', error);
@@ -191,9 +204,20 @@ export default function NewLessonPage() {
       router.push(`/lessons/${lesson.id}`);
     } catch (error) {
       console.error('Lesson creation error:', error);
+      
+      // Improved error handling to better display the error
+      let errorMessage = "There was an error creating your lesson. Please try again.";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Try to extract a meaningful message from the error object
+        errorMessage = JSON.stringify(error);
+      }
+      
       toast({
         title: "Creation Failed",
-        description: error instanceof Error ? error.message : "There was an error creating your lesson. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       setIsSubmitting(false);

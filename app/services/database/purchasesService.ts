@@ -12,6 +12,49 @@ export interface PurchaseCreateData {
 
 export class PurchasesService extends DatabaseService {
   /**
+   * Verify a Stripe session directly with the Stripe API
+   */
+  async verifyStripeSession(sessionId: string): Promise<DatabaseResponse<{
+    isPaid: boolean;
+    amount?: number;
+    lessonId?: string;
+    userId?: string;
+  }>> {
+    try {
+      // Initialize Stripe
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2025-01-27.acacia',
+      });
+      
+      // Retrieve the session from Stripe
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      // Extract IDs from session
+      const lessonId = session.metadata?.lessonId;
+      const userId = session.metadata?.userId;
+      
+      // Check if the session is paid
+      const isPaid = session.payment_status === 'paid';
+      const amount = session.amount_total ? session.amount_total / 100 : undefined;
+      
+      return {
+        data: {
+          isPaid,
+          amount,
+          lessonId,
+          userId
+        },
+        error: null
+      };
+    } catch (error) {
+      console.error('Error verifying Stripe session:', error);
+      return {
+        data: null,
+        error: error instanceof Error ? error : new Error('Unknown error verifying Stripe session')
+      };
+    }
+  }
+  /**
    * Check if a user has access to a lesson
    */
   async checkLessonAccess(userId: string, lessonId: string): Promise<DatabaseResponse<LessonAccess>> {
@@ -92,26 +135,43 @@ export class PurchasesService extends DatabaseService {
         fromWebhook: data.fromWebhook
       });
       
-      // Check if a purchase record already exists with this session ID
-      const { data: existingPurchase, error: checkError } = await supabase
+      // First check if a purchase already exists for this user and lesson
+      const { data: existingUserLessonPurchase, error: userLessonError } = await supabase
+        .from('purchases')
+        .select('id, status, stripe_session_id')
+        .eq('lesson_id', data.lessonId)
+        .eq('user_id', data.userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      // If a completed purchase already exists, just return it
+      if (!userLessonError && existingUserLessonPurchase?.length > 0 && 
+          existingUserLessonPurchase[0].status === 'completed') {
+        console.log(`User already has a completed purchase for this lesson: ${existingUserLessonPurchase[0].id}`);
+        return { data: { id: existingUserLessonPurchase[0].id }, error: null };
+      }
+      
+      // Then check if a purchase record already exists with this session ID
+      const { data: existingSessionPurchase, error: sessionError } = await supabase
         .from('purchases')
         .select('id, status')
         .eq('stripe_session_id', data.stripeSessionId)
         .limit(1);
       
-      if (!checkError && existingPurchase && existingPurchase.length > 0) {
-        console.log(`Purchase already exists with session ID ${data.stripeSessionId}, status: ${existingPurchase[0].status}`);
+      // If a purchase with this session ID exists, update it if needed
+      if (!sessionError && existingSessionPurchase?.length > 0) {
+        const existingPurchase = existingSessionPurchase[0];
+        console.log(`Purchase already exists with session ID ${data.stripeSessionId}, status: ${existingPurchase.status}`);
         
-        // Only update if not already completed
-        if (existingPurchase[0].status !== 'completed') {
-          // Update the status to completed if it exists
+        // Only update if not already completed and we're coming from webhook or verification
+        if (existingPurchase.status !== 'completed' && data.fromWebhook) {
           const { data: updatedPurchase, error: updateError } = await supabase
             .from('purchases')
             .update({
               status: 'completed',
               updated_at: new Date().toISOString()
             })
-            .eq('id', existingPurchase[0].id)
+            .eq('id', existingPurchase.id)
             .select('id')
             .single();
           
@@ -123,8 +183,8 @@ export class PurchasesService extends DatabaseService {
           console.log(`Updated existing purchase ${updatedPurchase.id} to completed`);
           return { data: { id: updatedPurchase.id }, error: null };
         } else {
-          console.log(`Purchase ${existingPurchase[0].id} already completed, no update needed`);
-          return { data: { id: existingPurchase[0].id }, error: null };
+          console.log(`Purchase ${existingPurchase.id} already exists, no update needed`);
+          return { data: { id: existingPurchase.id }, error: null };
         }
       }
       

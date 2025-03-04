@@ -113,19 +113,24 @@ export async function POST(request: NextRequest) {
     });
 
     // Create a pending purchase record in the database
-    await purchasesService.createPurchase({
+    const { error: purchaseError } = await purchasesService.createPurchase({
       lessonId,
       userId,
       amount: price,
       stripeSessionId: checkoutSession.id,
     });
 
+    if (purchaseError) {
+      console.error('Error creating purchase record:', purchaseError);
+      // Continue anyway since we have the checkout session
+    }
+
     // Return the session ID to the client
     return NextResponse.json({ sessionId: checkoutSession.id });
-  } catch (error) {
-    console.error('Error creating checkout session:', error);
+  } catch (stripeError) {
+    console.error('Stripe error creating checkout session:', stripeError);
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: 'Failed to create checkout session', details: stripeError instanceof Error ? stripeError.message : 'Unknown error' },
       { status: 500 }
     );
   }

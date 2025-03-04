@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
+import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
     // Get the request body
     const body = await request.json();
-    const { lessonId } = body;
+    const { lessonId, sessionId } = body;
 
     if (!lessonId) {
       return NextResponse.json(
@@ -51,7 +52,30 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // If the user doesn't have access, check for pending purchases
+    // If a session ID was provided, verify it directly with Stripe
+    if (sessionId) {
+      const { data: stripeVerification, error: stripeError } = await purchasesService.verifyStripeSession(sessionId);
+      
+      if (!stripeError && stripeVerification?.isPaid) {
+        // If Stripe says it's paid, create or update the purchase record
+        await purchasesService.createPurchase({
+          lessonId,
+          userId,
+          amount: stripeVerification.amount,
+          stripeSessionId: sessionId,
+          fromWebhook: false
+        });
+        
+        return NextResponse.json({
+          hasAccess: true,
+          purchaseStatus: 'completed',
+          purchaseDate: new Date().toISOString(),
+          message: 'Access granted based on Stripe verification'
+        });
+      }
+    }
+
+    // If no session ID or verification failed, check for pending purchases
     const { data: purchases, error: purchasesError } = await supabase
       .from('purchases')
       .select('id, stripe_session_id, status, created_at')
@@ -87,11 +111,30 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // If the purchase is pending, try to update it
+    // If the purchase is pending and has a session ID, verify with Stripe
     if (latestPurchase.status === 'pending' && latestPurchase.stripe_session_id) {
-      console.log(`Attempting to update pending purchase ${latestPurchase.id}`);
+      console.log(`Attempting to verify pending purchase ${latestPurchase.id}`);
       
-      // Try to update the purchase status
+      // First try to verify with Stripe directly
+      const { data: stripeVerification, error: stripeError } = 
+        await purchasesService.verifyStripeSession(latestPurchase.stripe_session_id);
+      
+      if (!stripeError && stripeVerification?.isPaid) {
+        // Update the purchase status
+        await purchasesService.updatePurchaseStatus(
+          latestPurchase.stripe_session_id,
+          'completed'
+        );
+        
+        return NextResponse.json({
+          hasAccess: true,
+          purchaseStatus: 'completed',
+          purchaseDate: latestPurchase.created_at,
+          message: 'Purchase status updated to completed based on Stripe verification'
+        });
+      }
+      
+      // If Stripe verification failed, try the regular update
       const { data: updateData, error: updateError } = await purchasesService.updatePurchaseStatus(
         latestPurchase.stripe_session_id,
         'completed'

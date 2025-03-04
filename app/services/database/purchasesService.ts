@@ -30,12 +30,18 @@ export class PurchasesService extends DatabaseService {
       console.log(`Retrieving Stripe session: ${sessionId}`);
       
       // Retrieve the session from Stripe
-      const session = await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ['line_items', 'payment_intent']
-      });
-      
-      if (!session) {
-        throw new Error('Session not found');
+      let session;
+      try {
+        session = await stripe.checkout.sessions.retrieve(sessionId, {
+          expand: ['line_items', 'payment_intent']
+        });
+        
+        if (!session) {
+          throw new Error('Session not found');
+        }
+      } catch (stripeError) {
+        console.error('Stripe API error:', stripeError);
+        throw new Error(`Stripe API error: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`);
       }
       
       console.log(`Session retrieved, payment_status: ${session.payment_status}`);

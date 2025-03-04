@@ -2,17 +2,23 @@ import { NextRequest } from 'next/server';
 
 // Mock NextResponse
 jest.mock('next/server', () => {
-  const mockJson = jest.fn().mockImplementation((body, options) => ({
-    status: options?.status || 200,
-    json: async () => body,
-    headers: new Headers()
-  }));
+  const mockJson = jest.fn().mockImplementation((body, options) => {
+    const response = {
+      status: options?.status || 200,
+      headers: new Headers(),
+      json: jest.fn().mockResolvedValue(body)
+    };
+    return response;
+  });
   
   return {
     NextRequest: jest.fn(),
     NextResponse: {
       json: mockJson,
-      redirect: jest.fn().mockImplementation(url => ({ url }))
+      redirect: jest.fn().mockImplementation(url => ({ 
+        url,
+        json: jest.fn().mockResolvedValue({ redirected: true })
+      }))
     }
   };
 });
@@ -72,7 +78,8 @@ function createMockRequest(body: any): NextRequest {
     text: () => Promise.resolve(JSON.stringify(body)),
     headers: {
       get: jest.fn((name) => name === 'stripe-signature' ? 'mock-signature' : null),
-    }
+    },
+    url: 'https://example.com/api/test'
   } as unknown as NextRequest;
 }
 

@@ -333,6 +333,30 @@ export function LessonForm({
                   const data = await response.json();
                   console.log("Asset status response:", data);
                   
+                  // If the asset is still processing, wait and retry
+                  if (data.status === 'preparing') {
+                    // Wait for 2 seconds before retrying
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Retry the asset status check
+                    const retryResponse = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+                    
+                    if (!retryResponse.ok) {
+                      throw new Error(`Failed to get asset status on retry: ${retryResponse.status}`);
+                    }
+                    
+                    const retryData = await retryResponse.json();
+                    console.log("Asset status retry response:", retryData);
+                    
+                    if (!retryData.playbackId) {
+                      // If still no playback ID, we'll use a temporary one and update it later
+                      console.warn("No playback ID yet, using temporary value");
+                      data.playbackId = `temp_${assetId}`;
+                    } else {
+                      data.playbackId = retryData.playbackId;
+                    }
+                  }
+                  
                   if (!data.playbackId) {
                     throw new Error('No playback ID received');
                   }

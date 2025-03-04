@@ -247,16 +247,19 @@ export function useVideoUpload({
       const assetId = await withRetry(
         async () => {
           console.log(`Fetching asset ID for upload: ${cleanUploadId}`);
-          const response = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(cleanUploadId)}`);
+          
+          // Instead of checking upload status, we'll directly check if the asset was created
+          // This is more reliable since the upload might have already completed
+          const response = await fetch(`/api/mux/asset-by-upload?uploadId=${encodeURIComponent(cleanUploadId)}`);
           
           if (!response.ok) {
             const errorText = await response.text().catch(() => "No error details");
-            console.error(`Upload status error (${response.status}):`, errorText);
-            throw new Error(`Failed to get upload status: ${response.status}`);
+            console.error(`Asset check error (${response.status}):`, errorText);
+            throw new Error(`Failed to get asset for upload: ${response.status}`);
           }
           
           const data = await response.json();
-          console.log("Upload status response:", data);
+          console.log("Asset check response:", data);
           
           if (!data.assetId) {
             throw new Error("No asset ID available from upload");

@@ -189,6 +189,8 @@ export function VideoUploader({
               const firstUploadId = uploadIds[0].getAttribute('data-upload-id');
               if (firstUploadId) {
                 console.log("Using upload ID from DOM:", firstUploadId);
+                // Store the upload ID in a global variable for fallback
+                (window as any).__lastUploadId = firstUploadId;
                 handleUploadSuccess(firstUploadId);
                 return;
               }
@@ -202,6 +204,8 @@ export function VideoUploader({
                 
                 if (uploadIdParam) {
                   console.log("Using upload ID from URL param:", uploadIdParam);
+                  // Store the upload ID in a global variable for fallback
+                  (window as any).__lastUploadId = uploadIdParam;
                   handleUploadSuccess(uploadIdParam);
                   return;
                 }
@@ -210,16 +214,23 @@ export function VideoUploader({
               }
             }
             
-            // Fallback to checking the event
-            if (event instanceof CustomEvent && event.detail?.uploadId) {
-              console.log("Using upload ID from event:", event.detail.uploadId);
-              handleUploadSuccess(event.detail.uploadId);
-              return;
+            // Try to extract from the event
+            if (event instanceof CustomEvent) {
+              // Different versions of the Mux uploader might have different event structures
+              const uploadId = event.detail?.uploadId || 
+                               event.detail?.id || 
+                               (typeof event.detail === 'string' ? event.detail : null);
+              
+              if (uploadId) {
+                console.log("Using upload ID from event:", uploadId);
+                // Store the upload ID in a global variable for fallback
+                (window as any).__lastUploadId = uploadId;
+                handleUploadSuccess(uploadId);
+                return;
+              }
             }
             
             // Last resort: use a hardcoded ID from the most recent upload
-            console.warn("Using fallback upload ID from global variable");
-            // Get the uploadId from window object if it exists
             const globalUploadId = (window as any).__lastUploadId;
             if (globalUploadId) {
               console.log("Using global upload ID:", globalUploadId);

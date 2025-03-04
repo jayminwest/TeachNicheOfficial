@@ -151,7 +151,7 @@ export async function GET(request: Request) {
             videoApiTest.error = 'Video API not available';
           } else {
             // Try to list assets as a simple test
-            const assets = await muxClient.Video.Assets.list({ limit: 1 });
+            const assets = await muxClient.video.assets.list({ limit: 1 });
             videoApiTest = { 
               success: true, 
               error: null, 

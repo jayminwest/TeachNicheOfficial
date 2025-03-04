@@ -10,18 +10,18 @@ async function testMux() {
     const mux = new Mux({ tokenId, tokenSecret });
     
     console.log('Mux client initialized:', !!mux);
-    console.log('Mux.Video available:', !!mux.Video);
+    console.log('Mux.video available:', !!mux.video);
     console.log('Mux client keys:', Object.keys(mux));
     
-    if (mux.Video) {
-      console.log('Video keys:', Object.keys(mux.Video));
-      console.log('Video.Assets available:', !!mux.Video.Assets);
-      console.log('Video.Uploads available:', !!mux.Video.Uploads);
+    if (mux.video) {
+      console.log('Video keys:', Object.keys(mux.video));
+      console.log('video.assets available:', !!mux.video.assets);
+      console.log('video.uploads available:', !!mux.video.uploads);
       
-      if (mux.Video.Assets) {
-        console.log('Testing Video.Assets.list...');
+      if (mux.video.assets) {
+        console.log('Testing video.assets.list...');
         try {
-          const assets = await mux.Video.Assets.list({ limit: 1 });
+          const assets = await mux.video.assets.list({ limit: 1 });
           console.log('Assets list response:', JSON.stringify(assets, null, 2));
         } catch (error) {
           console.error('Error listing assets:', error);

@@ -5,40 +5,77 @@ import { toast } from '@/app/components/ui/use-toast'
 export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Promise<LessonRequest> {
   const supabase = createClientComponentClient()
   
-  const { data: session } = await supabase.auth.getSession()
-  if (!session?.session?.user) {
-    toast({
-      title: "Authentication Required",
-      description: "Please sign in to create a lesson request",
-      variant: "destructive"
-    })
-    throw new Error('Authentication required')
-  }
-  const { data: request, error } = await supabase
-    .from('lesson_requests')
-    .insert([{
+  try {
+    const { data: session } = await supabase.auth.getSession()
+    if (!session?.session?.user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to create a lesson request",
+        variant: "destructive"
+      })
+      throw new Error('Authentication required')
+    }
+    
+    // Log the data being sent to help debug
+    console.log('Creating request with data:', {
       ...data,
       user_id: session.session.user.id,
       status: 'open',
-      vote_count: 0,
-      created_at: new Date().toISOString()
-    }])
-    .select()
-    .single()
+      vote_count: 0
+    });
     
-  if (error) {
+    const { data: request, error } = await supabase
+      .from('lesson_requests')
+      .insert([{
+        ...data,
+        user_id: session.session.user.id,
+        status: 'open',
+        vote_count: 0,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single()
+      
+    if (error) {
+      console.error('Supabase error creating request:', error);
+      toast({
+        title: "Error creating request",
+        description: error.message || "Database error occurred",
+        variant: "destructive"
+      })
+      throw new Error(`Failed to create request: ${error.message || JSON.stringify(error)}`)
+    }
+    
+    if (!request) {
+      console.error('No request data returned from Supabase');
+      toast({
+        title: "Error creating request",
+        description: "No data returned from database",
+        variant: "destructive"
+      })
+      throw new Error('Failed to create request: No data returned')
+    }
+  } catch (err) {
+    // Catch and log any other errors
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error('Error in createRequest:', err);
     toast({
       title: "Error creating request",
-      description: error.message,
+      description: errorMessage,
       variant: "destructive"
     })
-    throw error
+    throw new Error(`Failed to create request: ${errorMessage}`)
   }
   
   toast({
     title: "Request created",
     description: "Your lesson request has been submitted successfully."
   })
+  
+  // Make sure we have a request to return
+  if (!request) {
+    throw new Error('No request data returned from database');
+  }
   
   return request as LessonRequest
 }

@@ -52,22 +52,34 @@ export default function NewLessonPage() {
       
       // For paid lessons, verify Stripe account
       if (data.price && data.price > 0) {
-        const profileResponse = await fetch('/api/profile');
-        if (!profileResponse.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-        
-        const profile = await profileResponse.json();
-        if (!profile.stripe_account_id) {
+        try {
+          const profileResponse = await fetch('/api/profile/get?userId=' + user.id);
+          if (!profileResponse.ok) {
+            throw new Error(`Failed to fetch profile: ${profileResponse.statusText}`);
+          }
+          
+          const profile = await profileResponse.json();
+          if (!profile.stripe_account_id) {
+            toast({
+              title: "Stripe Account Required",
+              description: "You need to connect a Stripe account to create paid lessons",
+              variant: "destructive",
+            });
+            setIsSubmitting(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking Stripe account:', error);
           toast({
-            title: "Stripe Account Required",
-            description: "You need to connect a Stripe account to create paid lessons",
+            title: "Stripe Verification Failed",
+            description: "Unable to verify your Stripe account. Please try again or contact support.",
             variant: "destructive",
           });
           setIsSubmitting(false);
           return;
         }
       }
+      
       console.log("Form submission data:", data); // Debug submission data
 
       // Check if muxAssetId exists and is not empty
@@ -120,7 +132,8 @@ export default function NewLessonPage() {
         },
         body: JSON.stringify({
           lessonId: lesson.id,
-          muxAssetId: data.muxAssetId
+          muxAssetId: data.muxAssetId,
+          isPaid: data.price && data.price > 0
         }),
       }).catch(error => {
         console.error('Failed to start background processing:', error);

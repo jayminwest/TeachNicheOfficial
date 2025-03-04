@@ -131,6 +131,41 @@ export function VideoUploader({
     }
   };
 
+  // Show appropriate UI based on the upload initialization status
+  if (status === 'initializing') {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-sm text-muted-foreground">Preparing upload...</span>
+      </div>
+    );
+  }
+  
+  if (status === 'error' && !uploadEndpoint) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center text-destructive">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <p className="text-sm font-medium">Failed to initialize upload</p>
+        </div>
+        <p className="text-sm text-muted-foreground">{errorMessage || "Couldn't prepare the upload. Please try again."}</p>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => {
+            // Reset and try again
+            handleUploadError(new Error("Retrying upload initialization"));
+            startUpload();
+          }}
+          className="gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
+  
   // Wait for the uploadEndpoint to be resolved before rendering the uploader
   if (!uploadEndpoint) {
     return (

@@ -69,6 +69,7 @@ export function useVideoUpload({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleError = useCallback((err: Error) => {
     setStatus('error');
@@ -81,15 +82,22 @@ export function useVideoUpload({
     setProgress(0);
     setError(null);
     setUploadEndpoint(null);
+    setRetryCount(0);
   }, []);
 
   const getUploadUrl = useCallback(async (): Promise<string> => {
     try {
-      const response = await fetch(endpoint, {
+      // Add a cache-busting parameter to avoid cached responses
+      const cacheBuster = `nocache=${Date.now()}`;
+      const requestUrl = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${cacheBuster}`;
+      
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        // Ensure we're not using cached responses
+        cache: 'no-store'
       });
       
       if (!response.ok) {
@@ -99,6 +107,9 @@ export function useVideoUpload({
           const errorData = await response.json();
           if (errorData.error) {
             errorMessage += `: ${errorData.error}`;
+            if (errorData.details) {
+              errorMessage += ` - ${errorData.details}`;
+            }
           }
         } catch {
           // If we can't parse JSON, try to get text
@@ -119,6 +130,7 @@ export function useVideoUpload({
       const data = await response.json();
       
       if (!data.url || !data.uploadId) {
+        console.error('Invalid upload response:', data);
         throw new Error('Invalid upload response: missing URL or upload ID');
       }
       
@@ -130,8 +142,8 @@ export function useVideoUpload({
   }, [endpoint]);
 
   const initializeUpload = useCallback(async () => {
-    // Only initialize if we're in idle state
-    if (status !== 'idle') return;
+    // Only initialize if we're in idle state or error state with retries left
+    if (status !== 'idle' && !(status === 'error' && retryCount < 3)) return;
     
     setStatus('initializing');
     setProgress(0);
@@ -144,6 +156,7 @@ export function useVideoUpload({
           retries: 3,
           initialDelay: 1000,
           onRetry: (attempt) => {
+            setRetryCount(attempt);
             // Don't set this as an error, use a separate state for status messages
             console.log(`Preparing upload (attempt ${attempt})...`);
           }
@@ -158,7 +171,7 @@ export function useVideoUpload({
       setError(error instanceof Error ? error.message : 'Failed to initialize upload');
       if (onError) onError(error instanceof Error ? error : new Error('Failed to initialize upload'));
     }
-  }, [getUploadUrl, onError, status]);
+  }, [getUploadUrl, onError, status, retryCount]);
 
   const handleUploadStart = useCallback(() => {
     // Only start upload if we have an endpoint

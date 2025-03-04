@@ -10,13 +10,32 @@ function getCorsHeaders(origin: string = '*') {
     'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization'
   };
 }
+
 // Helper function to handle POST request (upload initialization)
 async function handlePostRequest() {
-  const headersList = await headers();
+  const headersList = headers();
   const origin = headersList.get('origin') || '*';
 
   try {
     const upload = await createUpload();
+    
+    // Ensure the response has the required fields
+    if (!upload || !upload.url || !upload.uploadId) {
+      console.error('Invalid upload response from Mux service:', upload);
+      return NextResponse.json(
+        { 
+          error: 'Invalid upload response from Mux service',
+          details: 'Missing required fields in upload response'
+        },
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(origin)
+          }
+        }
+      );
+    }
 
     return NextResponse.json(
       upload,
@@ -29,6 +48,7 @@ async function handlePostRequest() {
       }
     );
   } catch (error) {
+    console.error('Failed to initialize video upload:', error);
     return NextResponse.json(
       { 
         error: 'Failed to initialize video upload',

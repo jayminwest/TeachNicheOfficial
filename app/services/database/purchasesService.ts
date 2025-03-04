@@ -12,7 +12,7 @@ export class PurchasesService extends DatabaseService {
       // First check if the lesson is free
       const { data: lessonData, error: lessonError } = await supabase
         .from('lessons')
-        .select('price, instructor_id')
+        .select('price, creator_id')
         .eq('id', lessonId)
         .single();
       
@@ -21,7 +21,7 @@ export class PurchasesService extends DatabaseService {
       }
       
       // If the lesson is free or the user is the instructor, they have access
-      if (lessonData.price === 0 || lessonData.instructor_id === userId) {
+      if (lessonData.price === 0 || lessonData.creator_id === userId) {
         return { 
           data: { 
             hasAccess: true, 

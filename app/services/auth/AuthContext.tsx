@@ -1,9 +1,9 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { getSession, onAuthStateChange } from './supabaseAuth'
-import { createClientSupabaseClient } from '@/app/lib/supabase/client'
+import { createOrUpdateProfile } from '../profile/profileService'
 
 interface AuthContextType {
   user: User | null
@@ -26,55 +26,11 @@ export function AuthProvider({
   children: React.ReactNode;
   initialUser?: User | null;
 }) {
-  type AuthState = {
-    user: User | null;
-    loading: boolean;
-    error: Error | null;
-  }
+  const [user, setUser] = useState<User | null>(initialUser)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   
-  const [authState, setAuthState] = useState<AuthState>({
-    user: initialUser,
-    loading: true,
-    error: null
-  })
-
-  const isAuthenticated = !!authState.user
-  
-  // Use useCallback to memoize the function so it doesn't change on every render
-  const setAuthStateTyped = useCallback((updater: (prev: AuthState) => AuthState) => {
-    setAuthState((prevState) => updater(prevState));
-  }, []);
-
-  // Function to create or update user profile in the profiles table
-  const createOrUpdateProfile = async (user: User) => {
-    try {
-      const supabase = createClientSupabaseClient();
-      
-      // First check if profile exists
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-      
-      if (!existingProfile) {
-        // Create new profile if it doesn't exist
-        await supabase.from('profiles').insert({
-          id: user.id,
-          full_name: user.user_metadata?.full_name || '',
-          email: user.email || '',
-          avatar_url: user.user_metadata?.avatar_url || null,
-          bio: '',  // Initialize bio
-          social_media_tag: '',  // Initialize social_media_tag
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-        console.log('Created new profile for user:', user.id);
-      }
-    } catch (error) {
-      console.error('Error creating/updating profile:', error);
-    }
-  };
+  const isAuthenticated = !!user
 
   useEffect(() => {
     let isMounted = true
@@ -86,51 +42,44 @@ export function AuthProvider({
         // Get initial session
         const { data: { session } } = await getSession()
         
-        if (session?.user) {
-          // Create or update profile when initializing auth
-          await createOrUpdateProfile(session.user);
+        if (session?.user && isMounted) {
+          setUser(session.user)
+          // Handle profile creation in a separate service
+          await createOrUpdateProfile(session.user)
         }
         
         if (isMounted) {
-          setAuthStateTyped((prev) => ({
-            ...prev,
-            user: session?.user || null,
-            loading: false
-          }))
+          setLoading(false)
         }
 
         // Set up auth state change listener
         if (process.env.NODE_ENV !== 'test' && typeof window !== 'undefined') {
-          const authStateChange = onAuthStateChange((event, session: { user?: User }) => {
+          const authStateChange = onAuthStateChange(async (event, session: { user?: User }) => {
             if (!isMounted) return
             
             // Handle auth state changes
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              setAuthStateTyped((prev) => ({
-                ...prev,
-                user: session?.user || null,
-                loading: false
-              }))
-              
-              // Create or update profile when user signs in
-              if (event === 'SIGNED_IN' && session?.user) {
-                createOrUpdateProfile(session.user);
-              }
+            if (event === 'SIGNED_IN' && session?.user) {
+              setUser(session.user)
+              await createOrUpdateProfile(session.user)
               
               // Handle redirect if needed
-              if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
+              if (typeof window !== 'undefined') {
                 const params = new URLSearchParams(window.location.search)
                 const redirectTo = params.get('redirect')
                 if (redirectTo) {
                   window.location.href = redirectTo
                 }
               }
+            } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+              if (session?.user) {
+                setUser(session.user)
+              }
             } else if (event === 'SIGNED_OUT') {
-              setAuthStateTyped((prev) => ({
-                ...prev,
-                user: null,
-                loading: false
-              }))
+              setUser(null)
+            }
+            
+            if (isMounted) {
+              setLoading(false)
             }
           })
           
@@ -140,12 +89,9 @@ export function AuthProvider({
         }
       } catch (error) {
         if (isMounted) {
-          setAuthStateTyped((prev) => ({
-            ...prev,
-            user: null,
-            loading: false,
-            error: error instanceof Error ? error : new Error('Authentication error')
-          }))
+          setUser(null)
+          setError(error instanceof Error ? error : new Error('Authentication error'))
+          setLoading(false)
         }
       }
     }
@@ -156,14 +102,14 @@ export function AuthProvider({
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [setAuthStateTyped]) // Add setAuthStateTyped to the dependency array
+  }, [])
 
   return (
     <AuthContext.Provider value={{ 
-      user: authState.user, 
-      loading: authState.loading, 
+      user, 
+      loading, 
       isAuthenticated,
-      error: authState.error
+      error
     }}>
       {children}
     </AuthContext.Provider>

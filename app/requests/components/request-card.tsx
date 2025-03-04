@@ -10,6 +10,8 @@ import { RequestDialog } from './request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { toast } from '@/app/components/ui/use-toast'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { voteOnRequest } from '@/app/lib/supabase/requests'
+import { SignInToVote } from './sign-in-to-vote'
 
 interface RequestCardProps {
   request: LessonRequest
@@ -73,64 +75,62 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
 
       setIsVoting(true);
       
-      // Check if vote exists
-      const { data: existingVote, error: queryError } = await supabase
-        .from('lesson_request_votes')
-        .select()
-        .match({ request_id: request.id, user_id: user.id })
-        .maybeSingle();
-
-      if (queryError) throw queryError;
-
-      if (existingVote) {
-        // Remove vote if it exists
-        const { error: deleteError } = await supabase
-          .from('lesson_request_votes')
-          .delete()
-          .eq('request_id', request.id)
-          .eq('user_id', user.id);
-
-        if (deleteError) throw deleteError;
-        
-        setHasVoted(false);
-        setVoteCount(prev => prev - 1);
-        
-        toast({
-          title: "Success",
-          description: "Vote removed",
-        });
-      } else {
-        // Add vote if it doesn't exist
-        const { error: insertError } = await supabase
-          .from('lesson_request_votes')
-          .insert({
-            request_id: request.id,
-            user_id: user.id,
-            vote_type: 'up' as const
-          });
-
-        if (insertError) throw insertError;
-        
-        setHasVoted(true);
-        setVoteCount(prev => prev + 1);
-        
-        toast({
-          title: "Success",
-          description: "Vote added",
-        });
-      }
+      // Optimistic UI update
+      const isRemovingVote = hasVoted;
+      const newVoteCount = isRemovingVote ? voteCount - 1 : voteCount + 1;
+      const originalVoteCount = voteCount;
+      const originalHasVoted = hasVoted;
       
-      await updateVoteCount();
-      onVote();
-    } catch (error) {
-      console.error('Vote failed:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit vote. Please try again.",
-        variant: "destructive"
-      })
+      // Update UI optimistically
+      setHasVoted(!isRemovingVote);
+      setVoteCount(newVoteCount);
+      
+      try {
+        // Use the API route through the voteOnRequest function
+        const result = await voteOnRequest(request.id, 'upvote');
+        
+        if (!result.success) {
+          // Revert optimistic update on error
+          setHasVoted(originalHasVoted);
+          setVoteCount(originalVoteCount);
+          
+          // If the error is authentication related, show auth dialog
+          if (result.error === 'unauthenticated') {
+            setShowAuth(true);
+          }
+          return;
+        }
+        
+        // Update with the actual vote count from the server
+        setVoteCount(result.currentVotes);
+        setHasVoted(result.userHasVoted);
+        
+        // Notify parent component about the vote
+        onVote();
+      } catch (error) {
+        console.error('Vote operation failed:', error);
+        
+        // Revert optimistic update on error
+        setHasVoted(originalHasVoted);
+        setVoteCount(originalVoteCount);
+        
+        // Show appropriate error message
+        if (error instanceof Error) {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to submit vote. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred. Please try again.",
+            variant: "destructive"
+          });
+        }
+      }
     } finally {
-      setIsVoting(false)
+      setIsVoting(false);
     }
   }
 
@@ -203,21 +203,32 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
                 </RequestDialog>
               )}
             </div>
-            <Button
-              variant={hasVoted ? "default" : "outline"}
-              size="sm"
-              onClick={handleVote}
-              disabled={isVoting}
-              className="transition-all duration-200 hover:scale-105"
-            >
-            <ThumbsUp className={`w-4 h-4 mr-2 transition-transform group-hover:scale-110 ${
-              hasVoted ? 'fill-current text-black' : 'stroke-white stroke-[1.5]'
-            }`} />
-            <span className="font-medium">{voteCount}</span>
-            <span className="ml-1 text-xs text-muted-foreground">
-              {voteCount === 1 ? 'vote' : 'votes'}
-            </span>
-            </Button>
+            {user ? (
+              <Button
+                variant={hasVoted ? "default" : "outline"}
+                size="sm"
+                onClick={handleVote}
+                disabled={isVoting}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                <ThumbsUp className={`w-4 h-4 mr-2 transition-transform group-hover:scale-110 ${
+                  hasVoted ? 'fill-current text-black' : 'stroke-white stroke-[1.5]'
+                }`} />
+                <span className="font-medium">{voteCount}</span>
+                <span className="ml-1 text-xs text-muted-foreground">
+                  {voteCount === 1 ? 'vote' : 'votes'}
+                </span>
+              </Button>
+            ) : (
+              <SignInToVote 
+                voteCount={voteCount}
+                className="transition-all duration-200 hover:scale-105"
+                onSignInSuccess={() => {
+                  // Refresh the component after sign in
+                  updateVoteCount();
+                }}
+              />
+            )}
           </div>
         </CardFooter>
       </Card>

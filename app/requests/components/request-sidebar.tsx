@@ -84,6 +84,8 @@ export function RequestSidebar({
             </Button>
             {categoriesLoading ? (
               <div className="p-2 text-center text-muted-foreground">Loading...</div>
+            ) : categories.length === 0 ? (
+              <div className="p-2 text-center text-muted-foreground">No categories found</div>
             ) : (
               categories.map((category) => (
                 <Button

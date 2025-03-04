@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { supabase } from '@/app/services/supabase'
-import type { LessonAccess, PurchaseStatus } from '@/types/purchase'
+import { purchasesService } from '@/app/services/database/purchasesService'
+import type { LessonAccess, PurchaseStatus } from '@/app/services/database/purchasesService'
 
 interface AccessCacheEntry {
   hasAccess: boolean
-  purchaseStatus: PurchaseStatus | 'none'
+  purchaseStatus: PurchaseStatus
   purchaseDate?: string
   timestamp: number
 }
@@ -16,7 +16,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
   loading: boolean
   error: Error | null 
 } {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [access, setAccess] = useState<LessonAccess>({ 
     hasAccess: false,
     purchaseStatus: 'none'
@@ -24,18 +24,21 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   
-  
   useEffect(() => {
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
     const TIMEOUT_MS = 5000 // 5 seconds
     const RETRY_ATTEMPTS = 3
     let attempts = 0
-    let timeoutId: NodeJS.Timeout
     let retryTimeoutId: NodeJS.Timeout
     let mounted = true
-    const abortController = new AbortController()
-
+    
     async function checkAccess(): Promise<void> {
+      // Don't check access if auth is still loading or no lessonId
+      if (authLoading || !lessonId) {
+        return
+      }
+      
+      // If not logged in, no access
       if (!user) {
         if (mounted) {
           setAccess({ hasAccess: false, purchaseStatus: 'none' })
@@ -48,63 +51,58 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       const cacheKey = `lesson-access-${lessonId}-${user.id}`
       const cached = sessionStorage.getItem(cacheKey)
       if (cached) {
-        const entry: AccessCacheEntry = JSON.parse(cached)
-        if (Date.now() - entry.timestamp < CACHE_DURATION) {
-          if (mounted) {
-            setAccess({
-              hasAccess: entry.hasAccess,
-              purchaseStatus: entry.purchaseStatus,
-              purchaseDate: entry.purchaseDate
-            })
-            setLoading(false)
+        try {
+          const entry: AccessCacheEntry = JSON.parse(cached)
+          if (Date.now() - entry.timestamp < CACHE_DURATION) {
+            if (mounted) {
+              setAccess({
+                hasAccess: entry.hasAccess,
+                purchaseStatus: entry.purchaseStatus,
+                purchaseDate: entry.purchaseDate
+              })
+              setLoading(false)
+            }
+            return
           }
-          return
+        } catch (e) {
+          // If cache parsing fails, just continue with the request
+          console.warn('Failed to parse lesson access cache:', e)
         }
       }
 
-      // Create a timeout promise
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          abortController.abort()
-          reject(new Error('Access check timed out'))
-        }, TIMEOUT_MS)
-      })
-
       try {
-        const result = await Promise.race([
-          supabase
-            .from('purchases')
-            .select('status, purchase_date')
-            .eq('user_id', user.id)
-            .eq('lesson_id', lessonId)
-            .maybeSingle(),
-          timeoutPromise
+        // Set a timeout for the request
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+        
+        // Use the purchasesService to check access
+        const { data, error: serviceError, success } = await Promise.race([
+          purchasesService.checkLessonAccess(user.id, lessonId),
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Access check timed out')), TIMEOUT_MS)
+          })
         ])
-
+        
         clearTimeout(timeoutId)
-
+        
         if (!mounted) return
-
-        const { data: purchase, error: dbError } = result as { 
-          data: { status: PurchaseStatus; purchase_date: string } | null;
-          error: Error | null;
+        
+        if (!success || serviceError) {
+          throw serviceError || new Error('Failed to check lesson access')
         }
-
-        if (dbError) throw dbError
-
-        const accessData: LessonAccess = {
-          hasAccess: purchase?.status === 'completed',
-          purchaseStatus: purchase?.status || 'none',
-          purchaseDate: purchase?.purchase_date
-        }
-
+        
         // Cache the result
+        const accessData: LessonAccess = data || {
+          hasAccess: false,
+          purchaseStatus: 'none'
+        }
+        
         const cacheEntry: AccessCacheEntry = {
           ...accessData,
           timestamp: Date.now()
         }
         sessionStorage.setItem(cacheKey, JSON.stringify(cacheEntry))
-
+        
         setAccess(accessData)
         setError(null)
       } catch (err) {
@@ -129,11 +127,9 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
 
     return () => {
       mounted = false
-      clearTimeout(timeoutId)
       clearTimeout(retryTimeoutId)
-      abortController?.abort() // Ensure pending requests are aborted
     }
-  }, [lessonId, user])
+  }, [lessonId, user, authLoading])
 
   return { ...access, loading, error }
 }

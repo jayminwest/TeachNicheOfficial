@@ -25,32 +25,25 @@ function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProp
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
   
-  // Use initialView to set up initial UI state if needed
-  useEffect(() => {
-    console.log(`Initial view set to: ${initialView}`);
-    // Future implementation can use this to switch between sign-in/sign-up views
-  }, [initialView]);
-
   // Listen for auth state changes to handle redirection
   useEffect(() => {
     const { data: { subscription } } = onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           // Call the success callback to close the dialog
-          if (onSignInSuccess) {
-            onSignInSuccess();
-          }
+          onSignInSuccess?.();
           
           // Check if there's a redirect URL in the query params
-          if (typeof window !== 'undefined') {
-            const redirectTo = searchParams?.get('redirect');
-            
-            if (redirectTo) {
-              window.location.href = redirectTo;
-            } else {
-              router.push('/profile');
-            }
+          const redirectTo = searchParams?.get('redirect');
+          
+          if (redirectTo) {
+            window.location.href = redirectTo;
+          } else {
+            router.push('/profile');
           }
+          
+          // Reset loading state
+          setIsLoading(false);
         }
       }
     );
@@ -68,7 +61,6 @@ function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProp
         (window as Window & typeof globalThis & { signInWithGoogleCalled: boolean }).signInWithGoogleCalled = true;
       }
       
-      // Add the redirect_to parameter to the OAuth URL
       const result = await signInWithGoogle()
       
       if (result?.error) {
@@ -88,51 +80,57 @@ function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProp
     }
   }
 
+  // If user is already authenticated, redirect to profile
+  if (user) {
+    router.push('/profile');
+    return null;
+  }
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="flex min-h-[inherit] w-full items-center justify-center">
+        <div className="text-center">
+          <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+          <VisuallyHidden>Loading authentication status</VisuallyHidden>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show sign-in UI
   return (
-    <>
-      {loading ? (
-        <div className="flex min-h-[inherit] w-full items-center justify-center">
-          <div className="text-center">
-            <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-            <VisuallyHidden>Loading authentication status</VisuallyHidden>
-            <p>Loading...</p>
+    <div className="flex min-h-[inherit] items-center justify-center p-6">
+      <Card className="w-full max-w-[400px] mx-auto">
+        <CardHeader className="space-y-1">
+          <CardDescription>Sign in with your Google account</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-4">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              type="button" 
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Icons.spinner data-testid="spinner-icon" className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Icons.google className="mr-2 h-4 w-4" />
+              )}
+              Sign in with Google
+            </Button>
+            {error && (
+              <p className="text-sm text-red-500 text-center">{error}</p>
+            )}
           </div>
-        </div>
-      ) : user ? (
-        <>{router.push('/profile')}</>
-      ) : (
-        <div className="flex min-h-[inherit] items-center justify-center p-6">
-          <Card className="w-full max-w-[400px] mx-auto">
-            <CardHeader className="space-y-1">
-              <CardDescription>Sign in with your Google account</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-4">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  type="button" 
-                  className="w-full"
-                  onClick={handleGoogleSignIn}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Icons.spinner data-testid="spinner-icon" className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Icons.google className="mr-2 h-4 w-4" />
-                  )}
-                  Sign in with Google
-                </Button>
-                {error && (
-                  <p className="text-sm text-red-500 text-center">{error}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </>
-  )
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 export { SignInPage };

@@ -38,14 +38,41 @@ interface LessonFormProps {
   onSubmit: (data: LessonFormData) => Promise<void>;
   isSubmitting?: boolean;
   className?: string;
+  isEditing?: boolean;
 }
 
 export function LessonForm({ 
   initialData, 
   onSubmit,
   isSubmitting = false,
-  className 
+  className,
+  isEditing = false
 }: LessonFormProps) {
+  // Add state for Stripe account
+  const [hasStripeAccount, setHasStripeAccount] = useState<boolean | null>(null);
+  const [isCheckingStripe, setIsCheckingStripe] = useState(true);
+  
+  // Check if user has a Stripe account
+  useEffect(() => {
+    async function checkStripeAccount() {
+      try {
+        const response = await fetch('/api/profile/stripe-status');
+        if (response.ok) {
+          const data = await response.json();
+          setHasStripeAccount(!!data.stripeAccountId);
+        } else {
+          setHasStripeAccount(false);
+        }
+      } catch (error) {
+        console.error('Failed to check Stripe account:', error);
+        setHasStripeAccount(false);
+      } finally {
+        setIsCheckingStripe(false);
+      }
+    }
+    
+    checkStripeAccount();
+  }, []);
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonFormSchema),
     defaultValues: initialData || {
@@ -88,7 +115,20 @@ export function LessonForm({
   return (
     <Form {...form}>
       <form 
-        onSubmit={form.handleSubmit((data) => onSubmit(data))}
+        onSubmit={form.handleSubmit((data) => {
+          // Validate paid lessons require a Stripe account
+          if (data.price > 0 && !hasStripeAccount && !isEditing) {
+            toast({
+              title: "Stripe Account Required",
+              description: "You need to connect a Stripe account to create paid lessons",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Continue with form submission
+          onSubmit(data);
+        })}
         className={cn("space-y-8", className)}
       >
         <div className="space-y-6">
@@ -185,6 +225,14 @@ export function LessonForm({
                 <FormDescription>
                   Set a fair price for your lesson content (leave at 0 for free)
                 </FormDescription>
+              
+                {/* Show warning if trying to set price without Stripe account */}
+                {field.value > 0 && hasStripeAccount === false && !isEditing && (
+                  <p className="text-sm text-destructive mt-1">
+                    You need to <Link href="/profile/payments" className="underline font-medium">connect a Stripe account</Link> to create paid lessons
+                  </p>
+                )}
+              
                 <FormMessage />
               </FormItem>
             )}
@@ -261,7 +309,10 @@ export function LessonForm({
             {isSubmitting && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            {isSubmitting ? "Creating Lesson..." : "Create Lesson"}
+            {isSubmitting 
+              ? (isEditing ? "Updating Lesson..." : "Creating Lesson...") 
+              : (isEditing ? "Update Lesson" : "Create Lesson")
+            }
           </Button>
         </div>
       </form>

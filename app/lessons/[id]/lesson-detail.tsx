@@ -1,7 +1,8 @@
 import { VideoPlayer } from "@/app/components/ui/video-player";
 import { Card } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PencilIcon } from "lucide-react";
+import { LessonAccessGate } from "@/app/components/ui/lesson-access-gate";
 import Link from "next/link";
 import { supabase } from "@/app/services/supabase";
 import { Toaster } from "@/app/components/ui/toaster";
@@ -108,23 +109,55 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
         <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
           <div className="mb-6">
-            <Link href="/lessons">
-              <Button variant="ghost" className="mb-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Lessons
-              </Button>
-            </Link>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-4">
+                <Link href="/lessons">
+                  <Button variant="ghost">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Lessons
+                  </Button>
+                </Link>
+            
+                {/* Show edit button for lesson owner */}
+                {session?.user?.id === lesson.instructor_id && (
+                  <Link href={`/lessons/${lesson.id}/edit`}>
+                    <Button variant="outline">
+                      <PencilIcon className="mr-2 h-4 w-4" />
+                      Edit Lesson
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            
+              {/* Show edit button for lesson owner */}
+              {session?.user?.id === lesson.instructor_id && (
+                <Link href={`/lessons/${lesson.id}/edit`}>
+                  <Button variant="outline">
+                    <PencilIcon className="mr-2 h-4 w-4" />
+                    Edit Lesson
+                  </Button>
+                </Link>
+              )}
+            </div>
+          
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
               {lesson.title}
             </h1>
             {lesson.mux_playback_id && (
               <div className="mb-6">
-                <VideoPlayer
-                  id="lesson-video"
-                  playbackId={lesson.mux_playback_id}
-                  title={lesson.title}
-                  className="w-full aspect-video rounded-lg overflow-hidden"
-                />
+                <LessonAccessGate
+                  lessonId={lesson.id}
+                  creatorId={lesson.instructor_id}
+                  price={lesson.price}
+                  className="w-full"
+                >
+                  <VideoPlayer
+                    id="lesson-video"
+                    playbackId={lesson.mux_playback_id}
+                    title={lesson.title}
+                    className="w-full aspect-video rounded-lg overflow-hidden"
+                  />
+                </LessonAccessGate>
               </div>
             )}
             <Card className="p-6">

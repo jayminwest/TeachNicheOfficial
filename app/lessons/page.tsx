@@ -1,72 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import { LessonGrid } from "@/app/components/ui/lesson-grid";
 import Link from "next/link";
-import { createClientSupabaseClient } from "@/app/lib/supabase/client";
+import { useLessons } from "@/app/hooks/use-lessons";
 import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 
-import type { Lesson } from '@/types/lesson'
-
 export default function LessonsPage() {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  const { lessons, loading, error } = useLessons();
+  
   useEffect(() => {
-    async function fetchLessons() {
-      try {
-        const supabase = createClientSupabaseClient();
-        const { data, error } = await supabase
-          .from('lessons')
-          .select(`
-            *,
-            reviews (
-              rating
-            )
-          `)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        
-        // Transform the data to match the Lesson type
-        const transformedLessons: Lesson[] = (data || []).map(lesson => {
-          const reviews = lesson.reviews || [];
-          const totalRatings = reviews.length;
-          const averageRating = totalRatings > 0 
-            ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalRatings 
-            : 0;
-
-          return {
-            id: lesson.id,
-            title: lesson.title,
-            description: lesson.description || '',
-            price: lesson.price,
-            thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
-            created_at: lesson.created_at,
-            averageRating,
-            totalRatings
-          };
-        });
-        
-        setLessons(transformedLessons);
-      } catch (error) {
-        console.error('Error fetching lessons:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load lessons. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load lessons. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    fetchLessons();
-  }, []);
+  }, [error]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">

@@ -6,6 +6,9 @@ import { getRequests } from '@/app/lib/supabase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { RequestCard } from './request-card'
 import { Loader2 } from 'lucide-react'
+import { toast } from '@/app/components/ui/use-toast'
+import { Button } from '@/app/components/ui/button'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface RequestGridProps {
   initialRequests?: LessonRequest[]
@@ -32,13 +35,31 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
       
       // Check for specific Supabase JWT error
       let userMessage = 'Failed to load requests';
-      if (errorDetails.includes('JWSError') || errorDetails.includes('Not valid base64url')) {
+      let shouldRefreshAuth = false;
+      
+      if (errorDetails.includes('JWSError') || 
+          errorDetails.includes('Not valid base64url') ||
+          errorDetails.includes('JWT')) {
         userMessage = 'Authentication error. Please try signing out and signing back in.';
+        shouldRefreshAuth = true;
         console.error('Supabase JWT validation error detected:', { 
           error, 
           errorType: typeof error,
           errorDetails
         });
+        
+        // Attempt to refresh the session
+        try {
+          const supabase = createClientComponentClient();
+          await supabase.auth.refreshSession();
+          // If successful, try loading again
+          const data = await getRequests({ category, sortBy });
+          setRequests(data);
+          return; // Exit early if successful
+        } catch (refreshError) {
+          console.error('Failed to refresh authentication:', refreshError);
+          // Continue with the original error handling
+        }
       } else {
         const errorMessage = error instanceof Error 
           ? error.message 
@@ -54,6 +75,15 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
       }
       
       onError?.(new Error(userMessage));
+      
+      // Show toast for authentication errors
+      if (shouldRefreshAuth) {
+        toast({
+          title: "Authentication Error",
+          description: userMessage,
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false)
     }

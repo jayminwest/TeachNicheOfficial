@@ -1,8 +1,15 @@
 import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 
-export default async function Page({ params }) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function Page({ params }: PageProps) {
   const supabase = await createServerSupabaseClient();
   
   try {
@@ -18,7 +25,10 @@ export default async function Page({ params }) {
       notFound();
     }
     
-    return <LessonDetail id={params.id} />;
+    // Get the user session if available
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    return <LessonDetail id={params.id} session={session} />;
   } catch (error) {
     console.error('Error fetching lesson:', error);
     notFound();

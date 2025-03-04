@@ -60,32 +60,10 @@ export function StripeConnectButton({
 
       console.log('Initiating Stripe Connect with user:', user.id);
       
-      console.log('Sending request to /api/stripe/connect');
+      console.log('Sending request to /api/stripe/test-link instead of /api/stripe/connect');
       
-      // First check if we can connect to Stripe
-      const testResponse = await fetch('/api/stripe/test');
-      if (!testResponse.ok) {
-        throw new Error('Stripe API connection test failed. Please try again later.');
-      }
-      
-      // Add a debug log for the request body
-      const requestBody = { 
-        userId: user.id,
-        locale: userLocale,
-        email: user.email
-      };
-      console.log('Request body:', requestBody);
-      
-      const response = await fetch('/api/stripe/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'Accept-Language': userLocale
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody),
-      });
+      // Use the test-link endpoint that we know works
+      const response = await fetch('/api/stripe/test-link');
       
       console.log('Response status:', response.status);
       
@@ -99,13 +77,13 @@ export function StripeConnectButton({
       }
       
       if (!response.ok) {
-        console.error('Stripe connect response error:', data);
-        throw new Error(data.error || data.details || 'Failed to connect with Stripe');
+        console.error('Stripe test-link response error:', data);
+        throw new Error(data.error || 'Failed to create Stripe test link');
       }
 
       console.log('Received data:', data);
       
-      if (!data.url) {
+      if (!data.success || !data.url) {
         console.error('No URL in response:', data);
         throw new Error('No redirect URL received from server');
       }
@@ -114,20 +92,13 @@ export function StripeConnectButton({
       
       // Show a toast before redirecting
       toast({
-        title: 'Redirecting to Stripe',
-        description: 'You will be redirected to Stripe to complete the setup process.',
+        title: 'Test Account Created',
+        description: 'Redirecting to Stripe test account setup...',
       });
       
-      // Use setTimeout to ensure the toast is shown before redirect
+      // Use the same approach as the test-direct-link function
       setTimeout(() => {
-        // Try different redirect methods
-        try {
-          console.log('Attempting redirect with window.location.href');
-          window.location.href = data.url;
-        } catch (e) {
-          console.error('Redirect with href failed, trying assign:', e);
-          window.location.assign(data.url);
-        }
+        window.location.href = data.url;
       }, 1000);
     } catch (error) {
       toast({
@@ -253,6 +224,17 @@ export function StripeConnectButton({
       });
     }
   };
+  
+  // Add direct redirect function
+  const directRedirect = () => {
+    toast({
+      title: 'Direct Redirect',
+      description: 'Redirecting directly to Stripe...',
+    });
+    
+    // Redirect to our direct redirect endpoint
+    window.location.href = '/api/stripe/direct-redirect';
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -290,6 +272,14 @@ export function StripeConnectButton({
             className="text-xs bg-green-100"
           >
             Test Direct Link
+          </Button>
+          <Button 
+            onClick={directRedirect} 
+            variant="outline" 
+            size="sm"
+            className="text-xs bg-red-100"
+          >
+            Direct Redirect
           </Button>
         </div>
       )}

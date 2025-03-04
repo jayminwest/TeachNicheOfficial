@@ -7,6 +7,7 @@ import { cn } from '@/app/lib/utils';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Button } from './button';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 interface LessonAccessGateProps {
   lessonId: string;
@@ -138,22 +139,72 @@ export function LessonAccessGate({
         }
       };
       
+      const handleManualUpdate = async () => {
+        try {
+          setIsChecking(true);
+          
+          // Get the session ID and payment intent ID from URL if available
+          const url = new URL(window.location.href);
+          const sessionId = url.searchParams.get('session_id');
+          const paymentIntentId = url.searchParams.get('payment_intent');
+          
+          const response = await fetch('/api/lessons/update-purchase', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              lessonId,
+              sessionId,
+              paymentIntentId
+            })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              window.location.reload();
+            } else {
+              alert('Failed to update purchase: ' + (data.error || 'Unknown error'));
+            }
+          } else {
+            alert('Failed to update purchase. Please try again.');
+          }
+        } catch (err) {
+          console.error('Error manually updating purchase:', err);
+          alert('An error occurred while updating your purchase.');
+        } finally {
+          setIsChecking(false);
+        }
+      };
+      
       return (
         <div className="p-6 bg-muted rounded-lg">
           <h3 className="text-lg font-semibold mb-2">Processing Your Purchase</h3>
           <p className="text-muted-foreground mb-4">
             Your payment was successful, but we're still processing your purchase. This usually takes just a few seconds.
           </p>
-          <Button onClick={handleCheckStatus} disabled={isChecking}>
-            {isChecking ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Checking...
-              </>
-            ) : (
-              'Check Purchase Status'
-            )}
-          </Button>
+          <div className="space-y-2">
+            <Button onClick={handleCheckStatus} disabled={isChecking} className="w-full">
+              {isChecking ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                'Check Purchase Status'
+              )}
+            </Button>
+            
+            <Button 
+              onClick={handleManualUpdate} 
+              variant="outline" 
+              className="w-full"
+              disabled={isChecking}
+            >
+              Manual Update
+            </Button>
+          </div>
         </div>
       );
     }

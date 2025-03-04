@@ -116,6 +116,9 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
+      // Store the session ID for potential manual updates
+      localStorage.setItem(`stripe-session-${lessonId}`, data.sessionId);
+      
       const { error } = await stripe.redirectToCheckout({ 
         sessionId: data.sessionId 
       });

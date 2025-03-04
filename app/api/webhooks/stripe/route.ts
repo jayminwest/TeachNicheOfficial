@@ -45,10 +45,54 @@ export async function POST(request: NextRequest) {
         sessionId: session.id,
         paymentStatus: session.payment_status,
         metadata: session.metadata,
-        paymentIntent: session.payment_intent
+        paymentIntent: session.payment_intent,
+        clientReferenceId: session.client_reference_id,
+        amountTotal: session.amount_total
       });
       
+      // Log the full session data for debugging
+      console.log('Full session data:', JSON.stringify(session, null, 2));
+      
       try {
+        // Extract lesson ID and user ID from metadata or line items
+        let lessonId = session.metadata?.lessonId;
+        let userId = session.metadata?.userId;
+        
+        // If metadata is missing, try to extract from client_reference_id
+        if (!lessonId || !userId) {
+          if (session.client_reference_id) {
+            const refParts = session.client_reference_id.split('_');
+            if (refParts.length >= 4 && refParts[0] === 'lesson' && refParts[2] === 'user') {
+              lessonId = refParts[1];
+              userId = refParts[3];
+              console.log(`Extracted from client_reference_id: lessonId=${lessonId}, userId=${userId}`);
+            }
+          }
+        }
+        
+        // If we still don't have the IDs, try to extract from line items description
+        if ((!lessonId || !userId) && session.line_items?.data?.length > 0) {
+          const description = session.line_items.data[0].description;
+          if (description && description.startsWith('Access to lesson:')) {
+            // Try to find the lesson by title
+            const title = description.replace('Access to lesson:', '').trim();
+            console.log(`Trying to find lesson by title: "${title}"`);
+            
+            // We'll need to query the database here
+            const supabase = await createServerSupabaseClient();
+            const { data: lessons } = await supabase
+              .from('lessons')
+              .select('id, creator_id')
+              .ilike('title', title)
+              .limit(1);
+              
+            if (lessons && lessons.length > 0) {
+              lessonId = lessons[0].id;
+              console.log(`Found lesson by title: ${lessonId}`);
+            }
+          }
+        }
+        
         // Try to update using the session ID first
         let updateResult = await purchasesService.updatePurchaseStatus(
           session.id,
@@ -72,16 +116,18 @@ export async function POST(request: NextRequest) {
         if (updateResult.error) {
           console.error('Error updating purchase status:', updateResult.error);
           
-          // Instead of failing, let's create a purchase record if one doesn't exist
-          if (session.metadata?.lessonId && session.metadata?.userId) {
+          // If we have the lesson ID and user ID, create a purchase record
+          if (lessonId && userId) {
             console.log('Attempting to create purchase record from webhook data');
             
             try {
               const createResult = await purchasesService.createPurchase({
-                lessonId: session.metadata.lessonId,
-                userId: session.metadata.userId,
+                lessonId,
+                userId,
                 amount: (session.amount_total || 0) / 100, // Convert from cents
                 stripeSessionId: session.id,
+                paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : undefined,
+                fromWebhook: true
               });
               
               if (createResult.error) {
@@ -95,9 +141,14 @@ export async function POST(request: NextRequest) {
               console.error('Error creating purchase:', createErr);
               return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 });
             }
+          } else {
+            console.error('Cannot create purchase record: missing lessonId or userId');
+            return NextResponse.json({ 
+              error: 'Failed to update purchase status and cannot create new record due to missing data',
+              lessonId,
+              userId
+            }, { status: 500 });
           }
-          
-          return NextResponse.json({ error: 'Failed to update purchase status' }, { status: 500 });
         }
 
         console.log(`Purchase ${updateResult.data?.id} marked as completed`);

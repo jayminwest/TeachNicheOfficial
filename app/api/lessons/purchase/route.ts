@@ -91,12 +91,19 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success&session_id=${SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=canceled`,
       metadata: {
         lessonId,
         userId,
       },
+      client_reference_id: `lesson_${lessonId}_user_${userId}`,
+    });
+    
+    console.log('Created checkout session:', {
+      id: checkoutSession.id,
+      metadata: checkoutSession.metadata,
+      client_reference_id: checkoutSession.client_reference_id
     });
 
     // Create a pending purchase record in the database

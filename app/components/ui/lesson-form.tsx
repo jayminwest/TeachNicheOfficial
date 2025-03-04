@@ -52,20 +52,47 @@ export function LessonForm({
   // Add state for Stripe account
   const [hasStripeAccount, setHasStripeAccount] = useState<boolean | null>(null);
   const [isCheckingStripe, setIsCheckingStripe] = useState(true);
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<{
+    connected: boolean;
+    onboardingComplete: boolean;
+    error?: string;
+  } | null>(null);
   
   // Check if user has a Stripe account
   useEffect(() => {
     async function checkStripeAccount() {
       try {
+        setIsCheckingStripe(true);
+        
+        // First check if account exists
         const response = await fetch('/api/profile/stripe-status');
-        if (response.ok) {
-          const data = await response.json();
-          setHasStripeAccount(!!data.stripeAccountId);
-        } else {
+        
+        if (!response.ok) {
+          setStripeAccountStatus({
+            connected: false,
+            onboardingComplete: false,
+            error: 'Failed to check Stripe account status'
+          });
           setHasStripeAccount(false);
+          return;
         }
+        
+        const data = await response.json();
+        
+        setStripeAccountStatus({
+          connected: !!data.stripeAccountId,
+          onboardingComplete: !!data.isComplete,
+          error: data.error
+        });
+        
+        setHasStripeAccount(!!data.stripeAccountId && !!data.isComplete);
       } catch (error) {
         console.error('Failed to check Stripe account:', error);
+        setStripeAccountStatus({
+          connected: false,
+          onboardingComplete: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
         setHasStripeAccount(false);
       } finally {
         setIsCheckingStripe(false);
@@ -118,13 +145,24 @@ export function LessonForm({
       <form 
         onSubmit={form.handleSubmit((data) => {
           // Validate paid lessons require a Stripe account
-          if (data.price > 0 && !hasStripeAccount && !isEditing) {
-            toast({
-              title: "Stripe Account Required",
-              description: "You need to connect a Stripe account to create paid lessons",
-              variant: "destructive",
-            });
-            return;
+          if (data.price > 0) {
+            if (!hasStripeAccount) {
+              toast({
+                title: "Stripe Account Required",
+                description: "You need to connect a Stripe account to create paid lessons",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            if (stripeAccountStatus && !stripeAccountStatus.onboardingComplete) {
+              toast({
+                title: "Stripe Onboarding Incomplete",
+                description: "Please complete your Stripe onboarding before creating paid lessons",
+                variant: "destructive",
+              });
+              return;
+            }
           }
           
           // Continue with form submission
@@ -227,11 +265,32 @@ export function LessonForm({
                   Set a fair price for your lesson content (leave at 0 for free)
                 </FormDescription>
               
-                {/* Show warning if trying to set price without Stripe account */}
-                {field.value > 0 && hasStripeAccount === false && !isEditing && (
-                  <p className="text-sm text-destructive mt-1">
-                    You need to <Link href="/profile/payments" className="underline font-medium">connect a Stripe account</Link> to create paid lessons
-                  </p>
+                {/* Show detailed Stripe account status */}
+                {field.value > 0 && (
+                  <div className="mt-2">
+                    {isCheckingStripe ? (
+                      <p className="text-sm text-muted-foreground">Checking Stripe account status...</p>
+                    ) : stripeAccountStatus?.connected ? (
+                      stripeAccountStatus.onboardingComplete ? (
+                        <p className="text-sm text-green-600">✓ Stripe account connected and ready for payments</p>
+                      ) : (
+                        <p className="text-sm text-destructive">
+                          Your Stripe account needs to complete onboarding. Please visit your{" "}
+                          <Link href="/profile/payments" className="underline font-medium">
+                            payment settings
+                          </Link>
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-sm text-destructive">
+                        You need to{" "}
+                        <Link href="/profile/payments" className="underline font-medium">
+                          connect a Stripe account
+                        </Link>{" "}
+                        to create paid lessons
+                      </p>
+                    )}
+                  </div>
                 )}
               
                 <FormMessage />

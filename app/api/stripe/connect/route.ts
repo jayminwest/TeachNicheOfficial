@@ -101,9 +101,9 @@ export async function POST(request: Request) {
       // Use type assertion to handle the mock vs real implementation difference
       const accounts = stripeInstance.accounts as Stripe.AccountsResource;
       
-      // Create Stripe Connect account with international support
+      // Create Stripe Connect account with Express type
       const account = await accounts.create({
-        type: 'standard',
+        type: 'express', // Changed from 'standard' to 'express'
         email: user.email,
         metadata: {
           user_id: user.id
@@ -118,6 +118,12 @@ export async function POST(request: Request) {
               interval: 'manual'
             }
           }
+        },
+        business_type: 'individual', // Default to individual for Express accounts
+        business_profile: {
+          url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/${user.id}`,
+          mcc: '8299', // Education Services
+          product_description: 'Online educational content'
         }
       });
 

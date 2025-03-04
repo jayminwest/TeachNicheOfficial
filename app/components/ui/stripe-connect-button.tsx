@@ -10,10 +10,19 @@ import { stripeConfig } from '@/app/services/stripe';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;
+  stripeStatus?: {
+    isComplete: boolean;
+    status: string;
+    details?: {
+      pendingVerification: boolean;
+      missingRequirements: string[];
+    };
+  } | null;
 }
 
 export function StripeConnectButton({ 
-  stripeAccountId 
+  stripeAccountId,
+  stripeStatus
 }: StripeConnectButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -98,21 +107,42 @@ export function StripeConnectButton({
     );
   }
 
-  if (stripeAccountId) {
-    return (
-      <Button variant="outline" disabled>
-        Connected to Stripe
-      </Button>
-    );
+  // Determine button text based on status
+  let buttonText = 'Connect with Stripe';
+  let buttonDisabled = false;
+  let buttonVariant: 'default' | 'outline' | 'secondary' | 'destructive' = 'default';
+  
+  if (isLoading) {
+    buttonText = 'Connecting...';
+    buttonDisabled = true;
+  } else if (stripeAccountId) {
+    if (stripeStatus?.isComplete) {
+      buttonText = 'Connected to Stripe';
+      buttonDisabled = true;
+      buttonVariant = 'outline';
+    } else if (stripeStatus?.status === 'verification_pending') {
+      buttonText = 'Verification Pending';
+      buttonDisabled = false;
+      buttonVariant = 'secondary';
+    } else if (stripeStatus?.status === 'requirements_needed') {
+      buttonText = 'Complete Stripe Setup';
+      buttonDisabled = false;
+      buttonVariant = 'destructive';
+    } else {
+      buttonText = 'Continue Stripe Setup';
+      buttonDisabled = false;
+      buttonVariant = 'secondary';
+    }
   }
 
   return (
     <Button 
       onClick={handleConnect} 
-      disabled={isLoading}
+      disabled={buttonDisabled || isLoading}
+      variant={buttonVariant}
       aria-busy={isLoading ? "true" : "false"}
     >
-      {isLoading ? 'Connecting...' : 'Connect with Stripe'}
+      {buttonText}
     </Button>
   );
 }

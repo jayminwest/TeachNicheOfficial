@@ -82,7 +82,7 @@ export const stripeConfig: StripeConfig = {
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_tests',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
   apiVersion: '2025-01-27.acacia',
-  connectType: 'standard',
+  connectType: 'express', // Changed from 'standard' to 'express'
   platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '10'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
   defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
@@ -187,6 +187,85 @@ export const verifyStripeWebhook = (
 };
 
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
+
+// Helper for creating Stripe products for lessons
+export const createProductForLesson = async (
+  lesson: { id: string; title: string; description?: string },
+  stripeClient = getStripe()
+) => {
+  try {
+    const product = await stripeClient.products.create({
+      name: lesson.title,
+      description: lesson.description || undefined,
+      metadata: {
+        lesson_id: lesson.id
+      }
+    });
+    
+    return product.id;
+  } catch (error) {
+    console.error('Failed to create Stripe product:', error);
+    throw new StripeError(
+      'callback_failed',
+      error instanceof Error ? error.message : 'Failed to create Stripe product'
+    );
+  }
+};
+
+// Helper for creating Stripe prices
+export const createPriceForProduct = async (
+  productId: string,
+  amount: number,
+  currency = stripeConfig.defaultCurrency,
+  stripeClient = getStripe()
+) => {
+  try {
+    const price = await stripeClient.prices.create({
+      product: productId,
+      unit_amount: Math.round(amount * 100), // Convert to cents
+      currency: currency,
+    });
+    
+    return price.id;
+  } catch (error) {
+    console.error('Failed to create Stripe price:', error);
+    throw new StripeError(
+      'callback_failed',
+      error instanceof Error ? error.message : 'Failed to create Stripe price'
+    );
+  }
+};
+
+// Helper to check if a user can create paid lessons
+export const canCreatePaidLessons = async (
+  userId: string,
+  supabaseClient: TypedSupabaseClient
+): Promise<boolean> => {
+  try {
+    // Get profile with Stripe account ID
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('stripe_account_id, stripe_onboarding_complete')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile?.stripe_account_id) {
+      return false;
+    }
+
+    // If we already know onboarding is complete, return true
+    if (profile.stripe_onboarding_complete) {
+      return true;
+    }
+
+    // Otherwise check with Stripe
+    const status = await getAccountStatus(profile.stripe_account_id);
+    return status.isComplete;
+  } catch (error) {
+    console.error('Error checking paid lesson capability:', error);
+    return false;
+  }
+};
 
 export const verifyConnectedAccount = async (
   userId: string,

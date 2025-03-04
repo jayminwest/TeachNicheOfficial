@@ -38,6 +38,15 @@ export async function POST(request: Request) {
       case 'account.updated':
         await handleAccount(event.data.object as Stripe.Account);
         break;
+    
+      // Add handling for Express account events
+      case 'account.application.authorized':
+        await handleAccountAuthorized(event.data.object as Stripe.Account);
+        break;
+    
+      case 'account.application.deauthorized':
+        await handleAccountDeauthorized(event.data.object as Stripe.Account);
+        break;
 
       // Add more event types as needed
     }
@@ -120,23 +129,78 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
   }
 }
 
-async function handleAccount(account: Stripe.Account): Promise<void> {
+async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
   const supabase = createRouteHandlerClient<Database>({ cookies });
   
-  // Update creator's profile with account status
+  // Update creator's profile with authorized status
   const { error: updateError } = await supabase
     .from('profiles')
     .update({
-      stripe_account_status: account.details_submitted ? 'verified' : 'pending',
+      stripe_account_status: 'authorized',
       updated_at: new Date().toISOString()
     })
-    .eq('stripe_account_id', account.id)
+    .eq('stripe_account_id', account.id);
 
   if (updateError) {
     console.error('Profile update error:', updateError);
     return;
   }
 
-  console.log('Creator account status updated:', account.id);
+  console.log('Creator account authorized:', account.id);
+}
+
+async function handleAccountDeauthorized(account: Stripe.Account): Promise<void> {
+  const supabase = createRouteHandlerClient<Database>({ cookies });
+  
+  // Update creator's profile with deauthorized status
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      stripe_account_status: 'deauthorized',
+      stripe_onboarding_complete: false,
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_account_id', account.id);
+
+  if (updateError) {
+    console.error('Profile update error:', updateError);
+    return;
+  }
+
+  console.log('Creator account deauthorized:', account.id);
+}
+
+async function handleAccount(account: Stripe.Account): Promise<void> {
+  const supabase = createRouteHandlerClient<Database>({ cookies });
+  
+  // Check if charges_enabled and payouts_enabled are true
+  const isComplete = !!(account.details_submitted && account.charges_enabled && account.payouts_enabled);
+  
+  // Get any requirements information
+  const missingRequirements = account.requirements?.currently_due || [];
+  const pendingVerification = Array.isArray(account.requirements?.pending_verification) && 
+                             account.requirements.pending_verification.length > 0;
+  
+  // Update creator's profile with account status
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      stripe_account_status: isComplete ? 'verified' : 'pending',
+      stripe_onboarding_complete: isComplete,
+      stripe_account_details: {
+        pending_verification: pendingVerification,
+        missing_requirements: missingRequirements,
+        last_checked: new Date().toISOString()
+      },
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_account_id', account.id);
+
+  if (updateError) {
+    console.error('Profile update error:', updateError);
+    return;
+  }
+
+  console.log('Creator account status updated:', account.id, isComplete ? 'complete' : 'pending');
 }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUpload, getUploadStatus, getAssetStatus, Video, debugMuxVideo } from '@/app/services/mux';
+import { createUpload, getUploadStatus, getAssetStatus, muxClient, debugMuxClient } from '@/app/services/mux';
 import Mux from '@mux/mux-node';
 
 /**
@@ -147,11 +147,11 @@ export async function GET(request: Request) {
         // Test the Video API directly
         let videoApiTest = { success: false, error: null, details: null };
         try {
-          if (!Video) {
+          if (!muxClient || !muxClient.Video) {
             videoApiTest.error = 'Video API not available';
           } else {
             // Try to list assets as a simple test
-            const assets = await Video.Assets.list({ limit: 1 });
+            const assets = await muxClient.Video.Assets.list({ limit: 1 });
             videoApiTest = { 
               success: true, 
               error: null, 
@@ -178,7 +178,7 @@ export async function GET(request: Request) {
         
       case 'debug-video-api':
         // Get detailed debug info about the Video API
-        const debugInfo = debugMuxVideo();
+        const debugInfo = debugMuxClient();
         
         return NextResponse.json({
           success: true,

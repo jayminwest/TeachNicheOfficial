@@ -1,0 +1,491 @@
+import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
+import { purchasesService } from '@/app/services/database/purchasesService';
+import Stripe from 'stripe';
+
+// Mock Stripe
+vi.mock('stripe', () => {
+  const StripeConstructor = vi.fn(() => ({
+    checkout: {
+      sessions: {
+        retrieve: vi.fn(),
+      }
+    }
+  }));
+  
+  return { default: StripeConstructor };
+});
+
+describe('PurchasesService', () => {
+  let mockSupabase: any;
+  let mockStripe: any;
+  
+  beforeEach(() => {
+    // Reset mocks
+    vi.resetAllMocks();
+    
+    // Setup Stripe mock
+    mockStripe = new Stripe('mock-key', { apiVersion: '2025-01-27.acacia' });
+    mockStripe.checkout.sessions.retrieve.mockResolvedValue({
+      id: 'cs_test_123',
+      payment_status: 'paid',
+      metadata: {
+        lessonId: 'lesson-123',
+        userId: 'user-123'
+      },
+      amount_total: 1000 // in cents
+    });
+    
+    // Setup Supabase client mock
+    mockSupabase = {
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+    };
+    
+    // Mock the getClient method to return our mock
+    vi.spyOn(purchasesService as any, 'getClient').mockReturnValue(mockSupabase);
+    
+    // Setup environment variables
+    process.env.STRIPE_SECRET_KEY = 'mock-key';
+  });
+  
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+  
+  describe('verifyStripeSession', () => {
+    it('should verify a paid session correctly', async () => {
+      const { data, error } = await purchasesService.verifyStripeSession('cs_test_123');
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        isPaid: true,
+        amount: 10,
+        lessonId: 'lesson-123',
+        userId: 'user-123'
+      });
+      expect(mockStripe.checkout.sessions.retrieve).toHaveBeenCalledWith(
+        'cs_test_123',
+        { expand: ['line_items', 'payment_intent'] }
+      );
+    });
+    
+    it('should extract IDs from client_reference_id if metadata is missing', async () => {
+      // Mock a session with missing metadata but valid client_reference_id
+      mockStripe.checkout.sessions.retrieve.mockResolvedValue({
+        id: 'cs_test_123',
+        payment_status: 'paid',
+        metadata: {},
+        client_reference_id: 'lesson_lesson-123_user_user-123',
+        amount_total: 1000
+      });
+      
+      const { data, error } = await purchasesService.verifyStripeSession('cs_test_123');
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        isPaid: true,
+        amount: 10,
+        lessonId: 'lesson-123',
+        userId: 'user-123'
+      });
+    });
+    
+    it('should handle unpaid sessions correctly', async () => {
+      // Mock an unpaid session
+      mockStripe.checkout.sessions.retrieve.mockResolvedValue({
+        id: 'cs_test_123',
+        payment_status: 'unpaid',
+        metadata: {
+          lessonId: 'lesson-123',
+          userId: 'user-123'
+        },
+        amount_total: 1000
+      });
+      
+      const { data, error } = await purchasesService.verifyStripeSession('cs_test_123');
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        isPaid: false,
+        amount: 10,
+        lessonId: 'lesson-123',
+        userId: 'user-123'
+      });
+    });
+    
+    it('should handle Stripe API errors', async () => {
+      // Mock a Stripe error
+      mockStripe.checkout.sessions.retrieve.mockRejectedValue(
+        new Error('Invalid session ID')
+      );
+      
+      const { data, error } = await purchasesService.verifyStripeSession('invalid-id');
+      
+      expect(data).toBeNull();
+      expect(error).toBeInstanceOf(Error);
+      expect(error?.message).toContain('Error verifying Stripe session');
+    });
+  });
+  
+  describe('createPurchase', () => {
+    it('should create a new purchase record', async () => {
+      // Mock lesson lookup
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: {
+          creator_id: 'creator-123',
+          price: 10
+        },
+        error: null
+      });
+      
+      // Mock no existing purchases
+      mockSupabase.from().select().eq().order().limit.mockResolvedValue({
+        data: [],
+        error: null
+      });
+      
+      // Mock successful insert
+      mockSupabase.from().insert().select().single.mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.createPurchase({
+        lessonId: 'lesson-123',
+        userId: 'user-123',
+        amount: 10,
+        stripeSessionId: 'cs_test_123'
+      });
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({ id: 'purchase-123' });
+      expect(mockSupabase.from).toHaveBeenCalledWith('purchases');
+      expect(mockSupabase.insert).toHaveBeenCalled();
+    });
+    
+    it('should return existing completed purchase if found', async () => {
+      // Mock existing completed purchase
+      mockSupabase.from().select().eq().order().limit.mockResolvedValue({
+        data: [{
+          id: 'purchase-123',
+          status: 'completed',
+          stripe_session_id: 'cs_test_previous'
+        }],
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.createPurchase({
+        lessonId: 'lesson-123',
+        userId: 'user-123',
+        amount: 10,
+        stripeSessionId: 'cs_test_123'
+      });
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({ id: 'purchase-123' });
+      expect(mockSupabase.insert).not.toHaveBeenCalled();
+    });
+    
+    it('should update existing purchase with same session ID if from webhook', async () => {
+      // Mock no existing user-lesson purchase
+      mockSupabase.from().select().eq().order().limit.mockResolvedValueOnce({
+        data: [],
+        error: null
+      });
+      
+      // Mock existing session purchase
+      mockSupabase.from().select().eq().limit.mockResolvedValueOnce({
+        data: [{
+          id: 'purchase-123',
+          status: 'pending'
+        }],
+        error: null
+      });
+      
+      // Mock successful update
+      mockSupabase.from().update().eq().select().single.mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.createPurchase({
+        lessonId: 'lesson-123',
+        userId: 'user-123',
+        amount: 10,
+        stripeSessionId: 'cs_test_123',
+        fromWebhook: true
+      });
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({ id: 'purchase-123' });
+      expect(mockSupabase.update).toHaveBeenCalled();
+      expect(mockSupabase.insert).not.toHaveBeenCalled();
+    });
+    
+    it('should handle database errors', async () => {
+      // Mock lesson lookup error
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: null,
+        error: new Error('Lesson not found')
+      });
+      
+      const { data, error } = await purchasesService.createPurchase({
+        lessonId: 'lesson-123',
+        userId: 'user-123',
+        amount: 10,
+        stripeSessionId: 'cs_test_123'
+      });
+      
+      expect(data).toBeNull();
+      expect(error).toBeInstanceOf(Error);
+      expect(error?.message).toContain('Lesson not found');
+    });
+  });
+  
+  describe('updatePurchaseStatus', () => {
+    it('should update purchase status by session ID', async () => {
+      // Mock existing purchase
+      mockSupabase.from().select().eq().limit.mockResolvedValue({
+        data: [{
+          id: 'purchase-123',
+          status: 'pending'
+        }],
+        error: null
+      });
+      
+      // Mock successful update
+      mockSupabase.from().update().eq().select().single.mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.updatePurchaseStatus(
+        'cs_test_123',
+        'completed'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({ id: 'purchase-123' });
+      expect(mockSupabase.from).toHaveBeenCalledWith('purchases');
+      expect(mockSupabase.update).toHaveBeenCalledWith({
+        status: 'completed',
+        updated_at: expect.any(String)
+      });
+    });
+    
+    it('should try payment_intent_id if session_id not found', async () => {
+      // Mock no purchase found by session ID
+      mockSupabase.from().select().eq().limit.mockResolvedValueOnce({
+        data: [],
+        error: null
+      });
+      
+      // Mock purchase found by payment intent ID
+      mockSupabase.from().select().eq().limit.mockResolvedValueOnce({
+        data: [{
+          id: 'purchase-123',
+          status: 'pending'
+        }],
+        error: null
+      });
+      
+      // Mock successful update
+      mockSupabase.from().update().eq().select().single.mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.updatePurchaseStatus(
+        'pi_test_123',
+        'completed'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({ id: 'purchase-123' });
+      expect(mockSupabase.from).toHaveBeenCalledWith('purchases');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('payment_intent_id', 'pi_test_123');
+      expect(mockSupabase.update).toHaveBeenCalled();
+    });
+    
+    it('should return error if no purchase found', async () => {
+      // Mock no purchase found by either ID
+      mockSupabase.from().select().eq().limit.mockResolvedValue({
+        data: [],
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.updatePurchaseStatus(
+        'cs_test_123',
+        'completed'
+      );
+      
+      expect(data).toBeNull();
+      expect(error).toBeInstanceOf(Error);
+      expect(error?.message).toContain('No purchase found');
+    });
+    
+    it('should not update if purchase already has the desired status', async () => {
+      // Mock existing purchase with same status
+      mockSupabase.from().select().eq().limit.mockResolvedValue({
+        data: [{
+          id: 'purchase-123',
+          status: 'completed'
+        }],
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.updatePurchaseStatus(
+        'cs_test_123',
+        'completed'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({ id: 'purchase-123' });
+      expect(mockSupabase.update).not.toHaveBeenCalled();
+    });
+  });
+  
+  describe('checkLessonAccess', () => {
+    it('should grant access for free lessons', async () => {
+      // Mock a free lesson
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: {
+          price: 0,
+          creator_id: 'creator-123'
+        },
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.checkLessonAccess(
+        'user-123',
+        'lesson-123'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        hasAccess: true,
+        purchaseStatus: 'none'
+      });
+    });
+    
+    it('should grant access for lesson creators', async () => {
+      // Mock a paid lesson where user is creator
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: {
+          price: 10,
+          creator_id: 'user-123'
+        },
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.checkLessonAccess(
+        'user-123',
+        'lesson-123'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        hasAccess: true,
+        purchaseStatus: 'none'
+      });
+    });
+    
+    it('should grant access for completed purchases', async () => {
+      // Mock a paid lesson
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: {
+          price: 10,
+          creator_id: 'creator-123'
+        },
+        error: null
+      });
+      
+      // Mock a completed purchase
+      mockSupabase.from().select().eq().order().limit.mockResolvedValue({
+        data: [{
+          status: 'completed',
+          created_at: '2025-01-01T00:00:00Z'
+        }],
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.checkLessonAccess(
+        'user-123',
+        'lesson-123'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        hasAccess: true,
+        purchaseStatus: 'completed',
+        purchaseDate: '2025-01-01T00:00:00Z'
+      });
+    });
+    
+    it('should deny access for pending purchases', async () => {
+      // Mock a paid lesson
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: {
+          price: 10,
+          creator_id: 'creator-123'
+        },
+        error: null
+      });
+      
+      // Mock a pending purchase
+      mockSupabase.from().select().eq().order().limit.mockResolvedValue({
+        data: [{
+          status: 'pending',
+          created_at: '2025-01-01T00:00:00Z'
+        }],
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.checkLessonAccess(
+        'user-123',
+        'lesson-123'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        hasAccess: false,
+        purchaseStatus: 'pending',
+        purchaseDate: '2025-01-01T00:00:00Z'
+      });
+    });
+    
+    it('should deny access when no purchase exists', async () => {
+      // Mock a paid lesson
+      mockSupabase.from().select().eq().single.mockResolvedValue({
+        data: {
+          price: 10,
+          creator_id: 'creator-123'
+        },
+        error: null
+      });
+      
+      // Mock no purchases
+      mockSupabase.from().select().eq().order().limit.mockResolvedValue({
+        data: [],
+        error: null
+      });
+      
+      const { data, error } = await purchasesService.checkLessonAccess(
+        'user-123',
+        'lesson-123'
+      );
+      
+      expect(error).toBeNull();
+      expect(data).toEqual({
+        hasAccess: false,
+        purchaseStatus: 'none'
+      });
+    });
+  });
+});

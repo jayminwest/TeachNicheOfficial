@@ -80,11 +80,13 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
     
     // Simplified redirect handling
     const redirectTo = `${window.location.origin}/auth/callback`
-    const redirectParam = new URLSearchParams(window.location.search).get('redirect')
+    
+    // Use callbackUrl instead of redirect for Next.js compatibility
+    const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl')
     
     const options = {
-      redirectTo: redirectParam 
-        ? `${redirectTo}?redirect_to=${encodeURIComponent(redirectParam)}`
+      redirectTo: callbackUrl 
+        ? `${redirectTo}?redirect_to=${encodeURIComponent(callbackUrl)}`
         : redirectTo,
       skipBrowserRedirect: false,
     }

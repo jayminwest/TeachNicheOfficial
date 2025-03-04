@@ -23,7 +23,8 @@ export default function NewLessonPage() {
         description: "Please sign in to create a lesson",
         variant: "destructive",
       });
-      router.push('/sign-in?redirect=/lessons/new');
+      // Use callbackUrl instead of redirect for Next.js compatibility
+      router.push('/sign-in?callbackUrl=/lessons/new');
     }
   }, [user, authLoading, router]);
 
@@ -36,16 +37,16 @@ export default function NewLessonPage() {
   }) => {
     setIsSubmitting(true);
     try {
-      // Check authentication
-      const session = await supabase.auth.getSession();
-      if (!session.data.session) {
+      // Check authentication - use the user from context instead of fetching again
+      if (!user) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to create a lesson",
           variant: "destructive",
         });
         setIsSubmitting(false);
-        router.push('/sign-in?redirect=/lessons/new');
+        // Use callbackUrl instead of redirect for Next.js compatibility
+        router.push('/sign-in?callbackUrl=/lessons/new');
         return;
       }
       
@@ -80,70 +81,11 @@ export default function NewLessonPage() {
         return;
       }
 
-      // Show initial processing status
-      const processingToast = toast({
-        title: "Processing Video",
-        description: "Please wait while we process your video...",
-        duration: 60000, // 1 minute
-      });
-
-      let result;
-      try {
-        console.log('Starting video processing for asset:', data.muxAssetId);
-        
-        // Wait for asset to be ready and get playback ID
-        result = await waitForAssetReady(data.muxAssetId, {
-          isFree: data.price === 0,
-          maxAttempts: 60,  // 10 minutes total
-          interval: 10000   // 10 seconds between checks
-        });
-        
-        console.log('Video processing completed:', result);
-        
-        if (result.status !== 'ready' || !result.playbackId) {
-          throw new Error('Video processing completed but no playback ID was generated');
-        }
-
-        // Dismiss the processing toast
-        processingToast.dismiss();
-        
-        // Show success toast
-        toast({
-          title: "Video Processing Complete",
-          description: "Your video has been processed successfully.",
-        });
-
-      } catch (error) {
-        // Dismiss the processing toast
-        processingToast.dismiss();
-        
-        console.error('Video processing error:', error);
-        toast({
-          title: "Video Processing Failed",
-          description: error instanceof Error ? error.message : "Failed to process video. Please try again.",
-          variant: "destructive",
-          duration: 5000
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Create lesson data object with playback ID
+      // Create lesson data object - set status to 'processing'
       const lessonData = {
         ...data,
-        muxPlaybackId: result.playbackId
+        status: 'processing'
       };
-
-      // Verify session is still valid
-      if (!session.data.session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to create a lesson",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
 
       const response = await fetch("/api/lessons", {
         method: "POST",
@@ -167,9 +109,25 @@ export default function NewLessonPage() {
       
       toast({
         title: "Lesson Created!",
-        description: "Your new lesson has been created successfully.",
+        description: "Your new lesson has been created and your video is now processing.",
       });
 
+      // Start background video processing
+      fetch('/api/lessons/process-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessonId: lesson.id,
+          muxAssetId: data.muxAssetId
+        }),
+      }).catch(error => {
+        console.error('Failed to start background processing:', error);
+        // Don't block the user flow if background processing fails to start
+      });
+
+      // Redirect to the lesson page
       router.push(`/lessons/${lesson.id}`);
     } catch (error) {
       console.error('Lesson creation error:', error);

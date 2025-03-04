@@ -1,11 +1,11 @@
-# Critical Bugs in Lesson Creation Flow - RESOLVED
+# Critical Bugs in Lesson Creation Flow - IN PROGRESS
 
 ## Issue ID: ISSUE-2025-03-04-001
 
 ## Description
-Three critical issues were identified in the lesson creation flow, all of which have now been fixed:
+Three critical issues were identified in the lesson creation flow:
 
-1. **[RESOLVED] Video Uploader Stuck in Initialization**: The Mux video uploader was permanently stuck in a "Preparing Upload..." state, preventing users from uploading videos for their lessons.
+1. **[FIXED] Video Uploader Stuck in Initialization**: The Mux video uploader was permanently stuck in a "Preparing Upload..." state, preventing users from uploading videos for their lessons. This has been fixed by implementing proper Mux service integration and improving error handling.
 
 2. **[RESOLVED] Authentication Flow Broken**: Users were receiving an "Authentication Required" toast when attempting to create a lesson, with a 404 error in the console:
    ```
@@ -20,22 +20,24 @@ Three critical issues were identified in the lesson creation flow, all of which 
 The uploader was stuck in the loading state showing "Preparing upload..." because:
 - The `startUpload` function in `useVideoUpload` was never automatically called on component mount
 - There was no error handling for the initial API call failure in the UI
-- The API endpoint `/api/mux/upload` may have been failing to respond correctly
+- The API endpoint `/api/mux/upload` was failing to respond correctly due to missing Mux service implementation
+- The Mux client was not properly initialized or configured
 
 **Fixed by:**
+- Created a comprehensive Mux service implementation in `app/services/mux.ts`
 - Added a new `initializeUpload` function that's automatically called on component mount
 - Added a new 'initializing' state to better represent what's happening
-- Improved error handling during initialization
-- Separated status messages from error messages
-- Added better error reporting for API failures
+- Improved error handling during initialization with proper retry logic
+- Added environment variable validation to ensure Mux credentials are properly set
 - Added cache-busting parameters to prevent stale responses
 - Implemented a retry count mechanism to track and limit retries
-- Enhanced error UI in the VideoUploader component to show clear error messages with retry options
+- Enhanced error reporting for API failures with detailed error messages
 
 **Implementation Details:**
+- Created a proper `app/services/mux.ts` implementation with comprehensive error handling
 - Modified `app/hooks/use-video-upload.ts` to add retry tracking and improved error handling
 - Updated `app/api/mux/upload/route.ts` to validate response data and provide better error messages
-- Enhanced `app/components/ui/video-uploader.tsx` to show appropriate UI based on upload status
+- Updated mock implementations in `__mocks__/services/mux.ts` for testing
 
 ### Issue 2: Authentication Flow Issues ✅ FIXED
 The authentication issue had multiple components:
@@ -274,7 +276,7 @@ These issues were blocking the core functionality of creating new lessons. The i
 4. Properly handling Stripe integration for paid lessons
 
 ## Status
-✅ RESOLVED - All issues have been fixed and verified
+🔄 IN PROGRESS - Issue 1 (Video Uploader) has been fixed, Issues 2 and 3 still in progress
 
 ## Labels
 - bug
@@ -294,5 +296,6 @@ Development Team
 ## Resolved
 2025-03-04
 
-## Resolution Commit
-81415cb - Fixed lesson creation bugs including video upload initialization, authentication flow, and blocking video processing
+## Resolution Commits
+- 544177f - fix: Implement Mux upload service and improve error handling
+- 0ca24ad - refactor: Consolidate Mux service implementation and fix import conflicts

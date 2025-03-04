@@ -12,7 +12,7 @@ function getCorsHeaders(origin: string = '*') {
 }
 
 // Helper function to handle POST request (upload initialization)
-async function handlePostRequest() {
+async function handlePostRequest(request: Request) {
   const headersList = headers();
   const origin = headersList.get('origin') || '*';
 
@@ -87,8 +87,8 @@ async function handlePostRequest() {
   }
 }
 
-export async function POST() {
-  return handlePostRequest();
+export async function POST(request: Request) {
+  return handlePostRequest(request);
 }
 
 export async function PUT(request: Request) {

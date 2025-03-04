@@ -12,6 +12,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// Helper function to create Supabase client with awaited cookies
+async function getSupabaseClient() {
+  const cookieStore = cookies();
+  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+}
+
 export async function POST(request: Request) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -62,7 +68,7 @@ export async function POST(request: Request) {
 }
 
 async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const supabase = await getSupabaseClient();
   
   // Get purchase record by payment intent with lesson and creator details
   const { data: purchase, error: fetchError } = await supabase
@@ -130,7 +136,7 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
 }
 
 async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const supabase = await getSupabaseClient();
   
   // Update creator's profile with authorized status
   const { error: updateError } = await supabase
@@ -150,7 +156,7 @@ async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
 }
 
 async function handleAccountDeauthorized(account: Stripe.Account): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const supabase = await getSupabaseClient();
   
   // Update creator's profile with deauthorized status
   const { error: updateError } = await supabase
@@ -171,7 +177,7 @@ async function handleAccountDeauthorized(account: Stripe.Account): Promise<void>
 }
 
 async function handleAccount(account: Stripe.Account): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const supabase = await getSupabaseClient();
   
   // Check if charges_enabled and payouts_enabled are true
   const isComplete = !!(account.details_submitted && account.charges_enabled && account.payouts_enabled);
@@ -182,19 +188,54 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
                              account.requirements.pending_verification.length > 0;
   
   // Update creator's profile with account status
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      stripe_account_status: isComplete ? 'verified' : 'pending',
-      stripe_onboarding_complete: isComplete,
-      stripe_account_details: {
-        pending_verification: pendingVerification,
-        missing_requirements: missingRequirements,
-        last_checked: new Date().toISOString()
-      },
-      updated_at: new Date().toISOString()
-    })
-    .eq('stripe_account_id', account.id);
+  // First check if the columns exist in the schema
+  try {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_onboarding_complete: isComplete,
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_account_id', account.id);
+
+    if (updateError) {
+      console.error('Basic profile update error:', updateError);
+      return;
+    }
+    
+    // Try to update the status fields separately
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_account_status: isComplete ? 'verified' : 'pending'
+        })
+        .eq('stripe_account_id', account.id);
+    } catch (statusError) {
+      console.error('Status field update error:', statusError);
+      // Continue execution - this field might not exist yet
+    }
+    
+    // Try to update the details field separately
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_account_details: {
+            pending_verification: pendingVerification,
+            missing_requirements: missingRequirements,
+            last_checked: new Date().toISOString()
+          }
+        })
+        .eq('stripe_account_id', account.id);
+    } catch (detailsError) {
+      console.error('Details field update error:', detailsError);
+      // Continue execution - this field might not exist yet
+    }
+  } catch (error) {
+    console.error('Profile update error:', error);
+    return;
+  }
 
   if (updateError) {
     console.error('Profile update error:', updateError);

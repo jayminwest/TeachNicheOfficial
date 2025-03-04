@@ -184,8 +184,13 @@ export function VideoUploader({
         onUploadStart={handleUploadStart}
         onProgress={handleUploadProgress}
         onSuccess={(event) => {
+          console.log("MuxUploader onSuccess event:", event);
           if (event instanceof CustomEvent && event.detail?.uploadId) {
+            console.log("MuxUploader onSuccess uploadId:", event.detail.uploadId);
             handleUploadSuccess(event.detail.uploadId);
+          } else {
+            console.warn("MuxUploader onSuccess event without uploadId:", event);
+            handleUploadError(new Error("Upload succeeded but no upload ID was provided"));
           }
         }}
         onError={(event) => {

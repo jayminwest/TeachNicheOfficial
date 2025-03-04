@@ -1,5 +1,3 @@
-import { NextRequest } from 'next/server';
-
 // Import dependencies first
 import { NextRequest } from 'next/server';
 import Stripe from 'stripe';

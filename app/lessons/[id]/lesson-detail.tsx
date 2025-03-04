@@ -16,7 +16,7 @@ interface LessonDetailProps {
   } | null;
 }
 
-export default function LessonDetail({ id, session }: LessonDetailProps) {
+export default async function LessonDetail({ id, session }: LessonDetailProps) {
   // Redirect to new lesson page if the ID is "create"
   if (id === "create") {
     return (

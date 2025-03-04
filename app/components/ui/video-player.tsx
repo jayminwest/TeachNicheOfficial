@@ -35,7 +35,13 @@ export function VideoPlayer({
       // Get signed JWT from your backend
       fetch('/api/video/sign-playback', {
         method: 'POST',
-        body: JSON.stringify({ playbackId })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          playbackId,
+          lessonId: id // Pass the lesson ID to the API
+        })
       })
       .then(res => res.json())
       .then(data => {
@@ -51,7 +57,7 @@ export function VideoPlayer({
     return () => {
       isMounted = false;
     };
-  }, [playbackId, isFree]);
+  }, [playbackId, isFree, id]);
 
   // Prevent hydration mismatch by only rendering on client
   if (!isMounted) {

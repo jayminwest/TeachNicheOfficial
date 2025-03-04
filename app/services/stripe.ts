@@ -170,12 +170,22 @@ export const createConnectSession = async (options: ConnectSessionOptions) => {
     });
     
     const stripe = getStripe();
-    console.log('Stripe instance:', typeof stripe, 'with accountLinks:', typeof stripe.accountLinks);
+    
+    // Validate URLs to ensure they're absolute
+    const validateUrl = (url: string) => {
+      try {
+        new URL(url);
+        return url;
+      } catch (e) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
+      }
+    };
     
     const session = await stripe.accountLinks.create({
       account: options.accountId,
-      refresh_url: options.refreshUrl,
-      return_url: options.returnUrl,
+      refresh_url: validateUrl(options.refreshUrl),
+      return_url: validateUrl(options.returnUrl),
       type: options.type,
     });
     

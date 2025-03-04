@@ -152,10 +152,14 @@ export async function POST(request: Request) {
 
       // Create account link using our utility
       console.log('Creating account link for account:', account.id);
+      
+      // Ensure we have a valid base URL
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
       const accountLink = await createConnectSession({
         accountId: account.id,
-        refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
-        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
+        refreshUrl: `${baseUrl}/profile?error=connect-refresh`,
+        returnUrl: `${baseUrl}/api/stripe/connect/callback?account_id=${account.id}`,
         type: 'account_onboarding'
       });
       

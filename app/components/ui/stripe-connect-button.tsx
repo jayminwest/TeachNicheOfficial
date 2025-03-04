@@ -57,6 +57,13 @@ export function StripeConnectButton({
       console.log('Initiating Stripe Connect with user:', user.id);
       
       console.log('Sending request to /api/stripe/connect');
+      
+      // First check if we can connect to Stripe
+      const testResponse = await fetch('/api/stripe/test');
+      if (!testResponse.ok) {
+        throw new Error('Stripe API connection test failed. Please try again later.');
+      }
+      
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {
@@ -74,15 +81,10 @@ export function StripeConnectButton({
       
       console.log('Response status:', response.status);
       
-      // Clone the response for logging
-      const responseClone = response.clone();
-      const responseText = await responseClone.text();
-      console.log('Response body:', responseText);
-      
-      // Parse the response as JSON
       let data;
       try {
-        data = JSON.parse(responseText);
+        data = await response.json();
+        console.log('Response data:', data);
       } catch (e) {
         console.error('Failed to parse response as JSON:', e);
         throw new Error('Invalid response from server');
@@ -101,7 +103,18 @@ export function StripeConnectButton({
       }
 
       console.log('Redirecting to:', data.url);
-      window.location.href = data.url;
+      
+      // Add a small delay before redirecting to ensure logs are visible
+      setTimeout(() => {
+        // Show a toast before redirecting
+        toast({
+          title: 'Redirecting to Stripe',
+          description: 'You will be redirected to Stripe to complete the setup process.',
+        });
+        
+        // Redirect to Stripe
+        window.location.href = data.url;
+      }, 500);
     } catch (error) {
       toast({
         variant: 'destructive',

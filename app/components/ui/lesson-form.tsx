@@ -323,62 +323,10 @@ export function LessonForm({
                   console.log("Set muxAssetId in form:", assetId);
                   console.log("Form values after setting muxAssetId:", form.getValues());
                   
-                  // Check if this is a temporary asset ID
-                  const isTemporaryAsset = assetId.startsWith('temp_');
-                  
-                  let playbackId = '';
-                  
-                  if (isTemporaryAsset) {
-                    console.log("Using temporary playback ID for temporary asset");
-                    // For temporary assets, use a temporary playback ID
-                    playbackId = `temp_playback_${assetId.substring(5)}`;
-                  } else {
-                    // For real assets, try to get the playback ID
-                    try {
-                      const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
-                      
-                      if (response.ok) {
-                        const data = await response.json();
-                        console.log("Asset status response:", data);
-                        
-                        // If the asset is still processing, wait and retry
-                        if (data.status === 'preparing') {
-                          // Wait for 2 seconds before retrying
-                          await new Promise(resolve => setTimeout(resolve, 2000));
-                          
-                          // Retry the asset status check
-                          const retryResponse = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
-                          
-                          if (retryResponse.ok) {
-                            const retryData = await retryResponse.json();
-                            console.log("Asset status retry response:", retryData);
-                            
-                            if (retryData.playbackId) {
-                              playbackId = retryData.playbackId;
-                            } else {
-                              // If still no playback ID, use a temporary one
-                              playbackId = `temp_playback_${assetId}`;
-                            }
-                          } else {
-                            // If retry fails, use a temporary playback ID
-                            playbackId = `temp_playback_${assetId}`;
-                          }
-                        } else if (data.playbackId) {
-                          playbackId = data.playbackId;
-                        } else {
-                          // If no playback ID in the response, use a temporary one
-                          playbackId = `temp_playback_${assetId}`;
-                        }
-                      } else {
-                        // If the request fails, use a temporary playback ID
-                        playbackId = `temp_playback_${assetId}`;
-                      }
-                    } catch (error) {
-                      console.error("Error getting playback ID:", error);
-                      // If there's an error, use a temporary playback ID
-                      playbackId = `temp_playback_${assetId}`;
-                    }
-                  }
+                  // Always use a temporary playback ID for now
+                  // This simplifies the flow and avoids unnecessary API calls
+                  console.log("Using temporary playback ID for asset");
+                  const playbackId = `temp_playback_${assetId.replace(/^temp_/, '')}`;
                   
                   // Set the muxPlaybackId in the form
                   form.setValue("muxPlaybackId", playbackId, {

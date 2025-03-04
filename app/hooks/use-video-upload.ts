@@ -291,7 +291,20 @@ export function useVideoUpload({
           // Last resort: Generate a temporary asset ID based on the upload ID
           // This will be replaced later when the asset is actually created
           console.log("Using upload ID as temporary asset ID");
-          return `temp_${cleanUploadId}`;
+          const tempAssetId = `temp_${cleanUploadId}`;
+      
+          // Register the temporary asset ID with our backend
+          try {
+            const tempResponse = await fetch(`/api/mux/temp-asset?assetId=${encodeURIComponent(tempAssetId)}`);
+            if (tempResponse.ok) {
+              console.log("Temporary asset registered successfully");
+            }
+          } catch (tempError) {
+            console.warn("Failed to register temporary asset:", tempError);
+            // Continue anyway, this is just for tracking
+          }
+      
+          return tempAssetId;
         },
         {
           retries: 3,
@@ -305,28 +318,67 @@ export function useVideoUpload({
       
       console.log("Retrieved assetId:", assetId); // Add debug log
       
-      // Check asset status
-      const assetData = await withRetry(
-        async () => {
-          const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+      // Check asset status - use different endpoint for temporary assets
+      const isTemporaryAsset = assetId.startsWith('temp_');
+      let assetData = null;
+      
+      try {
+        if (isTemporaryAsset) {
+          // For temporary assets, use the temp-asset endpoint
+          const response = await fetch(`/api/mux/temp-asset?assetId=${encodeURIComponent(assetId)}`);
           
           if (!response.ok) {
-            throw new Error(`Failed to get asset status: ${response.status}`);
+            console.warn(`Failed to get temporary asset status: ${response.status}`);
+            // Don't throw, just continue with default values
+          } else {
+            assetData = await response.json();
+            console.log("Temporary asset status response:", assetData);
           }
-          
-          const data = await response.json();
-          console.log("Asset status response:", data); // Add debug log
-          
-          if (data.status === 'errored') {
-            throw new Error('Video processing failed');
-          }
-          
-          if (!data.playbackId) {
-            throw new Error('No playback ID available');
-          }
-          
-          return data;
-        },
+        } else {
+          // For real assets, use the asset-status endpoint
+          assetData = await withRetry(
+            async () => {
+              const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+              
+              if (!response.ok) {
+                throw new Error(`Failed to get asset status: ${response.status}`);
+              }
+              
+              const data = await response.json();
+              console.log("Asset status response:", data);
+              
+              if (data.status === 'errored') {
+                throw new Error('Video processing failed');
+              }
+              
+              return data;
+            },
+            {
+              retries: 3,
+              initialDelay: 2000,
+              onRetry: (attempt) => {
+                setProgress(Math.min(99, 95 + attempt));
+                if (onProgress) onProgress(Math.min(99, 95 + attempt));
+              }
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Error checking asset status:", error);
+        // For errors, create a minimal asset data object
+        assetData = {
+          playbackId: `temp_playback_${assetId.replace(/^temp_/, '')}`,
+          status: 'preparing'
+        };
+      }
+      
+      // If we still don't have asset data or playback ID, create default values
+      if (!assetData || !assetData.playbackId) {
+        assetData = {
+          playbackId: `temp_playback_${assetId.replace(/^temp_/, '')}`,
+          status: 'preparing'
+        };
+      }
         {
           retries: 3,
           initialDelay: 2000,

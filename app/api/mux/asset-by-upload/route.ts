@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Mux } from '@mux/mux-node';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
-// Initialize Mux client
-const { Video } = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID || '',
-  tokenSecret: process.env.MUX_TOKEN_SECRET || '',
-});
+// Import Mux with a try/catch to handle potential initialization errors
+let Video: any;
+try {
+  const Mux = require('@mux/mux-node');
+  const muxClient = new Mux({
+    tokenId: process.env.MUX_TOKEN_ID || '',
+    tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+  });
+  Video = muxClient.Video;
+} catch (error) {
+  console.error('Failed to initialize Mux client:', error);
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,6 +39,15 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`Checking asset for upload ID: ${uploadId}`);
+
+    // Check if Mux client is properly initialized
+    if (!Video || !Video.Uploads || typeof Video.Uploads.get !== 'function') {
+      console.error('Mux Video client not properly initialized');
+      return NextResponse.json(
+        { error: { message: 'Mux Video client not properly initialized', type: 'api_error' } },
+        { status: 500 }
+      );
+    }
 
     // First, try to get the upload to check its status
     try {

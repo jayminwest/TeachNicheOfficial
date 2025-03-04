@@ -182,51 +182,56 @@ export function VideoUploader({
           
           // Since the event doesn't have the expected structure, we need to use the uploadId
           // that we received from the initial upload URL response
-          const uploadEndpointUrl = new URL(uploadEndpoint || "");
-          const uploadIdParam = uploadEndpointUrl.searchParams.get("upload_id");
-          
-          if (uploadIdParam) {
-            console.log("Using upload ID from URL:", uploadIdParam);
-            handleUploadSuccess(uploadIdParam);
-            return;
-          }
-          
-          // Fallback to checking the event
-          if (event instanceof CustomEvent && event.detail?.uploadId) {
-            console.log("MuxUploader onSuccess uploadId from event:", event.detail.uploadId);
-            handleUploadSuccess(event.detail.uploadId);
-            return;
-          }
-          
-          // If we get here, try to extract the upload ID from the URL
           try {
-            // The URL might contain the upload ID in the path
-            const urlParts = uploadEndpoint?.split('/') || [];
-            const lastPart = urlParts[urlParts.length - 1];
+            // First try to get the upload_id from the DOM
+            const uploadIds = document.querySelectorAll('[data-upload-id]');
+            if (uploadIds.length > 0) {
+              const firstUploadId = uploadIds[0].getAttribute('data-upload-id');
+              if (firstUploadId) {
+                console.log("Using upload ID from DOM:", firstUploadId);
+                handleUploadSuccess(firstUploadId);
+                return;
+              }
+            }
             
-            if (lastPart && lastPart.length > 10) {
-              console.log("Extracted upload ID from URL path:", lastPart);
-              handleUploadSuccess(lastPart);
+            // Next try to extract from URL params
+            if (uploadEndpoint) {
+              try {
+                const uploadEndpointUrl = new URL(uploadEndpoint);
+                const uploadIdParam = uploadEndpointUrl.searchParams.get("upload_id");
+                
+                if (uploadIdParam) {
+                  console.log("Using upload ID from URL param:", uploadIdParam);
+                  handleUploadSuccess(uploadIdParam);
+                  return;
+                }
+              } catch (urlError) {
+                console.error("Error parsing URL:", urlError);
+              }
+            }
+            
+            // Fallback to checking the event
+            if (event instanceof CustomEvent && event.detail?.uploadId) {
+              console.log("Using upload ID from event:", event.detail.uploadId);
+              handleUploadSuccess(event.detail.uploadId);
               return;
             }
+            
+            // Last resort: use a hardcoded ID from the most recent upload
+            console.warn("Using fallback upload ID from global variable");
+            // Get the uploadId from window object if it exists
+            const globalUploadId = (window as any).__lastUploadId;
+            if (globalUploadId) {
+              console.log("Using global upload ID:", globalUploadId);
+              handleUploadSuccess(globalUploadId);
+              return;
+            }
+            
+            throw new Error("Could not determine upload ID from any source");
           } catch (error) {
-            console.error("Error extracting upload ID from URL:", error);
+            console.error("Error in onSuccess handler:", error);
+            handleUploadError(error instanceof Error ? error : new Error("Failed to process upload"));
           }
-          
-          // Last resort: use the first upload ID we received
-          const uploadIds = document.querySelectorAll('[data-upload-id]');
-          if (uploadIds.length > 0) {
-            const firstUploadId = uploadIds[0].getAttribute('data-upload-id');
-            if (firstUploadId) {
-              console.log("Using upload ID from DOM:", firstUploadId);
-              handleUploadSuccess(firstUploadId);
-              return;
-            }
-          }
-          
-          // If all else fails, use a hardcoded ID from the logs
-          console.warn("Using fallback upload ID from logs");
-          handleUploadSuccess("BbeLG7rBOC5ZG3tBnvZSiOLhuWfnl747hC2TOcykWU4");
         }}
         onError={(event) => {
           console.error("MuxUploader onError event:", event);

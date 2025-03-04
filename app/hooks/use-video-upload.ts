@@ -144,9 +144,8 @@ export function useVideoUpload({
       
       // Store the uploadId globally for later use
       if (data.uploadId) {
-        // Add the upload ID as a query parameter to the URL
-        const url = new URL(data.url);
-        url.searchParams.append('upload_id', data.uploadId);
+        // Store the upload ID in a global variable for fallback
+        (window as any).__lastUploadId = data.uploadId;
         
         // Also store it as a data attribute in the DOM for fallback
         const uploadIdElement = document.createElement('div');
@@ -154,7 +153,8 @@ export function useVideoUpload({
         uploadIdElement.setAttribute('data-upload-id', data.uploadId);
         document.body.appendChild(uploadIdElement);
         
-        return url.toString();
+        // Don't modify the URL - just return it as is
+        return data.url;
       }
       
       return data.url;
@@ -221,20 +221,42 @@ export function useVideoUpload({
         throw new Error("No upload ID provided");
       }
       
-      console.log("Processing upload success for ID:", uploadId);
+      // Clean up the uploadId if it's a full URL or contains extra characters
+      let cleanUploadId = uploadId;
+      
+      // If it's suspiciously long (over 100 chars), it might be a full URL or have extra data
+      if (uploadId.length > 100) {
+        console.warn("Upload ID is suspiciously long, attempting to clean it up");
+        
+        // Try to extract just the ID part
+        const idMatch = uploadId.match(/([a-zA-Z0-9_-]{10,64})/);
+        if (idMatch && idMatch[1]) {
+          cleanUploadId = idMatch[1];
+          console.log("Extracted cleaner upload ID:", cleanUploadId);
+        } else {
+          // If we can't extract a clean ID, use the global fallback
+          cleanUploadId = (window as any).__lastUploadId || uploadId;
+          console.log("Using global fallback upload ID:", cleanUploadId);
+        }
+      }
+      
+      console.log("Processing upload success for ID:", cleanUploadId);
       setStatus('processing');
       
       // Get the asset ID from the upload
       const assetId = await withRetry(
         async () => {
-          const response = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(uploadId)}`);
+          console.log(`Fetching asset ID for upload: ${cleanUploadId}`);
+          const response = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(cleanUploadId)}`);
           
           if (!response.ok) {
+            const errorText = await response.text().catch(() => "No error details");
+            console.error(`Upload status error (${response.status}):`, errorText);
             throw new Error(`Failed to get upload status: ${response.status}`);
           }
           
           const data = await response.json();
-          console.log("Upload status response:", data); // Add debug log
+          console.log("Upload status response:", data);
           
           if (!data.assetId) {
             throw new Error("No asset ID available from upload");

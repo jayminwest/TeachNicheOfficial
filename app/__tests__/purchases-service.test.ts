@@ -2,25 +2,38 @@ import { purchasesService } from '@/app/services/database/purchasesService';
 
 // Mock Stripe
 jest.mock('stripe', () => {
-  return function() {
+  const mockRetrieve = jest.fn().mockImplementation(() => {
+    return {
+      id: 'cs_test_123',
+      payment_status: 'paid',
+      metadata: {
+        lessonId: 'lesson-123',
+        userId: 'user-123'
+      },
+      amount_total: 1000 // in cents
+    };
+  });
+  
+  const mockStripe = function() {
     return {
       checkout: {
         sessions: {
-          retrieve: jest.fn().mockImplementation(() => {
-            return {
-              id: 'cs_test_123',
-              payment_status: 'paid',
-              metadata: {
-                lessonId: 'lesson-123',
-                userId: 'user-123'
-              },
-              amount_total: 1000 // in cents
-            };
-          })
+          retrieve: mockRetrieve
         }
       }
     };
   };
+  
+  // Make the mock function accessible for spying
+  mockStripe.prototype = {
+    checkout: {
+      sessions: {
+        retrieve: mockRetrieve
+      }
+    }
+  };
+  
+  return mockStripe;
 });
 
 describe('PurchasesService', () => {
@@ -111,15 +124,16 @@ describe('PurchasesService', () => {
     
     it('should handle unpaid sessions correctly', async () => {
       // Mock an unpaid session
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue({
-        id: 'cs_test_123',
-        payment_status: 'unpaid',
-        metadata: {
-          lessonId: 'lesson-123',
-          userId: 'user-123'
-        },
-        amount_total: 1000
-      });
+      jest.spyOn(require('stripe').prototype.checkout.sessions, 'retrieve')
+        .mockResolvedValueOnce({
+          id: 'cs_test_123',
+          payment_status: 'unpaid',
+          metadata: {
+            lessonId: 'lesson-123',
+            userId: 'user-123'
+          },
+          amount_total: 1000
+        });
       
       const { data, error } = await purchasesService.verifyStripeSession('cs_test_123');
       
@@ -134,8 +148,11 @@ describe('PurchasesService', () => {
     
     it('should handle Stripe API errors', async () => {
       // Mock a Stripe error
-      jest.spyOn(require('stripe').prototype.checkout.sessions, 'retrieve')
-        .mockRejectedValueOnce(new Error('Invalid session ID'));
+      const mockStripe = require('stripe');
+      jest.spyOn(mockStripe.prototype.checkout.sessions, 'retrieve')
+        .mockImplementationOnce(() => {
+          throw new Error('Invalid session ID');
+        });
       
       const { data, error } = await purchasesService.verifyStripeSession('invalid-id');
       

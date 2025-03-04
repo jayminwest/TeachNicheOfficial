@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+
+// Mock NextResponse
+const mockJson = jest.fn().mockImplementation((body, options) => ({
+  status: options?.status || 200,
+  json: async () => body,
+  headers: new Headers()
+}));
+
+const NextResponse = {
+  json: mockJson,
+  redirect: jest.fn().mockImplementation(url => ({ url }))
+};
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
@@ -70,10 +82,10 @@ describe('Purchase Flow', () => {
         sessions: {
           create: jest.fn(),
           retrieve: jest.fn()
-        },
-        webhooks: {
-          constructEvent: jest.fn()
         }
+      },
+      webhooks: {
+        constructEvent: jest.fn()
       }
     };
     

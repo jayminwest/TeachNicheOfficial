@@ -57,7 +57,7 @@ export class PurchasesService extends DatabaseService {
       const isPaid = session.payment_status === 'paid' || session.payment_status === 'no_payment_required';
       const amount = session.amount_total ? session.amount_total / 100 : undefined;
       
-      console.log(`Session verification result: isPaid=${isPaid}, amount=${amount}, lessonId=${lessonId}, userId=${userId}`);
+      console.log(`Session verification result: isPaid=${isPaid}, payment_status=${session.payment_status}, amount=${amount}, lessonId=${lessonId}, userId=${userId}`);
       
       return {
         data: {

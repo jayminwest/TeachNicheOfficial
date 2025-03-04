@@ -243,14 +243,26 @@ export function StripeConnectButton({
             <div className="text-xs text-muted-foreground">
               Account ID: {stripeAccountId?.substring(0, 8)}...
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-xs"
-              onClick={() => setShowDetails(!showDetails)}
-            >
-              {showDetails ? 'Hide Debug Info' : 'Show Debug Info'}
-            </Button>
+            <div className="flex gap-2">
+              {stripeAccountId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs flex items-center gap-1"
+                  onClick={() => window.open('https://dashboard.stripe.com/', '_blank')}
+                >
+                  <ExternalLink className="h-3 w-3" /> Dashboard
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails ? 'Hide Debug Info' : 'Show Debug Info'}
+              </Button>
+            </div>
           </div>
           
           {showDetails && (

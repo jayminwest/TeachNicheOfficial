@@ -162,16 +162,33 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
 
 export const createConnectSession = async (options: ConnectSessionOptions) => {
   try {
-    const session = await getStripe().accountLinks.create({
+    console.log('Creating Stripe account link with options:', {
       account: options.accountId,
       refresh_url: options.refreshUrl,
       return_url: options.returnUrl,
       type: options.type,
     });
     
+    const stripe = getStripe();
+    console.log('Stripe instance:', typeof stripe, 'with accountLinks:', typeof stripe.accountLinks);
+    
+    const session = await stripe.accountLinks.create({
+      account: options.accountId,
+      refresh_url: options.refreshUrl,
+      return_url: options.returnUrl,
+      type: options.type,
+    });
+    
+    console.log('Account link created successfully:', session);
     return session;
   } catch (error) {
     console.error('Stripe Connect session creation failed:', error);
+    console.error('Error details:', error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    } : 'Unknown error type');
+    
     throw new StripeError(
       'callback_failed',
       error instanceof Error ? error.message : 'Failed to create Connect session'

@@ -56,6 +56,7 @@ export function StripeConnectButton({
 
       console.log('Initiating Stripe Connect with user:', user.id);
       
+      console.log('Sending request to /api/stripe/connect');
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {
@@ -71,28 +72,35 @@ export function StripeConnectButton({
         }),
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Stripe connect response error:', errorData);
-        throw new Error(errorData.error || errorData.details || 'Failed to connect with Stripe');
+      console.log('Response status:', response.status);
+      
+      // Clone the response for logging
+      const responseClone = response.clone();
+      const responseText = await responseClone.text();
+      console.log('Response body:', responseText);
+      
+      // Parse the response as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', e);
+        throw new Error('Invalid response from server');
       }
       
-      const data = await response.json();
-      
       if (!response.ok) {
-        const error = data.error || {};
-        console.error('Stripe connect error:', {
-          status: response.status,
-          error: error,
-          details: data.details
-        });
-        throw new Error(error.message || data.details || 'Failed to connect with Stripe');
+        console.error('Stripe connect response error:', data);
+        throw new Error(data.error || data.details || 'Failed to connect with Stripe');
       }
 
+      console.log('Received data:', data);
+      
       if (!data.url) {
+        console.error('No URL in response:', data);
         throw new Error('No redirect URL received from server');
       }
 
+      console.log('Redirecting to:', data.url);
       window.location.href = data.url;
     } catch (error) {
       toast({
@@ -164,6 +172,26 @@ export function StripeConnectButton({
     }
   }
 
+  // Add debug function for config
+  const debugStripeConfig = async () => {
+    try {
+      const response = await fetch('/api/stripe/debug');
+      const data = await response.json();
+      console.log('Stripe config:', data);
+      toast({
+        title: 'Stripe Configuration',
+        description: `Connect Type: ${data.config.connectType}, API Version: ${data.config.apiVersion}`,
+      });
+    } catch (error) {
+      console.error('Stripe config debug error:', error);
+      toast({
+        title: 'Config Debug Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <Button 
@@ -172,18 +200,28 @@ export function StripeConnectButton({
         variant={buttonVariant}
         aria-busy={isLoading ? "true" : "false"}
       >
-        {buttonText}
+        {isLoading ? "Connecting..." : buttonText}
       </Button>
       
       {process.env.NODE_ENV !== 'production' && (
-        <Button 
-          onClick={testStripeApi} 
-          variant="outline" 
-          size="sm"
-          className="text-xs"
-        >
-          Test Stripe API
-        </Button>
+        <div className="flex flex-col gap-1">
+          <Button 
+            onClick={testStripeApi} 
+            variant="outline" 
+            size="sm"
+            className="text-xs"
+          >
+            Test Stripe API
+          </Button>
+          <Button 
+            onClick={debugStripeConfig} 
+            variant="outline" 
+            size="sm"
+            className="text-xs"
+          >
+            Debug Stripe Config
+          </Button>
+        </div>
       )}
     </div>
   );

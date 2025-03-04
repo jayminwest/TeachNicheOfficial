@@ -16,38 +16,60 @@ Three critical issues have been identified in the lesson creation flow, prioriti
 
 ## Technical Analysis
 
-### Issue 1: Video Uploader Initialization Failure
-The uploader is stuck in the loading state showing "Preparing upload..." because:
-- The `startUpload` function in `useVideoUpload` is never automatically called on component mount
-- There's no error handling for the initial API call failure in the UI
-- The API endpoint `/api/mux/upload` may be failing to respond correctly
+### Issue 1: Video Uploader Initialization Failure ✅ FIXED
+The uploader was stuck in the loading state showing "Preparing upload..." because:
+- The `startUpload` function in `useVideoUpload` was never automatically called on component mount
+- There was no error handling for the initial API call failure in the UI
+- The API endpoint `/api/mux/upload` may have been failing to respond correctly
 
-**Problematic Code:**
+**Fixed by:**
+- Added a new `initializeUpload` function that's automatically called on component mount
+- Added a new 'initializing' state to better represent what's happening
+- Improved error handling during initialization
+- Separated status messages from error messages
+- Added better error reporting for API failures
+
 ```typescript
 // app/hooks/use-video-upload.ts
-const handleUploadStart = useCallback(() => {
-  setStatus('uploading');
+// New function added to initialize upload automatically
+const initializeUpload = useCallback(async () => {
+  // Only initialize if we're in idle state
+  if (status !== 'idle') return;
+  
+  setStatus('initializing');
   setProgress(0);
   setError(null);
   
-  withRetry(
-    getUploadUrl,
-    {
-      retries: 3,
-      initialDelay: 1000,
-      onRetry: (attempt) => {
-        setError(`Preparing upload (attempt ${attempt})...`);
+  try {
+    const url = await withRetry(
+      getUploadUrl,
+      {
+        retries: 3,
+        initialDelay: 1000,
+        onRetry: (attempt) => {
+          // Don't set this as an error, use a separate state for status messages
+          console.log(`Preparing upload (attempt ${attempt})...`);
+        }
       }
-    }
-  )
-    .then((url) => {
-      setUploadEndpoint(url);
-      setError(null);
-    })
-    .catch(handleError);
-}, [getUploadUrl, handleError]);
+    );
+    
+    setUploadEndpoint(url);
+    setStatus('ready'); // Set to 'ready' when URL is obtained
+  } catch (error) {
+    console.error('Failed to initialize upload:', error);
+    setStatus('error');
+    setError(error instanceof Error ? error.message : 'Failed to initialize upload');
+    if (onError) onError(error instanceof Error ? error : new Error('Failed to initialize upload'));
+  }
+}, [getUploadUrl, onError, status]);
 
-// This function is never automatically called on component mount
+// Auto-initialize on mount with useEffect
+useEffect(() => {
+  // Auto-initialize on mount if in idle state
+  if (status === 'idle') {
+    initializeUpload();
+  }
+}, [initializeUpload, status]);
 ```
 
 ### Issue 2: Authentication Flow Issues
@@ -305,10 +327,10 @@ PROPOSED FLOW:
 ## Acceptance Criteria
 
 ### Issue 1: Video Uploader
-- [ ] Video uploader initializes automatically on component mount
-- [ ] Upload initialization errors are properly handled and displayed to the user
-- [ ] Retry mechanism works correctly for failed initialization attempts
-- [ ] Upload progress is accurately displayed to the user
+- [x] Video uploader initializes automatically on component mount
+- [x] Upload initialization errors are properly handled and displayed to the user
+- [x] Retry mechanism works correctly for failed initialization attempts
+- [x] Upload progress is accurately displayed to the user
 
 ### Issue 2: Authentication
 - [ ] Page is properly protected using the `useAuthGuard` hook

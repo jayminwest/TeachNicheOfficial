@@ -1,16 +1,24 @@
 import { NextRequest } from 'next/server';
 
 // Mock NextResponse
-const mockJson = jest.fn().mockImplementation((body, options) => ({
-  status: options?.status || 200,
-  json: async () => body,
-  headers: new Headers()
-}));
+jest.mock('next/server', () => {
+  const mockJson = jest.fn().mockImplementation((body, options) => ({
+    status: options?.status || 200,
+    json: async () => body,
+    headers: new Headers()
+  }));
+  
+  return {
+    NextRequest: jest.fn(),
+    NextResponse: {
+      json: mockJson,
+      redirect: jest.fn().mockImplementation(url => ({ url }))
+    }
+  };
+});
 
-const NextResponse = {
-  json: mockJson,
-  redirect: jest.fn().mockImplementation(url => ({ url }))
-};
+// Import after mocking
+import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';

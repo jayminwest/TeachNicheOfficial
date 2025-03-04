@@ -34,6 +34,10 @@ export class PurchasesService extends DatabaseService {
         expand: ['line_items', 'payment_intent']
       });
       
+      if (!session) {
+        throw new Error('Session not found');
+      }
+      
       console.log(`Session retrieved, payment_status: ${session.payment_status}`);
       
       // Extract IDs from session
@@ -72,7 +76,7 @@ export class PurchasesService extends DatabaseService {
       console.error('Error verifying Stripe session:', error);
       return {
         data: null,
-        error: error instanceof Error ? error : new Error('Unknown error verifying Stripe session')
+        error: new Error(`Error verifying Stripe session: ${error instanceof Error ? error.message : 'Unknown error'}`)
       };
     }
   }

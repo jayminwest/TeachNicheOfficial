@@ -29,7 +29,11 @@ export function StripeConnectButton({
   const { user } = useAuth();
 
   const handleConnect = async () => {
-    if (isLoading || !user) return;
+    console.log('handleConnect called, user:', user?.id);
+    if (isLoading || !user) {
+      console.log('Aborting connect - loading:', isLoading, 'user:', !!user);
+      return;
+    }
     
     try {
       setIsLoading(true);
@@ -126,6 +130,7 @@ export function StripeConnectButton({
   };
 
   if (!user) {
+    console.log('No user found in StripeConnectButton');
     return (
       <Button 
         variant="outline" 

@@ -414,7 +414,7 @@ In addition to the Express onboarding flow, we should implement OAuth for Stripe
 
 2. **Add Environment Variables**:
    ```
-   STRIPE_CLIENT_ID=ca_...
+   STRIPE_CONNECT_CLIENT_ID=ca_...  # Use existing STRIPE_CONNECT_CLIENT_ID
    STRIPE_OAUTH_REDIRECT_URI=https://your-domain.com/api/stripe/connect/oauth-callback
    ```
 

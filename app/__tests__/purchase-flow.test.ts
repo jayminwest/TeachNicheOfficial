@@ -33,10 +33,10 @@ jest.mock('next/server', () => {
 // Import the NextResponse and NextRequest after mocking
 import { NextResponse, NextRequest } from 'next/server';
 
-// Import the mocked API routes
-import { POST as purchasePost } from '@/app/api/lessons/purchase/route';
-import { POST as checkPurchasePost } from '@/app/api/lessons/check-purchase/route';
-import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
+// Import the API routes
+import * as purchaseRoute from '@/app/api/lessons/purchase/route';
+import * as checkPurchaseRoute from '@/app/api/lessons/check-purchase/route';
+import * as webhookRoute from '@/app/api/webhooks/stripe/route';
 
 // Mock the API routes with factory functions that don't reference NextResponse directly
 jest.mock('@/app/api/lessons/purchase/route', () => ({
@@ -52,6 +52,11 @@ jest.mock('@/app/api/lessons/check-purchase/route', () => ({
 jest.mock('@/app/api/webhooks/stripe/route', () => ({
   POST: jest.fn().mockImplementation(() => createMockResponse({ success: true }))
 }));
+
+// Get the mocked functions
+const purchasePost = (purchaseRoute.POST as jest.Mock);
+const checkPurchasePost = (checkPurchaseRoute.POST as jest.Mock);
+const webhookPost = (webhookRoute.POST as jest.Mock);
 
 // Mock dependencies
 jest.mock('stripe', () => {

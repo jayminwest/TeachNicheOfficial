@@ -54,14 +54,21 @@ export async function POST(request: NextRequest) {
       console.log('Full session data:', JSON.stringify(session, null, 2));
       
       try {
+        // Log the full session data for debugging
+        console.log('Full session data:', JSON.stringify(session, null, 2));
+    
         // Extract lesson ID and user ID from metadata or line items
         let lessonId = session.metadata?.lessonId;
         let userId = session.metadata?.userId;
-        
+    
+        console.log('Extracted from metadata:', { lessonId, userId });
+    
         // If metadata is missing, try to extract from client_reference_id
         if (!lessonId || !userId) {
           if (session.client_reference_id) {
             const refParts = session.client_reference_id.split('_');
+            console.log('Client reference parts:', refParts);
+        
             if (refParts.length >= 4 && refParts[0] === 'lesson' && refParts[2] === 'user') {
               lessonId = refParts[1];
               userId = refParts[3];
@@ -72,26 +79,38 @@ export async function POST(request: NextRequest) {
         
         // If we still don't have the IDs, try to extract from line items description
         if ((!lessonId || !userId) && session.line_items?.data?.length > 0) {
-          console.log('Attempting to extract from line items:', session.line_items);
+          console.log('Attempting to extract from line items:', JSON.stringify(session.line_items, null, 2));
       
-          const description = session.line_items.data[0].description;
-          if (description && description.startsWith('Access to lesson:')) {
-            // Try to find the lesson by title
-            const title = description.replace('Access to lesson:', '').trim();
-            console.log(`Trying to find lesson by title: "${title}"`);
+          try {
+            const description = session.line_items.data[0].description;
+            console.log('Line item description:', description);
         
-            // We'll need to query the database here
-            const supabase = await createServerSupabaseClient();
-            const { data: lessons } = await supabase
-              .from('lessons')
-              .select('id, creator_id')
-              .ilike('title', title)
-              .limit(1);
+            if (description && description.startsWith('Access to lesson:')) {
+              // Try to find the lesson by title
+              const title = description.replace('Access to lesson:', '').trim();
+              console.log(`Trying to find lesson by title: "${title}"`);
           
-            if (lessons && lessons.length > 0) {
-              lessonId = lessons[0].id;
-              console.log(`Found lesson by title: ${lessonId}`);
+              // We'll need to query the database here
+              const supabase = await createServerSupabaseClient();
+              const { data: lessons, error: lessonError } = await supabase
+                .from('lessons')
+                .select('id, creator_id')
+                .ilike('title', title)
+                .limit(1);
+          
+              if (lessonError) {
+                console.error('Error finding lesson by title:', lessonError);
+              }
+          
+              if (lessons && lessons.length > 0) {
+                lessonId = lessons[0].id;
+                console.log(`Found lesson by title: ${lessonId}`);
+              } else {
+                console.log('No lesson found with title:', title);
+              }
             }
+          } catch (lineItemError) {
+            console.error('Error processing line items:', lineItemError);
           }
         }
     
@@ -100,6 +119,7 @@ export async function POST(request: NextRequest) {
           console.log('Line items not available in webhook payload, fetching expanded session');
       
           try {
+            console.log('Retrieving expanded session:', session.id);
             const expandedSession = await stripe.checkout.sessions.retrieve(
               session.id,
               { expand: ['line_items'] }
@@ -107,26 +127,38 @@ export async function POST(request: NextRequest) {
         
             console.log('Retrieved expanded session with line items:', 
               expandedSession.line_items?.data?.length || 0);
-          
+        
             if (expandedSession.line_items?.data?.length > 0) {
-              const description = expandedSession.line_items.data[0].description;
-              if (description && description.startsWith('Access to lesson:')) {
-                // Try to find the lesson by title
-                const title = description.replace('Access to lesson:', '').trim();
-                console.log(`Trying to find lesson by title from expanded session: "${title}"`);
+              try {
+                const description = expandedSession.line_items.data[0].description;
+                console.log('Expanded session line item description:', description);
             
-                // We'll need to query the database here
-                const supabase = await createServerSupabaseClient();
-                const { data: lessons } = await supabase
-                  .from('lessons')
-                  .select('id, creator_id')
-                  .ilike('title', title)
-                  .limit(1);
+                if (description && description.startsWith('Access to lesson:')) {
+                  // Try to find the lesson by title
+                  const title = description.replace('Access to lesson:', '').trim();
+                  console.log(`Trying to find lesson by title from expanded session: "${title}"`);
               
-                if (lessons && lessons.length > 0) {
-                  lessonId = lessons[0].id;
-                  console.log(`Found lesson by title from expanded session: ${lessonId}`);
+                  // We'll need to query the database here
+                  const supabase = await createServerSupabaseClient();
+                  const { data: lessons, error: lessonError } = await supabase
+                    .from('lessons')
+                    .select('id, creator_id')
+                    .ilike('title', title)
+                    .limit(1);
+              
+                  if (lessonError) {
+                    console.error('Error finding lesson by title from expanded session:', lessonError);
+                  }
+              
+                  if (lessons && lessons.length > 0) {
+                    lessonId = lessons[0].id;
+                    console.log(`Found lesson by title from expanded session: ${lessonId}`);
+                  } else {
+                    console.log('No lesson found with title from expanded session:', title);
+                  }
                 }
+              } catch (expandedLineItemError) {
+                console.error('Error processing expanded line items:', expandedLineItemError);
               }
             }
           } catch (expandError) {
@@ -149,22 +181,28 @@ export async function POST(request: NextRequest) {
           }, { status: 400 });
         }
         
+        console.log('Attempting to update purchase status with session ID:', session.id);
+    
         // Try to update using the session ID first
         let updateResult = await purchasesService.updatePurchaseStatus(
           session.id,
           'completed'
         );
-        
+    
+        console.log('Update result:', updateResult);
+    
         // If that fails and we have a payment_intent, try using that
         if (updateResult.error && session.payment_intent) {
           console.log(`Retrying with payment_intent: ${session.payment_intent}`);
-          
+      
           // If payment_intent is a string, use it directly
           if (typeof session.payment_intent === 'string') {
             updateResult = await purchasesService.updatePurchaseStatus(
               session.payment_intent,
               'completed'
             );
+        
+            console.log('Update result with payment intent:', updateResult);
           }
         }
         
@@ -182,6 +220,15 @@ export async function POST(request: NextRequest) {
               const amount = session.amount_total ? (session.amount_total / 100) : undefined;
               console.log(`Amount from session: ${amount} (converted from ${session.amount_total} cents)`);
           
+              console.log('Creating purchase with data:', {
+                lessonId,
+                userId,
+                amount,
+                stripeSessionId: session.id,
+                paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : undefined,
+                fromWebhook: true
+              });
+          
               const createResult = await purchasesService.createPurchase({
                 lessonId,
                 userId,
@@ -190,6 +237,8 @@ export async function POST(request: NextRequest) {
                 paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : undefined,
                 fromWebhook: true
               });
+          
+              console.log('Create purchase result:', createResult);
           
               if (createResult.error) {
                 console.error('Failed to create purchase record:', createResult.error);

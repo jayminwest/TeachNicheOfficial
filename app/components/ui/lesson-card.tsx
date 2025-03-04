@@ -28,11 +28,6 @@ export function LessonCard({ lesson }: LessonCardProps) {
   
   // Check if current user is the lesson creator
   const isOwner = user?.id === lesson.creatorId;
-  const { user } = useAuth();
-  const router = useRouter();
-  
-  // Check if current user is the lesson creator
-  const isOwner = user?.id === lesson.creatorId;
 
   return (
     <>
@@ -63,29 +58,6 @@ export function LessonCard({ lesson }: LessonCardProps) {
                 <span>${lesson.price.toFixed(2)}</span>
               )}
             </div>
-            
-            {/* Show different actions based on ownership */}
-            {isOwner ? (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent opening preview
-                  router.push(`/lessons/${lesson.id}/edit`);
-                }}
-              >
-                <PencilIcon className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-            ) : (
-              lesson.price > 0 && (
-                <LessonCheckout 
-                  lessonId={lesson.id} 
-                  price={lesson.price}
-                  searchParams={new URLSearchParams(window.location.search)}
-                />
-              )
-            )}
             
             {/* Show different actions based on ownership */}
             {isOwner ? (

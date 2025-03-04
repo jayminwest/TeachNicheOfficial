@@ -41,11 +41,11 @@ export function useUserLessons({
             created_at,
             updated_at,
             thumbnail_url,
-            video_asset_id,
+            mux_asset_id,
+            mux_playback_id,
             creator_id,
-            published,
-            average_rating,
-            total_ratings
+            status,
+            is_featured
           `)
           .eq('creator_id', user.id)
           .order(orderBy, { ascending: orderDirection === 'asc' })
@@ -59,16 +59,16 @@ export function useUserLessons({
         const formattedLessons = data.map(lesson => ({
           id: lesson.id,
           title: lesson.title,
-          description: lesson.description,
+          description: lesson.description || '',
           price: lesson.price,
           createdAt: lesson.created_at,
           updatedAt: lesson.updated_at,
           thumbnailUrl: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
-          videoAssetId: lesson.video_asset_id,
+          videoAssetId: lesson.mux_asset_id,
+          videoPlaybackId: lesson.mux_playback_id,
           creatorId: lesson.creator_id,
-          published: lesson.published,
-          averageRating: lesson.average_rating || 0,
-          totalRatings: lesson.total_ratings || 0
+          published: lesson.status === 'published',
+          isFeatured: lesson.is_featured
         }));
 
         setLessons(formattedLessons);

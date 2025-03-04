@@ -66,6 +66,7 @@ export function ContentManagement() {
                       <span className="text-xs font-medium">{formatCurrency(lesson.price)}</span>
                       <span className="text-xs text-muted-foreground">
                         {lesson.published ? "Published" : "Draft"}
+                        {lesson.isFeatured && " • Featured"}
                       </span>
                     </div>
                   </div>

@@ -201,6 +201,12 @@ export function useVideoUpload({
 
   const handleUploadSuccess = useCallback(async (uploadId: string) => {
     try {
+      if (!uploadId) {
+        console.error("handleUploadSuccess called with empty uploadId");
+        throw new Error("No upload ID provided");
+      }
+      
+      console.log("Processing upload success for ID:", uploadId);
       setStatus('processing');
       
       // Get the asset ID from the upload

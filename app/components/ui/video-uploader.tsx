@@ -185,13 +185,45 @@ export function VideoUploader({
         onProgress={handleUploadProgress}
         onSuccess={(event) => {
           console.log("MuxUploader onSuccess event:", event);
-          if (event instanceof CustomEvent && event.detail?.uploadId) {
-            console.log("MuxUploader onSuccess uploadId:", event.detail.uploadId);
-            handleUploadSuccess(event.detail.uploadId);
-          } else {
-            console.warn("MuxUploader onSuccess event without uploadId:", event);
-            handleUploadError(new Error("Upload succeeded but no upload ID was provided"));
+          
+          // Check if event is a CustomEvent
+          if (!(event instanceof CustomEvent)) {
+            console.warn("MuxUploader onSuccess event is not a CustomEvent:", event);
+            handleUploadError(new Error("Upload succeeded but received an invalid event type"));
+            return;
           }
+          
+          // Log the event detail for debugging
+          console.log("MuxUploader onSuccess event detail:", event.detail);
+          
+          // Check if detail exists
+          if (!event.detail) {
+            console.warn("MuxUploader onSuccess event has no detail property");
+            handleUploadError(new Error("Upload succeeded but no details were provided"));
+            return;
+          }
+          
+          // Check if uploadId exists in detail
+          if (!event.detail.uploadId) {
+            console.warn("MuxUploader onSuccess event detail has no uploadId:", event.detail);
+            
+            // Try to extract upload ID from other properties if available
+            const possibleId = event.detail.id || 
+                              (event.detail.upload && event.detail.upload.id) || 
+                              (event.detail.data && event.detail.data.id);
+            
+            if (possibleId) {
+              console.log("Found possible upload ID from alternative property:", possibleId);
+              handleUploadSuccess(possibleId);
+            } else {
+              handleUploadError(new Error("Upload succeeded but no upload ID was provided"));
+            }
+            return;
+          }
+          
+          // If we get here, we have a valid uploadId
+          console.log("MuxUploader onSuccess uploadId:", event.detail.uploadId);
+          handleUploadSuccess(event.detail.uploadId);
         }}
         onError={(event) => {
           console.error("MuxUploader onError event:", event);

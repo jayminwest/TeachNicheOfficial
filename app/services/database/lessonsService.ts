@@ -82,6 +82,7 @@ export class LessonsService extends DatabaseService {
           created_at: lesson.created_at,
           muxAssetId: lesson.mux_asset_id || '',
           muxPlaybackId: lesson.mux_playback_id || '',
+          creatorId: lesson.instructor_id || '',
           averageRating,
           totalRatings
         };
@@ -130,6 +131,7 @@ export class LessonsService extends DatabaseService {
         created_at: data.created_at,
         muxAssetId: data.mux_asset_id || '',
         muxPlaybackId: data.mux_playback_id || '',
+        creatorId: data.instructor_id || '',
         averageRating,
         totalRatings
       };
@@ -153,6 +155,36 @@ export class LessonsService extends DatabaseService {
           data: null, 
           error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as any 
         };
+      }
+      
+      // For paid lessons, check if user has a Stripe account
+      if (data.price > 0) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('stripe_account_id')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError) {
+          return {
+            data: null,
+            error: { 
+              message: 'Failed to verify profile', 
+              code: 'PROFILE_ERROR',
+              details: profileError.message
+            } as any
+          };
+        }
+        
+        if (!profileData.stripe_account_id) {
+          return {
+            data: null,
+            error: { 
+              message: 'Stripe account required for paid lessons', 
+              code: 'STRIPE_REQUIRED' 
+            } as any
+          };
+        }
       }
       
       const { data: insertData, error } = await supabase
@@ -185,6 +217,7 @@ export class LessonsService extends DatabaseService {
         created_at: insertData.created_at,
         muxAssetId: insertData.mux_asset_id || '',
         muxPlaybackId: insertData.mux_playback_id || '',
+        creatorId: insertData.instructor_id || '',
         averageRating: 0,
         totalRatings: 0
       };
@@ -270,11 +303,38 @@ export class LessonsService extends DatabaseService {
         created_at: updateData.created_at,
         muxAssetId: updateData.mux_asset_id || '',
         muxPlaybackId: updateData.mux_playback_id || '',
+        creatorId: updateData.instructor_id || '',
         averageRating,
         totalRatings
       };
       
       return { data: lesson, error: null };
+    });
+  }
+  /**
+   * Check if a user is the owner of a lesson
+   */
+  async isLessonOwner(userId: string, lessonId: string): Promise<DatabaseResponse<boolean>> {
+    return this.executeWithRetry(async () => {
+      const supabase = this.getClient();
+      
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('instructor_id')
+        .eq('id', lessonId)
+        .single();
+      
+      if (error) {
+        return { 
+          data: false, 
+          error 
+        };
+      }
+      
+      return { 
+        data: data.instructor_id === userId, 
+        error: null 
+      };
     });
   }
 }

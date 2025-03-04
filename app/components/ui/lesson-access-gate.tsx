@@ -4,9 +4,11 @@ import { Loader2 } from 'lucide-react';
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
 import { LessonCheckout } from './lesson-checkout';
 import { cn } from '@/app/lib/utils';
+import { useAuth } from '@/app/services/auth/AuthContext';
 
 interface LessonAccessGateProps {
   lessonId: string;
+  creatorId?: string;
   children: React.ReactNode;
   price?: number;
   className?: string;
@@ -14,11 +16,21 @@ interface LessonAccessGateProps {
 
 export function LessonAccessGate({ 
   lessonId,
+  creatorId,
   children,
   price,
   className
 }: LessonAccessGateProps) {
   const { hasAccess, loading, error } = useLessonAccess(lessonId);
+  const { user } = useAuth();
+  
+  // Check if current user is the lesson creator
+  const isOwner = user?.id === creatorId;
+  
+  // If user is the owner, they always have access
+  if (isOwner) {
+    return <div className={cn(className)}>{children}</div>;
+  }
   
   if (loading) {
     return (

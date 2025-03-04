@@ -2,6 +2,10 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/app/components/ui/dialog";
 import { StarIcon } from "@radix-ui/react-icons";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
+import { useAuth } from "@/app/services/auth/AuthContext";
+import { Button } from "@/app/components/ui/button";
+import { useRouter } from "next/navigation";
+import { PencilIcon } from "lucide-react";
 
 interface LessonPreviewDialogProps {
   lesson: {
@@ -12,12 +16,18 @@ interface LessonPreviewDialogProps {
     thumbnailUrl: string;
     averageRating: number;
     totalRatings: number;
+    creatorId: string;
   };
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDialogProps) {
+  const { user } = useAuth();
+  const router = useRouter();
+  
+  // Check if current user is the lesson creator
+  const isOwner = user?.id === lesson.creatorId;
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -62,12 +72,27 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
                 <span>${lesson.price.toFixed(2)}</span>
               )}
             </div>
-            {lesson.price > 0 && (
-              <LessonCheckout 
-                lessonId={lesson.id} 
-                price={lesson.price}
-                searchParams={new URLSearchParams(window.location.search)}
-              />
+            
+            {/* Show different actions based on ownership */}
+            {isOwner ? (
+              <Button 
+                onClick={() => {
+                  onClose();
+                  router.push(`/lessons/${lesson.id}/edit`);
+                }}
+                variant="outline"
+              >
+                <PencilIcon className="mr-2 h-4 w-4" />
+                Edit Lesson
+              </Button>
+            ) : (
+              lesson.price > 0 && (
+                <LessonCheckout 
+                  lessonId={lesson.id} 
+                  price={lesson.price}
+                  searchParams={new URLSearchParams(window.location.search)}
+                />
+              )
             )}
           </div>
         </DialogFooter>

@@ -39,21 +39,36 @@ describe('Vote API Route', () => {
 
   const mockSupabase = {
     auth: {
-      getSession: jest.fn().mockResolvedValue({ data: { session: mockSession } })
+      getSession: jest.fn().mockResolvedValue({ data: { session: mockSession }, error: null })
     },
-    from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      match: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: null }),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockResolvedValue({ error: null })
-    }),
-    rpc: jest.fn().mockImplementation((name) => {
-      if (name === 'update_vote_count') {
-        return Promise.resolve({ error: null });
+    from: jest.fn().mockImplementation((table) => {
+      if (table === 'lesson_request_votes') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          match: jest.fn().mockReturnThis(),
+          single: jest.fn().mockResolvedValue({ data: null, error: null }),
+          delete: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          insert: jest.fn().mockResolvedValue({ error: null }),
+          count: jest.fn().mockReturnValue('exact'),
+          head: jest.fn().mockResolvedValue(5)
+        };
+      } else if (table === 'lesson_requests') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          single: jest.fn().mockResolvedValue({ data: { vote_count: 5 }, error: null }),
+          update: jest.fn().mockReturnThis()
+        };
       }
-      return Promise.reject(new Error('Unknown RPC call'));
+      return {
+        select: jest.fn().mockReturnThis(),
+        match: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({ data: null, error: null }),
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockResolvedValue({ error: null })
+      };
     })
   }
 
@@ -94,6 +109,8 @@ describe('Vote API Route', () => {
     expect(response.status).toBe(200)
     
     const responseData = await response.json()
-    expect(responseData).toEqual({ success: true })
+    expect(responseData.success).toBe(true)
+    expect(responseData).toHaveProperty('currentVotes')
+    expect(responseData).toHaveProperty('userHasVoted')
   })
 })

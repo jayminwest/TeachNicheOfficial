@@ -9,6 +9,7 @@ import { Toaster } from "@/app/components/ui/toaster";
 
 interface LessonDetailProps {
   id: string;
+  session?: any;
 }
 
 export default async function LessonDetail({ id }: LessonDetailProps) {
@@ -129,8 +130,8 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
                 )}
               </div>
             
-              {/* Show edit button for lesson owner */}
-              {session?.user?.id === lesson.instructor_id && (
+              {/* Show edit button for lesson owner (duplicate removed) */}
+              {false && (
                 <Link href={`/lessons/${lesson.id}/edit`}>
                   <Button variant="outline">
                     <PencilIcon className="mr-2 h-4 w-4" />

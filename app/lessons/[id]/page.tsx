@@ -1,7 +1,6 @@
 import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 
 export default async function Page({ params }) {
   const supabase = await createServerSupabaseClient();

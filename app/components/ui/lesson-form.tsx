@@ -14,6 +14,7 @@ import { VideoUploader } from "./video-uploader";
 import { toast } from "@/app/components/ui/use-toast";
 import { Card } from "./card";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 const lessonFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),

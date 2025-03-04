@@ -91,6 +91,8 @@ export function useVideoUpload({
       const cacheBuster = `nocache=${Date.now()}`;
       const requestUrl = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${cacheBuster}`;
       
+      console.log('Requesting upload URL from:', requestUrl);
+      
       const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
@@ -124,10 +126,12 @@ export function useVideoUpload({
           }
         }
         
+        console.error('Upload URL error response:', errorMessage);
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('Upload URL response:', data);
       
       if (!data.url || !data.uploadId) {
         console.error('Invalid upload response:', data);

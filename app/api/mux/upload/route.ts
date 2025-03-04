@@ -99,7 +99,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const headersList = await headers();
+  const headersList = headers();
   const origin = headersList.get('origin') || '*';
   
   // Get the upload URL from the query parameters

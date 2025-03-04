@@ -22,6 +22,7 @@ export default function MuxUploadDebugPage() {
     progress,
     error,
     uploadEndpoint,
+    initializeUpload,
     handleUploadStart,
     handleUploadProgress,
     handleUploadSuccess,
@@ -35,6 +36,7 @@ export default function MuxUploadDebugPage() {
     },
     onError: (error) => {
       console.error('Upload error:', error);
+      setApiResponse({ error: error.message, stack: error.stack });
     },
     onProgress: (progress) => {
       console.log('Upload progress:', progress);
@@ -235,6 +237,16 @@ export default function MuxUploadDebugPage() {
                     <p><strong>Progress:</strong> {progress}%</p>
                     <p><strong>Error:</strong> {error || 'None'}</p>
                     <p><strong>Endpoint Ready:</strong> {uploadEndpoint ? 'Yes' : 'No'}</p>
+                    
+                    {status === 'error' && (
+                      <Button 
+                        onClick={initializeUpload} 
+                        className="mt-2"
+                        variant="secondary"
+                      >
+                        Retry Initialization
+                      </Button>
+                    )}
                   </div>
                 </div>
                 

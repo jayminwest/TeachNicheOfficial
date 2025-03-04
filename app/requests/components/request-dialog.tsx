@@ -212,15 +212,18 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                     onClick={async () => {
                       if (window.confirm('Are you sure you want to delete this request?')) {
                         try {
-                          await deleteRequest(request.id)
-                          setOpen(false)
-                          window.location.reload()
+                          console.log('Starting delete request for ID:', request.id);
+                          const result = await deleteRequest(request.id);
+                          console.log('Delete request completed successfully:', result);
+                          setOpen(false);
+                          // Use a more reliable way to refresh the page
+                          setTimeout(() => {
+                            window.location.href = window.location.pathname;
+                          }, 500);
                         } catch (error) {
                           // Log the detailed error for debugging
                           console.error('Failed to delete request:', 
-                            error instanceof Error ? error.message : JSON.stringify(error))
-                          
-                          // No need to show another toast as deleteRequest already shows one
+                            error instanceof Error ? error.message : JSON.stringify(error));
                         }
                       }
                     }}

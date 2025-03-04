@@ -162,7 +162,7 @@ export async function updateRequest(id: string, data: Omit<LessonRequestFormData
   return request as LessonRequest
 }
 
-export async function deleteRequest(id: string): Promise<void> {
+export async function deleteRequest(id: string): Promise<{ success: boolean }> {
   const supabase = createClientComponentClient()
   
   const { data: session } = await supabase.auth.getSession()
@@ -192,11 +192,15 @@ export async function deleteRequest(id: string): Promise<void> {
   }
 
   try {
+    console.log(`Starting deletion process for request ID: ${id}`);
+    
     // First, delete all related votes for this request
-    const { error: votesDeleteError } = await supabase
+    console.log(`Deleting votes for request ID: ${id}`);
+    const { data: votesData, error: votesDeleteError } = await supabase
       .from('lesson_request_votes')
       .delete()
       .eq('request_id', id)
+      .select()
     
     if (votesDeleteError) {
       console.error('Error deleting related votes:', votesDeleteError);
@@ -208,11 +212,15 @@ export async function deleteRequest(id: string): Promise<void> {
       throw new Error(`Failed to delete related votes: ${votesDeleteError.message}`)
     }
     
+    console.log(`Successfully deleted ${votesData?.length || 0} votes`);
+    
     // Now delete the request itself
-    const { error: requestDeleteError } = await supabase
+    console.log(`Deleting request with ID: ${id}`);
+    const { data: requestData, error: requestDeleteError } = await supabase
       .from('lesson_requests')
       .delete()
       .eq('id', id)
+      .select()
       
     if (requestDeleteError) {
       console.error('Supabase delete error:', requestDeleteError);
@@ -224,18 +232,17 @@ export async function deleteRequest(id: string): Promise<void> {
       throw new Error(`Failed to delete request: ${requestDeleteError.message || JSON.stringify(requestDeleteError)}`)
     }
     
+    console.log('Request deleted successfully:', requestData);
+    
     toast({
       title: "Request deleted",
       description: "Your lesson request has been deleted successfully."
     })
+    
+    return { success: true };
   } catch (error) {
     // Handle any other errors that might occur
     console.error('Error in delete operation:', error);
-    
-    // If it's already a formatted error from our code, just rethrow it
-    if (error instanceof Error) {
-      throw error;
-    }
     
     // Otherwise create a new error
     toast({
@@ -243,8 +250,16 @@ export async function deleteRequest(id: string): Promise<void> {
       description: error instanceof Error ? error.message : "An unexpected error occurred",
       variant: "destructive"
     })
+    
+    // If it's already a formatted error from our code, just rethrow it
+    if (error instanceof Error) {
+      throw error;
+    }
+    
     throw new Error(`Failed to delete request: ${error instanceof Error ? error.message : JSON.stringify(error)}`)
   }
+  
+  return { success: false };
 }
 
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote'): Promise<RequestVoteResponse> {

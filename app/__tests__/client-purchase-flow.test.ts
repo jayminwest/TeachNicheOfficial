@@ -157,6 +157,9 @@ describe('Client Purchase Flow', () => {
     });
     
     it('should retry check-purchase if access is not granted immediately', async () => {
+      // Reset fetch mock to ensure call count starts at 0
+      (global.fetch as jest.Mock).mockReset();
+      
       // First call returns no access
       (global.fetch as jest.Mock).mockImplementationOnce(() => 
         Promise.resolve({

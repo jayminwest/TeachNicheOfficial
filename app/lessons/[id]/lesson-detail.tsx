@@ -110,12 +110,24 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
         <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <Link href="/lessons">
-                <Button variant="ghost">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Lessons
-                </Button>
-              </Link>
+              <div className="flex justify-between items-center mb-4">
+                <Link href="/lessons">
+                  <Button variant="ghost">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Lessons
+                  </Button>
+                </Link>
+            
+                {/* Show edit button for lesson owner */}
+                {session?.user?.id === lesson.instructor_id && (
+                  <Link href={`/lessons/${lesson.id}/edit`}>
+                    <Button variant="outline">
+                      <PencilIcon className="mr-2 h-4 w-4" />
+                      Edit Lesson
+                    </Button>
+                  </Link>
+                )}
+              </div>
             
               {/* Show edit button for lesson owner */}
               {session?.user?.id === lesson.instructor_id && (

@@ -123,7 +123,7 @@ export default async function LessonDetail({ id, session }: LessonDetailProps) {
               </Link>
           
               {/* Show edit button for lesson owner */}
-              {session?.user?.id === lesson.instructor_id && (
+              {session?.user?.id === lesson.creator_id && (
                 <Link href={`/lessons/${lesson.id}/edit`}>
                   <Button variant="outline">
                     <PencilIcon className="mr-2 h-4 w-4" />
@@ -140,7 +140,7 @@ export default async function LessonDetail({ id, session }: LessonDetailProps) {
               <div className="mb-6">
                 <LessonAccessGate
                   lessonId={lesson.id}
-                  creatorId={lesson.instructor_id}
+                  creatorId={lesson.creator_id}
                   price={lesson.price}
                   className="w-full"
                 >

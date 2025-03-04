@@ -25,7 +25,7 @@ export function LessonAccessGate({
   const { user } = useAuth();
   
   // Check if current user is the lesson creator
-  const isOwner = user?.id === creatorId;
+  const isOwner = creatorId && user?.id === creatorId;
   
   // If user is the owner, they always have access
   if (isOwner) {

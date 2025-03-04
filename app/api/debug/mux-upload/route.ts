@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUpload, getUploadStatus, getAssetStatus, Video } from '@/app/services/mux';
+import { createUpload, getUploadStatus, getAssetStatus, Video, debugMuxVideo } from '@/app/services/mux';
 import Mux from '@mux/mux-node';
 
 /**
@@ -176,6 +176,17 @@ export async function GET(request: Request) {
           env: envInfo
         });
         
+      case 'debug-video-api':
+        // Get detailed debug info about the Video API
+        const debugInfo = debugMuxVideo();
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Mux Video API Debug Info',
+          debugInfo,
+          env: envInfo
+        });
+        
       case 'info':
       default:
         // Return environment info and usage instructions
@@ -187,7 +198,8 @@ export async function GET(request: Request) {
             createUpload: '/api/debug/mux-upload?action=create-upload&isFree=true',
             uploadStatus: '/api/debug/mux-upload?action=upload-status&uploadId=YOUR_UPLOAD_ID',
             assetStatus: '/api/debug/mux-upload?action=asset-status&assetId=YOUR_ASSET_ID',
-            testVideoApi: '/api/debug/mux-upload?action=test-video-api'
+            testVideoApi: '/api/debug/mux-upload?action=test-video-api',
+            debugVideoApi: '/api/debug/mux-upload?action=debug-video-api'
           }
         });
     }

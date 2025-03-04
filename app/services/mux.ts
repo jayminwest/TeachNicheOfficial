@@ -2,7 +2,6 @@ import Mux from '@mux/mux-node';
 import { v4 as uuidv4 } from 'uuid';
 
 // Only initialize Mux client on the server side
-let muxClient: any = null;
 let Video: any = null;
 
 // Function to initialize Mux client
@@ -11,7 +10,7 @@ function initMuxClient() {
     return false; // Don't initialize on client side
   }
   
-  if (muxClient && Video) {
+  if (Video) {
     return true; // Already initialized
   }
   
@@ -24,14 +23,9 @@ function initMuxClient() {
   }
   
   try {
-    // Initialize the client - using the correct approach from Mux docs
-    muxClient = new Mux();
-    
-    // Set up the Video API client
-    Video = new Mux.Video({
-      tokenId,
-      tokenSecret
-    });
+    // Initialize the Video API client directly
+    const { Video: MuxVideo } = new Mux({ tokenId, tokenSecret });
+    Video = MuxVideo;
     
     // Verify that Video API is properly initialized
     if (!Video) {
@@ -40,7 +34,7 @@ function initMuxClient() {
     }
     
     // Log success
-    console.log('Mux client initialized successfully');
+    console.log('Mux client initialized successfully with Video API');
     return true;
   } catch (error) {
     console.error('Failed to initialize Mux client:', error);
@@ -51,6 +45,19 @@ function initMuxClient() {
 // Initialize on module load
 const initialized = initMuxClient();
 console.log('Mux client initialization result:', initialized ? 'Success' : 'Failed');
+
+// Debug function to check Video API
+export function debugMuxVideo() {
+  return {
+    initialized,
+    videoExists: !!Video,
+    uploadsExists: Video && !!Video.Uploads,
+    createMethodExists: Video && Video.Uploads && typeof Video.Uploads.create === 'function',
+    assetsExists: Video && !!Video.Assets,
+    videoKeys: Video ? Object.keys(Video) : [],
+    uploadsKeys: Video && Video.Uploads ? Object.keys(Video.Uploads) : []
+  };
+}
 
 // Export the Video object
 export { Video };
@@ -188,6 +195,12 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
+    // Check if Video.Uploads exists and has create method
+    if (!Video.Uploads || typeof Video.Uploads.create !== 'function') {
+      console.error('Video.Uploads.create is not a function:', Video);
+      throw new Error('Mux Video API not properly initialized - Uploads.create method not available');
+    }
+
     // Using the correct method from Mux docs
     const upload = await Video.Uploads.create({
       new_asset_settings: {

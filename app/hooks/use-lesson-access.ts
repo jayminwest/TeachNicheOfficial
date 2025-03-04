@@ -36,6 +36,13 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       if (user?.id && lessonId) {
         const cacheKey = `lesson-access-${lessonId}-${user.id}`;
         sessionStorage.removeItem(cacheKey);
+        
+        // Also try to update the purchase status directly
+        try {
+          purchasesService.checkLessonAccess(user.id, lessonId);
+        } catch (err) {
+          console.warn('Failed to refresh access status:', err);
+        }
       }
       
       setAccess({

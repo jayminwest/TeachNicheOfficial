@@ -104,6 +104,7 @@ export function LessonAccessGate({
       window.history.replaceState({}, '', url.toString());
     }
     
+    // Override hasAccess for success parameter
     return (
       <div className={cn(className)}>
         {children}

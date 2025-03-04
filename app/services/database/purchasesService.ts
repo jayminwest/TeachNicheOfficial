@@ -75,20 +75,51 @@ export class PurchasesService extends DatabaseService {
     return this.executeWithRetry(async () => {
       const supabase = this.getClient();
       
+      // First get the lesson to get creator_id
+      const { data: lesson, error: lessonError } = await supabase
+        .from('lessons')
+        .select('creator_id')
+        .eq('id', data.lessonId)
+        .single();
+      
+      if (lessonError) {
+        console.error('Error fetching lesson for purchase:', lessonError);
+        return { data: null, error: lessonError };
+      }
+      
+      // Calculate platform fee (10% of amount)
+      const platformFee = Math.round(data.amount * 0.1 * 100) / 100;
+      const creatorEarnings = Math.round((data.amount - platformFee) * 100) / 100;
+      
+      // Generate a UUID for the purchase
+      const purchaseId = crypto.randomUUID();
+      
       const { data: purchaseData, error } = await supabase
         .from('purchases')
         .insert({
+          id: purchaseId,
           lesson_id: data.lessonId,
           user_id: data.userId,
+          creator_id: lesson.creator_id,
           amount: data.amount,
+          platform_fee: platformFee,
+          creator_earnings: creatorEarnings,
+          fee_percentage: 10, // 10%
           status: 'pending',
           stripe_session_id: data.stripeSessionId,
-          created_at: new Date().toISOString()
+          payment_intent_id: data.stripeSessionId, // Use session ID as payment intent for now
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          version: 1,
+          metadata: {
+            created_via: 'web_checkout'
+          }
         })
         .select('id')
         .single();
       
       if (error) {
+        console.error('Error creating purchase:', error);
         return { data: null, error };
       }
       

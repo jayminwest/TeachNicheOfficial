@@ -141,64 +141,64 @@ export function StripeConnectButton({
   return (
     <div className="flex flex-col gap-4">
       {stripeAccountId && (
-        <Card>
-          <CardHeader className="pb-2">
+        <div className="bg-background border rounded-md">
+          <div className="p-4 border-b">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">Stripe Account Status</CardTitle>
+              <h3 className="text-lg font-semibold">Stripe Account Status</h3>
               {getStatusBadge()}
             </div>
-            <CardDescription>
+            <p className="text-sm text-muted-foreground mt-1">
               {stripeStatus?.isComplete 
                 ? 'Your Stripe account is fully set up and ready to receive payments.' 
                 : 'Your Stripe account setup is incomplete. Please complete the required steps.'}
-            </CardDescription>
-          </CardHeader>
+            </p>
+          </div>
           
-          <CardContent className="pt-0">
+          <div className="p-4">
             <div className="text-sm space-y-3">
               {/* Status indicators for all accounts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                <div className={`flex items-center gap-2 p-2 rounded-md border ${
+                <div className={`flex items-center gap-2 p-2 rounded-md ${
                   stripeStatus?.details?.has_details_submitted 
-                    ? 'bg-green-50 border-green-200 text-green-700' 
-                    : 'bg-red-50 border-red-200 text-red-700'
+                    ? 'bg-background' 
+                    : 'bg-red-50/10'
                 }`}>
                   {stripeStatus?.details?.has_details_submitted 
-                    ? <CheckCircle className="h-4 w-4 text-green-600" /> 
-                    : <AlertCircle className="h-4 w-4 text-red-600" />}
+                    ? <CheckCircle className="h-4 w-4 text-green-500" /> 
+                    : <AlertCircle className="h-4 w-4 text-red-500" />}
                   <span>Account Details</span>
                 </div>
                 
-                <div className={`flex items-center gap-2 p-2 rounded-md border ${
+                <div className={`flex items-center gap-2 p-2 rounded-md ${
                   stripeStatus?.details?.has_charges_enabled 
-                    ? 'bg-green-50 border-green-200 text-green-700' 
-                    : 'bg-red-50 border-red-200 text-red-700'
+                    ? 'bg-background' 
+                    : 'bg-red-50/10'
                 }`}>
                   {stripeStatus?.details?.has_charges_enabled 
-                    ? <CheckCircle className="h-4 w-4 text-green-600" /> 
-                    : <AlertCircle className="h-4 w-4 text-red-600" />}
+                    ? <CheckCircle className="h-4 w-4 text-green-500" /> 
+                    : <AlertCircle className="h-4 w-4 text-red-500" />}
                   <span>Payment Processing</span>
                 </div>
                 
-                <div className={`flex items-center gap-2 p-2 rounded-md border ${
+                <div className={`flex items-center gap-2 p-2 rounded-md ${
                   stripeStatus?.details?.has_payouts_enabled 
-                    ? 'bg-green-50 border-green-200 text-green-700' 
-                    : 'bg-red-50 border-red-200 text-red-700'
+                    ? 'bg-background' 
+                    : 'bg-red-50/10'
                 }`}>
                   {stripeStatus?.details?.has_payouts_enabled 
-                    ? <CheckCircle className="h-4 w-4 text-green-600" /> 
-                    : <AlertCircle className="h-4 w-4 text-red-600" />}
+                    ? <CheckCircle className="h-4 w-4 text-green-500" /> 
+                    : <AlertCircle className="h-4 w-4 text-red-500" />}
                   <span>Payouts Enabled</span>
                 </div>
                 
-                <div className={`flex items-center gap-2 p-2 rounded-md border ${
+                <div className={`flex items-center gap-2 p-2 rounded-md ${
                   stripeStatus?.details?.pending_verification 
-                    ? 'bg-amber-50 border-amber-200 text-amber-700' 
-                    : (stripeStatus?.isComplete ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-700')
+                    ? 'bg-amber-50/10' 
+                    : (stripeStatus?.isComplete ? 'bg-background' : 'bg-background')
                 }`}>
                   {stripeStatus?.details?.pending_verification 
-                    ? <Clock className="h-4 w-4 text-amber-600" /> 
-                    : (stripeStatus?.isComplete ? <CheckCircle className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-gray-600" />)}
+                    ? <Clock className="h-4 w-4 text-amber-500" /> 
+                    : (stripeStatus?.isComplete ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertTriangle className="h-4 w-4 text-gray-500" />)}
                   <span>Verification Status</span>
                 </div>
               </div>
@@ -207,7 +207,7 @@ export function StripeConnectButton({
               {stripeStatus && !stripeStatus.isComplete && (
                 <>
                   {stripeStatus.details?.pendingVerification && (
-                    <div className="flex items-start gap-2 text-amber-600 p-2 bg-amber-50 rounded-md">
+                    <div className="flex items-start gap-2 p-2 bg-amber-50/10 rounded-md text-amber-500">
                       <Clock className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <span>Stripe is verifying your information. This may take 1-2 business days.</span>
                     </div>
@@ -215,7 +215,7 @@ export function StripeConnectButton({
                   
                   {stripeStatus.details?.missingRequirements && 
                   stripeStatus.details.missingRequirements.length > 0 && (
-                    <div className="flex items-start gap-2 text-red-600 p-2 bg-red-50 rounded-md">
+                    <div className="flex items-start gap-2 p-2 bg-red-50/10 rounded-md text-red-500">
                       <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="font-medium">Required information missing:</p>
@@ -231,15 +231,15 @@ export function StripeConnectButton({
               )}
               
               {stripeStatus?.isComplete && (
-                <div className="flex items-start gap-2 text-green-600 p-2 bg-green-50 rounded-md">
+                <div className="flex items-start gap-2 p-2 bg-green-50/10 rounded-md text-green-500">
                   <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>Your Stripe account is fully verified and ready to receive payments.</span>
                 </div>
               )}
             </div>
-          </CardContent>
+          </div>
           
-          <CardFooter className="flex justify-between pt-2">
+          <div className="flex justify-between items-center px-4 py-2 border-t">
             <div className="text-xs text-muted-foreground">
               Account ID: {stripeAccountId?.substring(0, 8)}...
             </div>
@@ -251,11 +251,11 @@ export function StripeConnectButton({
             >
               {showDetails ? 'Hide Debug Info' : 'Show Debug Info'}
             </Button>
-          </CardFooter>
+          </div>
           
           {showDetails && (
-            <div className="px-6 pb-4">
-              <div className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto">
+            <div className="px-4 pb-4">
+              <div className="bg-muted/30 p-3 rounded-md text-xs font-mono overflow-x-auto">
                 <div className="mb-2 text-xs font-semibold text-muted-foreground">Debug Information:</div>
                 <pre className="whitespace-pre-wrap break-all">
                   {JSON.stringify({
@@ -268,7 +268,7 @@ export function StripeConnectButton({
               </div>
             </div>
           )}
-        </Card>
+        </div>
       )}
       
       <Button 
@@ -276,7 +276,7 @@ export function StripeConnectButton({
         disabled={buttonDisabled || isLoading}
         variant={buttonVariant}
         aria-busy={isLoading ? "true" : "false"}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 w-full"
       >
         {isLoading ? "Connecting..." : buttonText}
         {!buttonDisabled && !isLoading && <ExternalLink className="h-4 w-4" />}

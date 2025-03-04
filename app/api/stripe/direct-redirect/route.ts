@@ -86,7 +86,7 @@ export async function GET(request: Request) {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: `${baseUrl}/profile?refresh=true`,
-      return_url: `${baseUrl}/profile?success=true`,
+      return_url: `${baseUrl}/profile?success=true&account_id=${accountId}`,
       type: 'account_onboarding'
     });
     

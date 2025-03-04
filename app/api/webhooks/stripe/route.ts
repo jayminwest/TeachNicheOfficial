@@ -53,6 +53,10 @@ export async function POST(request: Request) {
       case 'account.application.deauthorized':
         await handleAccountDeauthorized(event.data.object as Stripe.Account);
         break;
+        
+      case 'account.external_account.created':
+        await handleExternalAccountCreated(event.data.object as Stripe.BankAccount | Stripe.Card);
+        break;
 
       // Add more event types as needed
     }
@@ -68,10 +72,11 @@ export async function POST(request: Request) {
 }
 
 async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  const supabase = await getSupabaseClient();
-  
-  // Get purchase record by payment intent with lesson and creator details
-  const { data: purchase, error: fetchError } = await supabase
+  try {
+    const supabase = await getSupabaseClient();
+    
+    // Get purchase record by payment intent with lesson and creator details
+    const { data: purchase, error: fetchError } = await supabase
     .from('purchases')
     .select(`
       *,
@@ -133,13 +138,18 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     console.error('Transfer creation error:', err);
     return;
   }
+  } catch (error) {
+    console.error('Payment intent handling error:', error);
+    return;
+  }
 }
 
 async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
-  const supabase = await getSupabaseClient();
-  
-  // Update creator's profile with authorized status
-  const { error: updateError } = await supabase
+  try {
+    const supabase = await getSupabaseClient();
+    
+    // Update creator's profile with authorized status
+    const { error: updateError } = await supabase
     .from('profiles')
     .update({
       stripe_account_status: 'authorized',
@@ -147,19 +157,24 @@ async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
     })
     .eq('stripe_account_id', account.id);
 
-  if (updateError) {
-    console.error('Profile update error:', updateError);
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return;
+    }
+
+    console.log('Creator account authorized:', account.id);
+  } catch (error) {
+    console.error('Account authorized handling error:', error);
     return;
   }
-
-  console.log('Creator account authorized:', account.id);
 }
 
 async function handleAccountDeauthorized(account: Stripe.Account): Promise<void> {
-  const supabase = await getSupabaseClient();
-  
-  // Update creator's profile with deauthorized status
-  const { error: updateError } = await supabase
+  try {
+    const supabase = await getSupabaseClient();
+    
+    // Update creator's profile with deauthorized status
+    const { error: updateError } = await supabase
     .from('profiles')
     .update({
       stripe_account_status: 'deauthorized',
@@ -168,12 +183,16 @@ async function handleAccountDeauthorized(account: Stripe.Account): Promise<void>
     })
     .eq('stripe_account_id', account.id);
 
-  if (updateError) {
-    console.error('Profile update error:', updateError);
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return;
+    }
+
+    console.log('Creator account deauthorized:', account.id);
+  } catch (error) {
+    console.error('Account deauthorized handling error:', error);
     return;
   }
-
-  console.log('Creator account deauthorized:', account.id);
 }
 
 async function handleAccount(account: Stripe.Account): Promise<void> {
@@ -237,11 +256,39 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
     return;
   }
 
-  if (updateError) {
-    console.error('Profile update error:', updateError);
+  console.log('Creator account status updated:', account.id, isComplete ? 'complete' : 'pending');
+}
+
+async function handleExternalAccountCreated(externalAccount: Stripe.BankAccount | Stripe.Card): Promise<void> {
+  try {
+    // Only process bank accounts
+    if (externalAccount.object !== 'bank_account') {
+      return;
+    }
+    
+    const bankAccount = externalAccount as Stripe.BankAccount;
+    const accountId = bankAccount.account;
+    
+    const supabase = await getSupabaseClient();
+    
+    // Update profile to indicate bank account was added
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_has_bank_account: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_account_id', accountId);
+
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return;
+    }
+
+    console.log('Bank account added for account:', accountId);
+  } catch (error) {
+    console.error('External account handling error:', error);
     return;
   }
-
-  console.log('Creator account status updated:', account.id, isComplete ? 'complete' : 'pending');
 }
 

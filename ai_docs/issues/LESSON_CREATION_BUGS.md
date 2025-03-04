@@ -342,6 +342,197 @@ New tests should be created to verify fixes for all issues:
    - Test Stripe product/price creation for paid lessons
    - Test background video processing
 
+## Implementation Details
+
+### Video Uploader Fix Implementation
+
+The `VideoUploader` component needs to be modified to automatically initialize the upload URL on component mount:
+
+```typescript
+// In VideoUploader component
+useEffect(() => {
+  if (!uploadEndpoint) {
+    startUpload();
+  }
+}, [uploadEndpoint, startUpload]);
+```
+
+The `useVideoUpload` hook should be enhanced with better error handling:
+
+```typescript
+// In getUploadUrl function of useVideoUpload hook
+try {
+  const response = await fetch(endpoint, {
+    method: 'POST'
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'No error details available');
+    throw new Error(`Failed to get upload URL (HTTP ${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.url || !data.uploadId) {
+    throw new Error('Invalid upload response: missing URL or upload ID');
+  }
+  
+  return data.url;
+} catch (error) {
+  console.error('Upload URL error:', error);
+  throw error; // Let the retry mechanism handle it
+}
+```
+
+### Authentication Fix Implementation
+
+The lesson creation page should use the `useAuthGuard` hook consistently:
+
+```typescript
+// In lessons/new/page.tsx
+const { isAuthenticated, loading: authLoading, user } = useAuthGuard({
+  redirectTo: '/sign-in?callbackUrl=/lessons/new',
+  showToast: true
+});
+
+// Remove duplicate authentication checks
+```
+
+### Non-Blocking Video Processing Implementation
+
+The lesson creation flow should be updated to:
+
+1. Create a new API endpoint for background video processing:
+
+```typescript
+// app/api/lessons/process-video/route.ts
+export async function POST(request: Request) {
+  const { lessonId, muxAssetId, isPaid } = await request.json();
+  
+  try {
+    // Poll Mux API for asset status
+    const result = await waitForAssetReady(muxAssetId, {
+      maxAttempts: 60,
+      interval: 10000
+    });
+    
+    if (result.status === 'ready' && result.playbackId) {
+      // Update lesson with playback ID and change status to published
+      const supabase = createServerSupabaseClient();
+      const { error } = await supabase
+        .from('lessons')
+        .update({ 
+          status: 'published',
+          mux_playback_id: result.playbackId
+        })
+        .eq('id', lessonId);
+      
+      if (error) {
+        console.error('Failed to update lesson:', error);
+        return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
+      }
+      
+      return NextResponse.json({ success: true });
+    } else {
+      return NextResponse.json({ error: 'Video processing failed' }, { status: 500 });
+    }
+  } catch (error) {
+    console.error('Error processing video:', error);
+    return NextResponse.json({ error: 'Failed to process video' }, { status: 500 });
+  }
+}
+```
+
+2. Update the lesson creation flow to create the lesson immediately and start background processing:
+
+```typescript
+// In lessons/new/page.tsx
+// Create lesson immediately with processing status
+const lessonData = {
+  ...data,
+  status: 'processing',
+  muxAssetId: data.muxAssetId
+};
+
+// Create lesson first
+const response = await fetch("/api/lessons", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(lessonData),
+});
+
+if (!response.ok) {
+  // Error handling...
+}
+
+const lesson = await response.json();
+
+// Then start background processing
+fetch('/api/lessons/process-video', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    lessonId: lesson.id,
+    muxAssetId: data.muxAssetId,
+    isPaid: data.price > 0
+  })
+});
+
+// Redirect to lesson page
+router.push(`/lessons/${lesson.id}`);
+```
+
+3. Ensure the Stripe integration is properly handled in the lesson creation API:
+
+```typescript
+// In app/api/lessons/route.ts
+// Check if this is a paid lesson
+if (price > 0) {
+  // Verify user can create paid lessons
+  const canCreatePaid = await canCreatePaidLessons(session.user.id, supabase);
+  if (!canCreatePaid) {
+    return createErrorResponse(
+      'Stripe account required for paid lessons', 
+      403, 
+      'You must connect a Stripe account and complete onboarding to create paid lessons'
+    );
+  }
+
+  try {
+    // Get the user's Stripe account ID
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile?.stripe_account_id) {
+      return createErrorResponse('Stripe account required', 403);
+    }
+
+    // Create a Stripe product for the lesson
+    const productId = await createProductForLesson({
+      id: lessonData.id,
+      title,
+      description
+    });
+
+    // Create a Stripe price for the product
+    const priceId = await createPriceForProduct(productId, price);
+
+    // Update the lesson data with Stripe IDs
+    lessonData.stripe_product_id = productId;
+    lessonData.stripe_price_id = priceId;
+  } catch (error) {
+    console.error('Stripe product/price creation error:', error);
+    // Continue anyway, as the lesson is created
+    // In a production environment, you might want to implement a background job to retry
+  }
+}
+```
+
 ## Additional Context
 
 These issues are blocking the core functionality of creating new lessons. The current implementation has several design flaws that create a poor user experience. The proposed solutions will significantly improve the user experience by allowing users to create lessons quickly without waiting for video processing to complete.

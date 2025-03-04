@@ -191,37 +191,60 @@ export async function deleteRequest(id: string): Promise<void> {
     throw new Error('Unauthorized')
   }
 
-  const { error } = await supabase
-    .from('lesson_requests')
-    .delete()
-    .eq('id', id)
+  try {
+    // First, delete all related votes for this request
+    const { error: votesDeleteError } = await supabase
+      .from('lesson_request_votes')
+      .delete()
+      .eq('request_id', id)
     
-  if (error) {
-    console.error('Supabase delete error:', error);
-    
-    // Handle specific error codes
-    if (error.code === '23503' || error.code === '23000' || error.code === '409') {
-      // Foreign key constraint violation
-      toast({
-        title: "Cannot delete request",
-        description: "This request has related data and cannot be deleted. Please contact support if you need assistance.",
-        variant: "destructive"
-      })
-      throw new Error('Cannot delete request: It has related data (constraint violation)');
-    } else {
+    if (votesDeleteError) {
+      console.error('Error deleting related votes:', votesDeleteError);
       toast({
         title: "Error deleting request",
-        description: error.message || "Unknown database error",
+        description: "Failed to delete related votes. Please try again.",
         variant: "destructive"
       })
-      throw new Error(`Failed to delete request: ${error.message || JSON.stringify(error)}`);
+      throw new Error(`Failed to delete related votes: ${votesDeleteError.message}`)
     }
+    
+    // Now delete the request itself
+    const { error: requestDeleteError } = await supabase
+      .from('lesson_requests')
+      .delete()
+      .eq('id', id)
+      
+    if (requestDeleteError) {
+      console.error('Supabase delete error:', requestDeleteError);
+      toast({
+        title: "Error deleting request",
+        description: requestDeleteError.message || "Unknown database error",
+        variant: "destructive"
+      })
+      throw new Error(`Failed to delete request: ${requestDeleteError.message || JSON.stringify(requestDeleteError)}`)
+    }
+    
+    toast({
+      title: "Request deleted",
+      description: "Your lesson request has been deleted successfully."
+    })
+  } catch (error) {
+    // Handle any other errors that might occur
+    console.error('Error in delete operation:', error);
+    
+    // If it's already a formatted error from our code, just rethrow it
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    // Otherwise create a new error
+    toast({
+      title: "Error deleting request",
+      description: error instanceof Error ? error.message : "An unexpected error occurred",
+      variant: "destructive"
+    })
+    throw new Error(`Failed to delete request: ${error instanceof Error ? error.message : JSON.stringify(error)}`)
   }
-  
-  toast({
-    title: "Request deleted",
-    description: "Your lesson request has been deleted successfully."
-  })
 }
 
 export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote'): Promise<RequestVoteResponse> {

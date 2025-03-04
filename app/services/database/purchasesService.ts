@@ -26,16 +26,37 @@ export class PurchasesService extends DatabaseService {
         apiVersion: '2025-01-27.acacia',
       });
       
+      console.log(`Retrieving Stripe session: ${sessionId}`);
+      
       // Retrieve the session from Stripe
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['line_items', 'payment_intent']
+      });
+      
+      console.log(`Session retrieved, payment_status: ${session.payment_status}`);
       
       // Extract IDs from session
-      const lessonId = session.metadata?.lessonId;
-      const userId = session.metadata?.userId;
+      let lessonId = session.metadata?.lessonId;
+      let userId = session.metadata?.userId;
+      
+      // Try to extract from client_reference_id if metadata is missing
+      if (!lessonId || !userId) {
+        if (session.client_reference_id) {
+          const refParts = session.client_reference_id.split('_');
+          if (refParts.length >= 4 && refParts[0] === 'lesson' && refParts[2] === 'user') {
+            lessonId = refParts[1];
+            userId = refParts[3];
+            console.log(`Extracted IDs from client_reference_id: lessonId=${lessonId}, userId=${userId}`);
+          }
+        }
+      }
       
       // Check if the session is paid
-      const isPaid = session.payment_status === 'paid';
+      // Consider both 'paid' and 'no_payment_required' as valid paid states
+      const isPaid = session.payment_status === 'paid' || session.payment_status === 'no_payment_required';
       const amount = session.amount_total ? session.amount_total / 100 : undefined;
+      
+      console.log(`Session verification result: isPaid=${isPaid}, amount=${amount}, lessonId=${lessonId}, userId=${userId}`);
       
       return {
         data: {

@@ -54,17 +54,31 @@ export async function POST(request: NextRequest) {
 
     // If a session ID was provided, verify it directly with Stripe
     if (sessionId) {
+      console.log(`Verifying session ID directly with Stripe: ${sessionId}`);
       const { data: stripeVerification, error: stripeError } = await purchasesService.verifyStripeSession(sessionId);
       
+      if (stripeError) {
+        console.error('Error verifying with Stripe:', stripeError);
+      } else {
+        console.log('Stripe verification result:', stripeVerification);
+      }
+      
       if (!stripeError && stripeVerification?.isPaid) {
+        console.log('Stripe verification confirms payment is complete');
         // If Stripe says it's paid, create or update the purchase record
-        await purchasesService.createPurchase({
+        const createResult = await purchasesService.createPurchase({
           lessonId,
           userId,
           amount: stripeVerification.amount,
           stripeSessionId: sessionId,
           fromWebhook: false
         });
+        
+        if (createResult.error) {
+          console.error('Error creating purchase from verification:', createResult.error);
+        } else {
+          console.log(`Created/updated purchase record: ${createResult.data?.id}`);
+        }
         
         return NextResponse.json({
           hasAccess: true,

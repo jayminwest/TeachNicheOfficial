@@ -96,6 +96,36 @@ export async function POST(request: NextRequest) {
               if (lessons && lessons.length > 0) {
                 console.log(`Found lesson by title: ${lessons[0].id}`);
                 // We have the lesson ID but still need user ID
+                
+                // Try to find the user from the customer email
+                if (session.customer_details?.email) {
+                  const { data: users } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', session.customer_details.email)
+                    .limit(1);
+                  
+                  if (users && users.length > 0) {
+                    console.log(`Found user by email: ${users[0].id}`);
+                    // Now we have both IDs, proceed with purchase creation
+                    const createResult = await purchasesService.createPurchase({
+                      lessonId: lessons[0].id,
+                      userId: users[0].id,
+                      amount: session.amount_total ? session.amount_total / 100 : undefined,
+                      stripeSessionId: session.id,
+                      fromWebhook: true
+                    });
+                    
+                    if (createResult.error) {
+                      console.error('Failed to create purchase record:', createResult.error);
+                      return NextResponse.json({ error: 'Failed to create purchase record' }, { status: 500 });
+                    }
+                    
+                    return NextResponse.json({ success: true, created: true });
+                  }
+                }
+                
+                // If we couldn't find the user, return partial success
                 return NextResponse.json({ 
                   error: 'Partial information found, webhook will be retried',
                   lessonId: lessons[0].id

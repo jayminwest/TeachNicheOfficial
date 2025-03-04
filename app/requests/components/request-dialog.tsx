@@ -27,13 +27,6 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const { user } = useAuth();
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   
-  // Set default category after categories load
-  useEffect(() => {
-    if (!request && categories.length > 0 && !form.getValues('category')) {
-      form.setValue('category', categories[0].name);
-    }
-  }, [categories, form, request]);
-  
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),
     defaultValues: request ? {
@@ -51,6 +44,13 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
       tags: []
     }
   })
+  
+  // Set default category after categories load
+  useEffect(() => {
+    if (!request && categories.length > 0 && !form.getValues('category')) {
+      form.setValue('category', categories[0].name);
+    }
+  }, [categories, form, request]);
 
   const onSubmit = async (data: LessonRequestFormData) => {
     try {

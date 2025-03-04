@@ -197,12 +197,25 @@ export async function deleteRequest(id: string): Promise<void> {
     .eq('id', id)
     
   if (error) {
-    toast({
-      title: "Error deleting request",
-      description: error.message,
-      variant: "destructive"
-    })
-    throw error
+    console.error('Supabase delete error:', error);
+    
+    // Handle specific error codes
+    if (error.code === '23503' || error.code === '23000' || error.code === '409') {
+      // Foreign key constraint violation
+      toast({
+        title: "Cannot delete request",
+        description: "This request has related data and cannot be deleted. Please contact support if you need assistance.",
+        variant: "destructive"
+      })
+      throw new Error('Cannot delete request: It has related data (constraint violation)');
+    } else {
+      toast({
+        title: "Error deleting request",
+        description: error.message || "Unknown database error",
+        variant: "destructive"
+      })
+      throw new Error(`Failed to delete request: ${error.message || JSON.stringify(error)}`);
+    }
   }
   
   toast({

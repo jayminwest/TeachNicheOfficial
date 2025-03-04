@@ -216,7 +216,11 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                           setOpen(false)
                           window.location.reload()
                         } catch (error) {
-                          console.error('Failed to delete request:', error)
+                          // Log the detailed error for debugging
+                          console.error('Failed to delete request:', 
+                            error instanceof Error ? error.message : JSON.stringify(error))
+                          
+                          // No need to show another toast as deleteRequest already shows one
                         }
                       }
                     }}

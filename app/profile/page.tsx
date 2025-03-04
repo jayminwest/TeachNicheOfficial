@@ -118,18 +118,7 @@ export default function ProfilePage() {
               <ContentManagement />
             </TabsContent>
             <TabsContent value="settings">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium">Stripe Connect</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Connect your Stripe account to receive payments for your lessons
-                  </p>
-                  <StripeConnectButton 
-                    stripeAccountId={profile?.stripe_account_id}
-                  />
-                </div>
-                <AccountSettings />
-              </div>
+              <AccountSettings />
             </TabsContent>
           </Tabs>
         </Card>

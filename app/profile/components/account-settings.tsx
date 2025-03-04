@@ -57,23 +57,6 @@ export function AccountSettings() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>Manage your notification preferences</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium">Email notifications</h4>
-              <p className="text-sm text-muted-foreground">
-                Receive email updates about your account activity
-              </p>
-            </div>
-            <Switch />
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -100,16 +83,6 @@ export function AccountSettings() {
                 />
               )}
             </div>
-        
-            {/* Debug section - only shown in development */}
-            {process.env.NODE_ENV !== 'production' && stripeStatus && (
-              <div className="mt-4 p-3 border rounded bg-muted text-xs">
-                <h5 className="font-medium mb-1">Stripe Debug Info:</h5>
-                <pre className="whitespace-pre-wrap overflow-auto max-h-40">
-                  {JSON.stringify(stripeStatus, null, 2)}
-                </pre>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

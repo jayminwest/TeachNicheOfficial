@@ -1,9 +1,11 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { LessonRequest, LessonRequestFormData } from '@/app/lib/schemas/lesson-request'
 import { toast } from '@/app/components/ui/use-toast'
+import { RequestVoteResponse } from '@/app/types/request'
 
 export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Promise<LessonRequest> {
   const supabase = createClientComponentClient()
+  let requestData: LessonRequest | null = null;
   
   try {
     const { data: session } = await supabase.auth.getSession()
@@ -55,6 +57,15 @@ export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Pr
       })
       throw new Error('Failed to create request: No data returned')
     }
+    
+    requestData = request as LessonRequest;
+    
+    toast({
+      title: "Request created",
+      description: "Your lesson request has been submitted successfully."
+    })
+    
+    return requestData;
   } catch (err) {
     // Catch and log any other errors
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -66,18 +77,6 @@ export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Pr
     })
     throw new Error(`Failed to create request: ${errorMessage}`)
   }
-  
-  toast({
-    title: "Request created",
-    description: "Your lesson request has been submitted successfully."
-  })
-  
-  // Make sure we have a request to return
-  if (!request) {
-    throw new Error('No request data returned from database');
-  }
-  
-  return request as LessonRequest
 }
 
 export async function getRequests(filters?: {
@@ -212,7 +211,7 @@ export async function deleteRequest(id: string): Promise<void> {
   })
 }
 
-export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote') {
+export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote'): Promise<RequestVoteResponse> {
   const supabase = createClientComponentClient()
   
   // Check authentication before making the request
@@ -223,7 +222,12 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
       description: "Please sign in to vote on lesson requests",
       variant: "destructive"
     })
-    throw new Error('Authentication required')
+    return {
+      success: false,
+      currentVotes: 0,
+      userHasVoted: false,
+      error: 'unauthenticated'
+    }
   }
   
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
@@ -233,17 +237,20 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Add CSRF protection
+        'X-CSRF-Protection': '1',
       },
       credentials: 'same-origin',
       body: JSON.stringify({ requestId, voteType }),
     })
 
+    const result = await response.json()
+    
     if (!response.ok) {
-      const error = await response.json()
       console.error('Vote request failed:', {
         status: response.status,
         statusText: response.statusText,
-        error
+        result
       });
       
       // Handle specific error types
@@ -253,30 +260,77 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
           description: "Your session has expired. Please sign in again.",
           variant: "destructive"
         })
-        throw new Error('Authentication required')
+        return {
+          success: false,
+          currentVotes: 0,
+          userHasVoted: false,
+          error: 'unauthenticated'
+        }
       } else if (response.status === 429) {
         toast({
           title: "Rate Limited",
           description: "You've made too many requests. Please try again later.",
           variant: "destructive"
         })
-        throw new Error('Rate limited')
+        return {
+          success: false,
+          currentVotes: 0,
+          userHasVoted: false,
+          error: 'rate_limited'
+        }
+      } else if (response.status === 409) {
+        toast({
+          title: "Already Voted",
+          description: "You have already voted on this request",
+          variant: "destructive"
+        })
+        return {
+          success: false,
+          currentVotes: result.currentVotes || 0,
+          userHasVoted: true,
+          error: 'already_voted'
+        }
       }
       
-      throw new Error(error.error || error.message || 'Failed to submit vote')
+      toast({
+        title: "Error",
+        description: result.error || "Failed to submit vote",
+        variant: "destructive"
+      })
+      
+      return {
+        success: false,
+        currentVotes: 0,
+        userHasVoted: false,
+        error: 'database_error'
+      }
     }
 
-    const result = await response.json()
     console.log('Vote response:', result)
-    return result
+    
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: result.userHasVoted ? "Vote added" : "Vote removed",
+      })
+    }
+    
+    return result as RequestVoteResponse
   } catch (error) {
     // Handle network errors or other exceptions
     console.error('Vote operation failed:', error)
     
-    // Re-throw with more context
-    if (error instanceof Error) {
-      throw error
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to submit vote",
+      variant: "destructive"
+    })
+    
+    return {
+      success: false,
+      currentVotes: 0,
+      userHasVoted: false,
+      error: 'database_error'
     }
-    throw new Error('Failed to submit vote due to an unexpected error')
   }
 }

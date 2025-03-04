@@ -87,7 +87,7 @@ export class PurchasesService extends DatabaseService {
       console.log('Creating purchase record:', {
         lessonId: data.lessonId,
         userId: data.userId,
-        amount: amount,
+        amount: data.amount,
         sessionId: data.stripeSessionId,
         fromWebhook: data.fromWebhook
       });
@@ -160,7 +160,7 @@ export class PurchasesService extends DatabaseService {
           lesson_id: data.lessonId,
           user_id: data.userId,
           creator_id: lesson.creator_id,
-          amount: data.amount,
+          amount: amount,
           platform_fee: platformFee,
           creator_earnings: creatorEarnings,
           fee_percentage: 10, // 10%

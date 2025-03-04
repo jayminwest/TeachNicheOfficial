@@ -38,68 +38,14 @@ export function StripeConnectButton({
     try {
       setIsLoading(true);
       
-      // Get the current session
-      const result = await supabase.auth.getSession();
-      if (result.error) {
-        throw new Error('Failed to get session');
-      }
-      
-      if (!result.data?.session) {
-        throw new Error('No active session');
-      }
-
-      const { session } = result.data;
-
-      // Get user's locale and check if their country is supported
-      const userLocale = navigator.language || 'en';
-      const userCountry = userLocale.split('-')[1] || 'US';
-      
-      if (!stripeConfig.supportedCountries.includes(userCountry)) {
-        throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${stripeConfig.supportedCountries.join(', ')}`);
-      }
-
-      console.log('Initiating Stripe Connect with user:', user.id);
-      
-      console.log('Sending request to /api/stripe/test-link instead of /api/stripe/connect');
-      
-      // Use the test-link endpoint that we know works
-      const response = await fetch('/api/stripe/test-link');
-      
-      console.log('Response status:', response.status);
-      
-      let data;
-      try {
-        data = await response.json();
-        console.log('Response data:', data);
-      } catch (e) {
-        console.error('Failed to parse response as JSON:', e);
-        throw new Error('Invalid response from server');
-      }
-      
-      if (!response.ok) {
-        console.error('Stripe test-link response error:', data);
-        throw new Error(data.error || 'Failed to create Stripe test link');
-      }
-
-      console.log('Received data:', data);
-      
-      if (!data.success || !data.url) {
-        console.error('No URL in response:', data);
-        throw new Error('No redirect URL received from server');
-      }
-
-      console.log('Redirecting to:', data.url);
-      
       // Show a toast before redirecting
       toast({
-        title: 'Test Account Created',
-        description: 'Redirecting to Stripe test account setup...',
+        title: 'Connecting to Stripe',
+        description: 'Redirecting to Stripe account setup...',
       });
       
-      // Use the same approach as the test-direct-link function
-      setTimeout(() => {
-        window.location.href = data.url;
-      }, 1000);
+      // Use the direct redirect approach that works
+      window.location.href = '/api/stripe/direct-redirect';
     } catch (error) {
       toast({
         variant: 'destructive',

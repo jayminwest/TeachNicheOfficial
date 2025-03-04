@@ -119,6 +119,8 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
       // Store the session ID for potential manual updates
       localStorage.setItem(`stripe-session-${lessonId}`, data.sessionId);
       
+      console.log('Redirecting to Stripe checkout with session ID:', data.sessionId);
+      
       const { error } = await stripe.redirectToCheckout({ 
         sessionId: data.sessionId 
       });

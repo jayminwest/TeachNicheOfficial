@@ -10,9 +10,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Purchase API called');
+    
     // Get the request body
     const body = await request.json();
     const { lessonId, price } = body;
+    
+    console.log('Purchase request:', { lessonId, price });
 
     if (!lessonId || price === undefined) {
       return NextResponse.json(
@@ -74,6 +78,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Creating Stripe checkout session');
+    
     // Create a Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -91,7 +97,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success&session_id=${SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=canceled`,
       metadata: {
         lessonId,

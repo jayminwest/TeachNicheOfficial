@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
           
           // If we have the lesson ID and user ID, create a purchase record
           if (lessonId && userId) {
+            console.log(`Creating purchase from webhook with lessonId=${lessonId}, userId=${userId}`);
             console.log('Attempting to create purchase record from webhook data');
             
             try {

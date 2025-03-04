@@ -32,6 +32,8 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
     // If payment was just successful, set access to true immediately
     // and clear any cached access data to force a refresh
     if (isSuccess) {
+      console.log('Purchase success detected in URL, granting immediate access');
+      
       // Clear the cache to force a refresh
       if (user?.id && lessonId) {
         const cacheKey = `lesson-access-${lessonId}-${user.id}`;
@@ -39,6 +41,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         
         // Also try to update the purchase status directly
         try {
+          console.log('Refreshing lesson access after successful purchase');
           purchasesService.checkLessonAccess(user.id, lessonId);
         } catch (err) {
           console.warn('Failed to refresh access status:', err);
@@ -50,6 +53,14 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         purchaseStatus: 'completed'
       });
       setLoading(false);
+      
+      // Remove the success parameter from the URL to prevent issues on refresh
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('purchase');
+        window.history.replaceState({}, '', url.toString());
+      }
+      
       return;
     }
     

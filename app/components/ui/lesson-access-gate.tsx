@@ -76,6 +76,48 @@ export function LessonAccessGate({
   }
   
   if (!hasAccess && price !== undefined) {
+    // Check URL parameters for purchase=success
+    const isSuccess = typeof window !== 'undefined' && 
+      new URLSearchParams(window.location.search).get('purchase') === 'success';
+    
+    // If we see success in URL but hasAccess is still false, show a check status button
+    if (isSuccess) {
+      const handleCheckStatus = async () => {
+        try {
+          const response = await fetch('/api/lessons/check-purchase', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ lessonId })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.hasAccess) {
+              window.location.reload();
+            } else {
+              alert('Your purchase is still being processed. Please try again in a moment.');
+            }
+          }
+        } catch (err) {
+          console.error('Error checking purchase status:', err);
+        }
+      };
+      
+      return (
+        <div className="p-6 bg-muted rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Processing Your Purchase</h3>
+          <p className="text-muted-foreground mb-4">
+            Your payment was successful, but we're still processing your purchase. This usually takes just a few seconds.
+          </p>
+          <Button onClick={handleCheckStatus}>
+            Check Purchase Status
+          </Button>
+        </div>
+      );
+    }
+    
     return (
       <div className="p-6 bg-muted rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Purchase Required</h3>

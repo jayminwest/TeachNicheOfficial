@@ -137,6 +137,8 @@ export class PurchasesService extends DatabaseService {
     return this.executeWithRetry(async () => {
       const supabase = this.getClient();
       
+      console.log(`Updating purchase status for session ${stripeSessionId} to ${status}`);
+      
       // First, get the purchase to ensure it exists
       const { data: existingPurchase, error: fetchError } = await supabase
         .from('purchases')
@@ -146,6 +148,47 @@ export class PurchasesService extends DatabaseService {
       
       if (fetchError) {
         console.error('Error fetching purchase:', fetchError);
+        
+        // Check if it's a "not found" error
+        if (fetchError.code === 'PGRST116') {
+          console.log(`No purchase found for session ID ${stripeSessionId}, checking payment_intent_id`);
+          
+          // Try looking up by payment_intent_id as a fallback
+          const { data: purchaseByPaymentIntent, error: paymentIntentError } = await supabase
+            .from('purchases')
+            .select('id, user_id, lesson_id')
+            .eq('payment_intent_id', stripeSessionId)
+            .single();
+            
+          if (paymentIntentError) {
+            console.error('Error fetching purchase by payment_intent_id:', paymentIntentError);
+            return { data: null, error: fetchError };
+          }
+          
+          if (purchaseByPaymentIntent) {
+            console.log(`Found purchase by payment_intent_id: ${purchaseByPaymentIntent.id}`);
+            
+            // Update the purchase status
+            const { data: purchaseData, error } = await supabase
+              .from('purchases')
+              .update({
+                status,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', purchaseByPaymentIntent.id)
+              .select('id')
+              .single();
+            
+            if (error) {
+              console.error('Error updating purchase status:', error);
+              return { data: null, error };
+            }
+            
+            console.log(`Updated purchase ${purchaseData.id} status to ${status}`);
+            return { data: { id: purchaseData.id }, error: null };
+          }
+        }
+        
         return { data: null, error: fetchError };
       }
       
@@ -165,15 +208,7 @@ export class PurchasesService extends DatabaseService {
         return { data: null, error };
       }
       
-      // Clear any cached access data for this user and lesson
-      try {
-        // This is a server-side operation, so we can't directly access sessionStorage
-        // Instead, we'll rely on the client to clear its cache when it sees the success parameter
-        console.log(`Updated purchase ${purchaseData.id} status to ${status}`);
-      } catch (err) {
-        console.error('Error clearing cache:', err);
-      }
-      
+      console.log(`Updated purchase ${purchaseData.id} status to ${status}`);
       return { data: { id: purchaseData.id }, error: null };
     });
   }

@@ -379,16 +379,8 @@ export function useVideoUpload({
           status: 'preparing'
         };
       }
-        {
-          retries: 3,
-          initialDelay: 2000,
-          onRetry: (attempt) => {
-            setProgress(Math.min(99, 95 + attempt));
-            if (onProgress) onProgress(Math.min(99, 95 + attempt));
-          }
-        }
-      );
 
+      // Set status to complete
       setStatus('complete');
       setProgress(100);
       if (onProgress) onProgress(100);

@@ -5,7 +5,7 @@ import { purchasesService } from '@/app/services/database/purchasesService';
 
 // Initialize Stripe with the secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2024-12-18.acacia',
 });
 
 export async function POST(request: NextRequest) {
@@ -78,7 +78,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Creating Stripe checkout session');
+    console.log('Creating Stripe checkout session with params:', {
+      payment_method_types: ['card'],
+      mode: 'payment',
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/${lessonId}?purchase=canceled`,
+      metadata: {
+        lessonId,
+        userId,
+      },
+      client_reference_id: `lesson_${lessonId}_user_${userId}`,
+    });
     
     // Create a Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -108,8 +118,10 @@ export async function POST(request: NextRequest) {
     
     console.log('Created checkout session:', {
       id: checkoutSession.id,
+      url: checkoutSession.url,
       metadata: checkoutSession.metadata,
-      client_reference_id: checkoutSession.client_reference_id
+      client_reference_id: checkoutSession.client_reference_id,
+      payment_status: checkoutSession.payment_status
     });
 
     // Create a pending purchase record in the database
@@ -125,10 +137,17 @@ export async function POST(request: NextRequest) {
       // Continue anyway since we have the checkout session
     }
 
-    // Return the session ID to the client
-    return NextResponse.json({ sessionId: checkoutSession.id });
+    // Return the session ID and URL to the client
+    return NextResponse.json({ 
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url 
+    });
   } catch (stripeError) {
-    console.error('Stripe error creating checkout session:', stripeError);
+    console.error('Stripe error creating checkout session:', {
+      message: stripeError instanceof Error ? stripeError.message : 'Unknown error',
+      type: stripeError instanceof Error ? stripeError.name : 'Unknown type',
+      stack: stripeError instanceof Error ? stripeError.stack : 'No stack trace'
+    });
     return NextResponse.json(
       { error: 'Failed to create checkout session', details: stripeError instanceof Error ? stripeError.message : 'Unknown error' },
       { status: 500 }

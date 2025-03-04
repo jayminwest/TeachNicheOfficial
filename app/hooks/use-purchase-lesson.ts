@@ -40,10 +40,19 @@ export function usePurchaseLesson() {
         throw new Error(data.error || 'Failed to initiate purchase');
       }
       
-      console.log('Purchase initiated, redirecting to Stripe:', data.sessionId);
+      console.log('Purchase initiated, redirecting to Stripe:', {
+        sessionId: data.sessionId,
+        url: data.url
+      });
       
-      // Redirect to Stripe Checkout
-      window.location.assign(`https://checkout.stripe.com/pay/${data.sessionId}`);
+      // Redirect to Stripe Checkout using the URL provided by Stripe
+      if (data.url) {
+        window.location.assign(data.url);
+      } else {
+        // Fallback to the constructed URL if url is not provided
+        console.log('No URL provided, using fallback URL construction');
+        window.location.assign(`https://checkout.stripe.com/pay/${data.sessionId}`);
+      }
       
       return data;
     } catch (err) {

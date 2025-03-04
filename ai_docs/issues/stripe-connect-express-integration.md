@@ -22,6 +22,201 @@ Currently, our platform uses Stripe Connect Standard for instructor payments, bu
 - Add status indicators in the profile section to show Stripe account connection status
 - Provide clear error messages throughout the Connect process
 
+## Test-Driven Development Approach
+
+Following our project's "Testing First" philosophy, implement this feature using TDD:
+
+### 1. Unit Tests First
+
+Start by writing unit tests for the Stripe service functions:
+
+```typescript
+// File: app/services/stripe.test.ts
+
+import { jest } from '@jest/globals';
+import { 
+  stripeConfig, 
+  createConnectSession, 
+  getAccountStatus,
+  verifyConnectedAccount 
+} from '@/app/services/stripe';
+import { createMockResponse, createAsyncMock } from '@/mocks/utils/mock-helpers';
+
+// Mock Stripe
+jest.mock('stripe', () => {
+  return jest.fn().mockImplementation(() => ({
+    accounts: {
+      create: jest.fn(),
+      retrieve: jest.fn()
+    },
+    accountLinks: {
+      create: jest.fn()
+    },
+    products: {
+      create: jest.fn()
+    },
+    prices: {
+      create: jest.fn()
+    }
+  }));
+});
+
+describe('Stripe Service - Connect Express', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('stripeConfig should use express connect type', () => {
+    expect(stripeConfig.connectType).toBe('express');
+  });
+
+  test('createConnectSession should create account link with express parameters', async () => {
+    // Test implementation
+  });
+
+  test('getAccountStatus should correctly parse Express account details', async () => {
+    // Test implementation
+  });
+});
+
+describe('Stripe Service - Product/Price Creation', () => {
+  // Test product creation
+  // Test price creation
+  // Test error handling
+});
+```
+
+### 2. API Route Tests
+
+Next, write tests for the API routes:
+
+```typescript
+// File: app/api/stripe/connect/route.test.ts
+
+import { POST } from '@/app/api/stripe/connect/route';
+import { createMockResponse } from '@/mocks/utils/mock-helpers';
+import { MockRequest } from '@/app/api/__tests__/requests.test';
+
+// Mock dependencies
+jest.mock('@/app/services/stripe', () => ({
+  getStripe: jest.fn().mockReturnValue({
+    accounts: {
+      create: jest.fn().mockResolvedValue({ id: 'acct_test123' })
+    }
+  }),
+  createConnectSession: jest.fn().mockResolvedValue({ url: 'https://connect.stripe.com/express/test' }),
+  stripeConfig: { connectType: 'express' }
+}));
+
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createRouteHandlerClient: jest.fn().mockReturnValue({
+    auth: {
+      getSession: jest.fn().mockResolvedValue({
+        data: { session: { user: { id: 'user123', email: 'test@example.com' } } }
+      })
+    },
+    from: jest.fn().mockReturnValue({
+      update: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null })
+        })
+      })
+    })
+  })
+}));
+
+describe('Stripe Connect API Route', () => {
+  test('POST should create Express account and return redirect URL', async () => {
+    // Test implementation
+  });
+
+  test('POST should handle authentication errors', async () => {
+    // Test implementation
+  });
+
+  // More tests for error cases
+});
+
+// Similar tests for callback route and lesson creation with Stripe product/price
+```
+
+### 3. Integration Tests
+
+Write integration tests that verify the interaction between components:
+
+```typescript
+// File: app/api/lessons/integration.test.ts
+
+import { POST as createLesson } from '@/app/api/lessons/route';
+import { createMockResponse } from '@/mocks/utils/mock-helpers';
+import { MockRequest } from '@/app/api/__tests__/requests.test';
+
+// Mock dependencies but allow some real interactions
+
+describe('Lesson Creation with Stripe Product/Price', () => {
+  test('should create Stripe product and price for paid lesson', async () => {
+    // Test implementation
+  });
+
+  test('should not create Stripe product for free lesson', async () => {
+    // Test implementation
+  });
+
+  test('should handle Stripe API errors gracefully', async () => {
+    // Test implementation
+  });
+});
+```
+
+### 4. End-to-End Tests with Playwright
+
+Create Playwright tests for the complete user journey:
+
+```typescript
+// File: e2e/stripe-connect.spec.ts
+
+import { test, expect } from '@playwright/test';
+
+test.describe('Stripe Connect Express Flow', () => {
+  test('instructor can connect Stripe account', async ({ page }) => {
+    // Login as instructor
+    // Navigate to profile
+    // Click connect with Stripe
+    // Verify redirect to Stripe
+    // Mock successful return from Stripe
+    // Verify success message
+  });
+
+  test('instructor can create paid lesson after connecting Stripe', async ({ page }) => {
+    // Login as connected instructor
+    // Create new lesson with price
+    // Verify lesson created successfully
+    // Verify Stripe product and price created
+  });
+});
+```
+
+### 5. Test Implementation Order
+
+For each component of this feature:
+1. Write the failing test first
+2. Implement the minimum code to make the test pass
+3. Refactor while keeping tests passing
+4. Move to the next test
+
+Start with the core service functions, then API routes, then UI components.
+
+## Database Schema Updates
+
+Add the following columns to the lessons table if they don't already exist:
+
+```sql
+ALTER TABLE lessons 
+ADD COLUMN IF NOT EXISTS stripe_product_id TEXT,
+ADD COLUMN IF NOT EXISTS stripe_price_id TEXT,
+ADD COLUMN IF NOT EXISTS previous_stripe_price_ids JSONB DEFAULT '[]'::jsonb;
+```
+
 ## Affected Files
 
 ### Core Stripe Integration
@@ -146,6 +341,44 @@ if (data.price !== lesson.price && data.price > 0) {
   data.stripe_price_id = stripePrice.id;
 }
 ```
+
+## Error Handling and Rollback Strategy
+
+Implement the following error handling approach:
+
+1. **Transaction-based Operations**:
+   - Use database transactions when creating/updating lessons and Stripe resources
+   - Roll back database changes if Stripe operations fail
+
+2. **Specific Error Scenarios**:
+   - Handle Stripe API errors (network, authentication, validation)
+   - Handle database errors
+   - Handle user permission errors
+
+3. **Rollback Implementation**:
+   - For lesson creation: Delete the lesson if Stripe product/price creation fails
+   - For lesson updates: Revert to previous state if Stripe updates fail
+   - Log all errors with sufficient context for debugging
+
+## Stripe API Version
+
+Use Stripe API version '2025-01-27.acacia' as specified in the project overview. Ensure all API calls include this version to maintain consistency.
+
+## Testing Environment Setup
+
+1. **Stripe Test Mode**:
+   - Use Stripe test mode for all development and testing
+   - Create test Stripe accounts for development
+   - Configure environment variables for test mode:
+     ```
+     STRIPE_SECRET_KEY=sk_test_...
+     STRIPE_WEBHOOK_SECRET=whsec_test_...
+     ```
+
+2. **Test Data Generation**:
+   - Create helper functions to generate test users with Stripe accounts
+   - Create sample lessons with various price points
+   - Simulate webhook events for testing
 
 ## Testing Requirements
 - Test the complete Stripe Connect Express onboarding flow

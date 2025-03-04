@@ -9,10 +9,14 @@ import { Toaster } from "@/app/components/ui/toaster";
 
 interface LessonDetailProps {
   id: string;
-  session?: any;
+  session?: {
+    user?: {
+      id: string;
+    };
+  } | null;
 }
 
-export default async function LessonDetail({ id }: LessonDetailProps) {
+export default async function LessonDetail({ id, session }: LessonDetailProps) {
   // Redirect to new lesson page if the ID is "create"
   if (id === "create") {
     return (

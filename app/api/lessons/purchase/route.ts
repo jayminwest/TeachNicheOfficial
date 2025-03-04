@@ -23,16 +23,16 @@ export async function POST(request: NextRequest) {
 
     // Get the user session
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session: userSession } } = await supabase.auth.getSession();
 
-    if (!session) {
+    if (!userSession) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = userSession.user.id;
 
     // Fetch the lesson to verify it exists and get creator info
     const { data: lesson, error: lessonError } = await supabase
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
@@ -104,11 +104,11 @@ export async function POST(request: NextRequest) {
       lessonId,
       userId,
       amount: price,
-      stripeSessionId: session.id,
+      stripeSessionId: checkoutSession.id,
     });
 
     // Return the session ID to the client
-    return NextResponse.json({ sessionId: session.id });
+    return NextResponse.json({ sessionId: checkoutSession.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);
     return NextResponse.json(

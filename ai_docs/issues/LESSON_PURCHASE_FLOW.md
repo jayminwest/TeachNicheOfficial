@@ -113,6 +113,111 @@ This issue is critical for improving the user experience and ensuring that users
 
 The implementation should leverage the existing `cn()` utility for styling variations and should maintain consistency with the current design system.
 
+## Implementation Plan
+
+### 1. Update `app/components/ui/lesson-card.tsx`
+
+- Integrate `useLessonAccess` hook to check purchase status
+- Modify button rendering logic to show different states:
+  - For purchasers: "Access Lesson" button with success variant
+  - For creators: Keep current "Edit" button (already implemented)
+  - For potential buyers: Keep current "Purchase Lesson" button
+- Update the button click handlers to navigate appropriately:
+  - "Access Lesson" should navigate directly to lesson page
+  - "Purchase Lesson" should trigger checkout
+  - "Edit" should navigate to edit page (already implemented)
+
+### 2. Update `app/components/ui/lesson-preview-dialog.tsx`
+
+- Similar to lesson card, integrate `useLessonAccess` hook
+- Update button states based on user relationship to lesson
+- Ensure consistent styling with lesson card buttons
+- Improve error handling for authentication issues
+
+### 3. Enhance `app/components/ui/lesson-checkout.tsx`
+
+- Add pre-emptive authentication check before rendering the purchase button
+- Improve error messaging for authentication failures
+- Add a loading state for the button during authentication checks
+- Ensure consistent styling with other components
+
+### 4. Refine `app/hooks/use-lesson-access.ts`
+
+- Verify that the hook is correctly checking for completed purchases
+- Ensure proper error handling and retry logic
+- Optimize caching to reduce database queries
+
+### 5. Update `app/components/ui/lesson-access-gate.tsx`
+
+- Ensure consistent styling with other components
+- Improve error messaging
+- Verify proper integration with the access hook
+
+### Button State Logic
+
+```typescript
+// Pseudocode for button state logic
+if (isOwner) {
+  return <EditButton />; // Already implemented
+} else if (hasAccess) {
+  return <AccessButton />; // New "Access Lesson" button
+} else {
+  return <PurchaseButton />; // Existing purchase button
+}
+```
+
+### Styling Updates
+
+Use the `cn()` utility to apply different styles based on button state:
+
+```typescript
+// For "Access Lesson" button
+<Button 
+  variant="success" 
+  className={cn("bg-green-600 hover:bg-green-700", className)}
+  onClick={() => router.push(`/lessons/${lesson.id}`)}
+>
+  Access Lesson
+</Button>
+```
+
+### Authentication Flow
+
+Implement consistent authentication checks:
+
+```typescript
+// Pre-emptive auth check
+if (!user && !authLoading) {
+  return (
+    <Button onClick={() => openAuthDialog()}>
+      Sign in to Purchase
+    </Button>
+  );
+}
+```
+
+### Testing Plan
+
+1. **User Scenarios to Test**:
+   - Unauthenticated user viewing lessons
+   - Authenticated user who hasn't purchased a lesson
+   - Authenticated user who has purchased a lesson
+   - Lesson creator viewing their own lessons
+
+2. **Test Cases**:
+   - Verify correct button states appear for each user scenario
+   - Confirm navigation paths work correctly for each button
+   - Test authentication flow during purchase
+   - Verify purchase status is correctly reflected after purchase
+
+### Implementation Sequence
+
+1. First update the `useLessonAccess` hook to ensure it provides reliable data
+2. Then update the `LessonCard` and `LessonPreviewDialog` components
+3. Finally, refine the `LessonCheckout` and `LessonAccessGate` components
+
+This approach ensures that the core functionality is solid before updating the UI components.
+
 ## Labels
 - enhancement
 - bug

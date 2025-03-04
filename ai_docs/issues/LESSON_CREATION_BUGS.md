@@ -3,16 +3,16 @@
 ## Issue ID: ISSUE-2025-03-04-001
 
 ## Description
-Three critical issues have been identified in the lesson creation flow:
+Three critical issues have been identified in the lesson creation flow, prioritized by user impact:
 
-1. **Video Uploader Stuck in Initialization**: The Mux video uploader is permanently stuck in a "Preparing Upload..." state, preventing users from uploading videos for their lessons.
+1. **[PRIORITY 1] Video Uploader Stuck in Initialization**: The Mux video uploader is permanently stuck in a "Preparing Upload..." state, preventing users from uploading videos for their lessons.
 
-2. **Authentication Flow Broken**: Despite authentication checks in the page component, users receive an "Authentication Required" toast when attempting to create a lesson, with a 404 error in the console:
+2. **[PRIORITY 2] Authentication Flow Broken**: Despite authentication checks in the page component, users receive an "Authentication Required" toast when attempting to create a lesson, with a 404 error in the console:
    ```
    http://localhost:3000/sign-in?redirect=%2Flessons%2Fnew&_rsc=11z1u 404 (Not Found)
    ```
 
-3. **Blocking Video Processing**: The current implementation forces users to wait for video processing to complete before the lesson is created, which is a poor user experience. Additionally, paid lessons are missing required Stripe product and price IDs.
+3. **[PRIORITY 3] Blocking Video Processing**: The current implementation forces users to wait for video processing to complete before the lesson is created, which is a poor user experience. Additionally, paid lessons are missing required Stripe product and price IDs.
 
 ## Technical Analysis
 
@@ -22,16 +22,106 @@ The uploader is stuck in the loading state showing "Preparing upload..." because
 - There's no error handling for the initial API call failure in the UI
 - The API endpoint `/api/mux/upload` may be failing to respond correctly
 
+**Problematic Code:**
+```typescript
+// app/hooks/use-video-upload.ts
+const handleUploadStart = useCallback(() => {
+  setStatus('uploading');
+  setProgress(0);
+  setError(null);
+  
+  withRetry(
+    getUploadUrl,
+    {
+      retries: 3,
+      initialDelay: 1000,
+      onRetry: (attempt) => {
+        setError(`Preparing upload (attempt ${attempt})...`);
+      }
+    }
+  )
+    .then((url) => {
+      setUploadEndpoint(url);
+      setError(null);
+    })
+    .catch(handleError);
+}, [getUploadUrl, handleError]);
+
+// This function is never automatically called on component mount
+```
+
 ### Issue 2: Authentication Flow Issues
 The authentication issue has multiple components:
 - Duplicate authentication checks (client-side with `useAuth()` and server-side with `supabase.auth.getSession()`)
 - Problematic redirect URL construction causing a 404 error
 - Inconsistent authentication state between initial page load and form submission
 
+**Problematic Code:**
+```typescript
+// app/lessons/new/page.tsx
+// Client-side check
+useEffect(() => {
+  if (!authLoading && !user) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to create a lesson",
+      variant: "destructive",
+    });
+    router.push('/sign-in?redirect=/lessons/new');
+  }
+}, [user, authLoading, router]);
+
+// Later, another server-side check
+const session = await supabase.auth.getSession();
+if (!session.data.session) {
+  toast({
+    title: "Authentication Required",
+    description: "Please sign in to create a lesson",
+    variant: "destructive",
+  });
+  setIsSubmitting(false);
+  router.push('/sign-in?redirect=/lessons/new');
+  return;
+}
+```
+
 ### Issue 3: Blocking Video Processing & Missing Stripe Integration
 - The current implementation in `lessons/new/page.tsx` (lines 48-108) blocks lesson creation until video processing is complete
 - For paid lessons, the code doesn't create the required Stripe product and price IDs (`stripe_product_id` and `stripe_price_id` fields)
 - The lesson should be created in a "draft" or "processing" state while the video processes in the background
+
+**Problematic Code:**
+```typescript
+// app/lessons/new/page.tsx
+// Blocking wait for video processing
+try {
+  console.log('Starting video processing for asset:', data.muxAssetId);
+  
+  // Wait for asset to be ready and get playback ID
+  result = await waitForAssetReady(data.muxAssetId, {
+    isFree: data.price === 0,
+    maxAttempts: 60,  // 10 minutes total
+    interval: 10000   // 10 seconds between checks
+  });
+  
+  console.log('Video processing completed:', result);
+  
+  if (result.status !== 'ready' || !result.playbackId) {
+    throw new Error('Video processing completed but no playback ID was generated');
+  }
+
+  // Dismiss the processing toast
+  processingToast.dismiss();
+  
+  // Show success toast
+  toast({
+    title: "Video Processing Complete",
+    description: "Your video has been processed successfully.",
+  });
+} catch (error) {
+  // Error handling...
+}
+```
 
 ## Affected Files
 
@@ -85,17 +175,153 @@ The authentication issue has multiple components:
 ## Proposed Solutions
 
 ### For Video Uploader Issue:
-1. Modify `VideoUploader` component to automatically call `handleUploadStart` during initialization
-2. Add better error handling and retry logic
+1. Modify `VideoUploader` component to automatically call `handleUploadStart` during initialization:
+```typescript
+// In VideoUploader component
+useEffect(() => {
+  // Initialize upload URL on component mount
+  startUpload();
+}, []);
+```
+
+2. Add better error handling and retry logic:
+```typescript
+// In useVideoUpload hook
+const getUploadUrl = useCallback(async (): Promise<string> => {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST'
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'No error details available');
+      throw new Error(`Failed to get upload URL (HTTP ${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.url || !data.uploadId) {
+      throw new Error('Invalid upload response: missing URL or upload ID');
+    }
+    
+    return data.url;
+  } catch (error) {
+    console.error('Upload URL error:', error);
+    throw error; // Let the retry mechanism handle it
+  }
+}, [endpoint]);
+```
 
 ### For Authentication Issue:
-1. Implement consistent authentication using the `useAuthGuard` hook
-2. Fix redirect URL construction
+1. Implement consistent authentication using the `useAuthGuard` hook:
+```typescript
+// In lessons/new/page.tsx
+const { isAuthenticated, loading: authLoading, user } = useAuthGuard({
+  redirectTo: '/sign-in?callbackUrl=/lessons/new',
+  showToast: true
+});
+
+// Remove duplicate authentication checks
+```
+
+2. Fix redirect URL construction:
+```typescript
+// Use callbackUrl instead of redirect for Next.js compatibility
+router.push('/sign-in?callbackUrl=/lessons/new');
+```
 
 ### For Blocking Video Processing & Missing Stripe IDs:
-1. Modify the lesson creation flow to create the lesson immediately without waiting for video processing
-2. Create a background processing API endpoint for video processing
-3. Add Stripe product/price creation for paid lessons
+1. Create lesson in "processing" state without waiting for video:
+```typescript
+// Create lesson immediately with processing status
+const lessonData = {
+  ...data,
+  status: 'processing',
+  muxAssetId: data.muxAssetId,
+  // Other fields...
+};
+
+// Create lesson first
+const lesson = await createLesson(lessonData);
+
+// Then start background processing
+fetch('/api/lessons/process-video', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    lessonId: lesson.id,
+    muxAssetId: data.muxAssetId,
+    isPaid: data.price > 0
+  })
+});
+```
+
+2. Add Stripe product/price creation for paid lessons:
+```typescript
+// In API route for lesson creation
+if (data.price > 0) {
+  // Create Stripe product
+  const product = await stripe.products.create({
+    name: data.title,
+    description: data.description
+  });
+  
+  // Create Stripe price
+  const price = await stripe.prices.create({
+    product: product.id,
+    unit_amount: Math.round(data.price * 100),
+    currency: 'usd'
+  });
+  
+  // Add IDs to lesson data
+  lessonData.stripe_product_id = product.id;
+  lessonData.stripe_price_id = price.id;
+}
+```
+
+## Architectural Diagram: Current vs. Proposed Video Processing Flow
+
+```
+CURRENT FLOW:
+┌────────────┐     ┌────────────┐     ┌────────────┐     ┌────────────┐
+│  Upload    │────>│  Process   │────>│  Create    │────>│  Redirect  │
+│  Video     │     │  Video     │     │  Lesson    │     │  to Lesson │
+└────────────┘     └────────────┘     └────────────┘     └────────────┘
+                   (Blocking)
+
+PROPOSED FLOW:
+┌────────────┐     ┌────────────┐     ┌─────────────────────┐
+│  Upload    │────>│  Create    │────>│  Redirect to Lesson │
+│  Video     │     │  Lesson    │     │  (Processing State) │
+└────────────┘     └────────────┘     └─────────────────────┘
+                         │
+                         │                  ┌────────────┐
+                         └─────────────────>│  Process   │
+                                            │  Video     │
+                                            └────────────┘
+                                           (Background Task)
+```
+
+## Acceptance Criteria
+
+### Issue 1: Video Uploader
+- [ ] Video uploader initializes automatically on component mount
+- [ ] Upload initialization errors are properly handled and displayed to the user
+- [ ] Retry mechanism works correctly for failed initialization attempts
+- [ ] Upload progress is accurately displayed to the user
+
+### Issue 2: Authentication
+- [ ] Page is properly protected using the `useAuthGuard` hook
+- [ ] No duplicate authentication checks in the code
+- [ ] Redirect URL is correctly constructed and works properly
+- [ ] No 404 errors appear in the console during authentication flow
+
+### Issue 3: Video Processing
+- [ ] Lesson is created immediately after form submission without waiting for video processing
+- [ ] Video processing happens in the background
+- [ ] Lesson shows appropriate "processing" state to the user
+- [ ] Paid lessons have correct Stripe product and price IDs
+- [ ] User is notified when video processing completes
 
 ## Testing Requirements
 
@@ -121,7 +347,7 @@ New tests should be created to verify fixes for all issues:
 These issues are blocking the core functionality of creating new lessons. The current implementation has several design flaws that create a poor user experience. The proposed solutions will significantly improve the user experience by allowing users to create lessons quickly without waiting for video processing to complete.
 
 ## Priority
-High
+High - Fix in order of priority listed above
 
 ## Labels
 - bug

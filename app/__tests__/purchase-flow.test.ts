@@ -30,31 +30,35 @@ import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
 
-// Mock the API routes
-const purchasePost = jest.fn().mockImplementation(() => {
-  return NextResponse.json({ sessionId: 'cs_test_123' });
-});
-
-const checkPurchasePost = jest.fn().mockImplementation(() => {
-  return NextResponse.json({ hasAccess: true, purchaseStatus: 'completed' });
-});
-
-const webhookPost = jest.fn().mockImplementation(() => {
-  return NextResponse.json({ success: true });
-});
+// Import the mocked API routes
+import { POST as purchasePost } from '@/app/api/lessons/purchase/route';
+import { POST as checkPurchasePost } from '@/app/api/lessons/check-purchase/route';
+import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
 
 // Mock the imports
-jest.mock('@/app/api/lessons/purchase/route', () => ({
-  POST: purchasePost
-}));
+jest.mock('@/app/api/lessons/purchase/route', () => {
+  return {
+    POST: jest.fn().mockImplementation(() => {
+      return NextResponse.json({ sessionId: 'cs_test_123' });
+    })
+  };
+});
 
-jest.mock('@/app/api/lessons/check-purchase/route', () => ({
-  POST: checkPurchasePost
-}));
+jest.mock('@/app/api/lessons/check-purchase/route', () => {
+  return {
+    POST: jest.fn().mockImplementation(() => {
+      return NextResponse.json({ hasAccess: true, purchaseStatus: 'completed' });
+    })
+  };
+});
 
-jest.mock('@/app/api/webhooks/stripe/route', () => ({
-  POST: webhookPost
-}));
+jest.mock('@/app/api/webhooks/stripe/route', () => {
+  return {
+    POST: jest.fn().mockImplementation(() => {
+      return NextResponse.json({ success: true });
+    })
+  };
+});
 
 // Mock dependencies
 jest.mock('stripe', () => {
@@ -224,6 +228,12 @@ describe('Purchase Flow', () => {
       // Assertions
       expect(response.status).toBe(200);
       expect(responseData).toHaveProperty('sessionId', 'cs_test_123');
+      expect(purchasesService.createPurchase).toHaveBeenCalledWith({
+        lessonId: 'lesson-123',
+        userId: 'user-123',
+        amount: 10,
+        stripeSessionId: 'cs_test_123'
+      });
       expect(purchasesService.createPurchase).toHaveBeenCalledWith({
         lessonId: 'lesson-123',
         userId: 'user-123',

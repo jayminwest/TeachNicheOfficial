@@ -28,6 +28,11 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
   
   // Check if current user is the lesson creator
   const isOwner = user?.id === lesson.creatorId;
+  const { user } = useAuth();
+  const router = useRouter();
+  
+  // Check if current user is the lesson creator
+  const isOwner = user?.id === lesson.creatorId;
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">

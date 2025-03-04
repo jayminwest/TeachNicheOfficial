@@ -1,19 +1,5 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
-
-export type PurchaseStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'none';
-
-export interface LessonAccess {
-  hasAccess: boolean;
-  purchaseStatus: PurchaseStatus;
-  purchaseDate?: string;
-}
-
-interface PurchaseCreateData {
-  lessonId: string;
-  userId: string;
-  amount: number;
-  stripeSessionId: string;
-}
+import { PurchaseStatus, LessonAccess, PurchaseCreateData, Purchase } from '@/types/purchase'
 
 export class PurchasesService extends DatabaseService {
   /**

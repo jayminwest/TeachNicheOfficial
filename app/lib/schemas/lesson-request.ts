@@ -1,20 +1,8 @@
 import * as z from 'zod'
-
-export interface LessonRequest {
-  id: string;
-  title: string;
-  description: string;
-  created_at: string;
-  user_id: string;
-  status: 'open' | 'in_progress' | 'completed';
-  vote_count: number;
-  category: string;
-  instagram_handle?: string;
-  tags?: string[];
-}
+import { LessonRequest, LessonRequestStatus, LessonRequestVote } from '@/types/lesson'
 
 // Helper function to ensure status is one of the allowed values
-export function ensureValidStatus(status: string): 'open' | 'in_progress' | 'completed' {
+export function ensureValidStatus(status: string): LessonRequestStatus {
   if (status === 'open' || status === 'in_progress' || status === 'completed') {
     return status;
   }
@@ -22,23 +10,15 @@ export function ensureValidStatus(status: string): 'open' | 'in_progress' | 'com
 }
 
 // Type guard to check if a status string is a valid LessonRequest status
-export function isValidStatus(status: string): status is 'open' | 'in_progress' | 'completed' {
+export function isValidStatus(status: string): status is LessonRequestStatus {
   return status === 'open' || status === 'in_progress' || status === 'completed';
 }
 
 // Type assertion function for tests
-export function assertValidStatus(status: string): asserts status is 'open' | 'in_progress' | 'completed' {
+export function assertValidStatus(status: string): asserts status is LessonRequestStatus {
   if (!isValidStatus(status)) {
     throw new Error(`Invalid status: ${status}. Must be 'open', 'in_progress', or 'completed'`);
   }
-}
-
-export interface LessonRequestVote {
-  id: string;
-  request_id: string;
-  user_id: string;
-  vote_type: 'upvote' | 'downvote';
-  created_at: string;
 }
 
 export const lessonRequestSchema = z.object({

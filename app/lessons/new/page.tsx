@@ -102,6 +102,11 @@ export default function NewLessonPage() {
         status: 'processing'
       };
 
+      // Ensure we have the required fields
+      if (!lessonData.title || !lessonData.description || !lessonData.content) {
+        throw new Error('Missing required fields: title, description, and content are required');
+      }
+
       const response = await fetch("/api/lessons", {
         method: "POST",
         headers: {
@@ -110,14 +115,53 @@ export default function NewLessonPage() {
         body: JSON.stringify(lessonData),
       });
 
+      let errorData;
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('API Error Response:', errorData);
-        throw new Error(
-          errorData.details || 
-          errorData.message || 
-          `Failed to create lesson: ${response.statusText}`
-        );
+        try {
+          errorData = await response.json();
+          console.error('API Error Response:', errorData);
+          
+          // Handle validation errors specifically
+          if (errorData.error === 'Validation error' && errorData.details) {
+            const errorMessages = [];
+            
+            // Extract field-specific errors
+            if (errorData.details.title) {
+              errorMessages.push(`Title: ${errorData.details.title._errors.join(', ')}`);
+            }
+            if (errorData.details.description) {
+              errorMessages.push(`Description: ${errorData.details.description._errors.join(', ')}`);
+            }
+            if (errorData.details.content) {
+              errorMessages.push(`Content: ${errorData.details.content._errors.join(', ')}`);
+            }
+            if (errorData.details.status) {
+              errorMessages.push(`Status: ${errorData.details.status._errors.join(', ')}`);
+            }
+            
+            // If we have specific field errors, show them
+            if (errorMessages.length > 0) {
+              throw new Error(`Validation failed: ${errorMessages.join('; ')}`);
+            }
+          }
+          
+          // For other errors, use the provided message or a generic one
+          throw new Error(
+            errorData.details || 
+            errorData.message || 
+            `Failed to create lesson: ${response.statusText}`
+          );
+        } catch (parseError) {
+          if (errorData) {
+            throw new Error(
+              errorData.details || 
+              errorData.message || 
+              `Failed to create lesson: ${response.statusText}`
+            );
+          } else {
+            throw new Error(`Failed to create lesson: ${response.statusText}`);
+          }
+        }
       }
 
       const lesson = await response.json();

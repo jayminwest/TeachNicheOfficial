@@ -232,6 +232,11 @@ export function LessonForm({
                   Write your lesson content using Markdown. You can include headers, lists, code blocks, and more.
                 </FormDescription>
                 <FormMessage />
+                {field.value.length === 0 && (
+                  <p className="text-sm text-destructive mt-1">
+                    Content is required. Please add some content for your lesson.
+                  </p>
+                )}
               </FormItem>
             )}
           />

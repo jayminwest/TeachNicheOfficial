@@ -400,3 +400,51 @@ Use Stripe API version '2025-01-27.acacia' as specified in the project overview.
 - We'll need to test this in Stripe's test mode before going to production
 - We should consider adding a dashboard for instructors to view their earnings and payout status
 - Documentation should be updated to reflect the new Connect Express flow
+
+## OAuth Implementation for Stripe Dashboard Accounts
+
+In addition to the Express onboarding flow, we should implement OAuth for Stripe dashboard accounts to provide a better user experience for users who already have Stripe accounts.
+
+### OAuth Setup Requirements
+
+1. **Register OAuth Application in Stripe**:
+   - Go to Stripe Dashboard → Settings → Connect Settings
+   - Configure OAuth settings with redirect URI: `https://your-domain.com/api/stripe/connect/oauth-callback`
+   - Note the `client_id` for environment variables
+
+2. **Add Environment Variables**:
+   ```
+   STRIPE_CLIENT_ID=ca_...
+   STRIPE_OAUTH_REDIRECT_URI=https://your-domain.com/api/stripe/connect/oauth-callback
+   ```
+
+### New API Routes Needed
+
+1. **OAuth Initiation Endpoint**:
+   - Create `app/api/stripe/connect/oauth/route.ts`
+   - Implement GET handler to generate and return OAuth URL
+
+2. **OAuth Callback Handler**:
+   - Create `app/api/stripe/connect/oauth-callback/route.ts`
+   - Process OAuth code and exchange for access token
+   - Store connected account ID in user profile
+
+### UI Component Updates
+
+Update `StripeConnectButton` component to support both flows:
+- Add `useOAuth` prop (default to true)
+- Modify connect logic to use appropriate endpoint
+- Update button text to indicate connection type
+
+### Testing Requirements
+
+- Test OAuth flow with existing Stripe accounts
+- Verify account connection and database updates
+- Test both Express and OAuth flows to ensure they work correctly
+
+### Implementation Benefits
+
+- Provides seamless integration for users with existing Stripe accounts
+- Reduces onboarding friction
+- Creates a more professional user experience
+- Gives users flexibility in how they connect

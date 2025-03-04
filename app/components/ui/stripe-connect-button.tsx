@@ -14,8 +14,8 @@ import {
   CardFooter, 
   CardHeader, 
   CardTitle 
-} from '@/app/components/ui/card';
-import { Badge } from '@/app/components/ui/badge';
+} from './card';
+import { Badge } from './badge';
 import { AlertCircle, CheckCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
 
 interface StripeConnectButtonProps {

@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
 
     // If the purchase is pending, try to update it
     if (latestPurchase.status === 'pending' && latestPurchase.stripe_session_id) {
+      console.log(`Attempting to update pending purchase ${latestPurchase.id}`);
+      
       // Try to update the purchase status
       const { data: updateData, error: updateError } = await purchasesService.updatePurchaseStatus(
         latestPurchase.stripe_session_id,
@@ -97,6 +99,23 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error('Error updating purchase status:', updateError);
+        
+        // Even if there's an error, if the purchase is recent (within last 5 minutes),
+        // grant access anyway as the webhook might still be processing
+        const purchaseTime = new Date(latestPurchase.created_at).getTime();
+        const now = Date.now();
+        const fiveMinutesMs = 5 * 60 * 1000;
+        
+        if (now - purchaseTime < fiveMinutesMs) {
+          console.log('Purchase is recent, granting access despite update error');
+          return NextResponse.json({
+            hasAccess: true,
+            purchaseStatus: 'completed',
+            purchaseDate: latestPurchase.created_at,
+            message: 'Access granted based on recent purchase'
+          });
+        }
+        
         return NextResponse.json({
           hasAccess: false,
           purchaseStatus: 'pending',

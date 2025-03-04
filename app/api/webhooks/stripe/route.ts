@@ -44,25 +44,70 @@ export async function POST(request: NextRequest) {
       console.log('Processing checkout.session.completed', { 
         sessionId: session.id,
         paymentStatus: session.payment_status,
-        metadata: session.metadata
+        metadata: session.metadata,
+        paymentIntent: session.payment_intent
       });
       
       try {
-        // Update the purchase status in the database
-        const { data, error } = await purchasesService.updatePurchaseStatus(
+        // Try to update using the session ID first
+        let updateResult = await purchasesService.updatePurchaseStatus(
           session.id,
           'completed'
         );
-
-        if (error) {
-          console.error('Error updating purchase status:', error);
+        
+        // If that fails and we have a payment_intent, try using that
+        if (updateResult.error && session.payment_intent) {
+          console.log(`Retrying with payment_intent: ${session.payment_intent}`);
+          
+          // If payment_intent is a string, use it directly
+          if (typeof session.payment_intent === 'string') {
+            updateResult = await purchasesService.updatePurchaseStatus(
+              session.payment_intent,
+              'completed'
+            );
+          }
+        }
+        
+        // Check the final result
+        if (updateResult.error) {
+          console.error('Error updating purchase status:', updateResult.error);
+          
+          // Instead of failing, let's create a purchase record if one doesn't exist
+          if (session.metadata?.lessonId && session.metadata?.userId) {
+            console.log('Attempting to create purchase record from webhook data');
+            
+            try {
+              const createResult = await purchasesService.createPurchase({
+                lessonId: session.metadata.lessonId,
+                userId: session.metadata.userId,
+                amount: (session.amount_total || 0) / 100, // Convert from cents
+                stripeSessionId: session.id,
+              });
+              
+              if (createResult.error) {
+                console.error('Failed to create purchase record:', createResult.error);
+                return NextResponse.json({ error: 'Failed to create purchase record' }, { status: 500 });
+              }
+              
+              console.log(`Created new purchase ${createResult.data?.id} from webhook data`);
+              return NextResponse.json({ success: true, created: true });
+            } catch (createErr) {
+              console.error('Error creating purchase:', createErr);
+              return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 });
+            }
+          }
+          
           return NextResponse.json({ error: 'Failed to update purchase status' }, { status: 500 });
         }
 
-        console.log(`Purchase ${data?.id} marked as completed`);
+        console.log(`Purchase ${updateResult.data?.id} marked as completed`);
         return NextResponse.json({ success: true });
       } catch (err) {
         console.error('Error processing webhook:', err instanceof Error ? err.message : 'Unknown error', err);
+        
+        // Log the full session data for debugging
+        console.log('Full session data:', JSON.stringify(session, null, 2));
+        
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
       }
     } else {

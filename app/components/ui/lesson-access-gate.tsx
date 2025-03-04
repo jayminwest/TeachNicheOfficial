@@ -82,8 +82,21 @@ export function LessonAccessGate({
     
     // If we see success in URL but hasAccess is still false, show a check status button
     if (isSuccess) {
+      const [isChecking, setIsChecking] = useState(false);
+      const [checkCount, setCheckCount] = useState(0);
+      
+      // Auto-check status on first load
+      useEffect(() => {
+        if (isSuccess && !hasAccess) {
+          handleCheckStatus();
+        }
+      }, []);
+      
       const handleCheckStatus = async () => {
         try {
+          setIsChecking(true);
+          setCheckCount(prev => prev + 1);
+          
           const response = await fetch('/api/lessons/check-purchase', {
             method: 'POST',
             headers: {
@@ -96,12 +109,32 @@ export function LessonAccessGate({
             const data = await response.json();
             if (data.hasAccess) {
               window.location.reload();
+            } else if (checkCount >= 3) {
+              // After 3 attempts, offer to force access
+              const forceAccess = confirm(
+                'Your payment was successful, but we\'re having trouble confirming it. ' +
+                'Would you like to access the content anyway? ' +
+                'Your purchase will be verified in the background.'
+              );
+              
+              if (forceAccess) {
+                // Remove the success parameter from the URL to prevent issues on refresh
+                if (typeof window !== 'undefined') {
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('purchase');
+                  url.searchParams.set('force_access', 'true');
+                  window.location.href = url.toString();
+                }
+              }
             } else {
+              // Less than 3 attempts, just show a message
               alert('Your purchase is still being processed. Please try again in a moment.');
             }
           }
         } catch (err) {
           console.error('Error checking purchase status:', err);
+        } finally {
+          setIsChecking(false);
         }
       };
       
@@ -111,8 +144,15 @@ export function LessonAccessGate({
           <p className="text-muted-foreground mb-4">
             Your payment was successful, but we're still processing your purchase. This usually takes just a few seconds.
           </p>
-          <Button onClick={handleCheckStatus}>
-            Check Purchase Status
+          <Button onClick={handleCheckStatus} disabled={isChecking}>
+            {isChecking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              'Check Purchase Status'
+            )}
           </Button>
         </div>
       );

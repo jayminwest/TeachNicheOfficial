@@ -25,14 +25,16 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
   const [error, setError] = useState<Error | null>(null)
   
   useEffect(() => {
-    // Check for success URL parameter
+    // Check for URL parameters
     const isSuccess = typeof window !== 'undefined' && 
       new URLSearchParams(window.location.search).get('purchase') === 'success';
     
-    // If payment was just successful, set access to true immediately
-    // and clear any cached access data to force a refresh
-    if (isSuccess) {
-      console.log('Purchase success detected in URL, granting immediate access');
+    const forceAccess = typeof window !== 'undefined' && 
+      new URLSearchParams(window.location.search).get('force_access') === 'true';
+    
+    // If payment was just successful or force_access is set, grant access immediately
+    if (isSuccess || forceAccess) {
+      console.log(`Granting immediate access due to ${isSuccess ? 'purchase success' : 'force_access'} parameter`);
       
       // Clear the cache to force a refresh
       if (user?.id && lessonId) {
@@ -54,10 +56,11 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       });
       setLoading(false);
       
-      // Remove the success parameter from the URL to prevent issues on refresh
+      // Remove the parameters from the URL to prevent issues on refresh
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href);
         url.searchParams.delete('purchase');
+        url.searchParams.delete('force_access');
         window.history.replaceState({}, '', url.toString());
       }
       

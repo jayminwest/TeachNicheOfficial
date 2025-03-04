@@ -8,26 +8,28 @@ import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
 
 // Mock dependencies
 jest.mock('stripe', () => {
-  const StripeConstructor = jest.fn(() => ({
-    checkout: {
-      sessions: {
-        create: jest.fn(),
-        retrieve: jest.fn(),
+  const mockStripe = function() {
+    return {
+      checkout: {
+        sessions: {
+          create: jest.fn(),
+          retrieve: jest.fn(),
+        }
+      },
+      webhooks: {
+        constructEvent: jest.fn(),
       }
-    },
-    webhooks: {
-      constructEvent: jest.fn(),
-    }
-  }));
+    };
+  };
   
   // Add the static property to the constructor
-  StripeConstructor.Webhook = {
+  mockStripe.Webhook = {
     signature: {
       verifyHeader: jest.fn(),
     }
   };
   
-  return { default: StripeConstructor };
+  return mockStripe;
 });
 
 jest.mock('@/app/lib/supabase/server', () => ({

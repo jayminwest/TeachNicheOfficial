@@ -1,17 +1,16 @@
 import { purchasesService } from '@/app/services/database/purchasesService';
-import Stripe from 'stripe';
 
 // Mock Stripe
 jest.mock('stripe', () => {
-  const StripeConstructor = jest.fn(() => ({
-    checkout: {
-      sessions: {
-        retrieve: jest.fn(),
+  return function() {
+    return {
+      checkout: {
+        sessions: {
+          retrieve: jest.fn(),
+        }
       }
-    }
-  }));
-  
-  return { default: StripeConstructor };
+    };
+  };
 });
 
 describe('PurchasesService', () => {

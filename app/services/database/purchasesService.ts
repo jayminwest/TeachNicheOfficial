@@ -22,6 +22,7 @@ export class PurchasesService extends DatabaseService {
   }>> {
     try {
       // Initialize Stripe
+      const Stripe = require('stripe');
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         apiVersion: '2025-01-27.acacia',
       });
@@ -229,7 +230,9 @@ export class PurchasesService extends DatabaseService {
       const creatorEarnings = Math.round((amount - platformFee) * 100) / 100;
       
       // Generate a UUID for the purchase
-      const purchaseId = crypto.randomUUID();
+      const purchaseId = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       
       // Set initial status - if coming from webhook, set to completed
       const initialStatus = data.fromWebhook ? 'completed' : 'pending';

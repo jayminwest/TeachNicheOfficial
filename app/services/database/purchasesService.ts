@@ -87,44 +87,51 @@ export class PurchasesService extends DatabaseService {
       console.log('Creating purchase record:', {
         lessonId: data.lessonId,
         userId: data.userId,
-        amount: data.amount,
-        sessionId: data.stripeSessionId
+        amount: amount,
+        sessionId: data.stripeSessionId,
+        fromWebhook: data.fromWebhook
       });
       
       // Check if a purchase record already exists with this session ID
       const { data: existingPurchase, error: checkError } = await supabase
         .from('purchases')
-        .select('id')
+        .select('id, status')
         .eq('stripe_session_id', data.stripeSessionId)
         .limit(1);
       
       if (!checkError && existingPurchase && existingPurchase.length > 0) {
-        console.log(`Purchase already exists with session ID ${data.stripeSessionId}`);
+        console.log(`Purchase already exists with session ID ${data.stripeSessionId}, status: ${existingPurchase[0].status}`);
         
-        // Update the status to completed if it exists
-        const { data: updatedPurchase, error: updateError } = await supabase
-          .from('purchases')
-          .update({
-            status: 'completed',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingPurchase[0].id)
-          .select('id')
-          .single();
-        
-        if (updateError) {
-          console.error('Error updating existing purchase:', updateError);
-          return { data: null, error: updateError };
+        // Only update if not already completed
+        if (existingPurchase[0].status !== 'completed') {
+          // Update the status to completed if it exists
+          const { data: updatedPurchase, error: updateError } = await supabase
+            .from('purchases')
+            .update({
+              status: 'completed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingPurchase[0].id)
+            .select('id')
+            .single();
+          
+          if (updateError) {
+            console.error('Error updating existing purchase:', updateError);
+            return { data: null, error: updateError };
+          }
+          
+          console.log(`Updated existing purchase ${updatedPurchase.id} to completed`);
+          return { data: { id: updatedPurchase.id }, error: null };
+        } else {
+          console.log(`Purchase ${existingPurchase[0].id} already completed, no update needed`);
+          return { data: { id: existingPurchase[0].id }, error: null };
         }
-        
-        console.log(`Updated existing purchase ${updatedPurchase.id} to completed`);
-        return { data: { id: updatedPurchase.id }, error: null };
       }
       
       // First get the lesson to get creator_id
       const { data: lesson, error: lessonError } = await supabase
         .from('lessons')
-        .select('creator_id')
+        .select('creator_id, price')
         .eq('id', data.lessonId)
         .single();
       
@@ -133,9 +140,12 @@ export class PurchasesService extends DatabaseService {
         return { data: null, error: lessonError };
       }
       
+      // Use the provided amount or fall back to the lesson price
+      const amount = data.amount || lesson.price;
+      
       // Calculate platform fee (10% of amount)
-      const platformFee = Math.round(data.amount * 0.1 * 100) / 100;
-      const creatorEarnings = Math.round((data.amount - platformFee) * 100) / 100;
+      const platformFee = Math.round(amount * 0.1 * 100) / 100;
+      const creatorEarnings = Math.round((amount - platformFee) * 100) / 100;
       
       // Generate a UUID for the purchase
       const purchaseId = crypto.randomUUID();

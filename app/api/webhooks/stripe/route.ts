@@ -72,12 +72,14 @@ export async function POST(request: NextRequest) {
         
         // If we still don't have the IDs, try to extract from line items description
         if ((!lessonId || !userId) && session.line_items?.data?.length > 0) {
+          console.log('Attempting to extract from line items:', session.line_items);
+      
           const description = session.line_items.data[0].description;
           if (description && description.startsWith('Access to lesson:')) {
             // Try to find the lesson by title
             const title = description.replace('Access to lesson:', '').trim();
             console.log(`Trying to find lesson by title: "${title}"`);
-            
+        
             // We'll need to query the database here
             const supabase = await createServerSupabaseClient();
             const { data: lessons } = await supabase
@@ -85,12 +87,66 @@ export async function POST(request: NextRequest) {
               .select('id, creator_id')
               .ilike('title', title)
               .limit(1);
-              
+          
             if (lessons && lessons.length > 0) {
               lessonId = lessons[0].id;
               console.log(`Found lesson by title: ${lessonId}`);
             }
           }
+        }
+    
+        // If line_items is not available in the webhook payload, fetch the expanded session
+        if ((!lessonId || !userId) && (!session.line_items || session.line_items.data?.length === 0)) {
+          console.log('Line items not available in webhook payload, fetching expanded session');
+      
+          try {
+            const expandedSession = await stripe.checkout.sessions.retrieve(
+              session.id,
+              { expand: ['line_items'] }
+            );
+        
+            console.log('Retrieved expanded session with line items:', 
+              expandedSession.line_items?.data?.length || 0);
+          
+            if (expandedSession.line_items?.data?.length > 0) {
+              const description = expandedSession.line_items.data[0].description;
+              if (description && description.startsWith('Access to lesson:')) {
+                // Try to find the lesson by title
+                const title = description.replace('Access to lesson:', '').trim();
+                console.log(`Trying to find lesson by title from expanded session: "${title}"`);
+            
+                // We'll need to query the database here
+                const supabase = await createServerSupabaseClient();
+                const { data: lessons } = await supabase
+                  .from('lessons')
+                  .select('id, creator_id')
+                  .ilike('title', title)
+                  .limit(1);
+              
+                if (lessons && lessons.length > 0) {
+                  lessonId = lessons[0].id;
+                  console.log(`Found lesson by title from expanded session: ${lessonId}`);
+                }
+              }
+            }
+          } catch (expandError) {
+            console.error('Error retrieving expanded session:', expandError);
+          }
+        }
+    
+        // If we still don't have the necessary information, log and return an error
+        if (!lessonId || !userId) {
+          console.error('Missing required information for purchase creation:', {
+            lessonId,
+            userId,
+            sessionId: session.id
+          });
+      
+          return NextResponse.json({ 
+            error: 'Missing required information',
+            lessonId,
+            userId
+          }, { status: 400 });
         }
         
         // Try to update using the session ID first
@@ -115,32 +171,42 @@ export async function POST(request: NextRequest) {
         // Check the final result
         if (updateResult.error) {
           console.error('Error updating purchase status:', updateResult.error);
-          
+      
           // If we have the lesson ID and user ID, create a purchase record
           if (lessonId && userId) {
             console.log(`Creating purchase from webhook with lessonId=${lessonId}, userId=${userId}`);
             console.log('Attempting to create purchase record from webhook data');
-            
+        
             try {
+              // Get the amount in dollars (convert from cents if needed)
+              const amount = session.amount_total ? (session.amount_total / 100) : undefined;
+              console.log(`Amount from session: ${amount} (converted from ${session.amount_total} cents)`);
+          
               const createResult = await purchasesService.createPurchase({
                 lessonId,
                 userId,
-                amount: (session.amount_total || 0) / 100, // Convert from cents
+                amount: amount, // This will fall back to lesson price if undefined
                 stripeSessionId: session.id,
                 paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : undefined,
                 fromWebhook: true
               });
-              
+          
               if (createResult.error) {
                 console.error('Failed to create purchase record:', createResult.error);
-                return NextResponse.json({ error: 'Failed to create purchase record' }, { status: 500 });
+                return NextResponse.json({ 
+                  error: 'Failed to create purchase record', 
+                  details: createResult.error.message 
+                }, { status: 500 });
               }
-              
+          
               console.log(`Created new purchase ${createResult.data?.id} from webhook data`);
               return NextResponse.json({ success: true, created: true });
             } catch (createErr) {
-              console.error('Error creating purchase:', createErr);
-              return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 });
+              console.error('Error creating purchase:', createErr instanceof Error ? createErr.message : 'Unknown error', createErr);
+              return NextResponse.json({ 
+                error: 'Failed to create purchase', 
+                details: createErr instanceof Error ? createErr.message : 'Unknown error'
+              }, { status: 500 });
             }
           } else {
             console.error('Cannot create purchase record: missing lessonId or userId');

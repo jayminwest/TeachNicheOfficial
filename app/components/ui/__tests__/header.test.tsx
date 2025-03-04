@@ -274,5 +274,21 @@ describe('Header', () => {
       // Verify the link exists
       expect(aboutButton.closest('a')).toHaveAttribute('href', '/about')
     })
+
+    it('closes mobile menu when a navigation link is clicked', () => {
+      render(<Header />)
+      
+      // Open the mobile menu
+      const menuButton = screen.getByText('Menu Icon').parentElement
+      fireEvent.click(menuButton!)
+      expect(screen.getByTestId('mobile-menu')).toBeInTheDocument()
+      
+      // Click a navigation link in the mobile menu
+      const aboutLink = screen.getAllByText('About')[1] // Get the one in the mobile menu
+      fireEvent.click(aboutLink)
+      
+      // Verify the mobile menu is closed
+      expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
+    })
   })
 })

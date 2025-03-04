@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       }, { status: 401 });
     }
 
-    console.log('Authenticated user:', user);
+    console.log('Authenticated user:', user.id);
     
     // Parse and validate request body
     let body;
@@ -98,12 +98,36 @@ export async function POST(request: Request) {
     const stripeInstance = getStripe();
     
     try {
+      // Check if user already has a Stripe account
+      const supabase = createRouteHandlerClient({ cookies });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_account_id')
+        .eq('id', user.id)
+        .single();
+        
+      // If user already has a Stripe account, create a new account link for it
+      if (profile?.stripe_account_id) {
+        console.log('User already has Stripe account:', profile.stripe_account_id);
+        
+        // Create account link directly with Stripe
+        const accountLink = await stripeInstance.accountLinks.create({
+          account: profile.stripe_account_id,
+          refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
+          return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${profile.stripe_account_id}`,
+          type: 'account_onboarding'
+        });
+        
+        console.log('Created account link for existing account:', accountLink);
+        return NextResponse.json({ url: accountLink.url });
+      }
+      
       // Use type assertion to handle the mock vs real implementation difference
       const accounts = stripeInstance.accounts as Stripe.AccountsResource;
       
-      // Create Stripe Connect account with international support
+      // Create Stripe Connect account with Express type
       const account = await accounts.create({
-        type: 'standard',
+        type: 'express', // Changed from 'standard' to 'express'
         email: user.email,
         metadata: {
           user_id: user.id
@@ -118,25 +142,40 @@ export async function POST(request: Request) {
               interval: 'manual'
             }
           }
+        },
+        business_type: 'individual', // Default to individual for Express accounts
+        business_profile: {
+          url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/${user.id}`,
+          mcc: '8299', // Education Services
+          product_description: 'Online educational content'
         }
       });
 
       // Create account link using our utility
-      const accountLink = await createConnectSession({
-        accountId: account.id,
-        refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
-        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${account.id}`,
+      console.log('Creating account link for account:', account.id);
+      
+      // Ensure we have a valid base URL
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
+      // Create direct account link with Stripe
+      const accountLink = await stripeInstance.accountLinks.create({
+        account: account.id,
+        refresh_url: `${baseUrl}/profile?error=connect-refresh`,
+        return_url: `${baseUrl}/api/stripe/connect/callback?account_id=${account.id}`,
         type: 'account_onboarding'
       });
+      
+      console.log('Account link created directly:', accountLink);
 
       // Store the Stripe account ID in Supabase
-      const supabase = createRouteHandlerClient({ cookies });
+      console.log('Updating profile with Stripe account ID');
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ stripe_account_id: account.id })
         .eq('id', user.id);
 
       if (updateError) {
+        console.error('Failed to update profile with Stripe account:', updateError);
         // If we fail to update the database, delete the Stripe account to maintain consistency
         try {
           await (stripeInstance.accounts as Stripe.AccountsResource).del(account.id);
@@ -146,7 +185,9 @@ export async function POST(request: Request) {
         throw new Error('Failed to update profile with Stripe account');
       }
 
-      return NextResponse.json({ url: accountLink.url });
+      const response = { url: accountLink.url };
+      console.log('Returning response:', response);
+      return NextResponse.json(response);
     } catch (stripeError) {
       console.error('Stripe API error:', stripeError);
       throw new Error(`Stripe API error: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`);

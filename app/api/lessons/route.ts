@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { createClientSupabaseClient } from '@/app/lib/supabase/client';
 import { z } from 'zod';
+import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
 
 // Add these helper functions at the top of the file
 
@@ -81,8 +82,55 @@ async function createLessonHandler(request: Request) {
       creator_id: session.user.id,
       category,
       mux_asset_id: muxAssetId,
-      mux_playback_id: muxPlaybackId
+      mux_playback_id: muxPlaybackId,
+      stripe_product_id: null, // Will be updated after Stripe product creation
+      stripe_price_id: null,   // Will be updated after Stripe price creation
+      previous_stripe_price_ids: []
     };
+
+    // Check if this is a paid lesson
+    if (price > 0) {
+      // Verify user can create paid lessons
+      const canCreatePaid = await canCreatePaidLessons(session.user.id, supabase);
+      if (!canCreatePaid) {
+        return createErrorResponse(
+          'Stripe account required for paid lessons', 
+          403, 
+          'You must connect a Stripe account and complete onboarding to create paid lessons'
+        );
+      }
+
+      try {
+        // Get the user's Stripe account ID
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('stripe_account_id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!profile?.stripe_account_id) {
+          return createErrorResponse('Stripe account required', 403);
+        }
+
+        // Create a Stripe product for the lesson
+        const productId = await createProductForLesson({
+          id: lessonData.id,
+          title,
+          description
+        });
+
+        // Create a Stripe price for the product
+        const priceId = await createPriceForProduct(productId, price);
+
+        // Update the lesson data with Stripe IDs
+        lessonData.stripe_product_id = productId;
+        lessonData.stripe_price_id = priceId;
+      } catch (error) {
+        console.error('Stripe product/price creation error:', error);
+        // Continue anyway, as the lesson is created
+        // In a production environment, you might want to implement a background job to retry
+      }
+    }
 
     // With RLS, this will only succeed if the user is allowed to insert
     const { data: lesson, error: dbError } = await supabase

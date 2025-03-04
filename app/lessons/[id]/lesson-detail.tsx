@@ -9,9 +9,14 @@ import { Toaster } from "@/app/components/ui/toaster";
 
 interface LessonDetailProps {
   id: string;
+  session?: {
+    user?: {
+      id: string;
+    };
+  } | null;
 }
 
-export default async function LessonDetail({ id }: LessonDetailProps) {
+export default async function LessonDetail({ id, session }: LessonDetailProps) {
   // Redirect to new lesson page if the ID is "create"
   if (id === "create") {
     return (
@@ -110,27 +115,15 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
         <div className="container max-w-4xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <div className="flex justify-between items-center mb-4">
-                <Link href="/lessons">
-                  <Button variant="ghost">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Lessons
-                  </Button>
-                </Link>
-            
-                {/* Show edit button for lesson owner */}
-                {session?.user?.id === lesson.instructor_id && (
-                  <Link href={`/lessons/${lesson.id}/edit`}>
-                    <Button variant="outline">
-                      <PencilIcon className="mr-2 h-4 w-4" />
-                      Edit Lesson
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            
+              <Link href="/lessons">
+                <Button variant="ghost">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Lessons
+                </Button>
+              </Link>
+          
               {/* Show edit button for lesson owner */}
-              {session?.user?.id === lesson.instructor_id && (
+              {session?.user?.id === lesson.creator_id && (
                 <Link href={`/lessons/${lesson.id}/edit`}>
                   <Button variant="outline">
                     <PencilIcon className="mr-2 h-4 w-4" />
@@ -147,7 +140,7 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
               <div className="mb-6">
                 <LessonAccessGate
                   lessonId={lesson.id}
-                  creatorId={lesson.instructor_id}
+                  creatorId={lesson.creator_id}
                   price={lesson.price}
                   className="w-full"
                 >
@@ -156,6 +149,8 @@ export default async function LessonDetail({ id }: LessonDetailProps) {
                     playbackId={lesson.mux_playback_id}
                     title={lesson.title}
                     className="w-full aspect-video rounded-lg overflow-hidden"
+                    price={lesson.price}
+                    isFree={lesson.price === 0}
                   />
                 </LessonAccessGate>
               </div>

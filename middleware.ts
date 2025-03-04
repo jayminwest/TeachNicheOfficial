@@ -32,6 +32,24 @@ export async function middleware(req: NextRequest) {
   
   const path = req.nextUrl.pathname
   
+  // Check if the request is for a debug route
+  if (path.startsWith('/debug') || path.startsWith('/api/debug')) {
+    // Only allow access in development environment
+    if (process.env.NODE_ENV !== 'development') {
+      // Redirect to home page or return 403 for API routes
+      if (path.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Debug endpoints are only available in development environment' },
+          { status: 403 }
+        );
+      } else {
+        return NextResponse.redirect(new URL('/', req.url));
+      }
+    }
+    // In development, allow access to debug routes
+    return NextResponse.next();
+  }
+  
   // Skip middleware for public paths
   if (PUBLIC_PATHS.some(publicPath => path === publicPath) || 
       path.startsWith('/auth/callback') || 
@@ -85,6 +103,7 @@ export const config = {
     '/api/:path*', // Protect all API routes by default
     '/auth/callback',
     '/auth/signin',
+    '/debug/:path*', // Add debug routes
     // Add other paths that need middleware checking
   ]
 }

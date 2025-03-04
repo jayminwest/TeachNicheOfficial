@@ -135,5 +135,37 @@ export const createMockMuxClient = (config: MockConfig = {}) => {
 
 export const mockMuxClient = createMockMuxClient();
 
+// Mock the createUpload function that's exported from app/services/mux.ts
+export const createUpload = jest.fn().mockImplementation((isFree = false) => {
+  return Promise.resolve({
+    url: 'https://storage.mux.com/upload',
+    uploadId: 'upload_123'
+  });
+});
+
+// Mock other exported functions from app/services/mux.ts
+export const getAsset = jest.fn().mockImplementation((assetId) => {
+  return Promise.resolve(createMockAsset({ id: assetId }));
+});
+
+export const getUpload = jest.fn().mockImplementation((uploadId) => {
+  return Promise.resolve(createMockUpload({ id: uploadId }));
+});
+
+export const getPlaybackId = jest.fn().mockImplementation(() => {
+  return Promise.resolve('playback_123');
+});
+
+export const deleteAsset = jest.fn().mockImplementation(() => {
+  return Promise.resolve(true);
+});
+
 // Export function to reset all mocks
-export const resetMuxMocks = () => resetMocks(mockMuxClient);
+export const resetMuxMocks = () => {
+  resetMocks(mockMuxClient);
+  createUpload.mockClear();
+  getAsset.mockClear();
+  getUpload.mockClear();
+  getPlaybackId.mockClear();
+  deleteAsset.mockClear();
+};

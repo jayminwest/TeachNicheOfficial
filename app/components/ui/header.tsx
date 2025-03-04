@@ -222,6 +222,7 @@ export function Header() {
                                             <Link
                                                 href={item.href}
                                                 className="flex justify-between items-center"
+                                                onClick={() => setOpen(false)}
                                             >
                                                 <span className="text-lg">{item.title}</span>
                                                 <MoveRight className="w-4 h-4 stroke-1 text-muted-foreground" />
@@ -235,6 +236,7 @@ export function Header() {
                                                     key={subItem.title}
                                                     href={subItem.href}
                                                     className="flex justify-between items-center"
+                                                    onClick={() => setOpen(false)}
                                                 >
                                                     <span className="text-muted-foreground">
                                                         {subItem.title}

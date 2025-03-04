@@ -12,6 +12,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// Helper function to create Supabase client with awaited cookies
+async function getSupabaseClient() {
+  const cookieStore = cookies();
+  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+}
+
 export async function POST(request: Request) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -38,6 +44,19 @@ export async function POST(request: Request) {
       case 'account.updated':
         await handleAccount(event.data.object as Stripe.Account);
         break;
+    
+      // Add handling for Express account events
+      case 'account.application.authorized':
+        await handleAccountAuthorized(event.data.object as Stripe.Account);
+        break;
+    
+      case 'account.application.deauthorized':
+        await handleAccountDeauthorized(event.data.object as Stripe.Account);
+        break;
+        
+      case 'account.external_account.created':
+        await handleExternalAccountCreated(event.data.object as Stripe.BankAccount | Stripe.Card);
+        break;
 
       // Add more event types as needed
     }
@@ -53,10 +72,11 @@ export async function POST(request: Request) {
 }
 
 async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
-  
-  // Get purchase record by payment intent with lesson and creator details
-  const { data: purchase, error: fetchError } = await supabase
+  try {
+    const supabase = await getSupabaseClient();
+    
+    // Get purchase record by payment intent with lesson and creator details
+    const { data: purchase, error: fetchError } = await supabase
     .from('purchases')
     .select(`
       *,
@@ -118,25 +138,178 @@ async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise
     console.error('Transfer creation error:', err);
     return;
   }
+  } catch (error) {
+    console.error('Payment intent handling error:', error);
+    return;
+  }
+}
+
+async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
+  try {
+    const supabase = await getSupabaseClient();
+    
+    // Update creator's profile with authorized status
+    const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      stripe_account_status: 'authorized',
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_account_id', account.id);
+
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return;
+    }
+
+    console.log('Creator account authorized:', account.id);
+  } catch (error) {
+    console.error('Account authorized handling error:', error);
+    return;
+  }
+}
+
+async function handleAccountDeauthorized(account: Stripe.Account): Promise<void> {
+  try {
+    const supabase = await getSupabaseClient();
+    
+    // Update creator's profile with deauthorized status
+    const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      stripe_account_status: 'deauthorized',
+      stripe_onboarding_complete: false,
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_account_id', account.id);
+
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return;
+    }
+
+    console.log('Creator account deauthorized:', account.id);
+  } catch (error) {
+    console.error('Account deauthorized handling error:', error);
+    return;
+  }
 }
 
 async function handleAccount(account: Stripe.Account): Promise<void> {
-  const supabase = createRouteHandlerClient<Database>({ cookies });
+  const supabase = await getSupabaseClient();
+  
+  // Check if charges_enabled and payouts_enabled are true
+  const isComplete = !!(account.details_submitted && account.charges_enabled && account.payouts_enabled);
+  
+  // Get any requirements information
+  const missingRequirements = account.requirements?.currently_due || [];
+  const pendingVerification = Array.isArray(account.requirements?.pending_verification) && 
+                             account.requirements.pending_verification.length > 0;
+  
+  // Determine a more specific status for user-friendly display
+  let detailedStatus = isComplete ? 'verified' : 'pending';
+  
+  if (!isComplete) {
+    if (pendingVerification) {
+      detailedStatus = 'verification_pending';
+    } else if (missingRequirements.length > 0) {
+      detailedStatus = 'requirements_needed';
+    } else if (!account.details_submitted) {
+      detailedStatus = 'details_needed';
+    } else if (!account.charges_enabled) {
+      detailedStatus = 'charges_disabled';
+    } else if (!account.payouts_enabled) {
+      detailedStatus = 'payouts_disabled';
+    }
+  }
   
   // Update creator's profile with account status
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      stripe_account_status: account.details_submitted ? 'verified' : 'pending',
-      updated_at: new Date().toISOString()
-    })
-    .eq('stripe_account_id', account.id)
+  // First check if the columns exist in the schema
+  try {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_onboarding_complete: isComplete,
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_account_id', account.id);
 
-  if (updateError) {
-    console.error('Profile update error:', updateError);
+    if (updateError) {
+      console.error('Basic profile update error:', updateError);
+      return;
+    }
+    
+    // Try to update the status fields separately
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_account_status: detailedStatus
+        })
+        .eq('stripe_account_id', account.id);
+    } catch (statusError) {
+      console.error('Status field update error:', statusError);
+      // Continue execution - this field might not exist yet
+    }
+    
+    // Try to update the details field separately
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_account_details: {
+            pending_verification: pendingVerification,
+            missing_requirements: missingRequirements,
+            has_charges_enabled: account.charges_enabled,
+            has_payouts_enabled: account.payouts_enabled,
+            has_details_submitted: account.details_submitted,
+            detailed_status: detailedStatus,
+            last_checked: new Date().toISOString()
+          }
+        })
+        .eq('stripe_account_id', account.id);
+    } catch (detailsError) {
+      console.error('Details field update error:', detailsError);
+      // Continue execution - this field might not exist yet
+    }
+  } catch (error) {
+    console.error('Profile update error:', error);
     return;
   }
 
-  console.log('Creator account status updated:', account.id);
+  console.log('Creator account status updated:', account.id, 'Status:', detailedStatus);
+}
+
+async function handleExternalAccountCreated(externalAccount: Stripe.BankAccount | Stripe.Card): Promise<void> {
+  try {
+    // Only process bank accounts
+    if (externalAccount.object !== 'bank_account') {
+      return;
+    }
+    
+    const bankAccount = externalAccount as Stripe.BankAccount;
+    const accountId = bankAccount.account;
+    
+    const supabase = await getSupabaseClient();
+    
+    // Update profile to indicate bank account was added
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_has_bank_account: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_account_id', accountId);
+
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return;
+    }
+
+    console.log('Bank account added for account:', accountId);
+  } catch (error) {
+    console.error('External account handling error:', error);
+    return;
+  }
 }
 

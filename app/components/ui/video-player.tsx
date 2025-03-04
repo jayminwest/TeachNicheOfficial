@@ -3,7 +3,6 @@
 import { cn } from "@/app/lib/utils";
 import MuxPlayer from "@mux/mux-player-react";
 import { useState, useEffect } from "react";
-import { LessonAccessGate } from "./lesson-access-gate";
 
 interface VideoPlayerProps {
   playbackId: string;
@@ -23,8 +22,13 @@ export function VideoPlayer({
   isFree = false
 }: VideoPlayerProps) {
   const [jwt, setJwt] = useState<string>();
+  const [isMounted, setIsMounted] = useState(false);
+  // Use a stable timestamp for player initialization
+  const [playerInitTime] = useState(() => Date.now().toString());
 
   useEffect(() => {
+    setIsMounted(true);
+    
     let isMounted = true;
     
     if (!isFree) {
@@ -49,23 +53,34 @@ export function VideoPlayer({
     };
   }, [playbackId, isFree]);
 
+  // Prevent hydration mismatch by only rendering on client
+  if (!isMounted) {
+    return (
+      <div
+        className={cn(
+          "w-full aspect-video bg-muted/30 flex items-center justify-center rounded-lg",
+          className
+        )}
+      >
+        <div className="text-muted-foreground">Loading player...</div>
+      </div>
+    );
+  }
+
   return (
-    <LessonAccessGate 
-      lessonId={id || 'undefined'} 
-      price={price} 
-      className={cn("aspect-video rounded-lg overflow-hidden", className)}
-    >
+    <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
       <MuxPlayer
         playbackId={playbackId}
         metadata={{ 
           video_id: id,
           video_title: title,
+          player_init_time: playerInitTime,
         }}
         streamType="on-demand"
         tokens={{
           playback: jwt
         }}
       />
-    </LessonAccessGate>
+    </div>
   );
 }

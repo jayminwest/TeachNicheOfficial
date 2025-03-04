@@ -23,7 +23,8 @@ export default function NewLessonPage() {
         description: "Please sign in to create a lesson",
         variant: "destructive",
       });
-      router.push('/sign-in?redirect=/lessons/new');
+      // Use callbackUrl instead of redirect for Next.js compatibility
+      router.push('/sign-in?callbackUrl=/lessons/new');
     }
   }, [user, authLoading, router]);
 
@@ -36,41 +37,32 @@ export default function NewLessonPage() {
   }) => {
     setIsSubmitting(true);
     try {
-      // Check authentication
-      const session = await supabase.auth.getSession();
-      if (!session.data.session) {
+      // Check authentication - use the user from context instead of fetching again
+      if (!user) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to create a lesson",
           variant: "destructive",
         });
         setIsSubmitting(false);
-        router.push('/sign-in?redirect=/lessons/new');
+        // Use callbackUrl instead of redirect for Next.js compatibility
+        router.push('/sign-in?callbackUrl=/lessons/new');
         return;
       }
       
-      // For paid lessons, verify Stripe account
-      if (data.price && data.price > 0) {
-        const profileResponse = await fetch('/api/profile');
-        if (!profileResponse.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-        
-        const profile = await profileResponse.json();
-        if (!profile.stripe_account_id) {
-          toast({
-            title: "Stripe Account Required",
-            description: "You need to connect a Stripe account to create paid lessons",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-      }
+      // Note: Stripe account verification is now handled in the LessonForm component
+      // so we don't need to check it again here
+      
       console.log("Form submission data:", data); // Debug submission data
+      
+      // Add debug log for Stripe verification
+      if (data.price && data.price > 0) {
+        console.log("Stripe verification handled by LessonForm component");
+      }
 
       // Check if muxAssetId exists and is not empty
       if (!data.muxAssetId || data.muxAssetId.trim() === "") {
+        console.error("Missing muxAssetId in form submission");
         toast({
           title: "Video Required",
           description: "Please upload a video before creating the lesson",
@@ -79,70 +71,41 @@ export default function NewLessonPage() {
         setIsSubmitting(false);
         return;
       }
-
-      // Show initial processing status
-      const processingToast = toast({
-        title: "Processing Video",
-        description: "Please wait while we process your video...",
-        duration: 60000, // 1 minute
-      });
-
-      let result;
-      try {
-        console.log('Starting video processing for asset:', data.muxAssetId);
-        
-        // Wait for asset to be ready and get playback ID
-        result = await waitForAssetReady(data.muxAssetId, {
-          isFree: data.price === 0,
-          maxAttempts: 60,  // 10 minutes total
-          interval: 10000   // 10 seconds between checks
-        });
-        
-        console.log('Video processing completed:', result);
-        
-        if (result.status !== 'ready' || !result.playbackId) {
-          throw new Error('Video processing completed but no playback ID was generated');
-        }
-
-        // Dismiss the processing toast
-        processingToast.dismiss();
-        
-        // Show success toast
+      
+      // Check if muxPlaybackId exists and is not empty
+      if (!data.muxPlaybackId || data.muxPlaybackId.trim() === "") {
+        console.error("Missing muxPlaybackId in form submission");
         toast({
-          title: "Video Processing Complete",
-          description: "Your video has been processed successfully.",
-        });
-
-      } catch (error) {
-        // Dismiss the processing toast
-        processingToast.dismiss();
-        
-        console.error('Video processing error:', error);
-        toast({
-          title: "Video Processing Failed",
-          description: error instanceof Error ? error.message : "Failed to process video. Please try again.",
+          title: "Video Processing Incomplete",
+          description: "Please wait for video processing to complete before creating the lesson",
           variant: "destructive",
-          duration: 5000
         });
         setIsSubmitting(false);
         return;
       }
+      
+      // Handle temporary asset IDs
+      const isTemporaryAsset = data.muxAssetId.startsWith('temp_');
+      if (isTemporaryAsset) {
+        console.log("Using temporary asset ID:", data.muxAssetId);
+        // Extract the upload ID from the temporary asset ID
+        const uploadId = data.muxAssetId.substring(5);
+        
+        // Set a flag to indicate this is a temporary asset
+        data.isTemporaryAsset = true;
+        data.uploadId = uploadId;
+      }
 
-      // Create lesson data object with playback ID
+      // Create lesson data object - set status to 'draft' instead of 'processing'
+      // This fixes the validation error with the enum values
       const lessonData = {
         ...data,
-        muxPlaybackId: result.playbackId
+        status: 'draft'
       };
 
-      // Verify session is still valid
-      if (!session.data.session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to create a lesson",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
+      // Ensure we have the required fields
+      if (!lessonData.title || !lessonData.description || !lessonData.content) {
+        throw new Error('Missing required fields: title, description, and content are required');
       }
 
       const response = await fetch("/api/lessons", {
@@ -153,29 +116,108 @@ export default function NewLessonPage() {
         body: JSON.stringify(lessonData),
       });
 
+      let errorData;
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('API Error Response:', errorData);
-        throw new Error(
-          errorData.details || 
-          errorData.message || 
-          `Failed to create lesson: ${response.statusText}`
-        );
+        try {
+          errorData = await response.json();
+          console.error('API Error Response:', errorData);
+          
+          // Handle validation errors specifically
+          if (errorData.error === 'Validation error' && errorData.details) {
+            const errorMessages = [];
+            
+            // Extract field-specific errors
+            if (errorData.details.title) {
+              errorMessages.push(`Title: ${errorData.details.title._errors.join(', ')}`);
+            }
+            if (errorData.details.description) {
+              errorMessages.push(`Description: ${errorData.details.description._errors.join(', ')}`);
+            }
+            if (errorData.details.content) {
+              errorMessages.push(`Content: ${errorData.details.content._errors.join(', ')}`);
+            }
+            if (errorData.details.status) {
+              errorMessages.push(`Status: ${errorData.details.status._errors.join(', ')} (valid values: draft, published, archived)`);
+            }
+            
+            // If we have specific field errors, show them
+            if (errorMessages.length > 0) {
+              throw new Error(`Validation failed: ${errorMessages.join('; ')}`);
+            }
+          }
+          
+          // For other errors, use the provided message or a generic one
+          const errorMessage = 
+            errorData.details ? 
+              (typeof errorData.details === 'string' ? 
+                errorData.details : 
+                JSON.stringify(errorData.details)
+              ) : 
+              errorData.message || 
+              `Failed to create lesson: ${response.statusText}`;
+          
+          throw new Error(errorMessage);
+        } catch (parseError) {
+          if (errorData) {
+            const errorMessage = 
+              errorData.details ? 
+                (typeof errorData.details === 'string' ? 
+                  errorData.details : 
+                  JSON.stringify(errorData.details)
+                ) : 
+                errorData.message || 
+                `Failed to create lesson: ${response.statusText}`;
+            
+            throw new Error(errorMessage);
+          } else {
+            throw new Error(`Failed to create lesson: ${response.statusText}`);
+          }
+        }
       }
 
       const lesson = await response.json();
       
       toast({
         title: "Lesson Created!",
-        description: "Your new lesson has been created successfully.",
+        description: "Your new lesson has been created and your video is now processing.",
       });
 
+      // Start background video processing
+      fetch('/api/lessons/process-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessonId: lesson.id,
+          muxAssetId: data.muxAssetId,
+          isPaid: data.price && data.price > 0,
+          // Include the current status for reference
+          currentStatus: 'draft'
+        }),
+      }).catch(error => {
+        console.error('Failed to start background processing:', error);
+        // Don't block the user flow if background processing fails to start
+      });
+
+      // Redirect to the lesson page
       router.push(`/lessons/${lesson.id}`);
     } catch (error) {
       console.error('Lesson creation error:', error);
+      
+      // Improved error handling to better display the error
+      let errorMessage = "There was an error creating your lesson. Please try again.";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Try to extract a meaningful message from the error object
+        errorMessage = JSON.stringify(error);
+      }
+      
       toast({
         title: "Creation Failed",
-        description: error instanceof Error ? error.message : "There was an error creating your lesson. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       setIsSubmitting(false);

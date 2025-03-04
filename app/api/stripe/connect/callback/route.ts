@@ -37,33 +37,50 @@ export async function GET(request: Request) {
       );
     }
 
+    // For Express accounts, we need to check if the account is ready for payouts
     const isComplete = status.isComplete;
+    const pendingVerification = status.pendingVerification;
+    const missingRequirements = status.missingRequirements;
 
-    if (isComplete) {
-      // Update onboarding status only if we have verified everything
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-          stripe_onboarding_complete: true 
-        })
-        .eq('id', user.id)
-        .eq('stripe_account_id', accountId); // Additional safety check
+    // Store additional status information
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ 
+        stripe_onboarding_complete: isComplete,
+        stripe_account_status: isComplete ? 'complete' : 'pending',
+        stripe_account_details: {
+          pending_verification: pendingVerification,
+          missing_requirements: missingRequirements,
+          last_checked: new Date().toISOString()
+        }
+      })
+      .eq('id', user.id)
+      .eq('stripe_account_id', accountId); // Additional safety check
 
-      if (updateError) {
-        console.error('Failed to update onboarding status:', updateError);
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
-        );
-      }
-
+    if (updateError) {
+      console.error('Failed to update onboarding status:', updateError);
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
       );
     }
 
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
-    );
+    if (isComplete) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
+      );
+    } else if (pendingVerification) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?status=verification-pending`
+      );
+    } else if (missingRequirements.length > 0) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?status=requirements-needed`
+      );
+    } else {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
+      );
+    }
   } catch (error) {
     console.error('Stripe Connect callback error:', error);
     return NextResponse.redirect(

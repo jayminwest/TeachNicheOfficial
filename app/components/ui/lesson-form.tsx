@@ -52,20 +52,47 @@ export function LessonForm({
   // Add state for Stripe account
   const [hasStripeAccount, setHasStripeAccount] = useState<boolean | null>(null);
   const [isCheckingStripe, setIsCheckingStripe] = useState(true);
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<{
+    connected: boolean;
+    onboardingComplete: boolean;
+    error?: string;
+  } | null>(null);
   
   // Check if user has a Stripe account
   useEffect(() => {
     async function checkStripeAccount() {
       try {
+        setIsCheckingStripe(true);
+        
+        // First check if account exists
         const response = await fetch('/api/profile/stripe-status');
-        if (response.ok) {
-          const data = await response.json();
-          setHasStripeAccount(!!data.stripeAccountId);
-        } else {
+        
+        if (!response.ok) {
+          setStripeAccountStatus({
+            connected: false,
+            onboardingComplete: false,
+            error: 'Failed to check Stripe account status'
+          });
           setHasStripeAccount(false);
+          return;
         }
+        
+        const data = await response.json();
+        
+        setStripeAccountStatus({
+          connected: !!data.stripeAccountId,
+          onboardingComplete: !!data.isComplete,
+          error: data.error
+        });
+        
+        setHasStripeAccount(!!data.stripeAccountId && !!data.isComplete);
       } catch (error) {
         console.error('Failed to check Stripe account:', error);
+        setStripeAccountStatus({
+          connected: false,
+          onboardingComplete: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
         setHasStripeAccount(false);
       } finally {
         setIsCheckingStripe(false);
@@ -118,13 +145,24 @@ export function LessonForm({
       <form 
         onSubmit={form.handleSubmit((data) => {
           // Validate paid lessons require a Stripe account
-          if (data.price > 0 && !hasStripeAccount && !isEditing) {
-            toast({
-              title: "Stripe Account Required",
-              description: "You need to connect a Stripe account to create paid lessons",
-              variant: "destructive",
-            });
-            return;
+          if (data.price > 0) {
+            if (!hasStripeAccount) {
+              toast({
+                title: "Stripe Account Required",
+                description: "You need to connect a Stripe account to create paid lessons",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            if (stripeAccountStatus && !stripeAccountStatus.onboardingComplete) {
+              toast({
+                title: "Stripe Onboarding Incomplete",
+                description: "Please complete your Stripe onboarding before creating paid lessons",
+                variant: "destructive",
+              });
+              return;
+            }
           }
           
           // Continue with form submission
@@ -194,6 +232,11 @@ export function LessonForm({
                   Write your lesson content using Markdown. You can include headers, lists, code blocks, and more.
                 </FormDescription>
                 <FormMessage />
+                {field.value.length === 0 && (
+                  <p className="text-sm text-destructive mt-1">
+                    Content is required. Please add some content for your lesson.
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -227,11 +270,32 @@ export function LessonForm({
                   Set a fair price for your lesson content (leave at 0 for free)
                 </FormDescription>
               
-                {/* Show warning if trying to set price without Stripe account */}
-                {field.value > 0 && hasStripeAccount === false && !isEditing && (
-                  <p className="text-sm text-destructive mt-1">
-                    You need to <Link href="/profile/payments" className="underline font-medium">connect a Stripe account</Link> to create paid lessons
-                  </p>
+                {/* Show detailed Stripe account status */}
+                {field.value > 0 && (
+                  <div className="mt-2">
+                    {isCheckingStripe ? (
+                      <p className="text-sm text-muted-foreground">Checking Stripe account status...</p>
+                    ) : stripeAccountStatus?.connected ? (
+                      stripeAccountStatus.onboardingComplete ? (
+                        <p className="text-sm text-green-600">✓ Stripe account connected and ready for payments</p>
+                      ) : (
+                        <p className="text-sm text-destructive">
+                          Your Stripe account needs to complete onboarding. Please visit your{" "}
+                          <Link href="/profile/payments" className="underline font-medium">
+                            payment settings
+                          </Link>
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-sm text-destructive">
+                        You need to{" "}
+                        <Link href="/profile/payments" className="underline font-medium">
+                          connect a Stripe account
+                        </Link>{" "}
+                        to create paid lessons
+                      </p>
+                    )}
+                  </div>
                 )}
               
                 <FormMessage />
@@ -252,31 +316,32 @@ export function LessonForm({
             <VideoUploader
               endpoint="/api/mux/upload"
               onUploadComplete={async (assetId) => {
+                console.log("LessonForm received assetId:", assetId);
                 try {
+                  // Set the muxAssetId in the form
                   form.setValue("muxAssetId", assetId, { 
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true
                   });
                   
-                  // Get the playback ID from the asset
-                  const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+                  console.log("Set muxAssetId in form:", assetId);
+                  console.log("Form values after setting muxAssetId:", form.getValues());
                   
-                  if (!response.ok) {
-                    throw new Error(`Failed to get asset status: ${response.status}`);
-                  }
+                  // Always use a temporary playback ID for now
+                  // This simplifies the flow and avoids unnecessary API calls
+                  console.log("Using temporary playback ID for asset");
+                  const playbackId = `temp_playback_${assetId.replace(/^temp_/, '')}`;
                   
-                  const data = await response.json();
-                  
-                  if (!data.playbackId) {
-                    throw new Error('No playback ID received');
-                  }
-                  
-                  form.setValue("muxPlaybackId", data.playbackId, {
+                  // Set the muxPlaybackId in the form
+                  form.setValue("muxPlaybackId", playbackId, {
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true
                   });
+                  
+                  console.log("Set muxPlaybackId in form:", playbackId);
+                  console.log("Form values after setting both IDs:", form.getValues());
                   
                   toast({
                     title: "Video uploaded",
@@ -291,11 +356,15 @@ export function LessonForm({
                 }
               }}
               onError={(error) => {
+                console.error("VideoUploader error:", error);
                 toast({
                   title: "Upload failed",
                   description: error.message,
                   variant: "destructive",
                 });
+              }}
+              onUploadStart={() => {
+                console.log("Video upload started");
               }}
             />
           </div>

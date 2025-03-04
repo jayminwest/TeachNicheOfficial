@@ -82,7 +82,7 @@ export const stripeConfig: StripeConfig = {
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_tests',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
   apiVersion: '2025-01-27.acacia',
-  connectType: 'standard',
+  connectType: 'express', // Changed from 'standard' to 'express'
   platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '10'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
   defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
@@ -117,6 +117,12 @@ export const getStripe = () => {
           payouts_enabled: true,
           charges_enabled: true,
           requirements: { currently_due: [], pending_verification: [] }
+        }),
+        create: jest.fn().mockResolvedValue({
+          id: 'acct_test123',
+          details_submitted: false,
+          payouts_enabled: false,
+          charges_enabled: false
         })
       },
       accountLinks: {
@@ -126,6 +132,12 @@ export const getStripe = () => {
       },
       webhooks: {
         constructEvent: jest.fn().mockReturnValue({ type: 'test.event', data: { object: {} } })
+      },
+      products: {
+        create: jest.fn().mockResolvedValue({ id: 'prod_test123' })
+      },
+      prices: {
+        create: jest.fn().mockResolvedValue({ id: 'price_test123' })
       }
     };
   }
@@ -150,16 +162,43 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
 
 export const createConnectSession = async (options: ConnectSessionOptions) => {
   try {
-    const session = await getStripe().accountLinks.create({
+    console.log('Creating Stripe account link with options:', {
       account: options.accountId,
       refresh_url: options.refreshUrl,
       return_url: options.returnUrl,
       type: options.type,
     });
     
+    const stripe = getStripe();
+    
+    // Validate URLs to ensure they're absolute
+    const validateUrl = (url: string) => {
+      try {
+        new URL(url);
+        return url;
+      } catch (e) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
+      }
+    };
+    
+    const session = await stripe.accountLinks.create({
+      account: options.accountId,
+      refresh_url: validateUrl(options.refreshUrl),
+      return_url: validateUrl(options.returnUrl),
+      type: options.type,
+    });
+    
+    console.log('Account link created successfully:', session);
     return session;
   } catch (error) {
     console.error('Stripe Connect session creation failed:', error);
+    console.error('Error details:', error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    } : 'Unknown error type');
+    
     throw new StripeError(
       'callback_failed',
       error instanceof Error ? error.message : 'Failed to create Connect session'
@@ -187,6 +226,85 @@ export const verifyStripeWebhook = (
 };
 
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
+
+// Helper for creating Stripe products for lessons
+export const createProductForLesson = async (
+  lesson: { id: string; title: string; description?: string },
+  stripeClient = getStripe()
+) => {
+  try {
+    const product = await stripeClient.products.create({
+      name: lesson.title,
+      description: lesson.description || undefined,
+      metadata: {
+        lesson_id: lesson.id
+      }
+    });
+    
+    return product.id;
+  } catch (error) {
+    console.error('Failed to create Stripe product:', error);
+    throw new StripeError(
+      'callback_failed',
+      error instanceof Error ? error.message : 'Failed to create Stripe product'
+    );
+  }
+};
+
+// Helper for creating Stripe prices
+export const createPriceForProduct = async (
+  productId: string,
+  amount: number,
+  currency = stripeConfig.defaultCurrency,
+  stripeClient = getStripe()
+) => {
+  try {
+    const price = await stripeClient.prices.create({
+      product: productId,
+      unit_amount: Math.round(amount * 100), // Convert to cents
+      currency: currency,
+    });
+    
+    return price.id;
+  } catch (error) {
+    console.error('Failed to create Stripe price:', error);
+    throw new StripeError(
+      'callback_failed',
+      error instanceof Error ? error.message : 'Failed to create Stripe price'
+    );
+  }
+};
+
+// Helper to check if a user can create paid lessons
+export const canCreatePaidLessons = async (
+  userId: string,
+  supabaseClient: TypedSupabaseClient
+): Promise<boolean> => {
+  try {
+    // Get profile with Stripe account ID
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('stripe_account_id, stripe_onboarding_complete')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile?.stripe_account_id) {
+      return false;
+    }
+
+    // If we already know onboarding is complete, return true
+    if (profile.stripe_onboarding_complete) {
+      return true;
+    }
+
+    // Otherwise check with Stripe
+    const status = await getAccountStatus(profile.stripe_account_id);
+    return status.isComplete;
+  } catch (error) {
+    console.error('Error checking paid lesson capability:', error);
+    return false;
+  }
+};
 
 export const verifyConnectedAccount = async (
   userId: string,

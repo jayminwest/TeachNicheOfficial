@@ -10,13 +10,54 @@ function getCorsHeaders(origin: string = '*') {
     'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Content-Range, Authorization'
   };
 }
+
 // Helper function to handle POST request (upload initialization)
-async function handlePostRequest() {
-  const headersList = await headers();
+async function handlePostRequest(request: Request) {
+  const headersList = headers();
   const origin = headersList.get('origin') || '*';
 
   try {
-    const upload = await createUpload();
+    // Check if Mux environment variables are set
+    if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+      console.error('Missing Mux API credentials in environment variables');
+      return NextResponse.json(
+        { 
+          error: 'Mux API credentials not configured',
+          details: 'MUX_TOKEN_ID and MUX_TOKEN_SECRET must be set in environment variables'
+        },
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(origin)
+          }
+        }
+      );
+    }
+
+    // Get the isFree parameter from the query string
+    const url = new URL(request.url);
+    const isFree = url.searchParams.get('isFree') === 'true';
+    
+    const upload = await createUpload(isFree);
+    
+    // Ensure the response has the required fields
+    if (!upload || !upload.url || !upload.uploadId) {
+      console.error('Invalid upload response from Mux service:', upload);
+      return NextResponse.json(
+        { 
+          error: 'Invalid upload response from Mux service',
+          details: 'Missing required fields in upload response'
+        },
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(origin)
+          }
+        }
+      );
+    }
 
     return NextResponse.json(
       upload,
@@ -29,6 +70,7 @@ async function handlePostRequest() {
       }
     );
   } catch (error) {
+    console.error('Failed to initialize video upload:', error);
     return NextResponse.json(
       { 
         error: 'Failed to initialize video upload',
@@ -45,8 +87,8 @@ async function handlePostRequest() {
   }
 }
 
-export async function POST() {
-  return handlePostRequest();
+export async function POST(request: Request) {
+  return handlePostRequest(request);
 }
 
 export async function PUT(request: Request) {
@@ -57,7 +99,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const headersList = await headers();
+  const headersList = headers();
   const origin = headersList.get('origin') || '*';
   
   // Get the upload URL from the query parameters

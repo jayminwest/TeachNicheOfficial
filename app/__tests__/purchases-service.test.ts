@@ -23,7 +23,13 @@ describe('PurchasesService', () => {
     jest.resetAllMocks();
     
     // Setup Stripe mock
-    mockStripe = new Stripe('mock-key', { apiVersion: '2025-01-27.acacia' });
+    mockStripe = {
+      checkout: {
+        sessions: {
+          retrieve: jest.fn()
+        }
+      }
+    };
     mockStripe.checkout.sessions.retrieve.mockResolvedValue({
       id: 'cs_test_123',
       payment_status: 'paid',

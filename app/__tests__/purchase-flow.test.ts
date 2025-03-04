@@ -49,7 +49,7 @@ function createMockRequest(body: any): NextRequest {
     json: () => Promise.resolve(body),
     text: () => Promise.resolve(JSON.stringify(body)),
     headers: {
-      get: vi.fn((name) => name === 'stripe-signature' ? 'mock-signature' : null),
+      get: jest.fn((name) => name === 'stripe-signature' ? 'mock-signature' : null),
     }
   } as unknown as NextRequest;
 }
@@ -63,12 +63,22 @@ describe('Purchase Flow', () => {
     jest.resetAllMocks();
     
     // Setup Stripe mock
-    mockStripe = new Stripe('mock-key', { apiVersion: '2025-01-27.acacia' });
+    mockStripe = {
+      checkout: {
+        sessions: {
+          create: jest.fn(),
+          retrieve: jest.fn()
+        },
+        webhooks: {
+          constructEvent: jest.fn()
+        }
+      }
+    };
     
     // Setup Supabase mock
     mockSupabase = {
       auth: {
-        getSession: vi.fn().mockResolvedValue({
+        getSession: jest.fn().mockResolvedValue({
           data: {
             session: {
               user: { id: 'user-123' }
@@ -259,7 +269,7 @@ describe('Purchase Flow', () => {
     
     it('should check pending purchases if no session ID is provided', async () => {
       // Mock access check - no access in database
-      (purchasesService.checkLessonAccess as Mock).mockResolvedValue({
+      (purchasesService.checkLessonAccess as jest.Mock).mockResolvedValue({
         data: { hasAccess: false },
         error: null
       });
@@ -384,7 +394,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock purchase status update - existing purchase found
-      (purchasesService.updatePurchaseStatus as Mock).mockResolvedValue({
+      (purchasesService.updatePurchaseStatus as jest.Mock).mockResolvedValue({
         data: { id: 'purchase-123' },
         error: null
       });
@@ -452,7 +462,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock purchase creation
-      (purchasesService.createPurchase as Mock).mockResolvedValue({
+      (purchasesService.createPurchase as jest.Mock).mockResolvedValue({
         data: { id: 'purchase-123' },
         error: null
       });

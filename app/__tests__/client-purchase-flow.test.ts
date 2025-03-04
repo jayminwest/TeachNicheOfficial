@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 
@@ -7,27 +6,27 @@ import { useRouter } from 'next/navigation';
 import { usePurchaseLesson } from '@/app/hooks/use-purchase-lesson';
 
 // Mock fetch for API calls
-vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(),
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
 }));
 
-global.fetch = vi.fn();
+global.fetch = jest.fn();
 
 describe('Client Purchase Flow', () => {
   let mockRouter: any;
   
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     
     // Setup router mock
     mockRouter = {
-      push: vi.fn(),
-      refresh: vi.fn(),
+      push: jest.fn(),
+      refresh: jest.fn(),
     };
-    (useRouter as Mock).mockReturnValue(mockRouter);
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
     
     // Setup fetch mock
-    (global.fetch as Mock).mockImplementation((url) => {
+    (global.fetch as jest.Mock).mockImplementation((url) => {
       if (url.includes('/api/lessons/purchase')) {
         return Promise.resolve({
           ok: true,
@@ -51,7 +50,7 @@ describe('Client Purchase Flow', () => {
   });
   
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
   
   describe('usePurchaseLesson', () => {
@@ -83,7 +82,7 @@ describe('Client Purchase Flow', () => {
     
     it('should handle purchase errors', async () => {
       // Mock a failed purchase
-      (global.fetch as Mock).mockImplementationOnce(() => 
+      (global.fetch as jest.Mock).mockImplementationOnce(() => 
         Promise.resolve({
           ok: false,
           json: () => Promise.resolve({ error: 'Payment failed' }),
@@ -133,7 +132,7 @@ describe('Client Purchase Flow', () => {
     
     it('should handle check-purchase errors', async () => {
       // Mock a failed check
-      (global.fetch as Mock).mockImplementationOnce(() => 
+      (global.fetch as jest.Mock).mockImplementationOnce(() => 
         Promise.resolve({
           ok: false,
           json: () => Promise.resolve({ error: 'Check failed' }),
@@ -156,7 +155,7 @@ describe('Client Purchase Flow', () => {
     
     it('should retry check-purchase if access is not granted immediately', async () => {
       // First call returns no access
-      (global.fetch as Mock).mockImplementationOnce(() => 
+      (global.fetch as jest.Mock).mockImplementationOnce(() => 
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ 
@@ -167,7 +166,7 @@ describe('Client Purchase Flow', () => {
       );
       
       // Second call returns access
-      (global.fetch as Mock).mockImplementationOnce(() => 
+      (global.fetch as jest.Mock).mockImplementationOnce(() => 
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ 

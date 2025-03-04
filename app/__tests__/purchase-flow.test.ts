@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
@@ -8,39 +7,39 @@ import { POST as checkPurchasePost } from '@/app/api/lessons/check-purchase/rout
 import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
 
 // Mock dependencies
-vi.mock('stripe', () => {
-  const StripeConstructor = vi.fn(() => ({
+jest.mock('stripe', () => {
+  const StripeConstructor = jest.fn(() => ({
     checkout: {
       sessions: {
-        create: vi.fn(),
-        retrieve: vi.fn(),
+        create: jest.fn(),
+        retrieve: jest.fn(),
       }
     },
     webhooks: {
-      constructEvent: vi.fn(),
+      constructEvent: jest.fn(),
     }
   }));
   
   // Add the static property to the constructor
   StripeConstructor.Webhook = {
     signature: {
-      verifyHeader: vi.fn(),
+      verifyHeader: jest.fn(),
     }
   };
   
   return { default: StripeConstructor };
 });
 
-vi.mock('@/app/lib/supabase/server', () => ({
-  createServerSupabaseClient: vi.fn(),
+jest.mock('@/app/lib/supabase/server', () => ({
+  createServerSupabaseClient: jest.fn(),
 }));
 
-vi.mock('@/app/services/database/purchasesService', () => ({
+jest.mock('@/app/services/database/purchasesService', () => ({
   purchasesService: {
-    createPurchase: vi.fn(),
-    updatePurchaseStatus: vi.fn(),
-    checkLessonAccess: vi.fn(),
-    verifyStripeSession: vi.fn(),
+    createPurchase: jest.fn(),
+    updatePurchaseStatus: jest.fn(),
+    checkLessonAccess: jest.fn(),
+    verifyStripeSession: jest.fn(),
   }
 }));
 
@@ -61,7 +60,7 @@ describe('Purchase Flow', () => {
   
   beforeEach(() => {
     // Reset mocks
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     
     // Setup Stripe mock
     mockStripe = new Stripe('mock-key', { apiVersion: '2025-01-27.acacia' });
@@ -88,7 +87,7 @@ describe('Purchase Flow', () => {
       insert: vi.fn().mockReturnThis(),
     };
     
-    (createServerSupabaseClient as Mock).mockResolvedValue(mockSupabase);
+    (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
     
     // Setup environment variables
     process.env.STRIPE_SECRET_KEY = 'mock-key';
@@ -97,7 +96,7 @@ describe('Purchase Flow', () => {
   });
   
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
   
   describe('Purchase Endpoint', () => {
@@ -114,7 +113,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock access check
-      (purchasesService.checkLessonAccess as Mock).mockResolvedValue({
+      (purchasesService.checkLessonAccess as jest.Mock).mockResolvedValue({
         data: { hasAccess: false },
         error: null
       });
@@ -128,7 +127,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock purchase creation
-      (purchasesService.createPurchase as Mock).mockResolvedValue({
+      (purchasesService.createPurchase as jest.Mock).mockResolvedValue({
         data: { id: 'purchase-123' },
         error: null
       });
@@ -167,7 +166,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock access check - user already has access
-      (purchasesService.checkLessonAccess as Mock).mockResolvedValue({
+      (purchasesService.checkLessonAccess as jest.Mock).mockResolvedValue({
         data: { hasAccess: true },
         error: null
       });
@@ -192,7 +191,7 @@ describe('Purchase Flow', () => {
   describe('Check Purchase Endpoint', () => {
     it('should return access if user has a completed purchase', async () => {
       // Mock access check
-      (purchasesService.checkLessonAccess as Mock).mockResolvedValue({
+      (purchasesService.checkLessonAccess as jest.Mock).mockResolvedValue({
         data: { 
           hasAccess: true,
           purchaseStatus: 'completed',
@@ -218,13 +217,13 @@ describe('Purchase Flow', () => {
     
     it('should verify with Stripe if session ID is provided', async () => {
       // Mock access check - no access in database
-      (purchasesService.checkLessonAccess as Mock).mockResolvedValue({
+      (purchasesService.checkLessonAccess as jest.Mock).mockResolvedValue({
         data: { hasAccess: false },
         error: null
       });
       
       // Mock Stripe verification - payment is complete
-      (purchasesService.verifyStripeSession as Mock).mockResolvedValue({
+      (purchasesService.verifyStripeSession as jest.Mock).mockResolvedValue({
         data: {
           isPaid: true,
           amount: 10,
@@ -235,7 +234,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock purchase creation
-      (purchasesService.createPurchase as Mock).mockResolvedValue({
+      (purchasesService.createPurchase as jest.Mock).mockResolvedValue({
         data: { id: 'purchase-123' },
         error: null
       });
@@ -277,7 +276,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock Stripe verification - payment is complete
-      (purchasesService.verifyStripeSession as Mock).mockResolvedValue({
+      (purchasesService.verifyStripeSession as jest.Mock).mockResolvedValue({
         data: {
           isPaid: true,
           amount: 10,
@@ -288,7 +287,7 @@ describe('Purchase Flow', () => {
       });
       
       // Mock purchase status update
-      (purchasesService.updatePurchaseStatus as Mock).mockResolvedValue({
+      (purchasesService.updatePurchaseStatus as jest.Mock).mockResolvedValue({
         data: { id: 'purchase-123' },
         error: null
       });
@@ -331,13 +330,13 @@ describe('Purchase Flow', () => {
       });
       
       // Mock purchase status update - no existing purchase
-      (purchasesService.updatePurchaseStatus as Mock).mockResolvedValue({
+      (purchasesService.updatePurchaseStatus as jest.Mock).mockResolvedValue({
         data: null,
         error: new Error('No purchase found')
       });
       
       // Mock purchase creation
-      (purchasesService.createPurchase as Mock).mockResolvedValue({
+      (purchasesService.createPurchase as jest.Mock).mockResolvedValue({
         data: { id: 'purchase-123' },
         error: null
       });

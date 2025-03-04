@@ -1,13 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { purchasesService } from '@/app/services/database/purchasesService';
 import Stripe from 'stripe';
 
 // Mock Stripe
-vi.mock('stripe', () => {
-  const StripeConstructor = vi.fn(() => ({
+jest.mock('stripe', () => {
+  const StripeConstructor = jest.fn(() => ({
     checkout: {
       sessions: {
-        retrieve: vi.fn(),
+        retrieve: jest.fn(),
       }
     }
   }));
@@ -21,7 +20,7 @@ describe('PurchasesService', () => {
   
   beforeEach(() => {
     // Reset mocks
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     
     // Setup Stripe mock
     mockStripe = new Stripe('mock-key', { apiVersion: '2025-01-27.acacia' });
@@ -37,25 +36,25 @@ describe('PurchasesService', () => {
     
     // Setup Supabase client mock
     mockSupabase = {
-      from: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      single: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
+      from: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      single: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
     };
     
     // Mock the getClient method to return our mock
-    vi.spyOn(purchasesService as any, 'getClient').mockReturnValue(mockSupabase);
+    jest.spyOn(purchasesService as any, 'getClient').mockReturnValue(mockSupabase);
     
     // Setup environment variables
     process.env.STRIPE_SECRET_KEY = 'mock-key';
   });
   
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
   
   describe('verifyStripeSession', () => {

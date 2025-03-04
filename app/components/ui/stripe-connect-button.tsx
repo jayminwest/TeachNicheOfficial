@@ -118,8 +118,17 @@ export function StripeConnectButton({
         description: 'You will be redirected to Stripe to complete the setup process.',
       });
       
-      // Force redirect with a direct window.location assignment
-      window.location.assign(data.url);
+      // Use setTimeout to ensure the toast is shown before redirect
+      setTimeout(() => {
+        // Try different redirect methods
+        try {
+          console.log('Attempting redirect with window.location.href');
+          window.location.href = data.url;
+        } catch (e) {
+          console.error('Redirect with href failed, trying assign:', e);
+          window.location.assign(data.url);
+        }
+      }, 1000);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -210,6 +219,40 @@ export function StripeConnectButton({
       });
     }
   };
+  
+  // Add direct test link function
+  const testDirectLink = async () => {
+    try {
+      const response = await fetch('/api/stripe/test-link');
+      const data = await response.json();
+      console.log('Test link result:', data);
+      
+      if (data.success && data.url) {
+        toast({
+          title: 'Test Link Created',
+          description: 'Redirecting to Stripe test link...',
+        });
+        
+        // Use setTimeout to ensure the toast is shown before redirect
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 1000);
+      } else {
+        toast({
+          title: 'Test Link Failed',
+          description: data.error || 'Failed to create test link',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Test link error:', error);
+      toast({
+        title: 'Test Link Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -239,6 +282,14 @@ export function StripeConnectButton({
             className="text-xs"
           >
             Debug Stripe Config
+          </Button>
+          <Button 
+            onClick={testDirectLink} 
+            variant="outline" 
+            size="sm"
+            className="text-xs bg-green-100"
+          >
+            Test Direct Link
           </Button>
         </div>
       )}

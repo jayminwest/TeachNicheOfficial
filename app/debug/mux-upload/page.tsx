@@ -174,6 +174,13 @@ export default function MuxUploadDebugPage() {
                   Get API Info
                 </Button>
                 <Button 
+                  onClick={() => testApi('test-video-api')} 
+                  disabled={loading}
+                  variant="outline"
+                >
+                  Test Video API
+                </Button>
+                <Button 
                   onClick={() => testApi('create-upload', { isFree: 'true' })} 
                   disabled={loading}
                   variant="outline"

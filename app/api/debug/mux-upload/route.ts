@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUpload, getUploadStatus, getAssetStatus } from '@/app/services/mux';
+import { createUpload, getUploadStatus, getAssetStatus, Video } from '@/app/services/mux';
 import Mux from '@mux/mux-node';
 
 /**
@@ -35,25 +35,65 @@ export async function GET(request: Request) {
     
     // Test Mux client initialization directly
     let muxInitTest = 'Failed';
+    let muxDetails = {};
     try {
       if (process.env.MUX_TOKEN_ID && process.env.MUX_TOKEN_SECRET) {
         const testClient = new Mux({
           tokenId: process.env.MUX_TOKEN_ID,
           tokenSecret: process.env.MUX_TOKEN_SECRET
         });
-        if (testClient && testClient.Video) {
-          muxInitTest = '✅ Success';
-        } else {
+        
+        // Check if client was created
+        if (!testClient) {
+          muxInitTest = '❌ Failed to create Mux client';
+        } 
+        // Check if Video API is available
+        else if (!testClient.Video) {
           muxInitTest = '❌ Client created but Video API not available';
+          muxDetails = { client: '✅', video: '❌' };
+        }
+        // Check if Video.Assets is available
+        else if (!testClient.Video.Assets) {
+          muxInitTest = '❌ Video API available but Assets not available';
+          muxDetails = { client: '✅', video: '✅', assets: '❌' };
+        }
+        // Check if Video.Uploads is available
+        else if (!testClient.Video.Uploads) {
+          muxInitTest = '❌ Video API available but Uploads not available';
+          muxDetails = { client: '✅', video: '✅', assets: '✅', uploads: '❌' };
+        }
+        // Check if methods are functions
+        else if (typeof testClient.Video.Assets.list !== 'function') {
+          muxInitTest = '❌ Video API available but methods not available';
+          muxDetails = { 
+            client: '✅', 
+            video: '✅', 
+            assets: '✅', 
+            uploads: '✅',
+            methods: '❌'
+          };
+        }
+        // All checks passed
+        else {
+          muxInitTest = '✅ Success';
+          muxDetails = { 
+            client: '✅', 
+            video: '✅', 
+            assets: '✅', 
+            uploads: '✅',
+            methods: '✅'
+          };
         }
       } else {
         muxInitTest = '❌ Missing credentials';
       }
     } catch (error) {
       muxInitTest = `❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      muxDetails = { error: error instanceof Error ? error.message : 'Unknown error' };
     }
     
     envInfo.muxInitTest = muxInitTest;
+    envInfo.muxDetails = muxDetails;
 
     // Handle different actions
     switch (action) {
@@ -103,6 +143,39 @@ export async function GET(request: Request) {
           env: envInfo
         });
 
+      case 'test-video-api':
+        // Test the Video API directly
+        let videoApiTest = { success: false, error: null, details: null };
+        try {
+          if (!Video) {
+            videoApiTest.error = 'Video API not available';
+          } else {
+            // Try to list assets as a simple test
+            const assets = await Video.Assets.list({ limit: 1 });
+            videoApiTest = { 
+              success: true, 
+              error: null, 
+              details: {
+                hasAssets: !!assets,
+                assetsCount: assets?.data?.length || 0
+              }
+            };
+          }
+        } catch (error) {
+          videoApiTest = { 
+            success: false, 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : null
+          };
+        }
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Video API test results',
+          videoApiTest,
+          env: envInfo
+        });
+        
       case 'info':
       default:
         // Return environment info and usage instructions
@@ -114,6 +187,7 @@ export async function GET(request: Request) {
             createUpload: '/api/debug/mux-upload?action=create-upload&isFree=true',
             uploadStatus: '/api/debug/mux-upload?action=upload-status&uploadId=YOUR_UPLOAD_ID',
             assetStatus: '/api/debug/mux-upload?action=asset-status&assetId=YOUR_ASSET_ID',
+            testVideoApi: '/api/debug/mux-upload?action=test-video-api'
           }
         });
     }

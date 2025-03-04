@@ -30,14 +30,28 @@ function initMuxClient() {
       tokenSecret
     });
 
-    Video = muxClient.Video;
-    
-    if (!Video) {
-      console.warn('Failed to initialize Mux Video client properly');
-      return false;
+    // Explicitly access the Video property
+    if (muxClient) {
+      Video = muxClient.Video;
+      
+      // Verify that Video API is properly initialized
+      if (!Video || !Video.Assets || !Video.Uploads) {
+        console.warn('Failed to initialize Mux Video client properly - Video API not available');
+        return false;
+      }
+      
+      // Test a method to ensure the API is working
+      if (typeof Video.Assets.list !== 'function') {
+        console.warn('Mux Video API methods not available');
+        return false;
+      }
+      
+      console.log('Mux client initialized successfully');
+      return true;
     }
     
-    return true;
+    console.warn('Failed to create Mux client');
+    return false;
   } catch (error) {
     console.error('Failed to initialize Mux client:', error);
     return false;
@@ -45,8 +59,10 @@ function initMuxClient() {
 }
 
 // Initialize on module load
-initMuxClient();
+const initialized = initMuxClient();
+console.log('Mux client initialization result:', initialized ? 'Success' : 'Failed');
 
+// Export the Video object
 export { Video };
 
 export interface MuxUploadResponse {

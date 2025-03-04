@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCategories } from '@/app/hooks/useCategories'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest, deleteRequest, updateRequest } from '@/app/lib/supabase/requests'
@@ -27,6 +27,13 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const { user } = useAuth();
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   
+  // Set default category after categories load
+  useEffect(() => {
+    if (!request && categories.length > 0 && !form.getValues('category')) {
+      form.setValue('category', categories[0].name);
+    }
+  }, [categories, form, request]);
+  
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),
     defaultValues: request ? {
@@ -39,7 +46,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
     } : {
       title: '',
       description: '',
-      category: 'Trick Tutorial',
+      category: '',  // We'll set this after categories load
       instagram_handle: '',
       tags: []
     }
@@ -178,6 +185,8 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                           <SelectItem value="error" disabled>Error loading categories</SelectItem>
                         ) : categoriesLoading ? (
                           <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        ) : categories.length === 0 ? (
+                          <SelectItem value="no-categories" disabled>No categories found</SelectItem>
                         ) : (
                           categories.map((category) => (
                             <SelectItem 

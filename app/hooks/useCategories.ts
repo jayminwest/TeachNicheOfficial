@@ -12,6 +12,7 @@ export function useCategories() {
   useEffect(() => {
     async function fetchCategories() {
       try {
+        setLoading(true)
         const supabase = createClientComponentClient<Database>()
         
         const { data, error } = await supabase
@@ -21,8 +22,10 @@ export function useCategories() {
         
         if (error) throw new Error(error.message)
         
+        console.log('Categories fetched:', data)
         setCategories(data || [])
       } catch (err) {
+        console.error('Error fetching categories:', err)
         setError(err instanceof Error ? err.message : 'Failed to load categories')
       } finally {
         setLoading(false)

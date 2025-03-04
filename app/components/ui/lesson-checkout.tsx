@@ -102,17 +102,13 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
         if (response.status === 401) {
           setError('Your session has expired. Please sign in again.');
           return;
         }
-        throw new Error('Failed to create checkout session');
-      }
-
-      const data = await response.json();
-      
-      if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session');
       }
 

@@ -76,7 +76,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
         
         // Use the purchasesService to check access
-        const { data, error: serviceError, success } = await Promise.race([
+        const { data, error: serviceError } = await Promise.race([
           purchasesService.checkLessonAccess(user.id, lessonId),
           new Promise<never>((_, reject) => {
             setTimeout(() => reject(new Error('Access check timed out')), TIMEOUT_MS)
@@ -87,7 +87,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         
         if (!mounted) return
         
-        if (!success || serviceError) {
+        if (serviceError) {
           throw serviceError || new Error('Failed to check lesson access')
         }
         

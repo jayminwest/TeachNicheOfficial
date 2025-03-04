@@ -5,7 +5,8 @@ import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import { useRouter } from "next/navigation";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Loader2 } from "lucide-react";
+import { useLessonAccess } from '@/app/hooks/use-lesson-access';
 
 interface LessonPreviewDialogProps {
   lesson: {
@@ -28,6 +29,9 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
   
   // Check if current user is the lesson creator
   const isOwner = user?.id === lesson.creatorId;
+  
+  // Use the lesson access hook to check if user has purchased the lesson
+  const { hasAccess, loading: accessLoading } = useLessonAccess(lesson.id);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -73,7 +77,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
               )}
             </div>
             
-            {/* Show different actions based on ownership */}
+            {/* Show different actions based on relationship to lesson */}
             {isOwner ? (
               <Button 
                 onClick={() => {
@@ -85,14 +89,18 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
                 <PencilIcon className="mr-2 h-4 w-4" />
                 Edit Lesson
               </Button>
-            ) : (
-              lesson.price > 0 && (
-                <LessonCheckout 
-                  lessonId={lesson.id} 
-                  price={lesson.price}
-                  searchParams={new URLSearchParams(window.location.search)}
-                />
-              )
+            ) : accessLoading ? (
+              <Button disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking access...
+              </Button>
+            ) : lesson.price > 0 && (
+              <LessonCheckout 
+                lessonId={lesson.id} 
+                price={lesson.price}
+                searchParams={new URLSearchParams(window.location.search)}
+                hasAccess={hasAccess}
+              />
             )}
           </div>
         </DialogFooter>

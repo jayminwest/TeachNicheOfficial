@@ -6,7 +6,8 @@ import { LessonPreviewDialog } from "@/app/components/ui/lesson-preview-dialog";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { Button } from "@/app/components/ui/button";
 import { useRouter } from "next/navigation";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Loader2 } from "lucide-react";
+import { useLessonAccess } from '@/app/hooks/use-lesson-access';
 
 interface LessonCardProps {
   lesson: {
@@ -28,6 +29,9 @@ export function LessonCard({ lesson }: LessonCardProps) {
   
   // Check if current user is the lesson creator
   const isOwner = user?.id === lesson.creatorId;
+  
+  // Use the lesson access hook to check if user has purchased the lesson
+  const { hasAccess, loading: accessLoading } = useLessonAccess(lesson.id);
 
   return (
     <>
@@ -59,28 +63,34 @@ export function LessonCard({ lesson }: LessonCardProps) {
               )}
             </div>
             
-            {/* Show different actions based on ownership */}
-            {isOwner ? (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent opening preview
-                  router.push(`/lessons/${lesson.id}/edit`);
-                }}
-              >
-                <PencilIcon className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-            ) : (
-              lesson.price > 0 && (
+            {/* Show different actions based on relationship to lesson */}
+            <div onClick={(e) => e.stopPropagation()}>
+              {isOwner ? (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent opening preview
+                    router.push(`/lessons/${lesson.id}/edit`);
+                  }}
+                >
+                  <PencilIcon className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              ) : accessLoading ? (
+                <Button variant="outline" size="sm" disabled>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </Button>
+              ) : lesson.price > 0 && (
                 <LessonCheckout 
                   lessonId={lesson.id} 
                   price={lesson.price}
                   searchParams={new URLSearchParams(window.location.search)}
+                  hasAccess={hasAccess}
                 />
-              )
-            )}
+              )}
+            </div>
           </div>
         </div>
       </Card>

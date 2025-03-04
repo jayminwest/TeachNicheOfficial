@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
 import { supabase } from '@/app/services/supabase';
+import { useAuth } from '@/app/services/auth/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -11,13 +13,52 @@ interface LessonCheckoutProps {
   lessonId: string;
   price: number;
   searchParams?: URLSearchParams;
+  hasAccess?: boolean; // New prop to indicate if user already has access
 }
 
-export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckoutProps) {
+export function LessonCheckout({ lessonId, price, searchParams, hasAccess = false }: LessonCheckoutProps) {
   const isSuccess = searchParams?.get('purchase') === 'success';
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // If the user already has access, show an "Access Lesson" button instead
+  if (hasAccess) {
+    return (
+      <Button 
+        onClick={() => router.push(`/lessons/${lessonId}`)}
+        variant="outline"
+        className="bg-green-600 hover:bg-green-700 text-white"
+      >
+        Access Lesson
+      </Button>
+    );
+  }
+
+  // If purchase was successful, show success message
+  if (isSuccess) {
+    return (
+      <div className="text-green-600 font-medium">
+        Payment Successful
+      </div>
+    );
+  }
+
+  // If user is not authenticated, show sign-in button
+  if (!user && !authLoading) {
+    return (
+      <Button 
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent opening preview
+          window.location.href = `/auth?redirect=/lessons/${lessonId}`;
+        }}
+      >
+        Sign in to Purchase
+      </Button>
+    );
+  }
 
   const handleCheckout = async () => {
     try {
@@ -78,22 +119,14 @@ export function LessonCheckout({ lessonId, price, searchParams }: LessonCheckout
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="text-green-600 font-medium">
-        Payment Successful
-      </div>
-    );
-  }
-
   return (
-    <div>
+    <div onClick={(e) => e.stopPropagation()}>
       {error && (
         <div className="text-red-600 text-sm mb-2">{error}</div>
       )}
       <Button 
         onClick={handleCheckout} 
-        disabled={isLoading}
+        disabled={isLoading || authLoading}
       >
         {isLoading ? (
           <>

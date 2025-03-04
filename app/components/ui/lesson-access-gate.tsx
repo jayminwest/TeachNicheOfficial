@@ -1,10 +1,12 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { Loader2, PencilIcon } from 'lucide-react';
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
 import { LessonCheckout } from './lesson-checkout';
 import { cn } from '@/app/lib/utils';
 import { useAuth } from '@/app/services/auth/AuthContext';
+import { Button } from './button';
+import { useRouter } from 'next/navigation';
 
 interface LessonAccessGateProps {
   lessonId: string;
@@ -21,18 +23,32 @@ export function LessonAccessGate({
   price,
   className
 }: LessonAccessGateProps) {
-  const { hasAccess, loading, error } = useLessonAccess(lessonId);
-  const { user } = useAuth();
+  const { hasAccess, loading, error, purchaseStatus, purchaseDate } = useLessonAccess(lessonId);
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   
   // Check if current user is the lesson creator
   const isOwner = creatorId && user?.id === creatorId;
   
   // If user is the owner, they always have access
   if (isOwner) {
-    return <div className={cn(className)}>{children}</div>;
+    return (
+      <div className={cn(className)}>
+        {children}
+        <div className="mt-6 flex justify-end">
+          <Button 
+            onClick={() => router.push(`/lessons/${lessonId}/edit`)}
+            variant="outline"
+          >
+            <PencilIcon className="mr-2 h-4 w-4" />
+            Edit Lesson
+          </Button>
+        </div>
+      </div>
+    );
   }
   
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <Loader2 data-testid="loading-spinner" className="h-8 w-8 animate-spin" />
@@ -46,6 +62,15 @@ export function LessonAccessGate({
         <p className="text-red-600 text-sm">
           {error.message || 'Failed to check access'}
         </p>
+        {price !== undefined && (
+          <div className="mt-4">
+            <LessonCheckout 
+              lessonId={lessonId}
+              price={price}
+              searchParams={new URLSearchParams(window.location.search)}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -66,5 +91,15 @@ export function LessonAccessGate({
     );
   }
   
-  return <div className={cn(className)}>{children}</div>;
+  // If user has access, show the content with purchase info if available
+  return (
+    <div className={cn(className)}>
+      {children}
+      {purchaseStatus === 'completed' && purchaseDate && (
+        <div className="mt-4 text-sm text-green-600">
+          You purchased this lesson on {new Date(purchaseDate).toLocaleDateString()}
+        </div>
+      )}
+    </div>
+  );
 }

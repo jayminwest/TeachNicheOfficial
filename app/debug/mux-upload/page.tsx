@@ -1,17 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { useVideoUpload } from '@/app/hooks/use-video-upload';
 
 export default function MuxUploadDebugPage() {
+  const router = useRouter();
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [uploadId, setUploadId] = useState('');
   const [assetId, setAssetId] = useState('');
   const [activeTab, setActiveTab] = useState('api');
+  const [isDev, setIsDev] = useState(false);
 
   // Initialize the video upload hook
   const {
@@ -63,10 +66,33 @@ export default function MuxUploadDebugPage() {
     }
   };
 
-  // Get API info on page load
+  // Check if we're in development environment and get API info on page load
   useEffect(() => {
-    testApi('info');
-  }, []);
+    // This is a client-side check for development mode
+    // We'll also verify on the server side in the API route
+    const checkDevMode = async () => {
+      try {
+        const response = await fetch('/api/debug/mux-upload?action=info');
+        const data = await response.json();
+        
+        if (response.status === 403) {
+          setIsDev(false);
+          // Redirect to home page if not in dev mode
+          router.push('/');
+          return;
+        }
+        
+        setIsDev(true);
+        setApiResponse(data);
+      } catch (error) {
+        console.error('Error checking dev mode:', error);
+        setIsDev(false);
+        router.push('/');
+      }
+    };
+    
+    checkDevMode();
+  }, [router]);
 
   // Function to handle file selection and upload
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,9 +137,18 @@ export default function MuxUploadDebugPage() {
     xhr.send(file);
   };
 
+  // If not in dev mode, don't render anything (we'll redirect)
+  if (!isDev) {
+    return null;
+  }
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Mux Upload Debug Tool</h1>
+      <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+        <p className="font-bold">Development Mode Only</p>
+        <p>This debug tool is only available in development environment.</p>
+      </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">

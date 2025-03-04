@@ -5,8 +5,17 @@ import { createUpload, getUploadStatus, getAssetStatus } from '@/app/services/mu
  * Debug endpoint for testing Mux video uploads
  * This route provides a simple way to test the Mux integration
  * without going through the full lesson creation flow
+ * 
+ * Only available in development environment
  */
 export async function GET(request: Request) {
+  // Check if we're in development environment
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({
+      success: false,
+      message: 'Debug endpoints are only available in development environment'
+    }, { status: 403 });
+  }
   const url = new URL(request.url);
   const action = url.searchParams.get('action') || 'info';
   const uploadId = url.searchParams.get('uploadId');

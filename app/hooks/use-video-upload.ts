@@ -137,9 +137,24 @@ export function useVideoUpload({
       const data = await response.json();
       console.log('Upload URL response:', data);
       
-      if (!data.url || !data.uploadId) {
+      if (!data.url) {
         console.error('Invalid upload response:', data);
-        throw new Error('Invalid upload response: missing URL or upload ID');
+        throw new Error('Invalid upload response: missing URL');
+      }
+      
+      // Store the uploadId globally for later use
+      if (data.uploadId) {
+        // Add the upload ID as a query parameter to the URL
+        const url = new URL(data.url);
+        url.searchParams.append('upload_id', data.uploadId);
+        
+        // Also store it as a data attribute in the DOM for fallback
+        const uploadIdElement = document.createElement('div');
+        uploadIdElement.style.display = 'none';
+        uploadIdElement.setAttribute('data-upload-id', data.uploadId);
+        document.body.appendChild(uploadIdElement);
+        
+        return url.toString();
       }
       
       return data.url;

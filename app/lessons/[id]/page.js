@@ -3,13 +3,7 @@ import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params }) {
   const supabase = await createServerSupabaseClient();
   
   try {

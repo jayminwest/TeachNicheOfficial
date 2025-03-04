@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { login } from './helpers/auth';
 
+// Get base URL from environment or use default
+const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+
 test.describe('Stripe Connect Flow', () => {
   test('should show connect button for unauthenticated users as disabled', async ({ page }) => {
     // Go to profile page without logging in
-    await page.goto('/profile');
+    await page.goto(`${baseUrl}/profile`);
     
     // Expect to see a disabled Stripe Connect button
     const connectButton = page.getByRole('button', { name: /please sign in to connect stripe/i });
@@ -17,7 +20,7 @@ test.describe('Stripe Connect Flow', () => {
     await login(page);
     
     // Go to profile page
-    await page.goto('/profile');
+    await page.goto(`${baseUrl}/profile`);
     
     // Expect to see the Stripe Connect button
     const connectButton = page.getByRole('button', { name: /connect with stripe|connected to stripe|continue stripe setup/i });
@@ -39,7 +42,7 @@ test.describe('Stripe Connect Flow', () => {
     await login(page);
     
     // Go to profile page
-    await page.goto('/profile');
+    await page.goto(`${baseUrl}/profile`);
     
     // Click the connect button
     const connectButton = page.getByRole('button', { name: /connect with stripe/i });
@@ -65,7 +68,7 @@ test.describe('Stripe Connect Flow', () => {
       await route.fulfill({
         status: 302,
         headers: {
-          'Location': '/profile?success=connected'
+          'Location': `${baseUrl}/profile?success=connected`
         }
       });
     });
@@ -74,10 +77,10 @@ test.describe('Stripe Connect Flow', () => {
     await login(page);
     
     // Directly navigate to the callback URL to simulate return from Stripe
-    await page.goto('/api/stripe/connect/callback?account_id=acct_test123');
+    await page.goto(`${baseUrl}/api/stripe/connect/callback?account_id=acct_test123`);
     
     // Should be redirected to profile with success param
-    await expect(page).toHaveURL(/profile\?success=connected/);
+    await expect(page).toHaveURL(new RegExp(`${baseUrl.replace(/\//g, '\\/')}\\/profile\\?success=connected`));
     
     // Expect success message
     const successMessage = page.locator('[role="status"]');
@@ -91,7 +94,7 @@ test.describe('Stripe Connect Flow', () => {
       await route.fulfill({
         status: 302,
         headers: {
-          'Location': '/profile?status=requirements-needed'
+          'Location': `${baseUrl}/profile?status=requirements-needed`
         }
       });
     });
@@ -100,10 +103,10 @@ test.describe('Stripe Connect Flow', () => {
     await login(page);
     
     // Directly navigate to the callback URL to simulate return from Stripe
-    await page.goto('/api/stripe/connect/callback?account_id=acct_test123');
+    await page.goto(`${baseUrl}/api/stripe/connect/callback?account_id=acct_test123`);
     
     // Should be redirected to profile with status param
-    await expect(page).toHaveURL(/profile\?status=requirements-needed/);
+    await expect(page).toHaveURL(new RegExp(`${baseUrl.replace(/\//g, '\\/')}\\/profile\\?status=requirements-needed`));
   });
 
   test('should handle error return from Stripe', async ({ page }) => {
@@ -113,7 +116,7 @@ test.describe('Stripe Connect Flow', () => {
       await route.fulfill({
         status: 302,
         headers: {
-          'Location': '/profile?error=account-mismatch'
+          'Location': `${baseUrl}/profile?error=account-mismatch`
         }
       });
     });
@@ -122,10 +125,10 @@ test.describe('Stripe Connect Flow', () => {
     await login(page);
     
     // Directly navigate to the callback URL to simulate return from Stripe
-    await page.goto('/api/stripe/connect/callback?account_id=acct_invalid');
+    await page.goto(`${baseUrl}/api/stripe/connect/callback?account_id=acct_invalid`);
     
     // Should be redirected to profile with error param
-    await expect(page).toHaveURL(/profile\?error=account-mismatch/);
+    await expect(page).toHaveURL(new RegExp(`${baseUrl.replace(/\//g, '\\/')}\\/profile\\?error=account-mismatch`));
     
     // Expect error message
     const errorMessage = page.locator('[role="alert"]');

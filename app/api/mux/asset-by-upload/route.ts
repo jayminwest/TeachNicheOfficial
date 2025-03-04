@@ -3,7 +3,7 @@ import { Mux } from '@mux/mux-node';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 // Initialize Mux client
-const muxClient = new Mux({
+const { Video } = new Mux({
   tokenId: process.env.MUX_TOKEN_ID || '',
   tokenSecret: process.env.MUX_TOKEN_SECRET || '',
 });
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     // First, try to get the upload to check its status
     try {
-      const upload = await muxClient.Video.Uploads.get(uploadId);
+      const upload = await Video.Uploads.get(uploadId);
       
       // If the upload has an asset_id, return it
       if (upload.asset_id) {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       // If the upload is completed but no asset_id, the asset might be processing
       if (upload.status === 'success') {
         // Try to list assets and find one with matching upload ID
-        const assets = await muxClient.Video.Assets.list({
+        const assets = await Video.Assets.list({
           limit: 10,
           order_by: 'created_at:desc'
         });
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       // If we can't get the upload, try to find the asset directly
       try {
         // List recent assets and try to find one with matching upload ID
-        const assets = await muxClient.Video.Assets.list({
+        const assets = await Video.Assets.list({
           limit: 20,
           order_by: 'created_at:desc'
         });

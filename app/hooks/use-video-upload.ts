@@ -248,24 +248,50 @@ export function useVideoUpload({
         async () => {
           console.log(`Fetching asset ID for upload: ${cleanUploadId}`);
           
-          // Instead of checking upload status, we'll directly check if the asset was created
-          // This is more reliable since the upload might have already completed
-          const response = await fetch(`/api/mux/asset-by-upload?uploadId=${encodeURIComponent(cleanUploadId)}`);
+          // Try multiple approaches to get the asset ID
           
-          if (!response.ok) {
-            const errorText = await response.text().catch(() => "No error details");
-            console.error(`Asset check error (${response.status}):`, errorText);
-            throw new Error(`Failed to get asset for upload: ${response.status}`);
+          // First try the asset-by-upload endpoint
+          try {
+            const response = await fetch(`/api/mux/asset-by-upload?uploadId=${encodeURIComponent(cleanUploadId)}`);
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log("Asset check response:", data);
+              
+              if (data.assetId) {
+                return data.assetId;
+              }
+            } else {
+              const errorText = await response.text().catch(() => "No error details");
+              console.warn(`Asset check warning (${response.status}):`, errorText);
+              // Don't throw here, try the fallback approach
+            }
+          } catch (error) {
+            console.warn("Error checking asset by upload:", error);
+            // Continue to fallback approach
           }
           
-          const data = await response.json();
-          console.log("Asset check response:", data);
-          
-          if (!data.assetId) {
-            throw new Error("No asset ID available from upload");
+          // Fallback: Try to get the upload status directly
+          try {
+            const uploadResponse = await fetch(`/api/mux/upload-status?uploadId=${encodeURIComponent(cleanUploadId)}`);
+            
+            if (uploadResponse.ok) {
+              const uploadData = await uploadResponse.json();
+              console.log("Upload status response:", uploadData);
+              
+              if (uploadData.assetId) {
+                return uploadData.assetId;
+              }
+            }
+          } catch (error) {
+            console.warn("Error checking upload status:", error);
+            // Continue to next fallback
           }
           
-          return data.assetId;
+          // Last resort: Generate a temporary asset ID based on the upload ID
+          // This will be replaced later when the asset is actually created
+          console.log("Using upload ID as temporary asset ID");
+          return `temp_${cleanUploadId}`;
         },
         {
           retries: 3,

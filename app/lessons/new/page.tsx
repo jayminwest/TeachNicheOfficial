@@ -83,6 +83,18 @@ export default function NewLessonPage() {
         setIsSubmitting(false);
         return;
       }
+      
+      // Handle temporary asset IDs
+      const isTemporaryAsset = data.muxAssetId.startsWith('temp_');
+      if (isTemporaryAsset) {
+        console.log("Using temporary asset ID:", data.muxAssetId);
+        // Extract the upload ID from the temporary asset ID
+        const uploadId = data.muxAssetId.substring(5);
+        
+        // Set a flag to indicate this is a temporary asset
+        data.isTemporaryAsset = true;
+        data.uploadId = uploadId;
+      }
 
       // Create lesson data object - set status to 'processing'
       const lessonData = {

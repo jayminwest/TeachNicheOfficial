@@ -311,12 +311,17 @@ export function LessonForm({
             <VideoUploader
               endpoint="/api/mux/upload"
               onUploadComplete={async (assetId) => {
+                console.log("LessonForm received assetId:", assetId);
                 try {
+                  // Set the muxAssetId in the form
                   form.setValue("muxAssetId", assetId, { 
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true
                   });
+                  
+                  console.log("Set muxAssetId in form:", assetId);
+                  console.log("Form values after setting muxAssetId:", form.getValues());
                   
                   // Get the playback ID from the asset
                   const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
@@ -326,16 +331,21 @@ export function LessonForm({
                   }
                   
                   const data = await response.json();
+                  console.log("Asset status response:", data);
                   
                   if (!data.playbackId) {
                     throw new Error('No playback ID received');
                   }
                   
+                  // Set the muxPlaybackId in the form
                   form.setValue("muxPlaybackId", data.playbackId, {
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true
                   });
+                  
+                  console.log("Set muxPlaybackId in form:", data.playbackId);
+                  console.log("Form values after setting both IDs:", form.getValues());
                   
                   toast({
                     title: "Video uploaded",
@@ -350,11 +360,15 @@ export function LessonForm({
                 }
               }}
               onError={(error) => {
+                console.error("VideoUploader error:", error);
                 toast({
                   title: "Upload failed",
                   description: error.message,
                   variant: "destructive",
                 });
+              }}
+              onUploadStart={() => {
+                console.log("Video upload started");
               }}
             />
           </div>

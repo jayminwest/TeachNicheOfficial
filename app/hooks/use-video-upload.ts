@@ -213,6 +213,7 @@ export function useVideoUpload({
           }
           
           const data = await response.json();
+          console.log("Upload status response:", data); // Add debug log
           
           if (!data.assetId) {
             throw new Error("No asset ID available from upload");
@@ -230,8 +231,10 @@ export function useVideoUpload({
         }
       );
       
+      console.log("Retrieved assetId:", assetId); // Add debug log
+      
       // Check asset status
-      await withRetry(
+      const assetData = await withRetry(
         async () => {
           const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
           
@@ -240,6 +243,7 @@ export function useVideoUpload({
           }
           
           const data = await response.json();
+          console.log("Asset status response:", data); // Add debug log
           
           if (data.status === 'errored') {
             throw new Error('Video processing failed');
@@ -264,7 +268,14 @@ export function useVideoUpload({
       setStatus('complete');
       setProgress(100);
       if (onProgress) onProgress(100);
-      if (onUploadComplete) onUploadComplete(assetId);
+      
+      // IMPORTANT: Call onUploadComplete with the assetId
+      if (onUploadComplete) {
+        console.log("Calling onUploadComplete with assetId:", assetId);
+        onUploadComplete(assetId);
+      } else {
+        console.warn("onUploadComplete callback is not defined");
+      }
     } catch (error) {
       handleError(error instanceof Error ? error : new Error('Failed to process video upload'));
     }

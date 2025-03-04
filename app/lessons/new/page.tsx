@@ -62,9 +62,22 @@ export default function NewLessonPage() {
 
       // Check if muxAssetId exists and is not empty
       if (!data.muxAssetId || data.muxAssetId.trim() === "") {
+        console.error("Missing muxAssetId in form submission");
         toast({
           title: "Video Required",
           description: "Please upload a video before creating the lesson",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Check if muxPlaybackId exists and is not empty
+      if (!data.muxPlaybackId || data.muxPlaybackId.trim() === "") {
+        console.error("Missing muxPlaybackId in form submission");
+        toast({
+          title: "Video Processing Incomplete",
+          description: "Please wait for video processing to complete before creating the lesson",
           variant: "destructive",
         });
         setIsSubmitting(false);

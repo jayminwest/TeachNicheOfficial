@@ -189,6 +189,7 @@ export function VideoUploader({
           }
         }}
         onError={(event) => {
+          console.error("MuxUploader onError event:", event);
           if (event instanceof CustomEvent) {
             const error = event.detail;
             handleUploadError(error instanceof Error ? error : new Error(String(error)));

@@ -1,5 +1,4 @@
 // Import dependencies first
-import { NextRequest } from 'next/server';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
@@ -31,8 +30,8 @@ jest.mock('next/server', () => {
   };
 });
 
-// Import the NextResponse after mocking
-import { NextResponse } from 'next/server';
+// Import the NextResponse and NextRequest after mocking
+import { NextResponse, NextRequest } from 'next/server';
 
 // Import the mocked API routes
 import { POST as purchasePost } from '@/app/api/lessons/purchase/route';

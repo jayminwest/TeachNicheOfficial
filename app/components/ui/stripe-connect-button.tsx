@@ -68,6 +68,14 @@ export function StripeConnectButton({
         throw new Error('Stripe API connection test failed. Please try again later.');
       }
       
+      // Add a debug log for the request body
+      const requestBody = { 
+        userId: user.id,
+        locale: userLocale,
+        email: user.email
+      };
+      console.log('Request body:', requestBody);
+      
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {
@@ -76,11 +84,7 @@ export function StripeConnectButton({
           'Accept-Language': userLocale
         },
         credentials: 'include',
-        body: JSON.stringify({ 
-          userId: user.id,
-          locale: userLocale,
-          email: user.email
-        }),
+        body: JSON.stringify(requestBody),
       });
       
       console.log('Response status:', response.status);
@@ -108,17 +112,14 @@ export function StripeConnectButton({
 
       console.log('Redirecting to:', data.url);
       
-      // Add a small delay before redirecting to ensure logs are visible
-      setTimeout(() => {
-        // Show a toast before redirecting
-        toast({
-          title: 'Redirecting to Stripe',
-          description: 'You will be redirected to Stripe to complete the setup process.',
-        });
-        
-        // Redirect to Stripe
-        window.location.href = data.url;
-      }, 500);
+      // Show a toast before redirecting
+      toast({
+        title: 'Redirecting to Stripe',
+        description: 'You will be redirected to Stripe to complete the setup process.',
+      });
+      
+      // Force redirect with a direct window.location assignment
+      window.location.assign(data.url);
     } catch (error) {
       toast({
         variant: 'destructive',

@@ -110,14 +110,15 @@ export async function POST(request: Request) {
       if (profile?.stripe_account_id) {
         console.log('User already has Stripe account:', profile.stripe_account_id);
         
-        // Create account link for existing account
-        const accountLink = await createConnectSession({
-          accountId: profile.stripe_account_id,
-          refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
-          returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${profile.stripe_account_id}`,
+        // Create account link directly with Stripe
+        const accountLink = await stripeInstance.accountLinks.create({
+          account: profile.stripe_account_id,
+          refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
+          return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${profile.stripe_account_id}`,
           type: 'account_onboarding'
         });
         
+        console.log('Created account link for existing account:', accountLink);
         return NextResponse.json({ url: accountLink.url });
       }
       
@@ -156,14 +157,15 @@ export async function POST(request: Request) {
       // Ensure we have a valid base URL
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
       
-      const accountLink = await createConnectSession({
-        accountId: account.id,
-        refreshUrl: `${baseUrl}/profile?error=connect-refresh`,
-        returnUrl: `${baseUrl}/api/stripe/connect/callback?account_id=${account.id}`,
+      // Create direct account link with Stripe
+      const accountLink = await stripeInstance.accountLinks.create({
+        account: account.id,
+        refresh_url: `${baseUrl}/profile?error=connect-refresh`,
+        return_url: `${baseUrl}/api/stripe/connect/callback?account_id=${account.id}`,
         type: 'account_onboarding'
       });
       
-      console.log('Account link created:', accountLink);
+      console.log('Account link created directly:', accountLink);
 
       // Store the Stripe account ID in Supabase
       console.log('Updating profile with Stripe account ID');

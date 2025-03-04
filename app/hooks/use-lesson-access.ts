@@ -25,6 +25,20 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
   const [error, setError] = useState<Error | null>(null)
   
   useEffect(() => {
+    // Check for success URL parameter
+    const isSuccess = typeof window !== 'undefined' && 
+      new URLSearchParams(window.location.search).get('purchase') === 'success';
+    
+    // If payment was just successful, set access to true immediately
+    if (isSuccess && !loading) {
+      setAccess({
+        hasAccess: true,
+        purchaseStatus: 'completed'
+      });
+      setLoading(false);
+      return;
+    }
+    
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
     const TIMEOUT_MS = 5000 // 5 seconds
     const RETRY_ATTEMPTS = 3

@@ -91,6 +91,22 @@ export function LessonAccessGate({
     );
   }
   
+  // Check for success URL parameter
+  const isSuccess = typeof window !== 'undefined' && 
+    new URLSearchParams(window.location.search).get('purchase') === 'success';
+  
+  // If payment was just successful, show success message
+  if (isSuccess) {
+    return (
+      <div className={cn(className)}>
+        {children}
+        <div className="mt-4 text-sm text-green-600 font-medium">
+          Payment Successful! You now have access to this lesson.
+        </div>
+      </div>
+    );
+  }
+  
   // If user has access, show the content with purchase info if available
   return (
     <div className={cn(className)}>

@@ -38,11 +38,13 @@ export class PurchasesService extends DatabaseService {
         .eq('lesson_id', lessonId)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
       
-      // If no purchase found, user doesn't have access
-      if (purchaseError && purchaseError.code === 'PGRST116') {
+      // If we got results, use the first one
+      const latestPurchase = purchaseData && purchaseData.length > 0 ? purchaseData[0] : null;
+      
+      // If there was an error or no purchase found, user doesn't have access
+      if (purchaseError || !latestPurchase) {
         return { 
           data: { 
             hasAccess: false, 
@@ -52,18 +54,14 @@ export class PurchasesService extends DatabaseService {
         };
       }
       
-      if (purchaseError) {
-        return { data: null, error: purchaseError };
-      }
-      
       // Determine access based on purchase status
-      const hasAccess = purchaseData.status === 'completed';
+      const hasAccess = latestPurchase.status === 'completed';
       
       return { 
         data: { 
           hasAccess, 
-          purchaseStatus: purchaseData.status as PurchaseStatus,
-          purchaseDate: purchaseData.created_at
+          purchaseStatus: latestPurchase.status as PurchaseStatus,
+          purchaseDate: latestPurchase.created_at
         }, 
         error: null 
       };

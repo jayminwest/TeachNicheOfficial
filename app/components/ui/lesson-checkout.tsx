@@ -56,12 +56,16 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
     );
   }
 
-  // If purchase was successful, show success message
+  // If purchase was successful, show access button
   if (isSuccess) {
     return (
-      <div className="text-green-600 font-medium">
-        Payment Successful
-      </div>
+      <Button 
+        onClick={() => router.push(`/lessons/${lessonId}`)}
+        variant="outline"
+        className="bg-green-600 hover:bg-green-700 text-white"
+      >
+        Access Lesson
+      </Button>
     );
   }
 

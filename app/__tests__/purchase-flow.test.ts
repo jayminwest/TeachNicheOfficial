@@ -1,14 +1,23 @@
 import { NextRequest } from 'next/server';
 
+// Import dependencies first
+import { NextRequest } from 'next/server';
+import Stripe from 'stripe';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { purchasesService } from '@/app/services/database/purchasesService';
+
+// Create mock response factory
+const createMockResponse = (body: any, status = 200) => ({
+  status,
+  headers: new Headers(),
+  json: () => Promise.resolve(body)
+});
+
 // Mock NextResponse
 jest.mock('next/server', () => {
-  const mockJson = jest.fn().mockImplementation((body, options) => {
-    return {
-      status: options?.status || 200,
-      headers: new Headers(),
-      json: () => Promise.resolve(body)
-    };
-  });
+  const mockJson = jest.fn().mockImplementation((body, options) => 
+    createMockResponse(body, options?.status || 200)
+  );
   
   return {
     NextRequest: jest.fn(),
@@ -24,41 +33,28 @@ jest.mock('next/server', () => {
   };
 });
 
-// Import after mocking
+// Import the NextResponse after mocking
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import { purchasesService } from '@/app/services/database/purchasesService';
 
 // Import the mocked API routes
 import { POST as purchasePost } from '@/app/api/lessons/purchase/route';
 import { POST as checkPurchasePost } from '@/app/api/lessons/check-purchase/route';
 import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
 
-// Mock the imports
-jest.mock('@/app/api/lessons/purchase/route', () => {
-  return {
-    POST: jest.fn().mockImplementation(() => {
-      return NextResponse.json({ sessionId: 'cs_test_123' });
-    })
-  };
-});
+// Mock the API routes with factory functions that don't reference NextResponse directly
+jest.mock('@/app/api/lessons/purchase/route', () => ({
+  POST: jest.fn().mockImplementation(() => createMockResponse({ sessionId: 'cs_test_123' }))
+}));
 
-jest.mock('@/app/api/lessons/check-purchase/route', () => {
-  return {
-    POST: jest.fn().mockImplementation(() => {
-      return NextResponse.json({ hasAccess: true, purchaseStatus: 'completed' });
-    })
-  };
-});
+jest.mock('@/app/api/lessons/check-purchase/route', () => ({
+  POST: jest.fn().mockImplementation(() => 
+    createMockResponse({ hasAccess: true, purchaseStatus: 'completed' })
+  )
+}));
 
-jest.mock('@/app/api/webhooks/stripe/route', () => {
-  return {
-    POST: jest.fn().mockImplementation(() => {
-      return NextResponse.json({ success: true });
-    })
-  };
-});
+jest.mock('@/app/api/webhooks/stripe/route', () => ({
+  POST: jest.fn().mockImplementation(() => createMockResponse({ success: true }))
+}));
 
 // Mock dependencies
 jest.mock('stripe', () => {

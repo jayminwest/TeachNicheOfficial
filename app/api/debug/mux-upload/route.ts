@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createUpload, getUploadStatus, getAssetStatus } from '@/app/services/mux';
+import Mux from '@mux/mux-node';
 
 /**
  * Debug endpoint for testing Mux video uploads
@@ -29,7 +30,30 @@ export async function GET(request: Request) {
       MUX_TOKEN_SECRET: process.env.MUX_TOKEN_SECRET ? '✅ Set' : '❌ Missing',
       MUX_SIGNING_KEY_ID: process.env.MUX_SIGNING_KEY_ID ? '✅ Set' : '❌ Missing',
       MUX_SIGNING_KEY: process.env.MUX_SIGNING_KEY ? '✅ Set (length: ' + process.env.MUX_SIGNING_KEY.length + ')' : '❌ Missing',
+      NODE_ENV: process.env.NODE_ENV || 'not set',
     };
+    
+    // Test Mux client initialization directly
+    let muxInitTest = 'Failed';
+    try {
+      if (process.env.MUX_TOKEN_ID && process.env.MUX_TOKEN_SECRET) {
+        const testClient = new Mux({
+          tokenId: process.env.MUX_TOKEN_ID,
+          tokenSecret: process.env.MUX_TOKEN_SECRET
+        });
+        if (testClient && testClient.Video) {
+          muxInitTest = '✅ Success';
+        } else {
+          muxInitTest = '❌ Client created but Video API not available';
+        }
+      } else {
+        muxInitTest = '❌ Missing credentials';
+      }
+    } catch (error) {
+      muxInitTest = `❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+    
+    envInfo.muxInitTest = muxInitTest;
 
     // Handle different actions
     switch (action) {

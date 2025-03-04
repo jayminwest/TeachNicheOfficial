@@ -93,7 +93,11 @@ export function useVideoUpload({
       
       console.log('Requesting upload URL from:', requestUrl);
       
-      const response = await fetch(requestUrl, {
+      // Check if we're in development mode and add a debug parameter
+      const isDev = process.env.NODE_ENV === 'development';
+      const debugParam = isDev ? '&debug=true' : '';
+      
+      const response = await fetch(`${requestUrl}${debugParam}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

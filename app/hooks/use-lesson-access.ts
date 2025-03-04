@@ -30,7 +30,14 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
       new URLSearchParams(window.location.search).get('purchase') === 'success';
     
     // If payment was just successful, set access to true immediately
-    if (isSuccess && !loading) {
+    // and clear any cached access data to force a refresh
+    if (isSuccess) {
+      // Clear the cache to force a refresh
+      if (user?.id && lessonId) {
+        const cacheKey = `lesson-access-${lessonId}-${user.id}`;
+        sessionStorage.removeItem(cacheKey);
+      }
+      
       setAccess({
         hasAccess: true,
         purchaseStatus: 'completed'

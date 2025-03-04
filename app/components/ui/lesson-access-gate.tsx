@@ -95,8 +95,15 @@ export function LessonAccessGate({
   const isSuccess = typeof window !== 'undefined' && 
     new URLSearchParams(window.location.search).get('purchase') === 'success';
   
-  // If payment was just successful, show success message
+  // If payment was just successful, show success message and content
   if (isSuccess) {
+    // Remove the success parameter from the URL to prevent issues on refresh
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('purchase');
+      window.history.replaceState({}, '', url.toString());
+    }
+    
     return (
       <div className={cn(className)}>
         {children}

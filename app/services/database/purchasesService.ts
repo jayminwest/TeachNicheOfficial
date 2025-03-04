@@ -106,18 +106,41 @@ export class PurchasesService extends DatabaseService {
     return this.executeWithRetry(async () => {
       const supabase = this.getClient();
       
+      // First, get the purchase to ensure it exists
+      const { data: existingPurchase, error: fetchError } = await supabase
+        .from('purchases')
+        .select('id, user_id, lesson_id')
+        .eq('stripe_session_id', stripeSessionId)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching purchase:', fetchError);
+        return { data: null, error: fetchError };
+      }
+      
+      // Update the purchase status
       const { data: purchaseData, error } = await supabase
         .from('purchases')
         .update({
           status,
           updated_at: new Date().toISOString()
         })
-        .eq('stripe_session_id', stripeSessionId)
+        .eq('id', existingPurchase.id)
         .select('id')
         .single();
       
       if (error) {
+        console.error('Error updating purchase status:', error);
         return { data: null, error };
+      }
+      
+      // Clear any cached access data for this user and lesson
+      try {
+        // This is a server-side operation, so we can't directly access sessionStorage
+        // Instead, we'll rely on the client to clear its cache when it sees the success parameter
+        console.log(`Updated purchase ${purchaseData.id} status to ${status}`);
+      } catch (err) {
+        console.error('Error clearing cache:', err);
       }
       
       return { data: { id: purchaseData.id }, error: null };

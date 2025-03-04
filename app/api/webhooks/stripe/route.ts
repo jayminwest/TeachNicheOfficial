@@ -206,6 +206,23 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
   const pendingVerification = Array.isArray(account.requirements?.pending_verification) && 
                              account.requirements.pending_verification.length > 0;
   
+  // Determine a more specific status for user-friendly display
+  let detailedStatus = isComplete ? 'verified' : 'pending';
+  
+  if (!isComplete) {
+    if (pendingVerification) {
+      detailedStatus = 'verification_pending';
+    } else if (missingRequirements.length > 0) {
+      detailedStatus = 'requirements_needed';
+    } else if (!account.details_submitted) {
+      detailedStatus = 'details_needed';
+    } else if (!account.charges_enabled) {
+      detailedStatus = 'charges_disabled';
+    } else if (!account.payouts_enabled) {
+      detailedStatus = 'payouts_disabled';
+    }
+  }
+  
   // Update creator's profile with account status
   // First check if the columns exist in the schema
   try {
@@ -227,7 +244,7 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
       await supabase
         .from('profiles')
         .update({
-          stripe_account_status: isComplete ? 'verified' : 'pending'
+          stripe_account_status: detailedStatus
         })
         .eq('stripe_account_id', account.id);
     } catch (statusError) {
@@ -243,6 +260,10 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
           stripe_account_details: {
             pending_verification: pendingVerification,
             missing_requirements: missingRequirements,
+            has_charges_enabled: account.charges_enabled,
+            has_payouts_enabled: account.payouts_enabled,
+            has_details_submitted: account.details_submitted,
+            detailed_status: detailedStatus,
             last_checked: new Date().toISOString()
           }
         })
@@ -256,7 +277,7 @@ async function handleAccount(account: Stripe.Account): Promise<void> {
     return;
   }
 
-  console.log('Creator account status updated:', account.id, isComplete ? 'complete' : 'pending');
+  console.log('Creator account status updated:', account.id, 'Status:', detailedStatus);
 }
 
 async function handleExternalAccountCreated(externalAccount: Stripe.BankAccount | Stripe.Card): Promise<void> {

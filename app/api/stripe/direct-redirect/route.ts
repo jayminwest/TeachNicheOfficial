@@ -85,8 +85,8 @@ export async function GET(request: Request) {
     // Create an account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${baseUrl}/profile?refresh=true`,
-      return_url: `${baseUrl}/profile?success=true&account_id=${accountId}`,
+      refresh_url: `${baseUrl}/profile?refresh=true&account_id=${accountId}&source=stripe_connect`,
+      return_url: `${baseUrl}/profile?success=true&account_id=${accountId}&source=stripe_connect&timestamp=${Date.now()}`,
       type: 'account_onboarding'
     });
     

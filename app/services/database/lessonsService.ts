@@ -341,3 +341,29 @@ export class LessonsService extends DatabaseService {
 
 // Create a singleton instance
 export const lessonsService = new LessonsService();
+  /**
+   * Check if a user is the owner of a lesson
+   */
+  async isLessonOwner(userId: string, lessonId: string): Promise<DatabaseResponse<boolean>> {
+    return this.executeWithRetry(async () => {
+      const supabase = this.getClient();
+      
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('instructor_id')
+        .eq('id', lessonId)
+        .single();
+      
+      if (error) {
+        return { 
+          data: false, 
+          error 
+        };
+      }
+      
+      return { 
+        data: data.instructor_id === userId, 
+        error: null 
+      };
+    });
+  }

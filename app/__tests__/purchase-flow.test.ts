@@ -221,10 +221,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await purchasePost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('sessionId', 'cs_test_123');
       expect(purchasesService.createPurchase).toHaveBeenCalledWith({
         lessonId: 'lesson-123',
@@ -266,10 +268,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await purchasePost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(400);
+      expect(response).toHaveProperty('status', 400);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('error', 'You already have access to this lesson');
       expect(purchasesService.createPurchase).not.toHaveBeenCalled();
     });
@@ -294,10 +298,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await checkPurchasePost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('hasAccess', true);
       expect(responseData).toHaveProperty('purchaseStatus', 'completed');
     });
@@ -334,10 +340,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await checkPurchasePost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('hasAccess', true);
       expect(responseData).toHaveProperty('purchaseStatus', 'completed');
       expect(purchasesService.verifyStripeSession).toHaveBeenCalledWith('cs_test_123');
@@ -386,10 +394,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await checkPurchasePost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('hasAccess', true);
       expect(responseData).toHaveProperty('purchaseStatus', 'completed');
       expect(purchasesService.verifyStripeSession).toHaveBeenCalledWith('cs_test_123');
@@ -436,10 +446,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await webhookPost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('success', true);
       expect(responseData).toHaveProperty('created', true);
       expect(purchasesService.updatePurchaseStatus).toHaveBeenCalledWith('cs_test_123', 'completed');
@@ -484,10 +496,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await webhookPost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('success', true);
       expect(responseData).toHaveProperty('updated', true);
       expect(purchasesService.updatePurchaseStatus).toHaveBeenCalledWith('cs_test_123', 'completed');
@@ -552,10 +566,12 @@ describe('Purchase Flow', () => {
       
       // Call the endpoint
       const response = await webhookPost(request);
-      const responseData = await response.json();
       
       // Assertions
-      expect(response.status).toBe(200);
+      expect(response).toHaveProperty('status', 200);
+      
+      // Get the response data
+      const responseData = await response.json();
       expect(responseData).toHaveProperty('success', true);
       expect(purchasesService.createPurchase).toHaveBeenCalled();
     });

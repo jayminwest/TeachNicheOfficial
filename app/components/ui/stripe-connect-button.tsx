@@ -54,6 +54,8 @@ export function StripeConnectButton({
         throw new Error(`Sorry, Stripe is not yet supported in your country. Supported countries include: ${stripeConfig.supportedCountries.join(', ')}`);
       }
 
+      console.log('Initiating Stripe Connect with user:', user.id);
+      
       const response = await fetch('/api/stripe/connect', {
         method: 'POST',
         headers: {
@@ -65,9 +67,15 @@ export function StripeConnectButton({
         body: JSON.stringify({ 
           userId: user.id,
           locale: userLocale,
-          email: user.email // Add email to payload
+          email: user.email
         }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Stripe connect response error:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to connect with Stripe');
+      }
       
       const data = await response.json();
       
@@ -107,6 +115,27 @@ export function StripeConnectButton({
     );
   }
 
+  // Add debug function
+  const testStripeApi = async () => {
+    try {
+      const response = await fetch('/api/stripe/test');
+      const data = await response.json();
+      console.log('Stripe API test result:', data);
+      toast({
+        title: data.status === 'ok' ? 'Stripe API Connected' : 'Stripe API Error',
+        description: data.message,
+        variant: data.status === 'ok' ? 'default' : 'destructive',
+      });
+    } catch (error) {
+      console.error('Stripe API test error:', error);
+      toast({
+        title: 'Stripe API Test Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Determine button text based on status
   let buttonText = 'Connect with Stripe';
   let buttonDisabled = false;
@@ -136,13 +165,26 @@ export function StripeConnectButton({
   }
 
   return (
-    <Button 
-      onClick={handleConnect} 
-      disabled={buttonDisabled || isLoading}
-      variant={buttonVariant}
-      aria-busy={isLoading ? "true" : "false"}
-    >
-      {buttonText}
-    </Button>
+    <div className="flex flex-col gap-2">
+      <Button 
+        onClick={handleConnect} 
+        disabled={buttonDisabled || isLoading}
+        variant={buttonVariant}
+        aria-busy={isLoading ? "true" : "false"}
+      >
+        {buttonText}
+      </Button>
+      
+      {process.env.NODE_ENV !== 'production' && (
+        <Button 
+          onClick={testStripeApi} 
+          variant="outline" 
+          size="sm"
+          className="text-xs"
+        >
+          Test Stripe API
+        </Button>
+      )}
+    </div>
   );
 }

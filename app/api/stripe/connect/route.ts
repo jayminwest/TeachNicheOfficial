@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       }, { status: 401 });
     }
 
-    console.log('Authenticated user:', user);
+    console.log('Authenticated user:', user.id);
     
     // Parse and validate request body
     let body;
@@ -98,6 +98,29 @@ export async function POST(request: Request) {
     const stripeInstance = getStripe();
     
     try {
+      // Check if user already has a Stripe account
+      const supabase = createRouteHandlerClient({ cookies });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_account_id')
+        .eq('id', user.id)
+        .single();
+        
+      // If user already has a Stripe account, create a new account link for it
+      if (profile?.stripe_account_id) {
+        console.log('User already has Stripe account:', profile.stripe_account_id);
+        
+        // Create account link for existing account
+        const accountLink = await createConnectSession({
+          accountId: profile.stripe_account_id,
+          refreshUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=connect-refresh`,
+          returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/connect/callback?account_id=${profile.stripe_account_id}`,
+          type: 'account_onboarding'
+        });
+        
+        return NextResponse.json({ url: accountLink.url });
+      }
+      
       // Use type assertion to handle the mock vs real implementation difference
       const accounts = stripeInstance.accounts as Stripe.AccountsResource;
       

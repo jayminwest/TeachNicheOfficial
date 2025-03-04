@@ -117,6 +117,12 @@ export const getStripe = () => {
           payouts_enabled: true,
           charges_enabled: true,
           requirements: { currently_due: [], pending_verification: [] }
+        }),
+        create: jest.fn().mockResolvedValue({
+          id: 'acct_test123',
+          details_submitted: false,
+          payouts_enabled: false,
+          charges_enabled: false
         })
       },
       accountLinks: {
@@ -126,6 +132,12 @@ export const getStripe = () => {
       },
       webhooks: {
         constructEvent: jest.fn().mockReturnValue({ type: 'test.event', data: { object: {} } })
+      },
+      products: {
+        create: jest.fn().mockResolvedValue({ id: 'prod_test123' })
+      },
+      prices: {
+        create: jest.fn().mockResolvedValue({ id: 'price_test123' })
       }
     };
   }

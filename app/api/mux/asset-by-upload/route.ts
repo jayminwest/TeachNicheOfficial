@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Mux } from '@mux/mux-node';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 // Initialize Mux client
 const muxClient = new Mux({
@@ -11,9 +10,11 @@ const muxClient = new Mux({
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate the request
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    // Authenticate the request using Supabase
+    const supabase = await createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
       return NextResponse.json(
         { error: { message: 'Unauthorized', type: 'auth_error' } },
         { status: 401 }

@@ -1,32 +1,32 @@
 import Mux from '@mux/mux-node';
+import { v4 as uuidv4 } from 'uuid';
 
 // Only initialize Mux client on the server side
 let muxClient: Mux | null = null;
-let Video: Mux['video'] | null = null;
+let Video: any = null;
 
 if (typeof window === 'undefined') {
   const tokenId = process.env.MUX_TOKEN_ID;
   const tokenSecret = process.env.MUX_TOKEN_SECRET;
 
   if (!tokenId || !tokenSecret) {
-    throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
-  }
+    console.warn('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
+  } else {
+    try {
+      // Initialize the client
+      muxClient = new Mux({
+        tokenId,
+        tokenSecret
+      });
 
-  try {
-    // Initialize the client
-    muxClient = new Mux({
-      tokenId,
-      tokenSecret
-    });
-
-    Video = muxClient.video;
-    
-    if (!Video || typeof Video.assets?.retrieve !== 'function') {
-      throw new Error('Failed to initialize Mux Video client properly');
+      Video = muxClient.Video;
+      
+      if (!Video) {
+        console.warn('Failed to initialize Mux Video client properly');
+      }
+    } catch (error) {
+      console.error('Failed to initialize Mux client:', error);
     }
-  } catch (error) {
-    console.error('Failed to initialize Mux client:', error);
-    throw new Error('Failed to initialize Mux client');
   }
 }
 
@@ -34,7 +34,7 @@ export { Video };
 
 export interface MuxUploadResponse {
   url: string;
-  id: string;
+  uploadId: string;
 }
 
 interface MuxError {
@@ -164,7 +164,7 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
   try {
-    const upload = await Video.uploads.create({
+    const upload = await Video.Uploads.create({
       new_asset_settings: {
         playback_policy: isFree ? ['public'] : ['signed'],
         encoding_tier: 'baseline'
@@ -178,14 +178,11 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
 
     return {
       url: upload.url,
-      id: upload.id
+      uploadId: upload.id
     };
   } catch (error) {
-    throw new Error(
-      error instanceof Error 
-        ? `Failed to initialize Mux upload: ${error.message}`
-        : 'Failed to initialize Mux upload'
-    );
+    console.error('Error creating Mux upload:', error);
+    throw error;
   }
 }
 
@@ -193,12 +190,12 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  * Gets the status of a Mux upload
  */
 export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatusResponse> {
-  if (!Video || typeof Video.uploads?.retrieve !== 'function') {
+  if (!Video || typeof Video.Uploads?.get !== 'function') {
     throw new Error('Mux Video client not properly initialized');
   }
 
   try {
-    const upload = await Video.uploads.retrieve(uploadId);
+    const upload = await Video.Uploads.get(uploadId);
     
     if (!upload) {
       throw new Error('Mux API returned null or undefined upload');
@@ -227,12 +224,12 @@ export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatus
  * Checks the status of a Mux asset
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
-  if (!Video || typeof Video.assets?.retrieve !== 'function') {
+  if (!Video || typeof Video.Assets?.get !== 'function') {
     throw new Error('Mux Video client not properly initialized');
   }
 
   try {
-    const asset = await Video.assets.retrieve(assetId);
+    const asset = await Video.Assets.get(assetId);
     
     if (!asset) {
       throw new Error('Mux API returned null or undefined asset');
@@ -253,56 +250,16 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
     );
   }
 }
-import Mux from '@mux/mux-node';
-import { v4 as uuidv4 } from 'uuid';
 
-// Initialize Mux client
-const { Video } = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID,
-  tokenSecret: process.env.MUX_TOKEN_SECRET,
-});
-
-// Create a direct upload URL
-export async function createUpload() {
-  try {
-    if (!Video || typeof Video.Uploads?.create !== 'function') {
-      throw new Error('Mux Video client not properly initialized');
-    }
-
-    // Generate a unique ID for this upload
-    const uploadId = uuidv4();
-
-    // Create a new direct upload
-    const upload = await Video.Uploads.create({
-      cors_origin: '*',
-      new_asset_settings: {
-        playback_policy: ['public'],
-      },
-    });
-
-    // Validate the response
-    if (!upload || !upload.id || !upload.url) {
-      throw new Error('Invalid response from Mux API');
-    }
-
-    // Return the upload URL and ID
-    return {
-      url: upload.url,
-      uploadId: upload.id,
-    };
-  } catch (error) {
-    console.error('Error creating Mux upload:', error);
-    throw error;
-  }
-}
-
-// Get asset details
+/**
+ * Gets asset details
+ */
 export async function getAsset(assetId: string) {
-  try {
-    if (!Video || typeof Video.Assets?.get !== 'function') {
-      throw new Error('Mux Video client not properly initialized');
-    }
+  if (!Video || typeof Video.Assets?.get !== 'function') {
+    throw new Error('Mux Video client not properly initialized');
+  }
 
+  try {
     const asset = await Video.Assets.get(assetId);
     return asset;
   } catch (error) {
@@ -311,13 +268,15 @@ export async function getAsset(assetId: string) {
   }
 }
 
-// Get upload details
+/**
+ * Gets upload details
+ */
 export async function getUpload(uploadId: string) {
-  try {
-    if (!Video || typeof Video.Uploads?.get !== 'function') {
-      throw new Error('Mux Video client not properly initialized');
-    }
+  if (!Video || typeof Video.Uploads?.get !== 'function') {
+    throw new Error('Mux Video client not properly initialized');
+  }
 
+  try {
     const upload = await Video.Uploads.get(uploadId);
     return upload;
   } catch (error) {
@@ -326,13 +285,15 @@ export async function getUpload(uploadId: string) {
   }
 }
 
-// Get playback ID for an asset
+/**
+ * Gets playback ID for an asset
+ */
 export async function getPlaybackId(assetId: string) {
-  try {
-    if (!Video || typeof Video.Assets?.get !== 'function') {
-      throw new Error('Mux Video client not properly initialized');
-    }
+  if (!Video || typeof Video.Assets?.get !== 'function') {
+    throw new Error('Mux Video client not properly initialized');
+  }
 
+  try {
     const asset = await Video.Assets.get(assetId);
     
     if (!asset.playback_ids || asset.playback_ids.length === 0) {
@@ -346,13 +307,15 @@ export async function getPlaybackId(assetId: string) {
   }
 }
 
-// Delete an asset
+/**
+ * Deletes an asset
+ */
 export async function deleteAsset(assetId: string) {
-  try {
-    if (!Video || typeof Video.Assets?.del !== 'function') {
-      throw new Error('Mux Video client not properly initialized');
-    }
+  if (!Video || typeof Video.Assets?.del !== 'function') {
+    throw new Error('Mux Video client not properly initialized');
+  }
 
+  try {
     await Video.Assets.del(assetId);
     return true;
   } catch (error) {

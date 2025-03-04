@@ -136,7 +136,7 @@ export const createMockMuxClient = (config: MockConfig = {}) => {
 export const mockMuxClient = createMockMuxClient();
 
 // Mock the createUpload function that's exported from app/services/mux.ts
-export const createUpload = jest.fn().mockImplementation(() => {
+export const createUpload = jest.fn().mockImplementation((isFree = false) => {
   return Promise.resolve({
     url: 'https://storage.mux.com/upload',
     uploadId: 'upload_123'

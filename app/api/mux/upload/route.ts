@@ -35,7 +35,11 @@ async function handlePostRequest() {
       );
     }
 
-    const upload = await createUpload();
+    // Get the isFree parameter from the query string
+    const url = new URL(request.url);
+    const isFree = url.searchParams.get('isFree') === 'true';
+    
+    const upload = await createUpload(isFree);
     
     // Ensure the response has the required fields
     if (!upload || !upload.url || !upload.uploadId) {

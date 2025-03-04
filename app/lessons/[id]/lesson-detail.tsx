@@ -149,6 +149,8 @@ export default async function LessonDetail({ id, session }: LessonDetailProps) {
                     playbackId={lesson.mux_playback_id}
                     title={lesson.title}
                     className="w-full aspect-video rounded-lg overflow-hidden"
+                    price={lesson.price}
+                    isFree={lesson.price === 0}
                   />
                 </LessonAccessGate>
               </div>

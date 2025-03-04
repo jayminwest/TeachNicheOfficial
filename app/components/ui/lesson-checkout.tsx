@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
 import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -18,11 +19,29 @@ interface LessonCheckoutProps {
 
 export function LessonCheckout({ lessonId, price, searchParams, hasAccess = false }: LessonCheckoutProps) {
   const isSuccess = searchParams?.get('purchase') === 'success';
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Mark initial load as complete after auth check
+  useEffect(() => {
+    if (!authLoading) {
+      setInitialLoadComplete(true);
+    }
+  }, [authLoading]);
+
+  // Show loading state before initial auth check completes
+  if (authLoading || !initialLoadComplete) {
+    return (
+      <Button disabled>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Checking auth...
+      </Button>
+    );
+  }
 
   // If the user already has access, show an "Access Lesson" button instead
   if (hasAccess) {
@@ -46,13 +65,13 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
     );
   }
 
-  // If user is not authenticated, show sign-in button
-  if (!user && !authLoading) {
+  // If user is not authenticated and not loading, show sign-in button
+  if (!isAuthenticated && !authLoading) {
     return (
       <Button 
         onClick={(e) => {
           e.stopPropagation(); // Prevent opening preview
-          window.location.href = `/auth?redirect=/lessons/${lessonId}`;
+          router.push(`/auth/signin?redirect=/lessons/${lessonId}`);
         }}
       >
         Sign in to Purchase
@@ -64,14 +83,6 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
     try {
       setError(null);
       setIsLoading(true);
-
-      // Check auth status
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        setError('Please sign in to purchase this lesson');
-        return;
-      }
 
       // Initialize Stripe
       const stripe = await stripePromise;
@@ -130,8 +141,8 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
       >
         {isLoading ? (
           <>
-            <span className="mr-2">Processing...</span>
-            <span className="animate-spin">⚪</span>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
           </>
         ) : (
           'Purchase Lesson'

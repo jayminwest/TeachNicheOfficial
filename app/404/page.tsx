@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import NotFoundContent from '@/app/components/not-found-content'
 
-export default function NotFound() {
+export default function NotFoundPage() {
   return (
     <Suspense fallback={
       <div className="container flex flex-col items-center justify-center min-h-[70vh] py-12 text-center">

@@ -2,6 +2,7 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
+// @ts-expect-error - Next.js page props type mismatch
 export default async function Page({
   params
 }: {

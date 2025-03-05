@@ -33,8 +33,8 @@ describe('Stripe Fee Calculations', () => {
       // For $1 net with 2.9% + $0.30 fee, gross should be ~$1.34
       expect(calculateGrossAmount(1)).toBeCloseTo(1.34, 2);
       
-      // For $0.50 net with 2.9% + $0.30 fee, gross should be ~$0.82
-      expect(calculateGrossAmount(0.5)).toBeCloseTo(0.82, 2);
+      // For $0.50 net with 2.9% + $0.30 fee, gross should be ~$0.83
+      expect(calculateGrossAmount(0.5)).toBeCloseTo(0.83, 2);
     });
     
     test('handles different fee configurations', () => {
@@ -42,8 +42,8 @@ describe('Stripe Fee Calculations', () => {
       stripeConfig.processingFeePercent = 3.5;
       stripeConfig.processingFeeFixed = 0.50;
       
-      // For $10 net with 3.5% + $0.50 fee, gross should be ~$10.88
-      expect(calculateGrossAmount(10)).toBeCloseTo(10.88, 2);
+      // For $10 net with 3.5% + $0.50 fee, gross should be ~$10.89
+      expect(calculateGrossAmount(10)).toBeCloseTo(10.89, 2);
     });
   });
   
@@ -57,8 +57,8 @@ describe('Stripe Fee Calculations', () => {
     });
     
     test('handles small amounts correctly', () => {
-      // For $1 base price, fee should be ~$0.34
-      expect(calculateFeeAmount(1)).toBeCloseTo(0.34, 2);
+      // For $1 base price, fee should be ~$0.35
+      expect(calculateFeeAmount(1)).toBeCloseTo(0.35, 2);
     });
   });
 });

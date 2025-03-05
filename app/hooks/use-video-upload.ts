@@ -294,7 +294,9 @@ export function useVideoUpload({
             'Content-Type': 'application/json'
           },
           // Ensure we're not using cached responses
-          cache: 'no-store'
+          cache: 'no-store',
+          // Add a timeout to prevent hanging requests
+          signal: AbortSignal.timeout(15000) // 15 second timeout
         });
         
         console.log(`Asset ID fetch response status: ${response.status}`);

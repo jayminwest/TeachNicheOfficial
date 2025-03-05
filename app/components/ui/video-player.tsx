@@ -38,7 +38,12 @@ export function VideoPlayer({
       return;
     }
     
-    if (playbackId && (playbackId.startsWith('temp_') || playbackId.startsWith('dummy_') || playbackId.startsWith('local_'))) {
+    if (playbackId && (
+      playbackId.startsWith('temp_') || 
+      playbackId.startsWith('dummy_') || 
+      playbackId.startsWith('local_') ||
+      playbackId === 'processing'
+    )) {
       setError(`Video is still processing. Please check back later.`);
       return;
     }

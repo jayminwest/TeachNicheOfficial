@@ -455,7 +455,9 @@ export function LessonForm({
                       headers: {
                         'Content-Type': 'application/json'
                       },
-                      cache: 'no-store'
+                      cache: 'no-store',
+                      // Add a timeout to prevent hanging requests
+                      signal: AbortSignal.timeout(10000) // 10 second timeout
                     })
                     .then(response => {
                       if (response.ok) {

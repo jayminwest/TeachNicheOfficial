@@ -11,8 +11,19 @@ export async function GET(request: Request) {
     }
 
     // Parse the URL and get the assetId parameter
-    const url = new URL(request.url);
-    const assetId = url.searchParams.get('assetId');
+    let assetId;
+    try {
+      // Try to parse the URL safely
+      const url = new URL(request.url);
+      assetId = url.searchParams.get('assetId');
+    } catch (urlError) {
+      console.error('URL parsing error:', urlError);
+      
+      // Fallback method to extract assetId from URL string
+      const urlString = request.url;
+      const assetIdMatch = urlString.match(/assetId=([^&]+)/);
+      assetId = assetIdMatch ? assetIdMatch[1] : null;
+    }
 
     if (!assetId) {
       return NextResponse.json(

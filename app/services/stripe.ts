@@ -180,7 +180,7 @@ export const createConnectSession = async (options: ConnectSessionOptions) => {
       try {
         new URL(url);
         return url;
-      } catch (error) {
+      } catch (_) {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
       }

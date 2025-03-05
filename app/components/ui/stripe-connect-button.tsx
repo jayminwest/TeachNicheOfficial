@@ -5,16 +5,6 @@ import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/app/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { supabase } from '@/app/services/supabase';
-import { stripeConfig } from '@/app/services/stripe';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from './card';
 import { Badge } from './badge';
 import { AlertCircle, CheckCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
 

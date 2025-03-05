@@ -117,11 +117,11 @@ export default function NewLessonPage() {
         try {
           errorData = await response.json();
           console.error('API Error Response:', errorData);
-          
+            
           // Handle validation errors specifically
           if (errorData.error === 'Validation error' && errorData.details) {
             const errorMessages: string[] = [];
-            
+              
             // Extract field-specific errors
             if (errorData.details.title) {
               errorMessages.push(`Title: ${errorData.details.title._errors.join(', ')}`);
@@ -135,13 +135,13 @@ export default function NewLessonPage() {
             if (errorData.details.status) {
               errorMessages.push(`Status: ${errorData.details.status._errors.join(', ')} (valid values: draft, published, archived)`);
             }
-            
+              
             // If we have specific field errors, show them
             if (errorMessages.length > 0) {
               throw new Error(`Validation failed: ${errorMessages.join('; ')}`);
             }
           }
-          
+            
           // For other errors, use the provided message or a generic one
           const errorMessage = 
             errorData.details ? 
@@ -151,9 +151,9 @@ export default function NewLessonPage() {
               ) : 
               errorData.message || 
               `Failed to create lesson: ${response.statusText}`;
-          
+            
           throw new Error(errorMessage);
-        } catch (error) {
+        } catch (parseError) {
           if (errorData) {
             const errorMessage = 
               errorData.details ? 

@@ -1,35 +1,26 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
-
-// Initialize Stripe with a fallback for tests
-let stripe: Stripe | null = null;
-try {
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia'
-    });
-  }
-} catch (error) {
-  console.error('Stripe initialization error:', error);
-  // In tests, we'll use mocks
-}
+import { getStripe, stripeConfig } from '@/app/services/stripe';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { Database } from '@/types/database';
 
 // Helper function for creating checkout sessions (not exported as a route handler)
-async function createCheckoutSession(lessonId: string, price: number, baseUrl: string) {
+async function createCheckoutSession(lessonId: string, price: number, baseUrl: string, creatorStripeAccountId: string) {
   if (!price || price <= 0) {
     throw new Error('Invalid price: must be a positive number');
   }
 
-  if (!stripe) {
-    throw new Error('Stripe is not properly initialized');
-  }
+  const stripe = getStripe();
+  
+  // Calculate the application fee amount based on the platform fee percentage
+  const applicationFeeAmount = Math.round(price * 100 * (stripeConfig.platformFeePercent / 100));
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
       {
         price_data: {
-          currency: 'usd',
+          currency: stripeConfig.defaultCurrency,
           product_data: {
             name: 'Lesson Purchase',
           },
@@ -44,6 +35,12 @@ async function createCheckoutSession(lessonId: string, price: number, baseUrl: s
     metadata: {
       lessonId,
     },
+    payment_intent_data: {
+      application_fee_amount: applicationFeeAmount,
+      transfer_data: {
+        destination: creatorStripeAccountId,
+      },
+    },
   });
 
   return session;
@@ -52,7 +49,7 @@ async function createCheckoutSession(lessonId: string, price: number, baseUrl: s
 // App Router handler
 export async function POST(request: Request) {
   try {
-    const { lessonId, price } = await request.json();
+    const { lessonId, price, creatorId } = await request.json();
     
     // Get the base URL from the request
     const baseUrl = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || '';
@@ -64,14 +61,28 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!stripe) {
+    // Get the creator's Stripe account ID
+    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const { data: creatorProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', creatorId)
+      .single();
+
+    if (profileError || !creatorProfile?.stripe_account_id) {
       return NextResponse.json(
-        { error: 'Stripe is not properly initialized' },
-        { status: 500 }
+        { error: 'Creator not found or not set up for payments' },
+        { status: 400 }
       );
     }
 
-    const session = await createCheckoutSession(lessonId, price, baseUrl);
+    const session = await createCheckoutSession(
+      lessonId, 
+      price, 
+      baseUrl, 
+      creatorProfile.stripe_account_id
+    );
+    
     return NextResponse.json({ sessionId: session.id });
   } catch (error) {
     console.error('Error creating checkout session:', error);

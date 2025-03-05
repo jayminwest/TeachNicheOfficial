@@ -83,7 +83,7 @@ export const stripeConfig: StripeConfig = {
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
   apiVersion: '2024-12-18.acacia',
   connectType: 'express', // Changed from 'standard' to 'express'
-  platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '10'),
+  platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
   defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
 };

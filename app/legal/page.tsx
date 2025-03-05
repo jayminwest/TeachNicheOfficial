@@ -1,4 +1,6 @@
 // Static page with no client components to avoid useSearchParams() error
+export const dynamic = 'force-static';
+
 export default function LegalPage() {
   return (
     <div className="container mx-auto px-4 py-8 mt-16">

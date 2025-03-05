@@ -82,8 +82,8 @@ async function createLessonHandler(request: Request) {
       description,
       price,
       content,
-      // If video is still processing, set status to 'processing'
-      status: muxAssetId && (!muxPlaybackId || muxPlaybackId === "") ? 'processing' : status,
+      // If video is still processing, set status to 'draft' until processing completes
+      status: muxAssetId && (!muxPlaybackId || muxPlaybackId === "") ? 'draft' : status,
       creator_id: session.user.id,
       category,
       mux_asset_id: muxAssetId,

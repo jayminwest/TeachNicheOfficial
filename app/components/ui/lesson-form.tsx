@@ -194,6 +194,9 @@ export function LessonForm({
             // Set to empty string to allow form submission - webhook will update it later
             data.muxPlaybackId = "";
             
+            // Set status to draft until processing completes
+            data.status = 'draft';
+            
             // Show a toast to inform the user
             toast({
               title: "Video Processing",

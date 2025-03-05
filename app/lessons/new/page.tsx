@@ -77,6 +77,8 @@ export default function NewLessonPage() {
         console.log("Creating lesson with processing video (no playbackId yet)");
         // Set a flag to indicate video is still processing
         data.videoProcessing = true;
+        // Ensure we use a valid status value
+        data.status = 'draft';
       }
       
       // Handle temporary asset IDs

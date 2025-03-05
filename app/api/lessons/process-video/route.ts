@@ -4,14 +4,17 @@ import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import Stripe from 'stripe';
 import Mux from '@mux/mux-node';
+import { muxClient } from '@/app/services/mux';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-01-27.acacia'
 });
 
-// Initialize Mux client
+// Initialize Mux client if not already initialized
 const initMuxClient = () => {
+  if (muxClient) return muxClient;
+  
   const tokenId = process.env.MUX_TOKEN_ID;
   const tokenSecret = process.env.MUX_TOKEN_SECRET;
   
@@ -25,17 +28,6 @@ const initMuxClient = () => {
   });
 };
 
-// Get Mux client with proper structure
-const getMuxClient = () => {
-  const mux = initMuxClient();
-  return {
-    video: {
-      uploads: mux.video.uploads,
-      assets: mux.video.assets
-    }
-  };
-};
-
 // Wait for asset to be ready
 async function waitForAssetReady(assetId: string, options: { maxAttempts?: number; interval?: number } = {}) {
   const { maxAttempts = 60, interval = 10000 } = options;
@@ -46,11 +38,12 @@ async function waitForAssetReady(assetId: string, options: { maxAttempts?: numbe
     const uploadId = assetId.substring(5);
     
     // Initialize Mux client
-    const muxClient = getMuxClient();
+    const mux = initMuxClient();
     
     // Try to get the upload to check if it has an asset ID
     try {
-      const upload = await muxClient.video.uploads.get(uploadId);
+      // Use the correct method to get upload status
+      const upload = await mux.video.uploads.retrieve(uploadId);
       
       if (upload.asset_id) {
         // If the upload has an asset ID, use that instead
@@ -60,7 +53,7 @@ async function waitForAssetReady(assetId: string, options: { maxAttempts?: numbe
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
           await new Promise(resolve => setTimeout(resolve, interval));
           
-          const updatedUpload = await muxClient.video.uploads.get(uploadId);
+          const updatedUpload = await mux.video.uploads.retrieve(uploadId);
           
           if (updatedUpload.asset_id) {
             assetId = updatedUpload.asset_id;
@@ -84,12 +77,13 @@ async function waitForAssetReady(assetId: string, options: { maxAttempts?: numbe
   }
   
   // Now we should have a real asset ID
-  const muxClient = getMuxClient();
+  const mux = initMuxClient();
   
   // Poll for asset status
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const asset = await muxClient.video.assets.get(assetId);
+      // Use the correct method to get asset status
+      const asset = await mux.video.assets.retrieve(assetId);
       
       if (asset.status === 'ready') {
         // Get the playback ID
@@ -140,8 +134,9 @@ export async function POST(request: Request) {
       );
     }
     
-    // Get the current user session
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    // Get the current user session - make sure to await cookies()
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {

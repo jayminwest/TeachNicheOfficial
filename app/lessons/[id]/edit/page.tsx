@@ -215,7 +215,7 @@ export default function EditLessonPage() {
   const params = useParams();
   const router = useRouter();
   const lessonId = params.id as string;
-  const [lesson, setLesson] = useState<Record<string, unknown>>(null);
+  const [lesson, setLesson] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading: authLoading } = useAuth();

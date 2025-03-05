@@ -9,7 +9,7 @@ interface PageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default async function Page({ params, searchParams }: PageProps) {
+export default async function Page({ params }: PageProps) {
   // Await the params object before accessing its properties
   const resolvedParams = await params;
   const lessonId = resolvedParams.id;

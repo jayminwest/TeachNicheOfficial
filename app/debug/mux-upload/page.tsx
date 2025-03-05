@@ -9,7 +9,7 @@ import { useVideoUpload } from '@/app/hooks/use-video-upload';
 
 export default function MuxUploadDebugPage() {
   const router = useRouter();
-  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [apiResponse, setApiResponse] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadId, setUploadId] = useState('');
   const [assetId, setAssetId] = useState('');
@@ -321,7 +321,7 @@ export default function MuxUploadDebugPage() {
             <CardFooter>
               <p className="text-xs text-muted-foreground">
                 Note: This is a debug tool for testing the video upload functionality.
-                The uploader should initialize automatically. If it doesn't, check the console for errors.
+                The uploader should initialize automatically. If it doesn&apos;t, check the console for errors.
               </p>
             </CardFooter>
           </Card>

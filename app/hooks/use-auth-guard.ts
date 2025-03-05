@@ -58,7 +58,7 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}) {
    * @param fn The function to guard
    * @returns A new function that only executes if authenticated
    */
-  const guardFn = <T extends (...args: any[]) => any>(fn: T): ((...args: Parameters<T>) => ReturnType<T> | undefined) => {
+  const guardFn = <T extends (...args: unknown[]) => unknown>(fn: T): ((...args: Parameters<T>) => ReturnType<T> | undefined) => {
     return (...args: Parameters<T>): ReturnType<T> | undefined => {
       if (!isAuthenticated) {
         if (showToast) {

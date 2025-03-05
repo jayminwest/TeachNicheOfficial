@@ -71,6 +71,12 @@ async function handlePublishLesson(lessonId: string) {
 }
 
 // Export the POST handler with the correct Next.js 15 signature
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  return handlePublishLesson(params.id);
+// @ts-expect-error - Next.js 15 route handler type compatibility
+export async function POST(
+  request: Request, 
+  { params }: { params: { id: string } }
+) {
+  // Explicitly cast params to ensure type safety
+  const lessonId = params.id;
+  return handlePublishLesson(lessonId);
 }

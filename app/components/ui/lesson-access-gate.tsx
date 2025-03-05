@@ -1,9 +1,11 @@
 'use client';
 
-import { Loader2, PencilIcon } from 'lucide-react';
+import { Loader2, PencilIcon, CheckCircle, Calendar } from 'lucide-react';
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
 import { LessonCheckout } from './lesson-checkout';
 import { cn } from '@/app/lib/utils';
+import { formatDate } from '@/app/utils/format';
+import { Badge } from './badge';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Button } from './button';
 import { useRouter } from 'next/navigation';
@@ -253,8 +255,15 @@ export function LessonAccessGate({
     <div className={cn(className)}>
       {children}
       {purchaseStatus === 'completed' && purchaseDate && (
-        <div className="mt-4 text-sm text-green-600">
-          You purchased this lesson on {new Date(purchaseDate).toLocaleDateString()}
+        <div className="mt-4 flex items-center justify-center">
+          <Badge variant="outline" className="px-3 py-1.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            <span>You purchased this lesson on</span>
+            <span className="font-semibold flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              {formatDate(purchaseDate)}
+            </span>
+          </Badge>
         </div>
       )}
     </div>

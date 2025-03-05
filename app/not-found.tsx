@@ -1,7 +1,10 @@
+'use client'
+
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { Button } from '@/app/components/ui/button'
 
-export default function NotFound() {
+function NotFoundContent() {
   return (
     <div className="container flex flex-col items-center justify-center min-h-[70vh] py-12 text-center">
       <h1 className="text-6xl font-bold mb-4">404</h1>
@@ -22,5 +25,18 @@ export default function NotFound() {
         </Button>
       </div>
     </div>
+  )
+}
+
+export default function NotFound() {
+  return (
+    <Suspense fallback={
+      <div className="container flex flex-col items-center justify-center min-h-[70vh] py-12 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mb-4"></div>
+        <p>Loading...</p>
+      </div>
+    }>
+      <NotFoundContent />
+    </Suspense>
   )
 }

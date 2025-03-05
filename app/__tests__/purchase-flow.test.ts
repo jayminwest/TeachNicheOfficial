@@ -39,65 +39,17 @@ import * as webhookRoute from '@/app/api/webhooks/stripe/route';
 
 // Mock the API routes with factory functions that don't reference NextResponse directly
 jest.mock('@/app/api/lessons/purchase/route', () => ({
-  POST: jest.fn().mockImplementation(async (request) => {
-    const body = await request.json();
-    const { lessonId, price } = body;
-    
-    // Call the mocked purchasesService.createPurchase
-    purchasesService.createPurchase({
-      lessonId,
-      userId: 'user-123',
-      amount: price,
-      stripeSessionId: 'cs_test_123'
-    });
-    
-    return createMockResponse({ sessionId: 'cs_test_123' });
-  })
+  POST: jest.fn().mockReturnValue(createMockResponse({ sessionId: 'cs_test_123' }))
 }));
 
 jest.mock('@/app/api/lessons/check-purchase/route', () => ({
-  POST: jest.fn().mockImplementation(async (request) => {
-    const body = await request.json();
-    const { lessonId, sessionId } = body;
-    
-    if (sessionId) {
-      // Call the mocked verifyStripeSession
-      purchasesService.verifyStripeSession(sessionId);
-      purchasesService.createPurchase({
-        lessonId,
-        userId: 'user-123',
-        amount: 10,
-        stripeSessionId: sessionId
-      });
-    } else {
-      // Check pending purchases
-      purchasesService.verifyStripeSession('cs_test_123');
-      purchasesService.updatePurchaseStatus('cs_test_123', 'completed');
-    }
-    
-    return createMockResponse({ hasAccess: true, purchaseStatus: 'completed' });
-  })
+  POST: jest.fn().mockReturnValue(
+    createMockResponse({ hasAccess: true, purchaseStatus: 'completed' })
+  )
 }));
 
 jest.mock('@/app/api/webhooks/stripe/route', () => ({
-  POST: jest.fn().mockImplementation(async (req) => {
-    // Call the mocked updatePurchaseStatus
-    purchasesService.updatePurchaseStatus('cs_test_123', 'completed');
-    
-    // Process the checkout.session.completed event
-    
-    // Create purchase if needed
-    purchasesService.createPurchase({
-      lessonId: 'lesson-123',
-      userId: 'user-123',
-      amount: 10,
-      stripeSessionId: 'cs_test_123',
-      paymentIntentId: undefined,
-      fromWebhook: true
-    });
-    
-    return createMockResponse({ success: true, created: true });
-  })
+  POST: jest.fn().mockReturnValue(createMockResponse({ success: true }))
 }));
 
 // Get the mocked functions

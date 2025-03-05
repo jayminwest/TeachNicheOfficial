@@ -23,10 +23,13 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Skip type checking during builds
-  skipTypeChecking: true,
-  // Skip middleware type checking
-  skipMiddlewareUrlNormalize: true,
+  // Disable middleware type checking
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'teach-niche.vercel.app'],
+    },
+    middlewareSourceMaps: false,
+  },
 }
 
 module.exports = nextConfig

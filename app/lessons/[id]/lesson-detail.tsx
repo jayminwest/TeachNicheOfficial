@@ -138,21 +138,33 @@ export default async function LessonDetail({ id, session }: LessonDetailProps) {
             </h1>
             {lesson.mux_playback_id && (
               <div className="mb-6">
-                <LessonAccessGate
-                  lessonId={lesson.id}
-                  creatorId={lesson.creator_id}
-                  price={lesson.price}
-                  className="w-full"
-                >
+                {lesson.price === 0 ? (
+                  // For free lessons, show the video player directly
                   <VideoPlayer
                     id="lesson-video"
                     playbackId={lesson.mux_playback_id}
                     title={lesson.title}
                     className="w-full aspect-video rounded-lg overflow-hidden"
-                    price={lesson.price}
-                    isFree={lesson.price === 0}
+                    isFree={true}
                   />
-                </LessonAccessGate>
+                ) : (
+                  // For paid lessons, keep the access gate
+                  <LessonAccessGate
+                    lessonId={lesson.id}
+                    creatorId={lesson.creator_id}
+                    price={lesson.price}
+                    className="w-full"
+                  >
+                    <VideoPlayer
+                      id="lesson-video"
+                      playbackId={lesson.mux_playback_id}
+                      title={lesson.title}
+                      className="w-full aspect-video rounded-lg overflow-hidden"
+                      price={lesson.price}
+                      isFree={false}
+                    />
+                  </LessonAccessGate>
+                )}
               </div>
             )}
             <Card className="p-6">

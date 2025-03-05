@@ -1,17 +1,13 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 
-// @ts-expect-error - Next.js 15 type compatibility issue
-export async function POST(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+// Define a separate function to handle the actual logic
+async function handlePublishLesson(lessonId: string) {
   try {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-    const lessonId = context.params.id;
     
     // Get the current user session
     const { data: { session } } = await supabase.auth.getSession();
@@ -72,4 +68,9 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+// Export the POST handler with the correct Next.js 15 signature
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  return handlePublishLesson(params.id);
 }

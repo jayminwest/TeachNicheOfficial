@@ -152,11 +152,11 @@ export async function PATCH(
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: { id: string } }
 ) {
   try {
-    const lessonId = params.id;
+    const lessonId = context.params.id;
     
     const { data: lesson, error } = await lessonsService.getLessonById(lessonId);
     

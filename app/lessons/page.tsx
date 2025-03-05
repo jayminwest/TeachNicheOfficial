@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { hasSuccessfulPurchaseParams, cleanPurchaseParams } from "@/app/utils/purchase-helpers";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
@@ -13,6 +14,9 @@ import { Toaster } from "@/app/components/ui/toaster";
 export default function LessonsPage() {
   const { lessons, loading, error } = useLessons();
   
+  // Track if we've detected a purchase success
+  const [purchaseDetected, setPurchaseDetected] = useState(false);
+  
   useEffect(() => {
     if (error) {
       toast({
@@ -20,6 +24,22 @@ export default function LessonsPage() {
         description: error.message || "Failed to load lessons. Please try again.",
         variant: "destructive",
       });
+    }
+    
+    // Check if there's a purchase success parameter in the URL
+    const hasPurchaseParams = hasSuccessfulPurchaseParams();
+    if (hasPurchaseParams) {
+      setPurchaseDetected(true);
+      
+      // Show success toast
+      toast({
+        title: "Purchase Successful",
+        description: "Your lesson purchase was successful. You now have access to this content.",
+        variant: "default",
+      });
+      
+      // Clean up URL parameters
+      cleanPurchaseParams();
     }
   }, [error]);
 
@@ -61,7 +81,10 @@ export default function LessonsPage() {
             </Link>
           </Card>
         ) : (
-          <LessonGrid lessons={lessons} />
+          <LessonGrid 
+            lessons={lessons} 
+            key={purchaseDetected ? 'post-purchase' : 'normal'}
+          />
         )}
       </div>
       <Toaster />

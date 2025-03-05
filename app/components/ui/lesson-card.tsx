@@ -32,7 +32,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
   const isOwner = user?.id === lesson.creatorId;
   
   // Use the lesson access hook to check if user has purchased the lesson
-  const { hasAccess, loading: accessLoading } = useLessonAccess(lesson.id);
+  const { hasAccess, loading: accessLoading, purchaseStatus } = useLessonAccess(lesson.id);
   
   // Check if URL indicates a successful purchase
   const [hasPurchaseSuccess, setHasPurchaseSuccess] = useState(false);
@@ -40,6 +40,9 @@ export function LessonCard({ lesson }: LessonCardProps) {
   useEffect(() => {
     setHasPurchaseSuccess(hasSuccessfulPurchaseParams());
   }, []);
+  
+  // Determine if user has access to this lesson
+  const userHasAccess = hasAccess || hasPurchaseSuccess || purchaseStatus === 'completed';
 
   return (
     <>
@@ -94,7 +97,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading...
                 </Button>
-              ) : hasAccess || lesson.price === 0 || hasPurchaseSuccess ? (
+              ) : userHasAccess || lesson.price === 0 ? (
                 <Button 
                   variant="outline"
                   size="sm"
@@ -110,7 +113,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   lessonId={lesson.id} 
                   price={lesson.price}
                   searchParams={new URLSearchParams(window.location.search)}
-                  hasAccess={hasAccess}
+                  hasAccess={userHasAccess}
                   onAccessLesson={() => router.push(`/lessons/${lesson.id}`)}
                 />
               )}

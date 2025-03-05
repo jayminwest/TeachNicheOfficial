@@ -2,13 +2,33 @@ import { NextResponse } from 'next/server';
 import MuxService from '@/app/services/mux';
 
 export async function GET(request: Request) {
+  console.log('Playback ID endpoint called');
   try {
     const muxService = MuxService.getInstance();
-    const Video = muxService.getClient()?.video;
+    const muxClient = muxService.getClient();
     
-    if (!Video || typeof Video.assets?.retrieve !== 'function') {
+    if (!muxClient) {
+      console.error('Mux client not initialized');
       return NextResponse.json(
         { error: 'Mux Video client not properly initialized' },
+        { status: 500 }
+      );
+    }
+    
+    // Log the mux client structure to debug
+    console.log('Mux client keys:', Object.keys(muxClient));
+    
+    // Access the Video object correctly
+    const Video = muxClient.Video;
+    
+    if (!Video || typeof Video.Assets?.retrieve !== 'function') {
+      console.error('Mux Video.Assets API not available', { 
+        videoExists: !!Video,
+        assetsExists: !!Video?.Assets,
+        retrieveIsFunction: typeof Video?.Assets?.retrieve === 'function'
+      });
+      return NextResponse.json(
+        { error: 'Mux Video Assets API not properly initialized' },
         { status: 500 }
       );
     }
@@ -36,7 +56,7 @@ export async function GET(request: Request) {
     console.log('Retrieving asset for ID:', assetId);
     
     // Retrieve the asset from Mux
-    const asset = await Video.assets.retrieve(assetId);
+    const asset = await Video.Assets.retrieve(assetId);
     
     if (!asset) {
       return NextResponse.json(
@@ -54,7 +74,7 @@ export async function GET(request: Request) {
     if (!playbackId && asset.status === 'ready') {
       console.log('Creating new playback ID for ready asset');
       try {
-        const newPlaybackId = await Video.assets.createPlaybackId(assetId, {
+        const newPlaybackId = await Video.Assets.createPlaybackId(assetId, {
           policy: 'public'
         });
         

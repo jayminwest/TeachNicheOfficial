@@ -15,7 +15,8 @@
     "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual",
     "type-check": "tsc --noEmit",
     "rls:migrate": "ts-node scripts/run-rls-migration.ts",
-    "playwright": "playwright test --config=e2e-tests/playwright.config.ts"
+    "playwright": "playwright test --config=e2e-tests/playwright.config.ts",
+    "find:unused": "next-unused"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",
@@ -60,12 +61,19 @@
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
   },
+  "next-unused": {
+    "debug": true,
+    "include": ["app"],
+    "exclude": ["node_modules", ".next", "public"],
+    "entrypoints": ["app/page.tsx"]
+  },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.26.0",
     "@eslint/eslintrc": "^3",
     "@jest/globals": "^29.7.0",
+    "next-unused": "^0.0.6",
     "@playwright/test": "^1.50.1",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",

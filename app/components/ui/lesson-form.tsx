@@ -407,20 +407,17 @@ export function LessonForm({
                   console.log("Set muxAssetId in form:", assetId);
                   console.log("Form values after setting muxAssetId:", form.getValues());
                   
-                  // Always use a temporary playback ID for now
-                  // This simplifies the flow and avoids unnecessary API calls
-                  console.log("Using temporary playback ID for asset");
-                  const playbackId = `temp_playback_${assetId.replace(/^temp_/, '')}`;
+                  // Don't set a temporary playback ID - we'll get the real one from Mux
+                  console.log("Setting only the asset ID for now, playback ID will be set when processing completes");
                   
-                  // Set the muxPlaybackId in the form
-                  form.setValue("muxPlaybackId", playbackId, {
+                  // Clear any existing playback ID to ensure we don't use a stale one
+                  form.setValue("muxPlaybackId", "", {
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true
                   });
                   
-                  console.log("Set muxPlaybackId in form:", playbackId);
-                  console.log("Form values after setting both IDs:", form.getValues());
+                  console.log("Form values after setting asset ID:", form.getValues());
                   
                   toast({
                     title: "Video uploaded",

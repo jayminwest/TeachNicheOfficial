@@ -5,12 +5,13 @@ import { cookies } from 'next/headers';
 import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
 
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
     // Get the lesson ID from the URL
-    const lessonId = params.id;
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const lessonId = pathParts[pathParts.length - 1];
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });

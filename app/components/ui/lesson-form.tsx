@@ -445,7 +445,43 @@ export function LessonForm({
                   console.log("Form values after setting muxAssetId:", form.getValues());
                   
                   // Store the asset ID in session storage for later use
-                  window.sessionStorage.setItem('lastMuxAssetId', assetId);
+                  try {
+                    window.sessionStorage.setItem('lastMuxAssetId', assetId);
+                    console.log("Stored asset ID in session storage:", assetId);
+                    
+                    // Try to fetch the playback ID immediately in case it's already available
+                    fetch(`/api/mux/playback-id?assetId=${encodeURIComponent(assetId)}`, {
+                      method: 'GET',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      },
+                      cache: 'no-store'
+                    })
+                    .then(response => {
+                      if (response.ok) {
+                        return response.json();
+                      }
+                      // If not ready, that's expected - we'll continue with processing status
+                      console.log("Playback ID not ready yet, will be set when processing completes");
+                      return null;
+                    })
+                    .then(data => {
+                      if (data && data.playbackId) {
+                        console.log("Playback ID already available:", data.playbackId);
+                        form.setValue("muxPlaybackId", data.playbackId, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true
+                        });
+                      }
+                    })
+                    .catch(error => {
+                      // Just log the error, don't block the flow
+                      console.error("Error checking for playback ID:", error);
+                    });
+                  } catch (storageError) {
+                    console.error("Failed to store asset ID in session storage:", storageError);
+                  }
                   
                   // Don't set a temporary playback ID - we'll get the real one from Mux
                   console.log("Setting only the asset ID for now, playback ID will be set when processing completes");

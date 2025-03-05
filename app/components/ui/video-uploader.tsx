@@ -222,7 +222,12 @@ export function VideoUploader({
           }
           
           // Ensure we properly encode the assetId when fetching playback ID later
-          window.sessionStorage.setItem('lastMuxAssetId', uploadId);
+          try {
+            window.sessionStorage.setItem('lastMuxAssetId', uploadId);
+            console.log('Stored asset ID in session storage:', uploadId);
+          } catch (storageError) {
+            console.error('Failed to store asset ID in session storage:', storageError);
+          }
           
           handleUploadSuccess(uploadId);
         }}

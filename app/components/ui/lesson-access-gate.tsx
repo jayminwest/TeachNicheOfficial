@@ -79,6 +79,24 @@ export function LessonAccessGate({
   }
   
   if (!hasAccess && price !== undefined) {
+    // For free lessons, show an "Access Lesson" button for authenticated users
+    if (price === 0 && user) {
+      return (
+        <div className="p-6 bg-muted rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Free Lesson</h3>
+          <p className="text-muted-foreground mb-4">
+            This lesson is available for free
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            className="w-full"
+          >
+            Access Lesson
+          </Button>
+        </div>
+      );
+    }
+    
     // Check URL parameters for purchase=success
     const isSuccess = typeof window !== 'undefined' && 
       new URLSearchParams(window.location.search).get('purchase') === 'success';

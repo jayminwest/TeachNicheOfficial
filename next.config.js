@@ -25,6 +25,14 @@ const nextConfig = {
   },
   // Disable static generation for problematic pages
   output: 'standalone',
+  // Skip specific pages during build
+  exportPathMap: async function() {
+    return {
+      '/': { page: '/' },
+      '/404': { page: '/404' },
+      // Exclude 500 page from static generation
+    };
+  }
 }
 
 module.exports = nextConfig

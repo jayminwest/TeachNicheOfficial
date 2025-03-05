@@ -63,7 +63,7 @@ export async function GET() {
           missingRequirements: status.missingRequirements
         }
       });
-    } catch (stripeError) {
+    } catch (error) {
       // If we can't reach Stripe, return the cached status
       return NextResponse.json({
         connected: true,

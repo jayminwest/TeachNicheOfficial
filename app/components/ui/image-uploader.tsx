@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { cn } from '@/app/lib/utils';
 import { Button } from '@/app/components/ui/button';
-import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, X, Image as ImageIcon } from 'lucide-react';
 import { useImageUpload } from '@/app/hooks/use-image-upload';
 import Image from 'next/image';
 import { Progress } from '@/app/components/ui/progress';

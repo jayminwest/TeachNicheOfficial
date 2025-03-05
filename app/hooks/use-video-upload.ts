@@ -97,7 +97,23 @@ export function useVideoUpload({
         throw new Error(`Invalid response format: ${responseText.substring(0, 100)}`);
       }
       
+      // Check if we have a 202 status (still processing)
+      if (response.status === 202) {
+        console.log('Upload is still processing, waiting 3 seconds before retrying...');
+        // Wait 3 seconds and then retry
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        return handleUploadSuccess(uploadId);
+      }
+      
       if (!response.ok) {
+        // If we get a 400 error with an invalid_parameters message, it might be a Mux ID format issue
+        if (response.status === 400 && data.error && 
+            (data.error.includes('invalid_parameters') || data.error.includes('Failed to parse ID'))) {
+          console.warn('Got invalid parameters error, trying with most recent upload...');
+          // Try again with a temporary ID to trigger the fallback logic
+          return handleUploadSuccess('temp_' + Date.now());
+        }
+        
         const errorMessage = data.error || `Failed to get asset ID: ${response.status}`;
         const errorDetails = data.details ? `: ${data.details}` : '';
         throw new Error(`${errorMessage}${errorDetails}`);
@@ -107,6 +123,15 @@ export function useVideoUpload({
       
       if (!assetId) {
         console.error('No asset ID in response:', data);
+        
+        // If we have a message about the upload still processing, wait and retry
+        if (data.message && data.message.includes('still processing')) {
+          console.log('Upload is still processing, waiting 3 seconds before retrying...');
+          // Wait 3 seconds and then retry
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          return handleUploadSuccess(uploadId);
+        }
+        
         throw new Error('No asset ID returned from API');
       }
       

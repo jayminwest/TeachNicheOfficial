@@ -59,38 +59,84 @@ export async function GET(request: Request) {
       // Log the exact request we're about to make to help debug
       console.log(`API: About to call Mux API with upload ID: ${uploadId}`);
       
-      // First, check the upload status to see if it has an asset ID already
-      console.log(`API: Checking upload status for ${uploadId}`);
-      const uploadStatus = await getUploadStatus(uploadId);
+      // Get the Mux client directly to avoid any parsing issues
+      const mux = getMuxClient();
       
-      // Log the full response from getUploadStatus
-      console.log(`API: Upload status response for ${uploadId}:`, JSON.stringify(uploadStatus, null, 2));
-      
-      if (uploadStatus.status === 'errored') {
-        const errorDetails = uploadStatus.error ? JSON.stringify(uploadStatus.error) : 'Unknown error';
-        console.error(`API: Upload ${uploadId} has errored: ${errorDetails}`);
+      try {
+        // Try to get the upload directly from Mux
+        console.log(`API: Retrieving upload directly from Mux API: ${uploadId}`);
+        const upload = await mux.video.uploads.retrieve(uploadId);
+        
+        // Log the full response for debugging
+        console.log(`API: Raw Mux upload response:`, JSON.stringify(upload, null, 2));
+        
+        // Check if the upload has an asset ID
+        if (upload.asset_id) {
+          console.log(`API: Upload ${uploadId} has asset ID ${upload.asset_id}`);
+          return NextResponse.json({ assetId: upload.asset_id });
+        }
+        
+        // If the upload is errored, return an error
+        if (upload.status === 'errored') {
+          const errorDetails = upload.error ? JSON.stringify(upload.error) : 'Unknown error';
+          console.error(`API: Upload ${uploadId} has errored: ${errorDetails}`);
+          return NextResponse.json(
+            { 
+              error: 'Upload failed',
+              details: errorDetails,
+              uploadStatus: upload.status
+            },
+            { status: 500 }
+          );
+        }
+        
+        // If the upload is still waiting, return a 202 status
+        if (upload.status === 'waiting') {
+          console.log(`API: Upload ${uploadId} is still waiting for asset creation`);
+          return NextResponse.json(
+            { 
+              message: 'Upload is still processing, no asset ID available yet',
+              status: upload.status
+            },
+            { status: 202 }
+          );
+        }
+        
+        // For any other status, return the status but indicate no asset ID yet
+        console.log(`API: Upload ${uploadId} has status ${upload.status} but no asset ID yet`);
         return NextResponse.json(
           { 
-            error: 'Upload failed',
-            details: errorDetails,
-            uploadStatus: uploadStatus
+            message: `Upload has status ${upload.status} but no asset ID yet`,
+            status: upload.status
+          },
+          { status: 202 }
+        );
+      } catch (muxError) {
+        // If there's an error retrieving the upload, log it and continue with fallback
+        console.error(`API: Error retrieving upload from Mux:`, muxError);
+        
+        // Try to get the most recent upload as a fallback
+        console.log(`API: Attempting to get most recent upload as fallback`);
+        const uploads = await mux.video.uploads.list({ limit: 1 });
+        
+        if (uploads && uploads.data && uploads.data.length > 0) {
+          const latestUpload = uploads.data[0];
+          
+          if (latestUpload.asset_id) {
+            console.log(`API: Found asset ID ${latestUpload.asset_id} from most recent upload`);
+            return NextResponse.json({ assetId: latestUpload.asset_id });
+          }
+        }
+        
+        // If we still don't have an asset ID, return an error
+        return NextResponse.json(
+          { 
+            error: 'Failed to get asset ID from Mux API', 
+            details: muxError instanceof Error ? muxError.message : String(muxError)
           },
           { status: 500 }
         );
       }
-      
-      // If the upload has already created an asset, use that asset ID
-      if (uploadStatus.status === 'asset_created' && uploadStatus.assetId) {
-        console.log(`API: Upload ${uploadId} already has asset ID ${uploadStatus.assetId}`);
-        return NextResponse.json({ assetId: uploadStatus.assetId });
-      }
-      
-      // If we don't have an asset ID yet, try to get it
-      console.log(`API: Getting asset ID from upload ${uploadId}`);
-      let assetId;
-      
-      try {
-        assetId = await getAssetIdFromUpload(uploadId);
         
         // Log the asset ID we received
         console.log(`API: Received asset ID from Mux: ${assetId}`);

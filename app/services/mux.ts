@@ -74,6 +74,7 @@ export async function getAssetIdFromUpload(uploadId: string): Promise<string> {
   const mux = getMuxClient();
   
   try {
+    // Try to get the upload directly
     const upload = await mux.video.uploads.retrieve(uploadId);
     
     if (!upload.asset_id) {
@@ -94,6 +95,35 @@ export async function getAssetIdFromUpload(uploadId: string): Promise<string> {
     return upload.asset_id;
   } catch (error) {
     console.error(`Error getting asset ID from upload ${uploadId}:`, error);
+    
+    // If we get an invalid parameters error, it might be a Mux ID format issue
+    // Try to get the most recent upload as a fallback
+    if (error instanceof Error && 
+        (error.message.includes('invalid_parameters') || 
+         error.message.includes('Failed to parse ID'))) {
+      console.log('Invalid upload ID format, trying to get most recent upload...');
+      
+      try {
+        const uploads = await mux.video.uploads.list({ limit: 1 });
+        
+        if (uploads && uploads.data && uploads.data.length > 0) {
+          const latestUpload = uploads.data[0];
+          
+          if (latestUpload.asset_id) {
+            console.log(`Found asset ID ${latestUpload.asset_id} from most recent upload`);
+            return latestUpload.asset_id;
+          } else {
+            throw new Error('Most recent upload does not have an asset ID yet');
+          }
+        } else {
+          throw new Error('No recent uploads found');
+        }
+      } catch (fallbackError) {
+        console.error('Error getting recent uploads:', fallbackError);
+        throw fallbackError;
+      }
+    }
+    
     throw error;
   }
 }

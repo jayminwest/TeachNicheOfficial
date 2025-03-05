@@ -197,37 +197,64 @@ class MuxService {
 
     // Clean up the upload ID
     const cleanId = this.cleanUploadId(uploadId);
+    console.log(`MuxService: Getting asset ID for upload ${cleanId} (original: ${uploadId})`);
 
     let attempts = 0;
+    let lastError: Error | null = null;
     
     while (attempts < options.maxAttempts) {
       try {
+        console.log(`MuxService: Attempt ${attempts + 1}/${options.maxAttempts} to get asset ID for upload ${cleanId}`);
         const upload = await this.client.video.uploads.retrieve(cleanId);
         
         if (!upload) {
+          console.error(`MuxService: Mux API returned null or undefined upload for ${cleanId}`);
           throw new Error('Mux API returned null or undefined upload');
         }
         
+        console.log(`MuxService: Upload ${cleanId} status: ${upload.status}, asset ID: ${upload.asset_id || 'none'}`);
+        
         // If the upload has created an asset, return the asset ID
         if (upload.status === 'asset_created' && upload.asset_id) {
+          console.log(`MuxService: Upload ${cleanId} has asset ID ${upload.asset_id}`);
           return upload.asset_id;
         }
         
         // If the upload has errored, throw an error
         if (upload.status === 'errored') {
-          throw new Error('Upload failed: ' + (upload.error?.message || 'Unknown error'));
+          const errorMsg = `Upload failed: ${upload.error?.message || 'Unknown error'}`;
+          console.error(`MuxService: ${errorMsg}`);
+          throw new Error(errorMsg);
         }
+        
+        // If the upload is still waiting, continue to next attempt
+        console.log(`MuxService: Upload ${cleanId} is still waiting, will retry`);
       } catch (apiError) {
-        // Continue to next attempt
+        lastError = apiError instanceof Error ? apiError : new Error(String(apiError));
+        console.error(`MuxService: Error getting upload ${cleanId} (attempt ${attempts + 1}/${options.maxAttempts}):`, lastError);
+        
+        // If this is a "not found" error, don't retry
+        if (lastError.message.includes('not found')) {
+          console.error(`MuxService: Upload ${cleanId} not found, won't retry`);
+          throw new Error(`Upload not found: ${cleanId}`);
+        }
       }
       
       // Wait before next attempt
       attempts++;
-      await new Promise(resolve => setTimeout(resolve, options.interval));
+      if (attempts < options.maxAttempts) {
+        console.log(`MuxService: Waiting ${options.interval}ms before next attempt for upload ${cleanId}`);
+        await new Promise(resolve => setTimeout(resolve, options.interval));
+      }
     }
     
-    // Instead of creating a temporary ID, throw an error
-    throw new Error(`Could not get asset ID for upload ${uploadId} after ${options.maxAttempts} attempts`);
+    // If we've exhausted all attempts, throw the last error or a generic one
+    const errorMsg = lastError 
+      ? `Could not get asset ID for upload ${uploadId} after ${options.maxAttempts} attempts: ${lastError.message}`
+      : `Could not get asset ID for upload ${uploadId} after ${options.maxAttempts} attempts`;
+    
+    console.error(`MuxService: ${errorMsg}`);
+    throw new Error(errorMsg);
   }
 
   public async waitForAssetReady(assetId: string, options = {

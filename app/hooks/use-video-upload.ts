@@ -340,13 +340,22 @@ export function useVideoUpload({
           }
         });
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`Failed to get asset ID: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        // Try to parse the response as JSON, but handle cases where it might not be valid JSON
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          console.error("Error parsing response as JSON:", jsonError);
+          errorData = { error: "Invalid response format" };
         }
         
-        const data = await response.json();
-        assetId = data.assetId;
+        if (!response.ok) {
+          // Provide a more detailed error message
+          const errorDetails = errorData.details ? `: ${errorData.details}` : '';
+          throw new Error(`Failed to get asset ID: ${response.status} - ${errorData.error || 'Unknown error'}${errorDetails}`);
+        }
+        
+        assetId = errorData.assetId;
         
         if (!assetId) {
           throw new Error('No asset ID returned from API');
@@ -376,7 +385,12 @@ export function useVideoUpload({
           });
           
           if (!updateResponse.ok) {
-            const errorData = await updateResponse.json();
+            let errorData;
+            try {
+              errorData = await updateResponse.json();
+            } catch (jsonError) {
+              errorData = { error: "Invalid response format" };
+            }
             throw new Error(`Failed to update lesson with asset ID: ${updateResponse.status} - ${errorData.error || 'Unknown error'}`);
           }
         } catch (updateError) {

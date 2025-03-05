@@ -8,6 +8,7 @@ export async function GET(request: Request) {
     const uploadId = url.searchParams.get('uploadId');
     
     if (!uploadId) {
+      console.error('API: Missing uploadId parameter');
       return NextResponse.json(
         { error: 'Missing uploadId parameter' },
         { status: 400 }
@@ -16,9 +17,9 @@ export async function GET(request: Request) {
     
     console.log(`API: Getting asset ID for upload ${uploadId}`);
     
-    // Remove temporary ID creation for long IDs
-    // Instead, validate the upload ID format
+    // Validate the upload ID format
     if (uploadId.startsWith('temp_') || uploadId.startsWith('dummy_') || uploadId.startsWith('local_')) {
+      console.error(`API: Invalid upload ID format: ${uploadId}`);
       return NextResponse.json(
         { error: `Invalid upload ID: ${uploadId}. Temporary IDs should not be used.` },
         { status: 400 }
@@ -26,11 +27,39 @@ export async function GET(request: Request) {
     }
     
     try {
-      // Get the asset ID from the upload
+      // First, check the upload status to see if it has an asset ID already
+      console.log(`API: Checking upload status for ${uploadId}`);
+      const uploadStatus = await getUploadStatus(uploadId);
+      
+      if (uploadStatus.status === 'errored') {
+        console.error(`API: Upload ${uploadId} has errored: ${uploadStatus.error?.message || 'Unknown error'}`);
+        return NextResponse.json(
+          { 
+            error: 'Upload failed',
+            details: uploadStatus.error?.message || 'Unknown error'
+          },
+          { status: 500 }
+        );
+      }
+      
+      // If the upload has already created an asset, use that asset ID
+      if (uploadStatus.status === 'asset_created' && uploadStatus.assetId) {
+        console.log(`API: Upload ${uploadId} already has asset ID ${uploadStatus.assetId}`);
+        return NextResponse.json({ assetId: uploadStatus.assetId });
+      }
+      
+      // If we don't have an asset ID yet, try to get it
+      console.log(`API: Getting asset ID from upload ${uploadId}`);
       const assetId = await getAssetIdFromUpload(uploadId);
       
       // Validate that we got a real asset ID
-      if (!assetId || assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+      if (!assetId) {
+        console.error(`API: No asset ID returned for upload ${uploadId}`);
+        throw new Error('No asset ID returned from Mux');
+      }
+      
+      if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+        console.error(`API: Invalid asset ID format returned: ${assetId}`);
         throw new Error(`Invalid asset ID returned: ${assetId}`);
       }
       
@@ -39,11 +68,12 @@ export async function GET(request: Request) {
     } catch (error) {
       console.error(`API: Error getting asset ID for upload ${uploadId}:`, error);
       
-      // Return the error instead of creating a temporary ID
+      // Return the error with more details
       return NextResponse.json(
         { 
           error: 'Failed to get asset ID from upload',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
+          uploadId: uploadId
         },
         { status: 500 }
       );
@@ -51,7 +81,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('API: Error in asset-from-upload route:', error);
     
-    // Return the error instead of creating a temporary ID
+    // Return the error with more details
     return NextResponse.json(
       { 
         error: 'Failed to process request',

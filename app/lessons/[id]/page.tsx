@@ -10,9 +10,8 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-  // Await the params object before accessing its properties
-  const resolvedParams = await params;
-  const lessonId = resolvedParams.id;
+  // Access the id directly from params
+  const lessonId = params.id;
   // We're not using the redirect parameter yet, but keeping it for future use
   // const redirect = searchParams?.redirect || null;
   

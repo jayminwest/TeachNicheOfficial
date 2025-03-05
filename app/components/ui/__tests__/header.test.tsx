@@ -6,12 +6,12 @@ import { usePathname, useSearchParams } from 'next/navigation';
 
 // Mock the hooks and components used in Header
 jest.mock('@/app/services/auth/AuthContext', () => ({
-  useAuth: jest.fn(),
+  useAuth: jest.fn()
 }));
 
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
+  useSearchParams: jest.fn(() => new URLSearchParams())
 }));
 
 // Mock the child components
@@ -53,7 +53,7 @@ describe('Header Component', () => {
     // Default to unauthenticated state
     (useAuth as jest.Mock).mockReturnValue({
       user: null,
-      loading: false,
+      loading: false
     });
   });
 
@@ -78,7 +78,7 @@ describe('Header Component', () => {
   it('shows profile and sign out buttons when user is authenticated', () => {
     (useAuth as jest.Mock).mockReturnValue({
       user: { id: '123', email: 'test@example.com' },
-      loading: false,
+      loading: false
     });
 
     render(<Header />);
@@ -160,7 +160,7 @@ describe('Header Component', () => {
   it('shows loading state correctly', () => {
     (useAuth as jest.Mock).mockReturnValue({
       user: null,
-      loading: true,
+      loading: true
     });
     
     render(<Header />);

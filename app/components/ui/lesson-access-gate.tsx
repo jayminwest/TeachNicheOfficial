@@ -245,46 +245,44 @@ export function LessonAccessGate({
     );
   }
   
-  // Check for success URL parameter
-  const isSuccess = typeof window !== 'undefined' && 
-    new URLSearchParams(window.location.search).get('purchase') === 'success';
   
-  // If payment was just successful, show success message and content
-  if (isSuccess) {
+  // Check for success URL parameter or session_id which indicates a completed purchase
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const isSuccess = urlParams?.get('purchase') === 'success' || urlParams?.has('session_id');
+  
+  // If payment was just successful or user has access, show the content
+  if (hasAccess || isSuccess) {
     // Remove the success parameter from the URL to prevent issues on refresh
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && urlParams?.has('purchase')) {
       const url = new URL(window.location.href);
       url.searchParams.delete('purchase');
       window.history.replaceState({}, '', url.toString());
     }
     
-    // Override hasAccess for success parameter
     return (
       <div className={cn(className)}>
         {children}
-        <div className="mt-4 text-sm text-green-600 font-medium">
-          Payment Successful! You now have access to this lesson.
-        </div>
+        {isSuccess && (
+          <div className="mt-4 text-sm text-green-600 font-medium">
+            Payment Successful! You now have access to this lesson.
+          </div>
+        )}
+        {purchaseStatus === 'completed' && purchaseDate && !isSuccess && (
+          <div className="mt-4 flex items-center justify-center">
+            <Badge variant="outline" className="px-3 py-1.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              <span>You purchased this lesson on</span>
+              <span className="font-semibold flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {formatDate(purchaseDate)}
+              </span>
+            </Badge>
+          </div>
+        )}
       </div>
     );
   }
   
-  // If user has access, show the content with purchase info if available
-  return (
-    <div className={cn(className)}>
-      {children}
-      {purchaseStatus === 'completed' && purchaseDate && (
-        <div className="mt-4 flex items-center justify-center">
-          <Badge variant="outline" className="px-3 py-1.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            <span>You purchased this lesson on</span>
-            <span className="font-semibold flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              {formatDate(purchaseDate)}
-            </span>
-          </Badge>
-        </div>
-      )}
-    </div>
-  );
+  // If user doesn't have access, continue with the existing logic
+  return null;
 }

@@ -80,69 +80,42 @@ export function useVideoUpload({
     try {
       console.log(`Starting to poll asset status for asset ${assetId}, lesson ${lessonId}`);
       
-      // Initial delay before first check
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Poll with exponential backoff
-      let attempts = 0;
-      let delay = 5000; // Start with 5 seconds
-      const maxAttempts = 30; // 5 minutes total with increasing delays
-      
-      while (attempts < maxAttempts) {
-        console.log(`Checking asset status (attempt ${attempts + 1}/${maxAttempts})`);
-        
-        // Check asset status
-        const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
-        
-        if (!response.ok) {
-          console.warn(`Asset status check failed: ${response.status}`);
-          attempts++;
-          await new Promise(resolve => setTimeout(resolve, delay));
-          delay = Math.min(delay * 1.5, 30000); // Max 30 seconds between checks
-          continue;
+      // Poll for asset status
+      const result = await fetch(`/api/mux/wait-for-asset?assetId=${encodeURIComponent(assetId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
-        
-        const data = await response.json();
-        console.log("Asset status response:", data);
-        
-        if (data.status === 'ready' && data.playbackId) {
-          console.log(`Asset ${assetId} is ready with playback ID ${data.playbackId}`);
-          
-          // Update the lesson with the real playback ID and ensure status is published
-          const updateResponse = await fetch('/api/lessons/update-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              lessonId,
-              muxAssetId: assetId,
-              muxPlaybackId: data.playbackId,
-              status: 'published'
-            })
-          });
-          
-          if (updateResponse.ok) {
-            console.log(`Successfully updated lesson ${lessonId} to published status`);
-            return true;
-          } else {
-            console.error(`Failed to update lesson status: ${updateResponse.status}`);
-          }
-          
-          break;
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to wait for asset: ${res.status}`);
         }
-        
-        if (data.status === 'errored') {
-          console.error(`Asset ${assetId} processing failed`);
-          break;
-        }
-        
-        // Continue polling
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        delay = Math.min(delay * 1.5, 30000); // Max 30 seconds between checks
-      }
+        return res.json();
+      });
       
-      if (attempts >= maxAttempts) {
-        console.warn(`Polling timed out for asset ${assetId}`);
+      if (result.status === 'ready' && result.playbackId) {
+        console.log(`Asset ${assetId} is ready with playback ID ${result.playbackId}`);
+        
+        // Update the lesson with the playback ID and set status to published
+        const updateResponse = await fetch('/api/lessons/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lessonId,
+            muxAssetId: assetId,
+            muxPlaybackId: result.playbackId,
+            status: 'published'
+          })
+        });
+        
+        if (updateResponse.ok) {
+          console.log(`Successfully updated lesson ${lessonId} to published status`);
+          return true;
+        } else {
+          console.error(`Failed to update lesson status: ${updateResponse.status}`);
+        }
+      } else {
+        console.warn(`Asset ${assetId} is not ready: ${result.status}`);
       }
     } catch (error) {
       console.error('Error polling asset status:', error);
@@ -301,139 +274,70 @@ export function useVideoUpload({
         throw new Error("No upload ID provided");
       }
       
-      // Clean up the uploadId if it's a full URL or contains extra characters
-      let cleanUploadId = uploadId;
-      
-      // If it's suspiciously long (over 100 chars), it might be a full URL or have extra data
-      if (uploadId.length > 100) {
-        console.warn("Upload ID is suspiciously long, attempting to clean it up");
-        
-        // Try to extract just the ID part
-        const idMatch = uploadId.match(/([a-zA-Z0-9_-]{10,64})/);
-        if (idMatch && idMatch[1]) {
-          cleanUploadId = idMatch[1];
-          console.log("Extracted cleaner upload ID:", cleanUploadId);
-        } else {
-          // If we can't extract a clean ID, use the global fallback
-          cleanUploadId = (window as any).__lastUploadId || uploadId;
-          console.log("Using global fallback upload ID:", cleanUploadId);
-        }
-      }
-      
-      console.log("Processing upload success for ID:", cleanUploadId);
+      console.log("Processing upload success for ID:", uploadId);
       setStatus('processing');
       setProgress(80); // Set progress to indicate processing has started
       
       // Get the asset ID from the upload
-      const assetId = await withRetry(
-        async () => {
-          console.log(`Fetching asset ID for upload: ${cleanUploadId}`);
-          
-          // Skip API calls for now and use a temporary asset ID
-          // This avoids the API errors we're seeing and allows the flow to continue
-          console.log("Using upload ID as temporary asset ID");
-          const tempAssetId = `temp_${cleanUploadId}`;
-          
-          // Register the temporary asset ID with our backend
-          try {
-            const tempResponse = await fetch(`/api/mux/temp-asset?assetId=${encodeURIComponent(tempAssetId)}`);
-            if (tempResponse.ok) {
-              console.log("Temporary asset registered successfully");
-            }
-          } catch (tempError) {
-            console.warn("Failed to register temporary asset:", tempError);
-            // Continue anyway, this is just for tracking
-          }
-          
-          return tempAssetId;
-          
-        },
-        {
-          retries: 3,
-          initialDelay: 2000,
-          onRetry: (attempt) => {
-            setProgress(Math.min(95, 80 + attempt * 5));
-            if (onProgress) onProgress(Math.min(95, 80 + attempt * 5));
-          }
-        }
-      );
-      
-      console.log("Retrieved assetId:", assetId); // Add debug log
-      
-      // If we have a lesson ID, start polling for status updates
-      if (lessonId && !assetId.startsWith('temp_')) {
-        // Start polling in the background
-        pollAssetStatus(assetId, lessonId);
-      }
-      
-      // Check asset status - use different endpoint for temporary assets
-      const isTemporaryAsset = assetId.startsWith('temp_');
-      let assetData = null;
-      
+      let assetId;
       try {
-        if (isTemporaryAsset) {
-          // For temporary assets, use the temp-asset endpoint
-          const response = await fetch(`/api/mux/temp-asset?assetId=${encodeURIComponent(assetId)}`);
-          
-          if (!response.ok) {
-            console.warn(`Failed to get temporary asset status: ${response.status}`);
-            // Don't throw, just continue with default values
-          } else {
-            assetData = await response.json();
-            console.log("Temporary asset status response:", assetData);
+        // Use the new API endpoint to get the asset ID
+        assetId = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
           }
-        } else {
-          // For real assets, use the asset-status endpoint
-          assetData = await withRetry(
-            async () => {
-              const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
-              
-              if (!response.ok) {
-                throw new Error(`Failed to get asset status: ${response.status}`);
-              }
-              
-              const data = await response.json();
-              console.log("Asset status response:", data);
-              
-              if (data.status === 'errored') {
-                throw new Error('Video processing failed');
-              }
-              
-              return data;
-            },
-            {
-              retries: 3,
-              initialDelay: 2000,
-              onRetry: (attempt) => {
-                setProgress(Math.min(99, 95 + attempt));
-                if (onProgress) onProgress(Math.min(99, 95 + attempt));
-              }
-            }
-          );
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error(`Failed to get asset ID: ${res.status}`);
+          }
+          return res.json();
+        }).then(data => data.assetId);
+        
+        if (!assetId) {
+          throw new Error('No asset ID returned from API');
         }
+        
+        console.log("Retrieved assetId:", assetId);
       } catch (error) {
-        console.error("Error checking asset status:", error);
-        // For errors, create a minimal asset data object
-        assetData = {
-          playbackId: `temp_playback_${assetId.replace(/^temp_/, '')}`,
-          status: 'preparing'
-        };
+        console.error("Error getting asset ID:", error);
+        throw error;
       }
       
-      // If we still don't have asset data or playback ID, create default values
-      if (!assetData || !assetData.playbackId) {
-        assetData = {
-          playbackId: `temp_playback_${assetId.replace(/^temp_/, '')}`,
-          status: 'preparing'
-        };
+      // If we have a lesson ID, update it with the asset ID
+      if (lessonId) {
+        try {
+          const updateResponse = await fetch('/api/lessons/update-video', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lessonId,
+              muxAssetId: assetId
+            })
+          });
+          
+          if (!updateResponse.ok) {
+            console.warn(`Failed to update lesson with asset ID: ${updateResponse.status}`);
+            // Continue anyway - we'll start polling for the asset status
+          }
+        } catch (updateError) {
+          console.warn("Error updating lesson with asset ID:", updateError);
+          // Continue anyway - we'll start polling for the asset status
+        }
       }
-
+      
+      // Start polling for asset status in the background
+      if (lessonId) {
+        pollAssetStatus(assetId, lessonId)
+          .catch(error => console.error("Error polling asset status:", error));
+      }
+      
       // Set status to complete
       setStatus('complete');
       setProgress(100);
       if (onProgress) onProgress(100);
       
-      // IMPORTANT: Call onUploadComplete with the assetId
+      // Call onUploadComplete with the assetId
       if (onUploadComplete) {
         console.log("Calling onUploadComplete with assetId:", assetId);
         onUploadComplete(assetId);

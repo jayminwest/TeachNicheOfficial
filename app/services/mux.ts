@@ -89,99 +89,113 @@ export interface MuxUploadStatusResponse {
   error?: MuxError;
 }
 
+/**
+ * Gets the asset ID from an upload ID
+ */
+export async function getAssetIdFromUpload(uploadId: string, options = {
+  maxAttempts: 10,
+  interval: 2000
+}): Promise<string> {
+  // Ensure client is initialized
+  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
+    throw new Error('Mux Video client not properly initialized');
+  }
+
+  let attempts = 0;
+  
+  while (attempts < options.maxAttempts) {
+    try {
+      console.log(`Checking upload status for ${uploadId} (attempt ${attempts + 1}/${options.maxAttempts})`);
+      
+      const upload = await muxClient.video.uploads.get(uploadId);
+      
+      if (!upload) {
+        throw new Error('Mux API returned null or undefined upload');
+      }
+      
+      // If the upload has created an asset, return the asset ID
+      if (upload.status === 'asset_created' && upload.asset_id) {
+        console.log(`Upload ${uploadId} has created asset ${upload.asset_id}`);
+        return upload.asset_id;
+      }
+      
+      // If the upload has errored, throw an error
+      if (upload.status === 'errored') {
+        throw new Error('Upload failed: ' + (upload.error?.message || 'Unknown error'));
+      }
+      
+      // If the upload is still waiting, wait and try again
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, options.interval));
+    } catch (error) {
+      console.error(`Error checking upload status for ${uploadId}:`, error);
+      
+      // If we've reached the maximum number of attempts, throw an error
+      if (attempts >= options.maxAttempts - 1) {
+        throw error;
+      }
+      
+      // Otherwise, wait and try again
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, options.interval));
+    }
+  }
+  
+  throw new Error(`Timed out waiting for upload ${uploadId} to create an asset`);
+}
+
 export async function waitForAssetReady(assetId: string, options = {
-  maxAttempts: 60,  // 10 minutes total
-  interval: 10000,  // 10 seconds between checks
+  maxAttempts: 30,
+  interval: 5000,
   isFree: false
 }): Promise<{status: string, playbackId?: string}> {
+  // Ensure client is initialized
+  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
+    throw new Error('Mux Video client not properly initialized');
+  }
+
   let attempts = 0;
-
-  const checkAsset = async () => {
-    console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
-    
-    const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: errorText };
-      }
-      
-      if (response.status === 404) {
-        throw new Error('Asset not found');
-      }
-      
-      if (response.status >= 500) {
-        // Server errors are retryable
-        return null;
-      }
-      
-      throw new Error(
-        errorData.error || errorData.details || 
-        `HTTP error! status: ${response.status}`
-      );
-    }
-      
-    const data = await response.json();
-    
-    console.log('Asset status response:', {
-      status: response.status,
-      data: JSON.stringify(data, null, 2)
-    });
-
-    if (data.status === 'ready' && data.playbackId) {
-      console.log('Asset ready with playback ID:', data.playbackId);
-      return {
-        status: 'ready',
-        playbackId: data.playbackId
-      };
-    }
-
-    if (data.status === 'errored') {
-      throw new Error('Video processing failed');
-    }
-
-    if (!['preparing', 'ready'].includes(data.status)) {
-      throw new Error(`Unexpected asset status: ${data.status}`);
-    }
-
-    return null;
-  };
 
   while (attempts < options.maxAttempts) {
     try {
-      const result = await checkAsset();
-      if (result) {
-        return result;
+      console.log(`Checking asset status for ${assetId} (attempt ${attempts + 1}/${options.maxAttempts})`);
+      
+      const asset = await muxClient.video.assets.get(assetId);
+      
+      if (!asset) {
+        throw new Error('Mux API returned null or undefined asset');
       }
       
+      // If the asset is ready, return the status and playback ID
+      if (asset.status === 'ready' && asset.playback_ids && asset.playback_ids.length > 0) {
+        return {
+          status: 'ready',
+          playbackId: asset.playback_ids[0].id
+        };
+      }
+      
+      // If the asset has errored, throw an error
+      if (asset.status === 'errored') {
+        throw new Error('Video processing failed');
+      }
+      
+      // If the asset is still preparing, wait and try again
       attempts++;
-      console.log(`Asset still processing, waiting ${options.interval}ms before next check`);
       await new Promise(resolve => setTimeout(resolve, options.interval));
     } catch (error) {
-      console.error('Error checking asset status:', error);
+      console.error(`Error checking asset status for ${assetId}:`, error);
       
-      // If the error is retryable, continue
-      if (error instanceof Error && 
-          (error.message.includes('500') || error.message.includes('503'))) {
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, options.interval));
-        continue;
+      // If we've reached the maximum number of attempts, throw an error
+      if (attempts >= options.maxAttempts - 1) {
+        throw error;
       }
       
-      throw error;
+      // Otherwise, wait and try again
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, options.interval));
     }
   }
-
+  
   console.error('Asset processing timed out after', attempts, 'attempts');
   throw new Error(`Video processing timed out after ${attempts} attempts`);
 }

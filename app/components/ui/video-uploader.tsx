@@ -183,69 +183,28 @@ export function VideoUploader({
         onSuccess={(event) => {
           console.log("MuxUploader onSuccess event:", event);
           
-          // Since the event doesn't have the expected structure, we need to use the uploadId
-          // that we received from the initial upload URL response
-          try {
-            // First try to get the upload_id from the DOM
-            const uploadIds = document.querySelectorAll('[data-upload-id]');
-            if (uploadIds.length > 0) {
-              const firstUploadId = uploadIds[0].getAttribute('data-upload-id');
-              if (firstUploadId) {
-                console.log("Using upload ID from DOM:", firstUploadId);
-                // Store the upload ID in a global variable for fallback
-                (window as any).__lastUploadId = firstUploadId;
-                handleUploadSuccess(firstUploadId);
-                return;
-              }
+          // Extract the upload ID from the event
+          let uploadId = null;
+          
+          if (event instanceof CustomEvent && event.detail) {
+            // Try to get the upload ID from the event detail
+            if (typeof event.detail === 'string') {
+              uploadId = event.detail;
+            } else if (event.detail.uploadId) {
+              uploadId = event.detail.uploadId;
+            } else if (event.detail.id) {
+              uploadId = event.detail.id;
             }
-            
-            // Next try to extract from URL params
-            if (uploadEndpoint) {
-              try {
-                const uploadEndpointUrl = new URL(uploadEndpoint);
-                const uploadIdParam = uploadEndpointUrl.searchParams.get("upload_id");
-                
-                if (uploadIdParam) {
-                  console.log("Using upload ID from URL param:", uploadIdParam);
-                  // Store the upload ID in a global variable for fallback
-                  (window as any).__lastUploadId = uploadIdParam;
-                  handleUploadSuccess(uploadIdParam);
-                  return;
-                }
-              } catch (urlError) {
-                console.error("Error parsing URL:", urlError);
-              }
-            }
-            
-            // Try to extract from the event
-            if (event instanceof CustomEvent) {
-              // Different versions of the Mux uploader might have different event structures
-              const uploadId = event.detail?.uploadId || 
-                               event.detail?.id || 
-                               (typeof event.detail === 'string' ? event.detail : null);
-              
-              if (uploadId) {
-                console.log("Using upload ID from event:", uploadId);
-                // Store the upload ID in a global variable for fallback
-                (window as any).__lastUploadId = uploadId;
-                handleUploadSuccess(uploadId);
-                return;
-              }
-            }
-            
-            // Last resort: use a hardcoded ID from the most recent upload
-            const globalUploadId = (window as any).__lastUploadId;
-            if (globalUploadId) {
-              console.log("Using global upload ID:", globalUploadId);
-              handleUploadSuccess(globalUploadId);
-              return;
-            }
-            
-            throw new Error("Could not determine upload ID from any source");
-          } catch (error) {
-            console.error("Error in onSuccess handler:", error);
-            handleUploadError(error instanceof Error ? error : new Error("Failed to process upload"));
           }
+          
+          if (!uploadId) {
+            console.error("Could not determine upload ID from event");
+            handleUploadError(new Error("Could not determine upload ID"));
+            return;
+          }
+          
+          console.log("Using upload ID:", uploadId);
+          handleUploadSuccess(uploadId);
         }}
         onError={(event) => {
           console.error("MuxUploader onError event:", event);

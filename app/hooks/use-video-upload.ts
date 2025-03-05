@@ -92,7 +92,7 @@ export function useVideoUpload({
       try {
         // Try to parse the response as JSON
         data = JSON.parse(responseText);
-      } catch (parseError) {
+      } catch (error) {
         console.error('Failed to parse response as JSON:', responseText);
         throw new Error(`Invalid response format: ${responseText.substring(0, 100)}`);
       }

@@ -98,6 +98,24 @@ export function LessonAccessGate({
   }
   
   
+  // If user is not authenticated, show sign-in prompt regardless of lesson price
+  if (!user) {
+    return (
+      <div className="p-6 bg-muted rounded-lg">
+        <h3 className="text-lg font-semibold mb-2">Sign In Required</h3>
+        <p className="text-muted-foreground mb-4">
+          Please sign in to access this {price === 0 ? 'free' : ''} lesson
+        </p>
+        <Button 
+          onClick={() => router.push(`/sign-in?redirect=${encodeURIComponent(`/lessons/${lessonId}`)}`)}
+          className="w-full"
+        >
+          Sign In to Continue
+        </Button>
+      </div>
+    );
+  }
+
   // If user has access or payment was just successful, show the content
   if (hasAccess || isSuccess) {
     // Remove the success parameters from the URL to prevent issues on refresh
@@ -129,42 +147,22 @@ export function LessonAccessGate({
   
   // If user doesn't have access, check if they need to purchase
   if (!hasAccess && price !== undefined) {
-    // For free lessons
+    // For free lessons - user is already authenticated at this point
     if (price === 0) {
-      // If user is authenticated, show "Access Lesson" button
-      if (user) {
-        return (
-          <div className="p-6 bg-muted rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Free Lesson</h3>
-            <p className="text-muted-foreground mb-4">
-              This lesson is available for free
-            </p>
-            <Button 
-              onClick={() => window.location.reload()}
-              className="w-full"
-            >
-              Access Lesson
-            </Button>
-          </div>
-        );
-      } 
-      // If user is not authenticated, show sign-in prompt
-      else {
-        return (
-          <div className="p-6 bg-muted rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Sign In Required</h3>
-            <p className="text-muted-foreground mb-4">
-              Please sign in to access this free lesson
-            </p>
-            <Button 
-              onClick={() => router.push(`/sign-in?redirect=${encodeURIComponent(`/lessons/${lessonId}`)}`)}
-              className="w-full"
-            >
-              Sign In to Continue
-            </Button>
-          </div>
-        );
-      }
+      return (
+        <div className="p-6 bg-muted rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Free Lesson</h3>
+          <p className="text-muted-foreground mb-4">
+            This lesson is available for free
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            className="w-full"
+          >
+            Access Lesson
+          </Button>
+        </div>
+      );
     }
     
     // If we see success in URL but hasAccess is still false, show a processing message

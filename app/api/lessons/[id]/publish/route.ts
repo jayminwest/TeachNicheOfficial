@@ -6,6 +6,7 @@ import { Database } from '@/types/database';
 // Create a simple function that will be used as the route handler
 // This bypasses the Next.js type checking for route handlers
 function createPublishHandler() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async function(request: Request, context: any) {
   try {
     const cookieStore = cookies();

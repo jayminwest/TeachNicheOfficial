@@ -183,9 +183,23 @@ export function LessonForm({
             data.thumbnail_url = data.thumbnailUrl;
           }
           
-          console.log("Submitting lesson with thumbnail:", {
-            thumbnail_url: data.thumbnail_url,
-            thumbnailUrl: data.thumbnailUrl
+          // Handle the case where a video is still processing
+          if (data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "processing")) {
+            console.log("Video is still processing, setting muxPlaybackId to empty string for now");
+            // Set to empty string to allow form submission - webhook will update it later
+            data.muxPlaybackId = "";
+          }
+          
+          console.log("Submitting lesson with data:", {
+            title: data.title,
+            thumbnail: {
+              thumbnail_url: data.thumbnail_url,
+              thumbnailUrl: data.thumbnailUrl
+            },
+            video: {
+              muxAssetId: data.muxAssetId,
+              muxPlaybackId: data.muxPlaybackId
+            }
           });
           
           // Continue with form submission
@@ -410,8 +424,9 @@ export function LessonForm({
                   // Don't set a temporary playback ID - we'll get the real one from Mux
                   console.log("Setting only the asset ID for now, playback ID will be set when processing completes");
                   
-                  // Clear any existing playback ID to ensure we don't use a stale one
-                  form.setValue("muxPlaybackId", "", {
+                  // Set a temporary value for muxPlaybackId to indicate processing
+                  // This will be updated by the webhook when processing is complete
+                  form.setValue("muxPlaybackId", "processing", {
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true

@@ -183,16 +183,24 @@ export function VideoUploader({
         onSuccess={(event) => {
           console.log("MuxUploader onSuccess event:", event);
           
-          // Use the stored upload ID directly instead of trying to extract it from the URL
-          const uploadId = (window as any).__lastUploadId;
+          // Try to get the upload ID from the event or fall back to stored ID
+          let uploadId;
+          
+          // First try to get it from the event
+          if (event && event.detail && event.detail.uploadId) {
+            uploadId = event.detail.uploadId;
+            console.log("Got upload ID from event:", uploadId);
+          } else {
+            // Fall back to the stored ID
+            uploadId = (window as any).__lastUploadId;
+            console.log("Using stored upload ID:", uploadId);
+          }
           
           if (!uploadId) {
-            console.error("No upload ID found in global storage");
+            console.error("No upload ID found in event or global storage");
             handleUploadError(new Error("Upload ID not found"));
             return;
           }
-          
-          console.log("Using stored upload ID:", uploadId);
           
           // Store the upload ID in the database
           if (lessonId) {

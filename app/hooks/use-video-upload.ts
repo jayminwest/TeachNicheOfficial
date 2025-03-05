@@ -74,7 +74,12 @@ export function useVideoUpload({
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   
-  // Removed polling logic as we now use webhooks
+  // This function is kept for backward compatibility but doesn't do anything
+  // since we now use webhooks instead of polling
+  const pollAssetStatus = useCallback(async (assetId: string, lessonId: string): Promise<boolean | void> => {
+    console.log("pollAssetStatus is deprecated - using webhooks instead");
+    return true; // Return true to indicate "success" without actually polling
+  }, []);
 
   const handleError = useCallback((err: Error) => {
     setStatus('error');
@@ -381,7 +386,7 @@ export function useVideoUpload({
     } catch (error) {
       handleError(error instanceof Error ? error : new Error('Failed to process video upload'));
     }
-  }, [handleError, onProgress, onUploadComplete, lessonId, pollAssetStatus]);
+  }, [handleError, onProgress, onUploadComplete, lessonId]);
 
   // Add an effect to automatically initialize on mount
   useEffect(() => {

@@ -83,7 +83,41 @@ export function LessonAccessGate({
   const isSuccess = urlParams?.get('purchase') === 'success' || 
                     urlParams?.has('session_id') || 
                     (typeof window !== 'undefined' && window.location.href.includes('session_id='));
-
+  
+  // If user has access or payment was just successful, show the content
+  if (hasAccess || isSuccess) {
+    // Remove the success parameter from the URL to prevent issues on refresh
+    if (typeof window !== 'undefined' && urlParams?.has('purchase')) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('purchase');
+      window.history.replaceState({}, '', url.toString());
+    }
+    
+    return (
+      <div className={cn(className)}>
+        {children}
+        {isSuccess && (
+          <div className="mt-4 text-sm text-green-600 font-medium">
+            Payment Successful! You now have access to this lesson.
+          </div>
+        )}
+        {purchaseStatus === 'completed' && purchaseDate && !isSuccess && (
+          <div className="mt-4 flex items-center justify-center">
+            <Badge variant="outline" className="px-3 py-1.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              <span>You purchased this lesson on</span>
+              <span className="font-semibold flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {formatDate(purchaseDate)}
+              </span>
+            </Badge>
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  // If user doesn't have access, check if they need to purchase
   if (!hasAccess && price !== undefined) {
     // For free lessons, show an "Access Lesson" button for authenticated users
     if (price === 0 && user) {
@@ -249,45 +283,5 @@ export function LessonAccessGate({
     );
   }
   
-  
-  // Check for success URL parameter or session_id which indicates a completed purchase
-  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const isSuccess = urlParams?.get('purchase') === 'success' || urlParams?.has('session_id') || 
-                    (typeof window !== 'undefined' && window.location.href.includes('session_id='));
-  
-  // If payment was just successful or user has access, show the content
-  if (hasAccess || isSuccess) {
-    // Remove the success parameter from the URL to prevent issues on refresh
-    if (typeof window !== 'undefined' && urlParams?.has('purchase')) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('purchase');
-      window.history.replaceState({}, '', url.toString());
-    }
-    
-    return (
-      <div className={cn(className)}>
-        {children}
-        {isSuccess && (
-          <div className="mt-4 text-sm text-green-600 font-medium">
-            Payment Successful! You now have access to this lesson.
-          </div>
-        )}
-        {purchaseStatus === 'completed' && purchaseDate && !isSuccess && (
-          <div className="mt-4 flex items-center justify-center">
-            <Badge variant="outline" className="px-3 py-1.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              <span>You purchased this lesson on</span>
-              <span className="font-semibold flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                {formatDate(purchaseDate)}
-              </span>
-            </Badge>
-          </div>
-        )}
-      </div>
-    );
-  }
-  
-  // If user doesn't have access, continue with the existing logic
   return null;
 }

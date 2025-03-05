@@ -123,7 +123,8 @@ export function ImageUploader({
             alt="Thumbnail preview"
             fill
             className="object-cover"
-            unoptimized={previewUrl.startsWith('blob:')} // Skip optimization for blob URLs
+            unoptimized={previewUrl.startsWith('blob:') || previewUrl.includes('supabase')} // Skip optimization for blob URLs and Supabase URLs
+            sizes="(max-width: 768px) 100vw, 400px"
           />
           
           {!isUploading && (

@@ -46,7 +46,8 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
             fill
             className="object-cover"
             priority
-            unoptimized={!lesson.thumbnailUrl} // Skip optimization for placeholder
+            unoptimized={!lesson.thumbnailUrl || lesson.thumbnailUrl.startsWith('blob:')} // Skip optimization for placeholder or blob URLs
+            sizes="(max-width: 768px) 100vw, 600px"
           />
         </div>
 

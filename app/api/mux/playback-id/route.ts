@@ -26,8 +26,12 @@ export async function GET(request: Request) {
         if (asset.status === 'ready') {
           console.log('Creating new playback ID for ready asset');
           try {
+            // Always create public playback IDs in development
+            const policy = process.env.NODE_ENV === 'development' ? 'public' : 'signed';
+            console.log(`Creating playback ID with policy: ${policy}`);
+            
             const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
-              policy: 'public'
+              policy
             });
             
             if (newPlaybackId && newPlaybackId.id) {
@@ -64,8 +68,35 @@ export async function GET(request: Request) {
         );
       }
       
-      // Return the first playback ID
+      // In development, check if we have a public playback ID
+      if (process.env.NODE_ENV === 'development') {
+        // Look for a public playback ID first
+        const publicId = asset.playback_ids.find(id => id.policy === 'public');
+        
+        if (publicId) {
+          console.log('Found existing public playback ID:', publicId.id);
+          return NextResponse.json({ playbackId: publicId.id });
+        } else {
+          // If no public ID exists in development, create one
+          console.log('No public playback ID found in development, creating one');
+          try {
+            const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+              policy: 'public'
+            });
+            
+            if (newPlaybackId && newPlaybackId.id) {
+              console.log('Created new public playback ID:', newPlaybackId.id);
+              return NextResponse.json({ playbackId: newPlaybackId.id });
+            }
+          } catch (createError) {
+            console.error('Error creating public playback ID:', createError);
+          }
+        }
+      }
+      
+      // Return the first playback ID as fallback
       const playbackId = asset.playback_ids[0].id;
+      console.log(`Returning playback ID: ${playbackId} with policy: ${asset.playback_ids[0].policy}`);
       return NextResponse.json({ playbackId });
     } catch (muxError) {
       console.error('Error retrieving asset from Mux:', muxError);

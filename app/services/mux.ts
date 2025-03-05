@@ -28,9 +28,16 @@ export async function createUpload(isFree: boolean = false) {
   const mux = getMuxClient();
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
+  // For development, always use public playback policy to avoid token signing issues
+  const playbackPolicy = process.env.NODE_ENV === 'development' || isFree 
+    ? ['public'] 
+    : ['signed'];
+  
+  console.log(`Creating upload with playback policy: ${playbackPolicy.join(', ')}`);
+
   const upload = await mux.video.uploads.create({
     new_asset_settings: {
-      playback_policy: isFree ? ['public'] : ['signed'],
+      playback_policy: playbackPolicy,
       encoding_tier: 'baseline'
     },
     cors_origin: corsOrigin,
@@ -59,8 +66,47 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
   
   // Get the playback ID if the asset is ready
   let playbackId = undefined;
-  if (asset.status === 'ready' && asset.playback_ids && asset.playback_ids.length > 0) {
-    playbackId = asset.playback_ids[0].id;
+  if (asset.status === 'ready') {
+    // Check if we have any playback IDs
+    if (asset.playback_ids && asset.playback_ids.length > 0) {
+      // In development, prefer public playback IDs
+      if (process.env.NODE_ENV === 'development') {
+        // Look for a public playback ID first
+        const publicId = asset.playback_ids.find(id => id.policy === 'public');
+        if (publicId) {
+          playbackId = publicId.id;
+        } else {
+          // If no public ID exists, create one
+          console.log(`Creating public playback ID for asset ${assetId} in development`);
+          try {
+            const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+              policy: 'public'
+            });
+            playbackId = newPlaybackId.id;
+          } catch (error) {
+            console.error(`Error creating public playback ID: ${error}`);
+            // Fall back to the first available ID
+            playbackId = asset.playback_ids[0].id;
+          }
+        }
+      } else {
+        // In production, just use the first playback ID
+        playbackId = asset.playback_ids[0].id;
+      }
+    } else if (asset.status === 'ready') {
+      // If the asset is ready but has no playback IDs, create one
+      console.log(`Asset ${assetId} is ready but has no playback IDs, creating one`);
+      try {
+        // In development, always create public playback IDs
+        const policy = process.env.NODE_ENV === 'development' ? 'public' : 'signed';
+        const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+          policy
+        });
+        playbackId = newPlaybackId.id;
+      } catch (error) {
+        console.error(`Error creating playback ID: ${error}`);
+      }
+    }
   }
   
   return {
@@ -146,7 +192,24 @@ export async function getPlaybackId(assetId: string): Promise<string> {
     const asset = await mux.video.assets.retrieve(assetId);
     
     if (!asset.playback_ids || asset.playback_ids.length === 0) {
-      throw new Error('No playback IDs found for this asset');
+      // If no playback IDs exist, create a public one
+      console.log(`No playback IDs found for asset ${assetId}, creating a public one`);
+      const playbackId = await mux.video.assets.createPlaybackId(assetId, {
+        policy: 'public'
+      });
+      return playbackId.id;
+    }
+    
+    // If we have a signed playback ID but we're in development, create a public one
+    if (process.env.NODE_ENV === 'development') {
+      const existingId = asset.playback_ids[0];
+      if (existingId.policy === 'signed') {
+        console.log(`Found signed playback ID in development, creating a public one`);
+        const publicPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+          policy: 'public'
+        });
+        return publicPlaybackId.id;
+      }
     }
     
     return asset.playback_ids[0].id;

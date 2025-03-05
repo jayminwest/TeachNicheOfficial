@@ -194,13 +194,13 @@ export function LessonForm({
             // Set to empty string to allow form submission - webhook will update it later
             data.muxPlaybackId = "";
             
-            // Set status to draft until processing completes
-            data.status = 'draft';
+            // Set status to published even while processing
+            data.status = 'published';
             
             // Show a toast to inform the user
             toast({
               title: "Video Processing",
-              description: "Your video is still processing. The lesson will be published automatically when processing is complete.",
+              description: "Your video is still processing. The lesson is published and will be updated when processing is complete.",
             });
             
             // Store a flag to redirect to the asset status page after form submission

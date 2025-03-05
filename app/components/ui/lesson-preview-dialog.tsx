@@ -41,12 +41,14 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
         
         <div className="relative aspect-video w-full mb-4 overflow-hidden rounded-lg">
           <Image
-            src={lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
+            src={lesson.thumbnail_url || lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
             alt={lesson.title}
             fill
             className="object-cover"
             priority
-            unoptimized={!lesson.thumbnailUrl || lesson.thumbnailUrl.startsWith('blob:')} // Skip optimization for placeholder or blob URLs
+            unoptimized={!(lesson.thumbnail_url || lesson.thumbnailUrl) || 
+              (lesson.thumbnail_url && lesson.thumbnail_url.startsWith('blob:')) || 
+              (lesson.thumbnailUrl && lesson.thumbnailUrl.startsWith('blob:'))}
             sizes="(max-width: 768px) 100vw, 600px"
           />
         </div>

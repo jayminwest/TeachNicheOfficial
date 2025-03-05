@@ -27,7 +27,8 @@ const lessonFormSchema = z.object({
     .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
-  thumbnailUrl: z.string().optional(),
+  thumbnail_url: z.string().optional(),
+  thumbnailUrl: z.string().optional(), // Keep for backward compatibility
   price: z.number()
     .min(0, "Price must be positive")
     .max(999.99, "Price must be less than $1000")
@@ -112,7 +113,8 @@ export function LessonForm({
       price: 0,
       muxAssetId: "", // Initialize muxAssetId field
       muxPlaybackId: "", // Initialize muxPlaybackId field
-      thumbnailUrl: "", // Initialize thumbnailUrl field
+      thumbnail_url: "", // Initialize thumbnail_url field (database column name)
+      thumbnailUrl: "", // Keep for backward compatibility
     },
   });
 
@@ -317,7 +319,7 @@ export function LessonForm({
             </div>
             
             <ImageUploader
-              initialImage={form.watch('thumbnailUrl')}
+              initialImage={form.watch('thumbnail_url') || form.watch('thumbnailUrl')}
               onUploadComplete={(url) => {
                 if (!url) {
                   console.log("No URL returned from upload");
@@ -325,6 +327,12 @@ export function LessonForm({
                 }
                 
                 console.log("Thumbnail uploaded successfully:", url);
+                // Set both properties for compatibility
+                form.setValue("thumbnail_url", url, { 
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
                 form.setValue("thumbnailUrl", url, { 
                   shouldValidate: true,
                   shouldDirty: true,

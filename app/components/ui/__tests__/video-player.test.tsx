@@ -23,19 +23,6 @@ jest.mock('@mux/mux-player-react', () => {
   });
 });
 
-jest.mock('../lesson-access-gate', () => ({
-  LessonAccessGate: jest.fn(({ children, lessonId, price, className }) => (
-    <div 
-      data-testid="lesson-access-gate" 
-      data-lesson-id={String(lessonId)} 
-      data-price={String(price)} 
-      className={className}
-    >
-      {children}
-    </div>
-  ))
-}));
-
 // Mock fetch for JWT token
 global.fetch = jest.fn(() =>
   Promise.resolve({
@@ -62,22 +49,6 @@ describe('VideoPlayer', () => {
       
       expect(screen.getByTestId('mux-player')).toBeInTheDocument();
       expect(screen.getByTestId('mux-player')).toHaveAttribute('data-playback-id', 'mock-playback-id');
-    });
-
-    it('applies custom className when provided', () => {
-      render(
-        <VideoPlayer 
-          playbackId="mock-playback-id" 
-          title="Test Video" 
-          id="video-123" 
-          className="custom-class" 
-        />
-      );
-      
-      expect(screen.getByTestId('lesson-access-gate')).toHaveClass('custom-class');
-      expect(screen.getByTestId('lesson-access-gate')).toHaveClass('aspect-video');
-      expect(screen.getByTestId('lesson-access-gate')).toHaveClass('rounded-lg');
-      expect(screen.getByTestId('lesson-access-gate')).toHaveClass('overflow-hidden');
     });
 
     it('passes correct metadata to MuxPlayer', () => {
@@ -123,7 +94,13 @@ describe('VideoPlayer', () => {
       
       expect(global.fetch).toHaveBeenCalledWith('/api/video/sign-playback', {
         method: 'POST',
-        body: JSON.stringify({ playbackId: 'mock-playback-id' })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          playbackId: 'mock-playback-id',
+          lessonId: 'video-123'
+        })
       });
       
       await waitFor(() => {
@@ -170,38 +147,6 @@ describe('VideoPlayer', () => {
     });
   });
 
-  // LessonAccessGate Integration Tests
-  describe('LessonAccessGate Integration', () => {
-    it('passes correct lessonId and price to LessonAccessGate', () => {
-      render(
-        <VideoPlayer 
-          playbackId="mock-playback-id" 
-          title="Test Video" 
-          id="video-123" 
-          price={19.99} 
-        />
-      );
-      
-      expect(screen.getByTestId('lesson-access-gate')).toHaveAttribute('data-lesson-id', 'video-123');
-      expect(screen.getByTestId('lesson-access-gate')).toHaveAttribute('data-price', '19.99');
-    });
-
-    it('wraps MuxPlayer with LessonAccessGate', () => {
-      render(
-        <VideoPlayer 
-          playbackId="mock-playback-id" 
-          title="Test Video" 
-          id="video-123" 
-        />
-      );
-      
-      const accessGate = screen.getByTestId('lesson-access-gate');
-      const muxPlayer = screen.getByTestId('mux-player');
-      
-      expect(accessGate).toContainElement(muxPlayer);
-    });
-  });
-
   // Accessibility Tests
   describe('Accessibility', () => {
     it('provides accessible controls via MuxPlayer', () => {
@@ -231,24 +176,10 @@ describe('VideoPlayer', () => {
         />
       );
       
-      expect(screen.getByTestId('lesson-access-gate')).toHaveAttribute('data-lesson-id', 'undefined');
-      
       const metadataElement = screen.getByTestId('metadata');
       const metadata = JSON.parse(metadataElement.textContent || '{}');
       
       expect(metadata.video_id).toBeUndefined();
-    });
-
-    it('handles undefined price gracefully', () => {
-      render(
-        <VideoPlayer 
-          playbackId="mock-playback-id" 
-          title="Test Video" 
-          id="video-123" 
-        />
-      );
-      
-      expect(screen.getByTestId('lesson-access-gate')).toHaveAttribute('data-price', 'undefined');
     });
   });
 

@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import { createClientSupabaseClient } from '@/app/services/supabase';
 
 interface UseImageUploadOptions {
-  bucket?: string;
-  folder?: string;
   maxSizeMB?: number;
   acceptedTypes?: string[];
   onUploadComplete?: (url: string) => void;
@@ -12,8 +9,6 @@ interface UseImageUploadOptions {
 }
 
 export function useImageUpload({
-  bucket = 'lesson-media',
-  folder = 'thumbnails',
   maxSizeMB = 5,
   acceptedTypes = ['image/jpeg', 'image/png', 'image/webp'],
   onUploadComplete,
@@ -50,7 +45,7 @@ export function useImageUpload({
       setIsUploading(true);
       setError(null);
       
-      // Start progress simulation since Supabase doesn't provide progress events
+      // Start progress simulation
       let currentProgress = 0;
       const progressInterval = setInterval(() => {
         currentProgress += 10;
@@ -62,64 +57,40 @@ export function useImageUpload({
         onProgress?.(currentProgress);
       }, 200);
       
-      // Generate a unique filename with a shorter random string
-      const timestamp = Date.now();
-      const fileExtension = file.name.split('.').pop() || 'jpg';
-      // Use a shorter random string to avoid potential length issues
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const filename = `${timestamp}_${randomString}.${fileExtension}`;
-      const path = folder ? `${folder}/${filename}` : filename;
+      // Create form data for the file upload
+      const formData = new FormData();
+      formData.append('file', file);
       
-      console.log("Uploading file to Supabase:", {
-        bucket,
-        path,
-        fileType: file.type,
-        fileSize: file.size
+      // Upload via server API endpoint instead of direct Supabase client
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData,
       });
       
-      // Get the Supabase client
-      const supabase = createClientSupabaseClient();
+      // Clear the progress interval
+      clearInterval(progressInterval);
       
-      // Upload the file with direct API call to debug
-      try {
-        const { data, error } = await supabase.storage
-          .from(bucket)
-          .upload(path, file, {
-            cacheControl: '3600',
-            upsert: true // Allow overwriting
-          });
-        
-        // Clear the progress interval
-        clearInterval(progressInterval);
-        
-        if (error) {
-          console.error("Supabase upload error:", error);
-          throw error;
-        }
-        
-        console.log("Upload successful:", data);
-        
-        // Get the public URL
-        const { data: urlData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(data.path);
-        
-        const publicUrl = urlData.publicUrl;
-        
-        // Set final progress
-        setProgress(100);
-        onProgress?.(100);
-        
-        setImageUrl(publicUrl);
-        onUploadComplete?.(publicUrl);
-        
-        return publicUrl;
-      } catch (innerError) {
-        console.error("Error in inner try block:", innerError);
-        throw innerError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Upload API error:", errorData);
+        throw new Error(errorData.error || 'Upload failed');
       }
+      
+      const data = await response.json();
+      console.log("Upload successful:", data);
+      
+      // Set final progress
+      setProgress(100);
+      onProgress?.(100);
+      
+      // Set the image URL and call the completion callback
+      setImageUrl(data.url);
+      onUploadComplete?.(data.url);
+      
+      return data.url;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown upload error');
+      console.error("Upload error:", error);
       setError(error);
       onError?.(error);
     } finally {

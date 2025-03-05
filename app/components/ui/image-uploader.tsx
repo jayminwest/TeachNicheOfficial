@@ -55,10 +55,10 @@ export function ImageUploader({
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       
-      // Upload the file
+      // Upload the file using our server-side API
       await uploadImage(file);
       
-      // Clean up the object URL
+      // Clean up the object URL after successful upload
       URL.revokeObjectURL(objectUrl);
     } catch (err) {
       // Error is handled by the hook
@@ -80,11 +80,20 @@ export function ImageUploader({
     if (!file) return;
     
     try {
-      // Upload the file directly
+      // Create a local preview immediately for better UX
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Upload the file using our server-side API
       await uploadImage(file);
+      
+      // Clean up the object URL after successful upload
+      URL.revokeObjectURL(objectUrl);
     } catch (err) {
       // Error is handled by the hook
       console.error("File drop error:", err);
+      // If upload fails, clear the preview
+      setPreviewUrl(null);
     }
   };
   

@@ -1,315 +1,189 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
-import { stripeConfig } from '@/app/services/stripe';
-import { calculateFees } from '@/app/lib/utils';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { purchasesService } from '@/app/services/database/purchasesService';
 
+// Helper function to extract IDs from session
+function extractIdsFromSession(session: Stripe.Checkout.Session) {
+  // First try metadata
+  let lessonId = session.metadata?.lessonId;
+  let userId = session.metadata?.userId;
+  let baseAmount = session.metadata?.baseAmount ? parseFloat(session.metadata.baseAmount) : undefined;
+  
+  // Then try client_reference_id
+  if (!lessonId || !userId) {
+    if (session.client_reference_id) {
+      const refParts = session.client_reference_id.split('_');
+      if (refParts.length >= 4 && refParts[0] === 'lesson' && refParts[2] === 'user') {
+        lessonId = refParts[1];
+        userId = refParts[3];
+      }
+    }
+  }
+  
+  return { lessonId, userId, baseAmount };
+}
+
+// Initialize Stripe with the secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia'
+  apiVersion: '2025-01-27.acacia',
 });
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+// This is your Stripe webhook secret for testing your endpoint locally
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-// Helper function to create Supabase client with awaited cookies
-async function getSupabaseClient() {
-  const cookieStore = cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-}
-
-export async function POST(request: Request) {
-  const body = await request.text();
-  const signature = request.headers.get('stripe-signature');
-
-  if (!signature) {
-    return NextResponse.json(
-      { error: 'Missing stripe-signature header' },
-      { status: 400 }
-    );
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    const event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret
-    );
+    const payload = await request.text();
+    const sig = request.headers.get('stripe-signature');
 
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        await handlePaymentIntent(event.data.object as Stripe.PaymentIntent);
-        break;
-
-      case 'account.updated':
-        await handleAccount(event.data.object as Stripe.Account);
-        break;
-    
-      // Add handling for Express account events
-      case 'account.application.authorized':
-        await handleAccountAuthorized(event.data.object as Stripe.Account);
-        break;
-    
-      case 'account.application.deauthorized':
-        await handleAccountDeauthorized(event.data.object as Stripe.Account);
-        break;
-        
-      case 'account.external_account.created':
-        await handleExternalAccountCreated(event.data.object as Stripe.BankAccount | Stripe.Card);
-        break;
-
-      // Add more event types as needed
-    }
-
-    return NextResponse.json({ received: true });
-  } catch (err) {
-    console.error('Webhook error:', err);
-    return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
-      { status: 400 }
-    );
-  }
-}
-
-async function handlePaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  try {
-    const supabase = await getSupabaseClient();
-    
-    // Get purchase record by payment intent with lesson and creator details
-    const { data: purchase, error: fetchError } = await supabase
-    .from('purchases')
-    .select(`
-      *,
-      lesson:lessons(
-        creator:profiles!lessons_creator_id_fkey(
-          stripe_account_id
-        )
-      )
-    `)
-    .eq('payment_intent_id', paymentIntent.id)
-    .single()
-
-  if (fetchError || !purchase) {
-    console.error('Purchase fetch error:', fetchError);
-    return;
-  }
-
-  // Calculate fees for creator earnings
-  const { creatorEarnings } = calculateFees(purchase.amount)
-
-  const creatorStripeAccountId = purchase.lesson.creator.stripe_account_id;
-  if (!creatorStripeAccountId) {
-    console.error('Creator stripe account not found for purchase:', purchase.id);
-    return;
-  }
-
-  // Create transfer to creator
-  try {
-    const transfer = await stripe.transfers.create({
-      amount: creatorEarnings,
-      currency: stripeConfig.defaultCurrency,
-      destination: creatorStripeAccountId,
-      transfer_group: purchase.stripe_session_id,
-      source_transaction: paymentIntent.id
+    console.log('Received Stripe webhook', { 
+      hasSignature: !!sig,
+      hasSecret: !!endpointSecret,
+      payloadLength: payload.length
     });
 
-    // Update purchase status with transfer info
-    const { error: updateError } = await supabase
-      .from('purchases')
-      .update({
-        status: 'completed',
-        purchase_date: new Date().toISOString(),
-        metadata: {
-          stripe_payment_status: paymentIntent.status,
-          payment_completed_at: new Date().toISOString(),
-          transfer_id: transfer.id,
-          ...(typeof purchase.metadata === 'object' ? purchase.metadata : {})
-        }
-      })
-      .eq('id', purchase.id);
-
-    if (updateError) {
-      console.error('Purchase update error:', updateError);
-      return;
+    if (!sig || !endpointSecret) {
+      console.error('Missing signature or endpoint secret');
+      return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
     }
 
-    console.log('Purchase completed:', purchase.id);
-  } catch (err) {
-    console.error('Transfer creation error:', err);
-    return;
-  }
-  } catch (error) {
-    console.error('Payment intent handling error:', error);
-    return;
-  }
-}
-
-async function handleAccountAuthorized(account: Stripe.Account): Promise<void> {
-  try {
-    const supabase = await getSupabaseClient();
-    
-    // Update creator's profile with authorized status
-    const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      stripe_account_status: 'authorized',
-      updated_at: new Date().toISOString()
-    })
-    .eq('stripe_account_id', account.id);
-
-    if (updateError) {
-      console.error('Profile update error:', updateError);
-      return;
-    }
-
-    console.log('Creator account authorized:', account.id);
-  } catch (error) {
-    console.error('Account authorized handling error:', error);
-    return;
-  }
-}
-
-async function handleAccountDeauthorized(account: Stripe.Account): Promise<void> {
-  try {
-    const supabase = await getSupabaseClient();
-    
-    // Update creator's profile with deauthorized status
-    const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      stripe_account_status: 'deauthorized',
-      stripe_onboarding_complete: false,
-      updated_at: new Date().toISOString()
-    })
-    .eq('stripe_account_id', account.id);
-
-    if (updateError) {
-      console.error('Profile update error:', updateError);
-      return;
-    }
-
-    console.log('Creator account deauthorized:', account.id);
-  } catch (error) {
-    console.error('Account deauthorized handling error:', error);
-    return;
-  }
-}
-
-async function handleAccount(account: Stripe.Account): Promise<void> {
-  const supabase = await getSupabaseClient();
-  
-  // Check if charges_enabled and payouts_enabled are true
-  const isComplete = !!(account.details_submitted && account.charges_enabled && account.payouts_enabled);
-  
-  // Get any requirements information
-  const missingRequirements = account.requirements?.currently_due || [];
-  const pendingVerification = Array.isArray(account.requirements?.pending_verification) && 
-                             account.requirements.pending_verification.length > 0;
-  
-  // Determine a more specific status for user-friendly display
-  let detailedStatus = isComplete ? 'verified' : 'pending';
-  
-  if (!isComplete) {
-    if (pendingVerification) {
-      detailedStatus = 'verification_pending';
-    } else if (missingRequirements.length > 0) {
-      detailedStatus = 'requirements_needed';
-    } else if (!account.details_submitted) {
-      detailedStatus = 'details_needed';
-    } else if (!account.charges_enabled) {
-      detailedStatus = 'charges_disabled';
-    } else if (!account.payouts_enabled) {
-      detailedStatus = 'payouts_disabled';
-    }
-  }
-  
-  // Update creator's profile with account status
-  // First check if the columns exist in the schema
-  try {
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        stripe_onboarding_complete: isComplete,
-        updated_at: new Date().toISOString()
-      })
-      .eq('stripe_account_id', account.id);
-
-    if (updateError) {
-      console.error('Basic profile update error:', updateError);
-      return;
-    }
-    
-    // Try to update the status fields separately
+    // Verify the event came from Stripe
+    let event: Stripe.Event;
     try {
-      await supabase
-        .from('profiles')
-        .update({
-          stripe_account_status: detailedStatus
-        })
-        .eq('stripe_account_id', account.id);
-    } catch (statusError) {
-      console.error('Status field update error:', statusError);
-      // Continue execution - this field might not exist yet
+      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+      console.log('Webhook verified, event type:', event.type);
+    } catch (err) {
+      console.error(`Webhook Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
     }
-    
-    // Try to update the details field separately
-    try {
-      await supabase
-        .from('profiles')
-        .update({
-          stripe_account_details: {
-            pending_verification: pendingVerification,
-            missing_requirements: missingRequirements,
-            has_charges_enabled: account.charges_enabled,
-            has_payouts_enabled: account.payouts_enabled,
-            has_details_submitted: account.details_submitted,
-            detailed_status: detailedStatus,
-            last_checked: new Date().toISOString()
+
+    // Handle the checkout.session.completed event
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      console.log('Processing checkout.session.completed', { 
+        sessionId: session.id,
+        paymentStatus: session.payment_status,
+        metadata: session.metadata,
+        clientReferenceId: session.client_reference_id
+      });
+      
+      // Extract IDs using the helper function
+      const { lessonId, userId, baseAmount } = extractIdsFromSession(session);
+      
+      // If we don't have the necessary information, try to get it from expanded session
+      if (!lessonId || !userId) {
+        try {
+          console.log('Missing IDs, retrieving expanded session');
+          const expandedSession = await stripe.checkout.sessions.retrieve(
+            session.id,
+            { expand: ['line_items'] }
+          );
+          
+          // Try to extract from expanded session
+          if (expandedSession.line_items?.data?.length > 0) {
+            const description = expandedSession.line_items.data[0].description;
+            if (description && description.startsWith('Access to lesson:')) {
+              const title = description.replace('Access to lesson:', '').trim();
+              
+              // Try to find the lesson by title
+              const supabase = await createServerSupabaseClient();
+              const { data: lessons } = await supabase
+                .from('lessons')
+                .select('id, creator_id')
+                .ilike('title', title)
+                .limit(1);
+              
+              if (lessons && lessons.length > 0) {
+                console.log(`Found lesson by title: ${lessons[0].id}`);
+                // We have the lesson ID but still need user ID
+                
+                // Try to find the user from the customer email
+                if (session.customer_details?.email) {
+                  const { data: users } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', session.customer_details.email)
+                    .limit(1);
+                  
+                  if (users && users.length > 0) {
+                    console.log(`Found user by email: ${users[0].id}`);
+                    // Now we have both IDs, proceed with purchase creation
+                    const createResult = await purchasesService.createPurchase({
+                      lessonId: lessons[0].id,
+                      userId: users[0].id,
+                      amount: session.amount_total ? session.amount_total / 100 : undefined,
+                      stripeSessionId: session.id,
+                      fromWebhook: true
+                    });
+                    
+                    if (createResult.error) {
+                      console.error('Failed to create purchase record:', createResult.error);
+                      return NextResponse.json({ error: 'Failed to create purchase record' }, { status: 500 });
+                    }
+                    
+                    return NextResponse.json({ success: true, created: true });
+                  }
+                }
+                
+                // If we couldn't find the user, return partial success
+                return NextResponse.json({ 
+                  error: 'Partial information found, webhook will be retried',
+                  lessonId: lessons[0].id
+                }, { status: 202 });
+              }
+            }
           }
-        })
-        .eq('stripe_account_id', account.id);
-    } catch (detailsError) {
-      console.error('Details field update error:', detailsError);
-      // Continue execution - this field might not exist yet
+        } catch (expandError) {
+          console.error('Error retrieving expanded session:', expandError);
+        }
+        
+        console.error('Missing required information for purchase creation:', { sessionId: session.id });
+        return NextResponse.json({ error: 'Missing required information' }, { status: 400 });
+      }
+      
+      console.log(`Processing purchase for lessonId=${lessonId}, userId=${userId}`);
+      
+      // First try to update existing purchase
+      const updateResult = await purchasesService.updatePurchaseStatus(
+        session.id,
+        'completed'
+      );
+      
+      // If update fails, create a new purchase record
+      if (updateResult.error) {
+        console.log('No existing purchase found, creating new purchase record');
+        
+        // Use the base amount from metadata if available, otherwise use the total amount
+        const amount = baseAmount || (session.amount_total ? (session.amount_total / 100) : undefined);
+        const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
+        
+        const createResult = await purchasesService.createPurchase({
+          lessonId,
+          userId,
+          amount,
+          stripeSessionId: session.id,
+          paymentIntentId,
+          fromWebhook: true
+        });
+        
+        if (createResult.error) {
+          console.error('Failed to create purchase record:', createResult.error);
+          return NextResponse.json({ error: 'Failed to create purchase record' }, { status: 500 });
+        }
+        
+        console.log(`Created new purchase ${createResult.data?.id} from webhook data`);
+        return NextResponse.json({ success: true, created: true });
+      }
+      
+      console.log(`Updated purchase ${updateResult.data?.id} to completed`);
+      return NextResponse.json({ success: true, updated: true });
     }
+    
+    // Return a response to acknowledge receipt of the event
+    return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Profile update error:', error);
-    return;
-  }
-
-  console.log('Creator account status updated:', account.id, 'Status:', detailedStatus);
-}
-
-async function handleExternalAccountCreated(externalAccount: Stripe.BankAccount | Stripe.Card): Promise<void> {
-  try {
-    // Only process bank accounts
-    if (externalAccount.object !== 'bank_account') {
-      return;
-    }
-    
-    const bankAccount = externalAccount as Stripe.BankAccount;
-    const accountId = bankAccount.account;
-    
-    const supabase = await getSupabaseClient();
-    
-    // Update profile to indicate bank account was added
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        stripe_has_bank_account: true,
-        updated_at: new Date().toISOString()
-      })
-      .eq('stripe_account_id', accountId);
-
-    if (updateError) {
-      console.error('Profile update error:', updateError);
-      return;
-    }
-
-    console.log('Bank account added for account:', accountId);
-  } catch (error) {
-    console.error('External account handling error:', error);
-    return;
+    console.error('Error in webhook handler:', error instanceof Error ? error.message : 'Unknown error');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

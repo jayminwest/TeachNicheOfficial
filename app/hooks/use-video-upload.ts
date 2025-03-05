@@ -5,6 +5,7 @@ interface UseVideoUploadOptions {
   onUploadComplete?: (assetId: string) => void;
   onError?: (error: Error) => void;
   onProgress?: (progress: number) => void;
+  lessonId?: string; // Add this parameter
 }
 
 type UploadStatus = 'idle' | 'initializing' | 'ready' | 'uploading' | 'processing' | 'complete' | 'error';
@@ -19,6 +20,7 @@ interface UseVideoUploadReturn {
   handleUploadSuccess: (uploadId: string) => Promise<void>;
   handleUploadError: (error: Error) => void;
   reset: () => void;
+  pollAssetStatus: (assetId: string, lessonId: string) => Promise<boolean | void>;
 }
 
 async function withRetry<T>(
@@ -63,13 +65,91 @@ export function useVideoUpload({
   endpoint = '/api/mux/upload',
   onUploadComplete,
   onError,
-  onProgress
+  onProgress,
+  lessonId
 }: UseVideoUploadOptions = {}): UseVideoUploadReturn {
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [uploadEndpoint, setUploadEndpoint] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  
+  const pollAssetStatus = useCallback(async (assetId: string, lessonId: string) => {
+    if (!assetId || !lessonId) return;
+    
+    try {
+      console.log(`Starting to poll asset status for asset ${assetId}, lesson ${lessonId}`);
+      
+      // Initial delay before first check
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Poll with exponential backoff
+      let attempts = 0;
+      let delay = 5000; // Start with 5 seconds
+      const maxAttempts = 30; // 5 minutes total with increasing delays
+      
+      while (attempts < maxAttempts) {
+        console.log(`Checking asset status (attempt ${attempts + 1}/${maxAttempts})`);
+        
+        // Check asset status
+        const response = await fetch(`/api/mux/asset-status?assetId=${encodeURIComponent(assetId)}`);
+        
+        if (!response.ok) {
+          console.warn(`Asset status check failed: ${response.status}`);
+          attempts++;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay = Math.min(delay * 1.5, 30000); // Max 30 seconds between checks
+          continue;
+        }
+        
+        const data = await response.json();
+        console.log("Asset status response:", data);
+        
+        if (data.status === 'ready' && data.playbackId) {
+          console.log(`Asset ${assetId} is ready with playback ID ${data.playbackId}`);
+          
+          // Update the lesson with the real playback ID and ensure status is published
+          const updateResponse = await fetch('/api/lessons/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lessonId,
+              muxAssetId: assetId,
+              muxPlaybackId: data.playbackId,
+              status: 'published'
+            })
+          });
+          
+          if (updateResponse.ok) {
+            console.log(`Successfully updated lesson ${lessonId} to published status`);
+            return true;
+          } else {
+            console.error(`Failed to update lesson status: ${updateResponse.status}`);
+          }
+          
+          break;
+        }
+        
+        if (data.status === 'errored') {
+          console.error(`Asset ${assetId} processing failed`);
+          break;
+        }
+        
+        // Continue polling
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay = Math.min(delay * 1.5, 30000); // Max 30 seconds between checks
+      }
+      
+      if (attempts >= maxAttempts) {
+        console.warn(`Polling timed out for asset ${assetId}`);
+      }
+    } catch (error) {
+      console.error('Error polling asset status:', error);
+    }
+    
+    return false;
+  }, []);
 
   const handleError = useCallback((err: Error) => {
     setStatus('error');
@@ -280,6 +360,12 @@ export function useVideoUpload({
       
       console.log("Retrieved assetId:", assetId); // Add debug log
       
+      // If we have a lesson ID, start polling for status updates
+      if (lessonId && !assetId.startsWith('temp_')) {
+        // Start polling in the background
+        pollAssetStatus(assetId, lessonId);
+      }
+      
       // Check asset status - use different endpoint for temporary assets
       const isTemporaryAsset = assetId.startsWith('temp_');
       let assetData = null;
@@ -357,7 +443,7 @@ export function useVideoUpload({
     } catch (error) {
       handleError(error instanceof Error ? error : new Error('Failed to process video upload'));
     }
-  }, [handleError, onProgress, onUploadComplete]);
+  }, [handleError, onProgress, onUploadComplete, lessonId, pollAssetStatus]);
 
   // Add an effect to automatically initialize on mount
   useEffect(() => {
@@ -377,6 +463,7 @@ export function useVideoUpload({
     handleUploadProgress,
     handleUploadSuccess,
     handleUploadError: handleError,
-    reset
+    reset,
+    pollAssetStatus
   };
 }

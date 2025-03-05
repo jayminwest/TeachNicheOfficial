@@ -1,7 +1,104 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
-import { PurchaseStatus, LessonAccess, PurchaseCreateData, Purchase } from '@/types/purchase'
+import { PurchaseStatus, LessonAccess, Purchase } from '@/types/purchase'
+
+export interface PurchaseCreateData {
+  lessonId: string;
+  userId: string;
+  amount: number;
+  stripeSessionId: string;
+  paymentIntentId?: string;
+  fromWebhook?: boolean;
+}
 
 export class PurchasesService extends DatabaseService {
+  /**
+   * Get a Stripe instance
+   * @private
+   */
+  private getStripe() {
+    const Stripe = require('stripe');
+    return new Stripe(process.env.STRIPE_SECRET_KEY || 'test-key', {
+      apiVersion: '2025-01-27.acacia',
+    });
+  }
+
+  /**
+   * Verify a Stripe session directly with the Stripe API
+   */
+  async verifyStripeSession(sessionId: string): Promise<DatabaseResponse<{
+    isPaid: boolean;
+    amount?: number;
+    lessonId?: string;
+    userId?: string;
+  }>> {
+    try {
+      // Initialize Stripe
+      const stripe = this.getStripe();
+      
+      // For testing purposes, if we're in a test environment and there's a mock
+      if (process.env.NODE_ENV === 'test' && typeof jest !== 'undefined') {
+        console.log('Using test mock for Stripe');
+      }
+      
+      console.log(`Retrieving Stripe session: ${sessionId}`);
+      
+      // Retrieve the session from Stripe
+      let session;
+      try {
+        session = await stripe.checkout.sessions.retrieve(sessionId, {
+          expand: ['line_items', 'payment_intent']
+        });
+        
+        if (!session) {
+          throw new Error('Session not found');
+        }
+      } catch (stripeError) {
+        console.error('Stripe API error:', stripeError);
+        throw new Error(`Stripe API error: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`);
+      }
+      
+      console.log(`Session retrieved, payment_status: ${session.payment_status}`);
+      
+      // Extract IDs from session
+      let lessonId = session.metadata?.lessonId;
+      let userId = session.metadata?.userId;
+      
+      // Try to extract from client_reference_id if metadata is missing
+      if (!lessonId || !userId) {
+        if (session.client_reference_id) {
+          const refParts = session.client_reference_id.split('_');
+          if (refParts.length >= 4 && refParts[0] === 'lesson' && refParts[2] === 'user') {
+            lessonId = refParts[1];
+            userId = refParts[3];
+            console.log(`Extracted IDs from client_reference_id: lessonId=${lessonId}, userId=${userId}`);
+          }
+        }
+      }
+      
+      // Check if the session is paid
+      // Consider both 'paid' and 'no_payment_required' as valid paid states
+      const isPaid = session.payment_status === 'paid' || session.payment_status === 'no_payment_required';
+      const amount = session.amount_total ? session.amount_total / 100 : undefined;
+      
+      console.log(`Session verification result: isPaid=${isPaid}, payment_status=${session.payment_status}, amount=${amount}, lessonId=${lessonId}, userId=${userId}`);
+      
+      return {
+        data: {
+          isPaid,
+          amount,
+          lessonId,
+          userId
+        },
+        error: null
+      };
+    } catch (error) {
+      console.error('Error verifying Stripe session:', error);
+      return {
+        data: null,
+        error: new Error(`Error verifying Stripe session: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      };
+    }
+  }
   /**
    * Check if a user has access to a lesson
    */
@@ -12,7 +109,7 @@ export class PurchasesService extends DatabaseService {
       // First check if the lesson is free
       const { data: lessonData, error: lessonError } = await supabase
         .from('lessons')
-        .select('price, instructor_id')
+        .select('price, creator_id')
         .eq('id', lessonId)
         .single();
       
@@ -21,7 +118,7 @@ export class PurchasesService extends DatabaseService {
       }
       
       // If the lesson is free or the user is the instructor, they have access
-      if (lessonData.price === 0 || lessonData.instructor_id === userId) {
+      if (lessonData.price === 0 || lessonData.creator_id === userId) {
         return { 
           data: { 
             hasAccess: true, 
@@ -38,11 +135,13 @@ export class PurchasesService extends DatabaseService {
         .eq('lesson_id', lessonId)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
       
-      // If no purchase found, user doesn't have access
-      if (purchaseError && purchaseError.code === 'PGRST116') {
+      // If we got results, use the first one
+      const latestPurchase = purchaseData && purchaseData.length > 0 ? purchaseData[0] : null;
+      
+      // If there was an error or no purchase found, user doesn't have access
+      if (purchaseError || !latestPurchase) {
         return { 
           data: { 
             hasAccess: false, 
@@ -52,18 +151,14 @@ export class PurchasesService extends DatabaseService {
         };
       }
       
-      if (purchaseError) {
-        return { data: null, error: purchaseError };
-      }
-      
       // Determine access based on purchase status
-      const hasAccess = purchaseData.status === 'completed';
+      const hasAccess = latestPurchase.status === 'completed';
       
       return { 
         data: { 
           hasAccess, 
-          purchaseStatus: purchaseData.status as PurchaseStatus,
-          purchaseDate: purchaseData.created_at
+          purchaseStatus: latestPurchase.status as PurchaseStatus,
+          purchaseDate: latestPurchase.created_at
         }, 
         error: null 
       };
@@ -77,20 +172,120 @@ export class PurchasesService extends DatabaseService {
     return this.executeWithRetry(async () => {
       const supabase = this.getClient();
       
+      console.log('Creating purchase record:', {
+        lessonId: data.lessonId,
+        userId: data.userId,
+        amount: data.amount,
+        sessionId: data.stripeSessionId,
+        fromWebhook: data.fromWebhook
+      });
+      
+      // First check if a purchase already exists for this user and lesson
+      const { data: existingUserLessonPurchase, error: userLessonError } = await supabase
+        .from('purchases')
+        .select('id, status, stripe_session_id')
+        .eq('lesson_id', data.lessonId)
+        .eq('user_id', data.userId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      // If a completed purchase already exists, just return it
+      if (!userLessonError && existingUserLessonPurchase?.length > 0 && 
+          existingUserLessonPurchase[0].status === 'completed') {
+        console.log(`User already has a completed purchase for this lesson: ${existingUserLessonPurchase[0].id}`);
+        return { data: { id: existingUserLessonPurchase[0].id }, error: null };
+      }
+      
+      // Then check if a purchase record already exists with this session ID
+      const { data: existingSessionPurchase, error: sessionError } = await supabase
+        .from('purchases')
+        .select('id, status')
+        .eq('stripe_session_id', data.stripeSessionId)
+        .limit(1);
+      
+      // If a purchase with this session ID exists, update it if needed
+      if (!sessionError && existingSessionPurchase?.length > 0) {
+        const existingPurchase = existingSessionPurchase[0];
+        console.log(`Purchase already exists with session ID ${data.stripeSessionId}, status: ${existingPurchase.status}`);
+        
+        // Only update if not already completed and we're coming from webhook or verification
+        if (existingPurchase.status !== 'completed' && data.fromWebhook) {
+          const { data: updatedPurchase, error: updateError } = await supabase
+            .from('purchases')
+            .update({
+              status: 'completed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingPurchase.id)
+            .select('id')
+            .single();
+          
+          if (updateError) {
+            console.error('Error updating existing purchase:', updateError);
+            return { data: null, error: updateError };
+          }
+          
+          console.log(`Updated existing purchase ${updatedPurchase.id} to completed`);
+          return { data: { id: updatedPurchase.id }, error: null };
+        } else {
+          console.log(`Purchase ${existingPurchase.id} already exists, no update needed`);
+          return { data: { id: existingPurchase.id }, error: null };
+        }
+      }
+      
+      // First get the lesson to get creator_id
+      const { data: lesson, error: lessonError } = await supabase
+        .from('lessons')
+        .select('creator_id, price')
+        .eq('id', data.lessonId)
+        .single();
+      
+      if (lessonError) {
+        console.error('Error fetching lesson for purchase:', lessonError);
+        return { data: null, error: lessonError };
+      }
+      
+      // Use the provided amount or fall back to the lesson price
+      const amount = data.amount || lesson.price;
+      
+      // Calculate platform fee (10% of amount)
+      const platformFee = Math.round(amount * 0.1 * 100) / 100;
+      const creatorEarnings = Math.round((amount - platformFee) * 100) / 100;
+      
+      // Generate a UUID for the purchase
+      const purchaseId = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      // Set initial status - if coming from webhook, set to completed
+      const initialStatus = data.fromWebhook ? 'completed' : 'pending';
+      
       const { data: purchaseData, error } = await supabase
         .from('purchases')
         .insert({
+          id: purchaseId,
           lesson_id: data.lessonId,
           user_id: data.userId,
-          amount: data.amount,
-          status: 'pending',
+          creator_id: lesson.creator_id,
+          amount: amount,
+          platform_fee: platformFee,
+          creator_earnings: creatorEarnings,
+          fee_percentage: 10, // 10%
+          status: initialStatus,
           stripe_session_id: data.stripeSessionId,
-          created_at: new Date().toISOString()
+          payment_intent_id: data.paymentIntentId || data.stripeSessionId, // Use provided payment intent or session ID
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          version: 1,
+          metadata: {
+            created_via: data.fromWebhook ? 'webhook' : 'web_checkout'
+          }
         })
         .select('id')
         .single();
       
       if (error) {
+        console.error('Error creating purchase:', error);
         return { data: null, error };
       }
       
@@ -108,21 +303,70 @@ export class PurchasesService extends DatabaseService {
     return this.executeWithRetry(async () => {
       const supabase = this.getClient();
       
-      const { data: purchaseData, error } = await supabase
-        .from('purchases')
-        .update({
-          status,
-          updated_at: new Date().toISOString()
-        })
-        .eq('stripe_session_id', stripeSessionId)
-        .select('id')
-        .single();
+      console.log(`Updating purchase status for session ${stripeSessionId} to ${status}`);
       
-      if (error) {
-        return { data: null, error };
+      // Try multiple approaches to find the purchase
+      
+      // 1. First try by stripe_session_id
+      let { data: existingPurchase, error: fetchError } = await supabase
+        .from('purchases')
+        .select('id, user_id, lesson_id, status')
+        .eq('stripe_session_id', stripeSessionId)
+        .limit(1);
+      
+      // 2. If not found, try by payment_intent_id
+      if (fetchError || !existingPurchase || existingPurchase.length === 0) {
+        console.log(`No purchase found for session ID ${stripeSessionId}, checking payment_intent_id`);
+        
+        const { data: purchaseByPaymentIntent, error: paymentIntentError } = await supabase
+          .from('purchases')
+          .select('id, user_id, lesson_id, status')
+          .eq('payment_intent_id', stripeSessionId)
+          .limit(1);
+          
+        if (!paymentIntentError && purchaseByPaymentIntent && purchaseByPaymentIntent.length > 0) {
+          console.log(`Found purchase by payment_intent_id: ${purchaseByPaymentIntent[0].id}`);
+          existingPurchase = purchaseByPaymentIntent;
+          fetchError = null;
+        }
       }
       
-      return { data: { id: purchaseData.id }, error: null };
+      // If we found a purchase, update it
+      if (!fetchError && existingPurchase && existingPurchase.length > 0) {
+        const purchase = existingPurchase[0];
+        
+        // If the purchase is already in the desired status, just return success
+        if (purchase.status === status) {
+          console.log(`Purchase ${purchase.id} already has status ${status}`);
+          return { data: { id: purchase.id }, error: null };
+        }
+        
+        // Update the purchase status
+        const { data: purchaseData, error } = await supabase
+          .from('purchases')
+          .update({
+            status,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', purchase.id)
+          .select('id')
+          .single();
+        
+        if (error) {
+          console.error('Error updating purchase status:', error);
+          return { data: null, error };
+        }
+        
+        console.log(`Updated purchase ${purchaseData.id} status to ${status}`);
+        return { data: { id: purchaseData.id }, error: null };
+      }
+      
+      // If we get here, we couldn't find the purchase
+      console.error('Could not find purchase to update for session/payment ID:', stripeSessionId);
+      return { 
+        data: null, 
+        error: new Error(`No purchase found for session/payment ID: ${stripeSessionId}`) 
+      };
     });
   }
   

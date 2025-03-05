@@ -33,11 +33,22 @@ export function VideoPlayer({
     
     if (!isFree) {
       // Get signed JWT from your backend
-      fetch('/api/video/sign-playback', {
+      fetch('/api/video/sign-playback/route', {
         method: 'POST',
-        body: JSON.stringify({ playbackId })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          playbackId,
+          lessonId: id // Pass the lesson ID to the API
+        })
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (isMounted) {
           setJwt(data.token);
@@ -45,13 +56,14 @@ export function VideoPlayer({
       })
       .catch(error => {
         console.error('Error fetching playback token:', error);
+        // Continue without a token - will use public playback if available
       });
     }
     
     return () => {
       isMounted = false;
     };
-  }, [playbackId, isFree]);
+  }, [playbackId, isFree, id]);
 
   // Prevent hydration mismatch by only rendering on client
   if (!isMounted) {

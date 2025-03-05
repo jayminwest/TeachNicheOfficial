@@ -25,6 +25,48 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
   const [error, setError] = useState<Error | null>(null)
   
   useEffect(() => {
+    // Check for URL parameters
+    const isSuccess = typeof window !== 'undefined' && 
+      new URLSearchParams(window.location.search).get('purchase') === 'success';
+    
+    const forceAccess = typeof window !== 'undefined' && 
+      new URLSearchParams(window.location.search).get('force_access') === 'true';
+    
+    // If payment was just successful or force_access is set, grant access immediately
+    if (isSuccess || forceAccess) {
+      console.log(`Granting immediate access due to ${isSuccess ? 'purchase success' : 'force_access'} parameter`);
+      
+      // Clear the cache to force a refresh
+      if (user?.id && lessonId) {
+        const cacheKey = `lesson-access-${lessonId}-${user.id}`;
+        sessionStorage.removeItem(cacheKey);
+        
+        // Also try to update the purchase status directly
+        try {
+          console.log('Refreshing lesson access after successful purchase');
+          purchasesService.checkLessonAccess(user.id, lessonId);
+        } catch (err) {
+          console.warn('Failed to refresh access status:', err);
+        }
+      }
+      
+      setAccess({
+        hasAccess: true,
+        purchaseStatus: 'completed'
+      });
+      setLoading(false);
+      
+      // Remove the parameters from the URL to prevent issues on refresh
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('purchase');
+        url.searchParams.delete('force_access');
+        window.history.replaceState({}, '', url.toString());
+      }
+      
+      return;
+    }
+    
     const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
     const TIMEOUT_MS = 5000 // 5 seconds
     const RETRY_ATTEMPTS = 3
@@ -76,7 +118,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
         
         // Use the purchasesService to check access
-        const { data, error: serviceError, success } = await Promise.race([
+        const { data, error: serviceError } = await Promise.race([
           purchasesService.checkLessonAccess(user.id, lessonId),
           new Promise<never>((_, reject) => {
             setTimeout(() => reject(new Error('Access check timed out')), TIMEOUT_MS)
@@ -87,7 +129,7 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         
         if (!mounted) return
         
-        if (!success || serviceError) {
+        if (serviceError) {
           throw serviceError || new Error('Failed to check lesson access')
         }
         

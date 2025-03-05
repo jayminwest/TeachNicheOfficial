@@ -96,11 +96,11 @@ export default function NewLessonPage() {
         data.uploadId = uploadId;
       }
 
-      // Create lesson data object - set status to 'draft' instead of 'processing'
-      // This fixes the validation error with the enum values
+      // Create lesson data object - set status to 'published' instead of 'draft'
+      // This ensures lessons are published by default
       const lessonData = {
         ...data,
-        status: 'draft'
+        status: 'published'
       };
 
       // Ensure we have the required fields

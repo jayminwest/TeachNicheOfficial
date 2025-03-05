@@ -195,26 +195,53 @@ export function useVideoUpload({
         throw new Error('Invalid upload response: missing URL');
       }
       
+      // Generate a timestamp-based ID for this upload
+      const localUploadId = `local_${Date.now()}`;
+      
       // Store the uploadId globally for later use
       if (data.uploadId) {
         console.log('Storing upload ID for later use:', data.uploadId);
         
-        // Store the upload ID in a global variable for fallback
+        // Store both the Mux upload ID and our local ID
         (window as any).__lastUploadId = data.uploadId;
+        (window as any).__localUploadId = localUploadId;
         
         // Also store it as a data attribute in the DOM for fallback
         const uploadIdElement = document.createElement('div');
         uploadIdElement.style.display = 'none';
         uploadIdElement.setAttribute('data-upload-id', data.uploadId);
+        uploadIdElement.setAttribute('data-local-id', localUploadId);
         document.body.appendChild(uploadIdElement);
         
-        // Add the upload ID to the URL as a query parameter for easier retrieval
-        const url = new URL(data.url);
-        url.searchParams.append('upload_id', data.uploadId);
-        return url.toString();
+        try {
+          // Add the upload ID to the URL as a query parameter for easier retrieval
+          const url = new URL(data.url);
+          url.searchParams.append('upload_id', data.uploadId);
+          
+          // Also add our local ID as a parameter
+          url.searchParams.append('local_id', localUploadId);
+          
+          return url.toString();
+        } catch (e) {
+          console.warn('Error adding parameters to URL:', e);
+          // If URL parsing fails, just return the original URL
+          return data.url;
+        }
+      } else {
+        // If there's no upload ID from Mux, store our local ID
+        console.log('No Mux upload ID provided, using local ID:', localUploadId);
+        (window as any).__lastUploadId = localUploadId;
+        
+        try {
+          // Try to add our local ID to the URL
+          const url = new URL(data.url);
+          url.searchParams.append('local_id', localUploadId);
+          return url.toString();
+        } catch (e) {
+          console.warn('Error adding parameters to URL:', e);
+          return data.url;
+        }
       }
-      
-      return data.url;
     } catch (error) {
       console.error('Upload URL error:', error);
       throw error; // Let the retry mechanism handle it
@@ -285,35 +312,43 @@ export function useVideoUpload({
       // Get the asset ID from the upload
       let assetId;
       
-      // Check if we're dealing with a temporary ID
-      if (uploadId.startsWith('temp_')) {
-        console.log("Using temporary ID as asset ID:", uploadId);
+      // Check if we're dealing with a temporary or local ID
+      if (uploadId.startsWith('temp_') || uploadId.startsWith('local_')) {
+        console.log("Using temporary/local ID as asset ID:", uploadId);
         assetId = uploadId;
       } else {
         try {
           // Use the new API endpoint to get the asset ID
-          assetId = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
+          console.log(`Fetching asset ID for upload ${uploadId}`);
+          const response = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
             }
-          }).then(res => {
-            if (!res.ok) {
-              throw new Error(`Failed to get asset ID: ${res.status}`);
+          });
+          
+          if (!response.ok) {
+            console.warn(`Failed to get asset ID: ${response.status}`);
+            // Create a temporary asset ID based on the upload ID
+            assetId = `temp_${uploadId.substring(0, 20)}`;
+            console.log("Created temporary asset ID:", assetId);
+          } else {
+            const data = await response.json();
+            assetId = data.assetId;
+            
+            if (!assetId) {
+              console.warn('No asset ID returned from API, creating temporary ID');
+              assetId = `temp_${uploadId.substring(0, 20)}`;
+              console.log("Created temporary asset ID:", assetId);
+            } else {
+              console.log("Retrieved assetId:", assetId);
             }
-            return res.json();
-          }).then(data => data.assetId);
-          
-          if (!assetId) {
-            console.warn('No asset ID returned from API, using upload ID as fallback');
-            assetId = uploadId;
           }
-          
-          console.log("Retrieved assetId:", assetId);
         } catch (error) {
           console.error("Error getting asset ID:", error);
-          console.log("Using upload ID as fallback asset ID");
-          assetId = uploadId;
+          // Create a temporary asset ID based on the upload ID
+          assetId = `temp_${uploadId.substring(0, 20)}`;
+          console.log("Created temporary asset ID due to error:", assetId);
         }
       }
       

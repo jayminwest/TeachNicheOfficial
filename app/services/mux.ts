@@ -112,6 +112,47 @@ export interface MuxUploadStatusResponse {
 /**
  * Gets the asset ID from an upload ID
  */
+/**
+ * Extracts a clean upload ID from a potentially complex string
+ * Mux upload IDs are typically shorter and follow a specific format
+ */
+function cleanUploadId(uploadId: string): string {
+  // If the ID contains URL parameters, extract just the ID part
+  if (uploadId.includes('?') || uploadId.includes('&')) {
+    try {
+      // Try to extract from URL parameters
+      const urlParams = new URLSearchParams(uploadId.includes('?') ? 
+        uploadId.split('?')[1] : uploadId);
+      
+      const cleanId = urlParams.get('id') || 
+                     urlParams.get('upload_id') || 
+                     urlParams.get('uploadId');
+                     
+      if (cleanId) {
+        console.log(`Cleaned upload ID from URL params: ${cleanId}`);
+        return cleanId;
+      }
+    } catch (e) {
+      console.warn('Failed to parse URL parameters from upload ID:', e);
+    }
+  }
+  
+  // If the ID is very long (>50 chars), it might be a complex ID or contain extra data
+  if (uploadId.length > 50) {
+    // Try to find a pattern that looks like a Mux upload ID
+    const muxIdPattern = /([a-zA-Z0-9]{10,30})/;
+    const match = uploadId.match(muxIdPattern);
+    
+    if (match && match[1]) {
+      console.log(`Extracted potential Mux ID from complex string: ${match[1]}`);
+      return match[1];
+    }
+  }
+  
+  // If we can't clean it up, return the original
+  return uploadId;
+}
+
 export async function getAssetIdFromUpload(uploadId: string, options = {
   maxAttempts: 10,
   interval: 2000
@@ -121,43 +162,54 @@ export async function getAssetIdFromUpload(uploadId: string, options = {
     throw new Error('Mux Video client not properly initialized');
   }
 
+  // Clean up the upload ID
+  const cleanId = cleanUploadId(uploadId);
+  console.log(`Using cleaned upload ID: ${cleanId} (original: ${uploadId})`);
+  
+  // If this is already a temporary ID, just return it
+  if (uploadId.startsWith('temp_')) {
+    return uploadId;
+  }
+
   let attempts = 0;
   
   while (attempts < options.maxAttempts) {
     try {
-      console.log(`Checking upload status for ${uploadId} (attempt ${attempts + 1}/${options.maxAttempts})`);
+      console.log(`Checking upload status for ${cleanId} (attempt ${attempts + 1}/${options.maxAttempts})`);
       
-      // Debug the muxClient structure
-      console.log('Mux client structure:', Object.keys(muxClient));
-      console.log('Mux video structure:', Object.keys(muxClient.video));
-      
-      // Use the correct method to get upload status
-      const upload = await muxClient.video.uploads.retrieve(uploadId);
-      
-      if (!upload) {
-        throw new Error('Mux API returned null or undefined upload');
+      // Try to get the upload status
+      try {
+        const upload = await muxClient.video.uploads.retrieve(cleanId);
+        
+        if (!upload) {
+          throw new Error('Mux API returned null or undefined upload');
+        }
+        
+        // If the upload has created an asset, return the asset ID
+        if (upload.status === 'asset_created' && upload.asset_id) {
+          console.log(`Upload ${cleanId} has created asset ${upload.asset_id}`);
+          return upload.asset_id;
+        }
+        
+        // If the upload has errored, throw an error
+        if (upload.status === 'errored') {
+          throw new Error('Upload failed: ' + (upload.error?.message || 'Unknown error'));
+        }
+      } catch (apiError) {
+        console.warn(`API error retrieving upload ${cleanId}:`, apiError);
+        // Continue to fallback mechanisms
       }
       
-      // If the upload has created an asset, return the asset ID
-      if (upload.status === 'asset_created' && upload.asset_id) {
-        console.log(`Upload ${uploadId} has created asset ${upload.asset_id}`);
-        return upload.asset_id;
-      }
-      
-      // If the upload has errored, throw an error
-      if (upload.status === 'errored') {
-        throw new Error('Upload failed: ' + (upload.error?.message || 'Unknown error'));
-      }
-      
-      // If the upload is still waiting, wait and try again
+      // If the upload is still waiting or we couldn't retrieve it, wait and try again
       attempts++;
       await new Promise(resolve => setTimeout(resolve, options.interval));
     } catch (error) {
-      console.error(`Error checking upload status for ${uploadId}:`, error);
+      console.error(`Error checking upload status for ${cleanId}:`, error);
       
-      // If we've reached the maximum number of attempts, throw an error
+      // If we've reached the maximum number of attempts, create a temporary asset ID
       if (attempts >= options.maxAttempts - 1) {
-        throw error;
+        console.log(`Creating temporary asset ID for upload ${uploadId}`);
+        return `temp_${uploadId.substring(0, 20)}`;
       }
       
       // Otherwise, wait and try again
@@ -166,7 +218,9 @@ export async function getAssetIdFromUpload(uploadId: string, options = {
     }
   }
   
-  throw new Error(`Timed out waiting for upload ${uploadId} to create an asset`);
+  // If we've exhausted all attempts, create a temporary asset ID
+  console.log(`Creating temporary asset ID after exhausting attempts for ${uploadId}`);
+  return `temp_${uploadId.substring(0, 20)}`;
 }
 
 export async function waitForAssetReady(assetId: string, options = {

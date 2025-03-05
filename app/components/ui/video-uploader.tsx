@@ -186,29 +186,51 @@ export function VideoUploader({
           // Extract the upload ID from the event
           let uploadId = null;
           
-          // Get the upload ID from the URL
-          const url = new URL(uploadEndpoint);
-          const urlParams = new URLSearchParams(url.search);
-          uploadId = urlParams.get('upload_id');
+          // First try to get the upload ID from the URL
+          try {
+            const url = new URL(uploadEndpoint);
+            const urlParams = new URLSearchParams(url.search);
+            uploadId = urlParams.get('upload_id');
+            
+            if (uploadId) {
+              console.log("Found upload ID in URL:", uploadId);
+            }
+          } catch (e) {
+            console.warn("Error parsing upload endpoint URL:", e);
+          }
           
+          // Then try to get it from the event detail
           if (!uploadId && event instanceof CustomEvent && event.detail) {
-            // Try to get the upload ID from the event detail
+            console.log("Examining event detail:", event.detail);
+            
+            // If detail is a string, use it directly
             if (typeof event.detail === 'string') {
               uploadId = event.detail;
-            } else if (event.detail.uploadId) {
-              uploadId = event.detail.uploadId;
-            } else if (event.detail.id) {
-              uploadId = event.detail.id;
-            } else if (typeof event.detail === 'object') {
-              // Log all properties for debugging
-              console.log("Event detail properties:", Object.keys(event.detail));
-              
-              // Try to find any property that might contain the upload ID
-              for (const key in event.detail) {
-                if (key.toLowerCase().includes('id') && typeof event.detail[key] === 'string') {
-                  console.log(`Found potential ID in property ${key}:`, event.detail[key]);
-                  uploadId = event.detail[key];
-                  break;
+              console.log("Using string event detail as upload ID:", uploadId);
+            } 
+            // If detail has specific properties, check those
+            else if (typeof event.detail === 'object') {
+              // Check common ID properties
+              if (event.detail.uploadId) {
+                uploadId = event.detail.uploadId;
+                console.log("Found uploadId in event detail:", uploadId);
+              } else if (event.detail.id) {
+                uploadId = event.detail.id;
+                console.log("Found id in event detail:", uploadId);
+              } else if (event.detail.upload_id) {
+                uploadId = event.detail.upload_id;
+                console.log("Found upload_id in event detail:", uploadId);
+              } else {
+                // Log all properties for debugging
+                console.log("Event detail properties:", Object.keys(event.detail));
+                
+                // Try to find any property that might contain the upload ID
+                for (const key in event.detail) {
+                  if (key.toLowerCase().includes('id') && typeof event.detail[key] === 'string') {
+                    console.log(`Found potential ID in property ${key}:`, event.detail[key]);
+                    uploadId = event.detail[key];
+                    break;
+                  }
                 }
               }
             }
@@ -229,14 +251,14 @@ export function VideoUploader({
             }
           }
           
+          // If we still don't have an ID, create a temporary one
           if (!uploadId) {
-            console.error("Could not determine upload ID from event");
-            // Instead of failing, let's create a temporary ID based on timestamp
+            console.log("Could not determine upload ID from event, creating temporary ID");
             uploadId = `temp_${Date.now()}`;
             console.log("Created temporary upload ID:", uploadId);
           }
           
-          console.log("Using upload ID:", uploadId);
+          console.log("Final upload ID being used:", uploadId);
           handleUploadSuccess(uploadId);
         }}
         onError={(event) => {

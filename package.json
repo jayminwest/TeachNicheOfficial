@@ -63,9 +63,17 @@
   },
   "next-unused": {
     "debug": true,
-    "include": ["app"],
-    "exclude": ["node_modules", ".next", "public"],
-    "entrypoints": ["app/page.tsx"]
+    "include": [
+      "app"
+    ],
+    "exclude": [
+      "node_modules",
+      ".next",
+      "public"
+    ],
+    "entrypoints": [
+      "app/page.tsx"
+    ]
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
@@ -73,7 +81,6 @@
     "@babel/preset-typescript": "^7.26.0",
     "@eslint/eslintrc": "^3",
     "@jest/globals": "^29.7.0",
-    "next-unused": "^0.0.6",
     "@playwright/test": "^1.50.1",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",
@@ -93,6 +100,7 @@
     "jest-axe": "^9.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "next-themes": "^0.4.4",
+    "next-unused": "^0.0.6",
     "node-mocks-http": "^1.16.2",
     "postcss": "^8",
     "serve": "^14.2.4",

@@ -540,7 +540,7 @@ describe('Purchase Flow', () => {
       });
       
       // Setup the mock response for this specific test
-      webhookPost.mockImplementationOnce(async (_request) => {
+      webhookPost.mockImplementationOnce(async () => {
         // Call the mocked updatePurchaseStatus
         purchasesService.updatePurchaseStatus('cs_test_123', 'completed');
         

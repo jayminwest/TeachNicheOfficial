@@ -3,18 +3,13 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 import Stripe from 'stripe';
-import Mux from '@mux/mux-node';
-import { getMuxClient, waitForAssetReady } from '@/app/services/mux';
+import { waitForAssetReady } from '@/app/services/mux';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-01-27.acacia'
 });
 
-// Initialize Mux client if not already initialized
-const initMuxClient = () => {
-  return getMuxClient();
-};
 
 
 export async function POST(request: Request) {

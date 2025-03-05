@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Stripe from 'stripe';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
 
 // Mock dependencies
@@ -26,7 +26,11 @@ vi.mock('@/app/services/database/purchasesService', () => ({
 }));
 
 describe('Webhook Signature Verification', () => {
-  let mockStripe: any;
+  let mockStripe: {
+    webhooks: {
+      constructEvent: jest.Mock;
+    };
+  };
   
   beforeEach(() => {
     vi.resetAllMocks();

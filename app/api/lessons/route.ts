@@ -68,8 +68,6 @@ async function createLessonHandler(request: Request) {
       price = 0, 
       muxAssetId,
       muxPlaybackId,
-      thumbnail_url,
-      thumbnailUrl,
       content = '',
       status = 'published',
       category

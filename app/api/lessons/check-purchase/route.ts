@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
-import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
@@ -149,7 +148,7 @@ export async function POST(request: NextRequest) {
       }
       
       // If Stripe verification failed, try the regular update
-      const { data: updateData, error: updateError } = await purchasesService.updatePurchaseStatus(
+      const { error: updateError } = await purchasesService.updatePurchaseStatus(
         latestPurchase.stripe_session_id,
         'completed'
       );

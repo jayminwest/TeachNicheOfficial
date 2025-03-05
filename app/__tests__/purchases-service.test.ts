@@ -141,7 +141,7 @@ describe('PurchasesService', () => {
     
     it('should handle unpaid sessions correctly', async () => {
       // Mock an unpaid session
-      const stripeMock = require('stripe');
+      const stripeMock = jest.requireMock('stripe');
       stripeMock.mockRetrieveImplementation.mockResolvedValueOnce({
         id: 'cs_test_123',
         payment_status: 'unpaid',

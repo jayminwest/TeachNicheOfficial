@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
 
 export async function POST(request: Request) {
   try {
@@ -29,7 +28,12 @@ export async function POST(request: Request) {
     console.log(`API: Asset ID: ${muxAssetId || 'not provided'}, Playback ID: ${muxPlaybackId || 'not provided'}`);
     
     // Prepare the update data
-    const updateData: any = {
+    const updateData: {
+      updated_at: string;
+      status?: string;
+      mux_asset_id?: string;
+      mux_playback_id?: string;
+    } = {
       updated_at: new Date().toISOString()
     };
     

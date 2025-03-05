@@ -223,7 +223,7 @@ export async function DELETE(
     }
     
     // Soft delete the lesson
-    const { data, error } = await lessonsService.deleteLesson(lessonId);
+    const { error } = await lessonsService.deleteLesson(lessonId);
     
     if (error) {
       return NextResponse.json(

@@ -239,6 +239,7 @@ export function LessonAccessGate({
           lessonId={lessonId}
           price={price}
           searchParams={new URLSearchParams(window.location.search)}
+          onAccessLesson={() => window.location.reload()}
         />
       </div>
     );

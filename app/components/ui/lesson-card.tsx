@@ -103,6 +103,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   price={lesson.price}
                   searchParams={new URLSearchParams(window.location.search)}
                   hasAccess={hasAccess}
+                  onAccessLesson={() => router.push(`/lessons/${lesson.id}`)}
                 />
               )}
             </div>

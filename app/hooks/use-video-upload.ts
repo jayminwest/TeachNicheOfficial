@@ -108,7 +108,7 @@ export function useVideoUpload({
         if (data.status === 'ready' && data.playbackId) {
           console.log(`Asset ${assetId} is ready with playback ID ${data.playbackId}`);
           
-          // Update the lesson with the real playback ID and change status to published
+          // Update the lesson with the real playback ID and ensure status is published
           const updateResponse = await fetch('/api/lessons/update-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

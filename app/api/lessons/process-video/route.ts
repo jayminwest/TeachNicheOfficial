@@ -221,7 +221,7 @@ export async function POST(request: Request) {
       });
       
       if (result.status === 'ready' && result.playbackId) {
-        // Update lesson with playback ID and change status to published
+        // Update lesson with playback ID and ensure status is published
         // Make sure we're using a valid status enum value
         const { error } = await supabase
           .from('lessons')

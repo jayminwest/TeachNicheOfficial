@@ -66,6 +66,9 @@ export function ManualPublishButton({
       >
         {isPublishing ? 'Publishing...' : success ? 'Published' : 'Publish Lesson'}
       </Button>
+      <div className="mt-2 text-xs text-muted-foreground">
+        Note: Lessons are published by default when uploaded. This button is only needed if the lesson was manually set to draft.
+      </div>
     </div>
   );
 }

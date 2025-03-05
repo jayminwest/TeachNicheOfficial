@@ -290,6 +290,9 @@ export function VideoUploader({
       <p className="text-xs text-muted-foreground">
         Accepted formats: {acceptedTypes.join(', ')} (max {maxSizeMB}MB, max resolution 1080p)
       </p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Note: Uploaded lessons will be automatically published once processing is complete.
+      </p>
     </div>
   );
 }

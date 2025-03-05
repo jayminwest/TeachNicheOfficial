@@ -17,8 +17,12 @@ export default function AuthCallbackClient() {
         } else {
           console.log('Auth callback successful, user:', data.session?.user?.id)
         }
+        
+        // Redirect to dashboard after processing
+        window.location.href = '/dashboard'
       } catch (err) {
         console.error('Unexpected error in auth callback:', err)
+        window.location.href = '/dashboard'
       }
     }
 

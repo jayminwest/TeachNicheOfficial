@@ -6,7 +6,7 @@ import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } f
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     // Get the lesson ID from the URL
@@ -154,10 +154,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const lessonId = context.params.id;
+    const lessonId = params.id;
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });

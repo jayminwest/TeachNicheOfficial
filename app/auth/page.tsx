@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import AuthClientWrapper from './client-wrapper';
 
 export default function AuthPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
@@ -24,5 +25,10 @@ export default function AuthPage({ searchParams }: { searchParams: { [key: strin
     }
   }
   
-  return <AuthClientWrapper errorMessage={errorMessage} />;
+  // Use Suspense boundary at the page level
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <AuthClientWrapper errorMessage={errorMessage} />
+    </Suspense>
+  );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { AlertCircle } from 'lucide-react';
@@ -13,7 +13,12 @@ interface AuthClientProps {
 
 export default function AuthClient({ errorMessage }: AuthClientProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(errorMessage || null);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Set error message after component mounts to avoid hydration issues
+  useEffect(() => {
+    setError(errorMessage || null);
+  }, [errorMessage]);
   
   const handleGoogleSignIn = async () => {
     try {

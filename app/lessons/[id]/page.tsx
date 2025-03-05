@@ -9,8 +9,9 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-  // Store params.id in a local variable for clarity
-  const lessonId = params.id;
+  // Await the params object before accessing its properties
+  const resolvedParams = await params;
+  const lessonId = resolvedParams.id;
   
   const supabase = await createServerSupabaseClient();
   

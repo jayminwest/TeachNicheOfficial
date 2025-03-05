@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function Custom500Content() {
   const [isClient, setIsClient] = useState(false);
+  // This is the hook that's causing the issue
+  const searchParams = useSearchParams();
   
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    // We can use searchParams here if needed
+    // const errorCode = searchParams.get('code');
+  }, [searchParams]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">

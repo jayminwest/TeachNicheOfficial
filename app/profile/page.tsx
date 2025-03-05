@@ -5,7 +5,6 @@ import { Card } from "@/app/components/ui/card"
 import { ProfileForm } from "./components/profile-form"
 import { AccountSettings } from "./components/account-settings"
 import { ContentManagement } from "./components/content-management"
-import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
 import { SignOutButton } from "@/app/components/ui/sign-out-button"
 import { useAuth } from "@/app/services/auth/AuthContext"
 import { useEffect, useState } from "react"
@@ -16,7 +15,7 @@ import { useRouter } from "next/navigation"
 export default function ProfilePage() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<{ 
+  const [, setProfile] = useState<{ 
     stripe_account_id: string | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);

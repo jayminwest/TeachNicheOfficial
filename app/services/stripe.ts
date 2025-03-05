@@ -180,7 +180,7 @@ export const createConnectSession = async (options: ConnectSessionOptions) => {
       try {
         new URL(url);
         return url;
-      } catch (_) {
+      } catch (error) {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
       }
@@ -213,6 +213,8 @@ export const createConnectSession = async (options: ConnectSessionOptions) => {
 // Calculate gross amount that, after Stripe fees, will yield the desired net amount
 export const calculateGrossAmount = (
   netAmount: number, 
+  // Currency parameter is unused but kept for API consistency
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   currency: string = stripeConfig.defaultCurrency
 ): number => {
   // Default Stripe fee is 2.9% + $0.30 for USD
@@ -229,6 +231,8 @@ export const calculateGrossAmount = (
 // Calculate the fee amount for a given net amount
 export const calculateFeeAmount = (
   netAmount: number,
+  // Currency parameter is unused but kept for API consistency
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _currency: string = stripeConfig.defaultCurrency
 ): number => {
   const grossAmount = calculateGrossAmount(netAmount);

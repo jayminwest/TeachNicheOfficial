@@ -163,12 +163,7 @@ class MuxService {
         error: undefined
       };
     } catch (error) {
-      let errorMessage = 'Unknown error occurred';
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
+      // Error is handled by throwing it directly
       throw error;
     }
   }
@@ -369,8 +364,15 @@ const muxService = MuxService.getInstance();
 export const createUpload = (isFree: boolean = false) => muxService.createUpload(isFree);
 export const getUploadStatus = (uploadId: string) => muxService.getUploadStatus(uploadId);
 export const getAssetStatus = (assetId: string) => muxService.getAssetStatus(assetId);
-export const getAssetIdFromUpload = (uploadId: string, options?: any) => muxService.getAssetIdFromUpload(uploadId, options);
-export const waitForAssetReady = (assetId: string, options?: any) => muxService.waitForAssetReady(assetId, options);
+export const getAssetIdFromUpload = (uploadId: string, options?: {
+  maxAttempts: number;
+  interval: number;
+}) => muxService.getAssetIdFromUpload(uploadId, options);
+export const waitForAssetReady = (assetId: string, options?: {
+  maxAttempts: number;
+  interval: number;
+  isFree: boolean;
+}) => muxService.waitForAssetReady(assetId, options);
 export const getAsset = (assetId: string) => muxService.getAsset(assetId);
 export const getUpload = (uploadId: string) => muxService.getUpload(uploadId);
 export const getPlaybackId = (assetId: string) => muxService.getPlaybackId(assetId);

@@ -78,6 +78,12 @@ export function LessonAccessGate({
     );
   }
   
+  // Check URL parameters for purchase=success or session_id
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const isSuccess = urlParams?.get('purchase') === 'success' || 
+                    urlParams?.has('session_id') || 
+                    (typeof window !== 'undefined' && window.location.href.includes('session_id='));
+
   if (!hasAccess && price !== undefined) {
     // For free lessons, show an "Access Lesson" button for authenticated users
     if (price === 0 && user) {
@@ -96,10 +102,6 @@ export function LessonAccessGate({
         </div>
       );
     }
-    
-    // Check URL parameters for purchase=success
-    const isSuccess = typeof window !== 'undefined' && 
-      new URLSearchParams(window.location.search).get('purchase') === 'success';
     
     // If we see success in URL but hasAccess is still false, show a check status button
     if (isSuccess) {
@@ -229,6 +231,7 @@ export function LessonAccessGate({
       );
     }
     
+    // If no success parameter and no access, show purchase button
     return (
       <div className="p-6 bg-muted rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Purchase Required</h3>
@@ -240,6 +243,7 @@ export function LessonAccessGate({
           price={price}
           searchParams={new URLSearchParams(window.location.search)}
           onAccessLesson={() => window.location.reload()}
+          hasAccess={isSuccess} // Pass isSuccess as hasAccess to show Access button
         />
       </div>
     );
@@ -248,7 +252,8 @@ export function LessonAccessGate({
   
   // Check for success URL parameter or session_id which indicates a completed purchase
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const isSuccess = urlParams?.get('purchase') === 'success' || urlParams?.has('session_id');
+  const isSuccess = urlParams?.get('purchase') === 'success' || urlParams?.has('session_id') || 
+                    (typeof window !== 'undefined' && window.location.href.includes('session_id='));
   
   // If payment was just successful or user has access, show the content
   if (hasAccess || isSuccess) {

@@ -1,10 +1,6 @@
-import { redirect } from 'next/navigation';
+export const dynamic = 'force-static';
 
 export default function SignInPage() {
-  // Static redirect at the server level
-  redirect('/auth');
-  
-  // This won't be rendered, but is here as a fallback
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
       <div className="animate-pulse">
@@ -17,6 +13,13 @@ export default function SignInPage() {
           JavaScript is required to sign in. Please enable JavaScript or use a browser that supports it.
         </div>
       </noscript>
+      
+      <script dangerouslySetInnerHTML={{ 
+        __html: `
+          // Redirect to auth page
+          window.location.href = '/auth';
+        `
+      }} />
     </div>
   );
 }

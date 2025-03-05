@@ -6,7 +6,7 @@ import { Database } from '@/types/database';
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
-): Promise<Response> {
+): Promise<NextResponse> {
   try {
     // Make sure to await cookies()
     const cookieStore = await cookies();

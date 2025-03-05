@@ -11,7 +11,8 @@ export interface MuxAssetResponse {
   };
 }
 
-// Create a simple function to get a Mux client
+// Create and export a singleton Mux client
+let _muxClient: Mux | null = null;
 export function getMuxClient() {
   const tokenId = process.env.MUX_TOKEN_ID;
   const tokenSecret = process.env.MUX_TOKEN_SECRET;
@@ -20,7 +21,41 @@ export function getMuxClient() {
     throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
   }
 
-  return new Mux({ tokenId, tokenSecret });
+  if (!_muxClient) {
+    _muxClient = new Mux({ tokenId, tokenSecret });
+  }
+  
+  return _muxClient;
+}
+
+// Export the singleton client for direct use
+export const muxClient = process.env.MUX_TOKEN_ID && process.env.MUX_TOKEN_SECRET 
+  ? new Mux({ 
+      tokenId: process.env.MUX_TOKEN_ID, 
+      tokenSecret: process.env.MUX_TOKEN_SECRET 
+    }) 
+  : null;
+
+// Debug function to inspect the Mux client
+export function debugMuxClient() {
+  try {
+    const client = getMuxClient();
+    return {
+      initialized: !!client,
+      hasVideo: !!client?.video,
+      hasAssets: !!client?.video?.assets,
+      hasUploads: !!client?.video?.uploads,
+      methods: {
+        assets: Object.keys(client?.video?.assets || {}),
+        uploads: Object.keys(client?.video?.uploads || {})
+      }
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : String(error),
+      initialized: false
+    };
+  }
 }
 
 // Simple API functions that use the client directly
@@ -113,6 +148,101 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
     status: asset.status as 'preparing' | 'ready' | 'errored',
     playbackId
   };
+}
+
+/**
+ * Wait for an asset to be ready
+ */
+export async function waitForAssetReady(assetId: string, options: { maxAttempts?: number; interval?: number } = {}) {
+  const { maxAttempts = 60, interval = 10000 } = options;
+  
+  // Handle temporary asset IDs
+  if (assetId.startsWith('temp_')) {
+    // For temporary assets, extract the upload ID
+    const uploadId = assetId.substring(5);
+    
+    // Try to get the upload to check if it has an asset ID
+    try {
+      const mux = getMuxClient();
+      // Use the correct method to get upload status
+      const upload = await mux.video.uploads.retrieve(uploadId);
+      
+      if (upload.asset_id) {
+        // If the upload has an asset ID, use that instead
+        assetId = upload.asset_id;
+      } else {
+        // If the upload doesn't have an asset ID yet, wait for it
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          await new Promise(resolve => setTimeout(resolve, interval));
+          
+          const updatedUpload = await mux.video.uploads.retrieve(uploadId);
+          
+          if (updatedUpload.asset_id) {
+            assetId = updatedUpload.asset_id;
+            break;
+          }
+          
+          if (updatedUpload.status === 'error') {
+            throw new Error(`Upload failed: ${updatedUpload.error?.message || 'Unknown error'}`);
+          }
+        }
+        
+        // If we still don't have an asset ID, throw an error
+        if (assetId.startsWith('temp_')) {
+          throw new Error('Timed out waiting for asset ID');
+        }
+      }
+    } catch (error) {
+      console.error('Error getting upload:', error);
+      throw new Error('Failed to get upload status');
+    }
+  }
+  
+  // Now we should have a real asset ID
+  const mux = getMuxClient();
+  
+  // Poll for asset status
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      // Use the correct method to get asset status
+      const asset = await mux.video.assets.retrieve(assetId);
+      
+      if (asset.status === 'ready') {
+        // Get the playback ID
+        const playbackIds = asset.playback_ids || [];
+        const playbackId = playbackIds.length > 0 ? playbackIds[0].id : null;
+        
+        if (!playbackId) {
+          throw new Error('Asset is ready but has no playback ID');
+        }
+        
+        return {
+          status: 'ready',
+          playbackId,
+          assetId
+        };
+      }
+      
+      if (asset.status === 'errored') {
+        throw new Error('Asset processing failed');
+      }
+      
+      // Wait before checking again
+      await new Promise(resolve => setTimeout(resolve, interval));
+    } catch (error) {
+      console.error(`Error checking asset status (attempt ${attempt + 1}):`, error);
+      
+      // If this is the last attempt, throw the error
+      if (attempt === maxAttempts - 1) {
+        throw error;
+      }
+      
+      // Otherwise, wait and try again
+      await new Promise(resolve => setTimeout(resolve, interval));
+    }
+  }
+  
+  throw new Error('Timed out waiting for asset to be ready');
 }
 
 export async function getAssetIdFromUpload(uploadId: string): Promise<string> {

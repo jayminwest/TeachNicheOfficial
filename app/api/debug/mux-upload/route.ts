@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUpload, getUploadStatus, getAssetStatus, muxClient, debugMuxClient } from '@/app/services/mux';
+import { createUpload, getUploadStatus, getAssetStatus, getMuxClient, debugMuxClient } from '@/app/services/mux';
 import Mux from '@mux/mux-node';
 
 /**

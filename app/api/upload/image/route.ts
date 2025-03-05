@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 // Initialize Supabase with admin privileges
 const supabaseAdmin = createClient(
@@ -18,8 +16,10 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    // Check authentication using Supabase
+    const supabase = await createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -56,10 +56,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a unique filename
+    // Generate a unique filename using timestamp and random string
     const timestamp = Date.now();
     const fileExt = file.name.split('.').pop() || 'jpg';
-    const fileName = `${timestamp}_${uuidv4().substring(0, 8)}.${fileExt}`;
+    const randomString = Math.random().toString(36).substring(2, 10);
+    const fileName = `${timestamp}_${randomString}.${fileExt}`;
     const filePath = `thumbnails/${fileName}`;
 
     // Convert file to ArrayBuffer

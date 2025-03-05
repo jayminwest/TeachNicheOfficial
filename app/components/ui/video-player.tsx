@@ -3,6 +3,7 @@
 import { cn } from "@/app/lib/utils";
 import MuxPlayer from "@mux/mux-player-react";
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 interface VideoPlayerProps {
   playbackId: string;
@@ -11,6 +12,7 @@ interface VideoPlayerProps {
   id?: string;
   price?: number;
   isFree?: boolean;
+  lessonId?: string;
 }
 
 export function VideoPlayer({ 
@@ -18,12 +20,14 @@ export function VideoPlayer({
   title, 
   className,
   id,
-  price,
-  isFree = false
+  price = 0,
+  isFree = false,
+  lessonId
 }: VideoPlayerProps) {
-  const [jwt, setJwt] = useState<string>();
+  const [jwt, setJwt] = useState<string | undefined>(undefined);
   const [isMounted, setIsMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   // Use a stable timestamp for player initialization
   const [playerInitTime] = useState(() => Date.now().toString());
 
@@ -49,16 +53,19 @@ export function VideoPlayer({
       return;
     }
     
-    if (!isFree) {
+    // Only get a signed token for paid content
+    if (!isFree && price > 0) {
+      setIsLoading(true);
+      
       // Get signed JWT from your backend
-      fetch('/api/video/sign-playback/route', {
+      fetch('/api/video/sign-playback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
           playbackId,
-          lessonId: id // Pass the lesson ID to the API
+          lessonId: lessonId || id // Pass the lesson ID to the API
         })
       })
       .then(res => {
@@ -70,21 +77,22 @@ export function VideoPlayer({
       .then(data => {
         if (isMounted) {
           setJwt(data.token);
+          setIsLoading(false);
         }
       })
       .catch(error => {
         console.error('Error fetching playback token:', error);
         if (isMounted) {
           setError(`Error loading video: ${error.message}`);
+          setIsLoading(false);
         }
-        // Continue without a token - will use public playback if available
       });
     }
     
     return () => {
       isMounted = false;
     };
-  }, [playbackId, isFree, id]);
+  }, [playbackId, isFree, price, id, lessonId]);
 
   // Prevent hydration mismatch by only rendering on client
   if (!isMounted) {
@@ -96,6 +104,21 @@ export function VideoPlayer({
         )}
       >
         <div className="text-muted-foreground">Loading player...</div>
+      </div>
+    );
+  }
+
+  // Show loading state while fetching the token
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          "w-full aspect-video bg-muted/30 flex flex-col items-center justify-center rounded-lg",
+          className
+        )}
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+        <div className="text-muted-foreground">Preparing secure playback...</div>
       </div>
     );
   }
@@ -123,14 +146,12 @@ export function VideoPlayer({
       <MuxPlayer
         playbackId={playbackId}
         metadata={{ 
-          video_id: id,
+          video_id: id || lessonId,
           video_title: title,
           player_init_time: playerInitTime,
         }}
         streamType="on-demand"
-        tokens={{
-          playback: jwt
-        }}
+        tokens={jwt ? { playback: jwt } : undefined}
         onError={(error) => {
           console.error('Mux player error:', error);
           setError(`Video playback error: ${error.message || 'Unknown error'}`);

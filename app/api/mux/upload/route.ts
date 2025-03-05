@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createUpload } from '@/app/services/mux';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    // Get the isFree parameter from the query string if needed
-    const isFree = false; // Default to false, can be made dynamic if needed
+    // Get the isFree parameter from the request body
+    const body = await request.json().catch(() => ({}));
+    const isFree = body.isFree === true;
     
+    console.log(`Creating upload with isFree=${isFree}`);
     const upload = await createUpload(isFree);
     
     return NextResponse.json({

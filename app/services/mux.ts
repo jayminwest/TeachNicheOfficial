@@ -28,10 +28,9 @@ export async function createUpload(isFree: boolean = false) {
   const mux = getMuxClient();
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
-  // For development, always use public playback policy to avoid token signing issues
-  const playbackPolicy = process.env.NODE_ENV === 'development' || isFree 
-    ? ['public'] 
-    : ['signed'];
+  // Use public policy for free content, signed for paid content
+  // This is consistent across all environments
+  const playbackPolicy = isFree ? ['public'] : ['signed'];
   
   console.log(`Creating upload with playback policy: ${playbackPolicy.join(', ')}`);
 
@@ -185,36 +184,64 @@ export async function listRecentUploads(limit: number = 10) {
   return mux.video.uploads.list({ limit });
 }
 
-export async function getPlaybackId(assetId: string): Promise<string> {
+export async function getPlaybackId(assetId: string, isFree: boolean = false): Promise<string> {
   const mux = getMuxClient();
   
   try {
     const asset = await mux.video.assets.retrieve(assetId);
     
     if (!asset.playback_ids || asset.playback_ids.length === 0) {
-      // If no playback IDs exist, create a public one
-      console.log(`No playback IDs found for asset ${assetId}, creating a public one`);
+      // If no playback IDs exist, create one with the appropriate policy
+      console.log(`No playback IDs found for asset ${assetId}, creating one with policy: ${isFree ? 'public' : 'signed'}`);
       const playbackId = await mux.video.assets.createPlaybackId(assetId, {
-        policy: 'public'
+        policy: isFree ? 'public' : 'signed'
       });
       return playbackId.id;
     }
     
-    // If we have a signed playback ID but we're in development, create a public one
-    if (process.env.NODE_ENV === 'development') {
-      const existingId = asset.playback_ids[0];
-      if (existingId.policy === 'signed') {
-        console.log(`Found signed playback ID in development, creating a public one`);
-        const publicPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
-          policy: 'public'
-        });
-        return publicPlaybackId.id;
-      }
+    // Check if we have a playback ID with the right policy
+    const existingId = asset.playback_ids.find(id => 
+      (isFree && id.policy === 'public') || (!isFree && id.policy === 'signed')
+    );
+    
+    if (existingId) {
+      return existingId.id;
     }
     
-    return asset.playback_ids[0].id;
+    // If we don't have a playback ID with the right policy, create one
+    console.log(`Creating new playback ID with policy: ${isFree ? 'public' : 'signed'}`);
+    const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+      policy: isFree ? 'public' : 'signed'
+    });
+    return newPlaybackId.id;
   } catch (error) {
     console.error(`Error getting playback ID for asset ${assetId}:`, error);
     throw error;
   }
+}
+
+/**
+ * Signs a playback ID for secure viewing
+ */
+export async function signPlaybackId(playbackId: string, duration: number = 3600): Promise<string> {
+  const jwt = await import('jsonwebtoken');
+  
+  // Make sure we have the required environment variables
+  const signingKey = process.env.MUX_SIGNING_KEY;
+  const signingKeyId = process.env.MUX_SIGNING_KEY_ID;
+  
+  if (!signingKey || !signingKeyId) {
+    throw new Error('MUX_SIGNING_KEY and MUX_SIGNING_KEY_ID environment variables must be set');
+  }
+  
+  // Create the JWT payload
+  const payload = {
+    sub: playbackId,
+    exp: Math.floor(Date.now() / 1000) + duration,
+    kid: signingKeyId,
+    aud: 'v' // Audience is 'v' for video
+  };
+  
+  // Sign the JWT
+  return jwt.default.sign(payload, signingKey, { algorithm: 'RS256' });
 }

@@ -5,6 +5,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const assetId = searchParams.get('assetId');
+    const isFree = searchParams.get('isFree') === 'true';
     
     if (!assetId) {
       return NextResponse.json(
@@ -26,8 +27,8 @@ export async function GET(request: Request) {
         if (asset.status === 'ready') {
           console.log('Creating new playback ID for ready asset');
           try {
-            // Always create public playback IDs in development
-            const policy = process.env.NODE_ENV === 'development' ? 'public' : 'signed';
+            // Use the appropriate policy based on whether the content is free
+            const policy = isFree ? 'public' : 'signed';
             console.log(`Creating playback ID with policy: ${policy}`);
             
             const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
@@ -68,35 +69,33 @@ export async function GET(request: Request) {
         );
       }
       
-      // In development, check if we have a public playback ID
-      if (process.env.NODE_ENV === 'development') {
-        // Look for a public playback ID first
-        const publicId = asset.playback_ids.find(id => id.policy === 'public');
-        
-        if (publicId) {
-          console.log('Found existing public playback ID:', publicId.id);
-          return NextResponse.json({ playbackId: publicId.id });
-        } else {
-          // If no public ID exists in development, create one
-          console.log('No public playback ID found in development, creating one');
-          try {
-            const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
-              policy: 'public'
-            });
-            
-            if (newPlaybackId && newPlaybackId.id) {
-              console.log('Created new public playback ID:', newPlaybackId.id);
-              return NextResponse.json({ playbackId: newPlaybackId.id });
-            }
-          } catch (createError) {
-            console.error('Error creating public playback ID:', createError);
+      // Check if we have a playback ID with the right policy
+      const desiredPolicy = isFree ? 'public' : 'signed';
+      const matchingId = asset.playback_ids.find(id => id.policy === desiredPolicy);
+      
+      if (matchingId) {
+        console.log(`Found existing ${desiredPolicy} playback ID:`, matchingId.id);
+        return NextResponse.json({ playbackId: matchingId.id });
+      } else {
+        // If no matching policy ID exists, create one
+        console.log(`No ${desiredPolicy} playback ID found, creating one`);
+        try {
+          const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+            policy: desiredPolicy
+          });
+          
+          if (newPlaybackId && newPlaybackId.id) {
+            console.log(`Created new ${desiredPolicy} playback ID:`, newPlaybackId.id);
+            return NextResponse.json({ playbackId: newPlaybackId.id });
           }
+        } catch (createError) {
+          console.error(`Error creating ${desiredPolicy} playback ID:`, createError);
         }
       }
       
-      // Return the first playback ID as fallback
+      // Return the first playback ID as fallback if we couldn't create a new one
       const playbackId = asset.playback_ids[0].id;
-      console.log(`Returning playback ID: ${playbackId} with policy: ${asset.playback_ids[0].policy}`);
+      console.log(`Returning fallback playback ID: ${playbackId} with policy: ${asset.playback_ids[0].policy}`);
       return NextResponse.json({ playbackId });
     } catch (muxError) {
       console.error('Error retrieving asset from Mux:', muxError);

@@ -86,3 +86,8 @@ export async function deleteAsset(assetId: string): Promise<boolean> {
   await mux.video.assets.delete(assetId);
   return true;
 }
+
+export async function listRecentUploads(limit: number = 10) {
+  const mux = getMuxClient();
+  return mux.video.uploads.list({ limit });
+}

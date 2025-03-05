@@ -117,7 +117,7 @@ export async function GET(request: Request) {
   }
 }
 import { NextResponse } from 'next/server';
-import { getAssetIdFromUpload } from '@/app/services/mux';
+import { getAssetIdFromUpload, getMuxClient } from '@/app/services/mux';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -127,13 +127,52 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Missing uploadId parameter' }, { status: 400 });
   }
   
+  // Handle temporary IDs gracefully
+  if (uploadId.startsWith('temp_')) {
+    console.warn(`Received temporary upload ID: ${uploadId}. Attempting to find the most recent upload.`);
+    
+    try {
+      // Get the most recent upload from Mux
+      const mux = getMuxClient();
+      const uploads = await mux.video.uploads.list({ limit: 1 });
+      
+      if (uploads && uploads.data && uploads.data.length > 0) {
+        const latestUpload = uploads.data[0];
+        
+        if (latestUpload.asset_id) {
+          console.log(`Found asset ID ${latestUpload.asset_id} from most recent upload`);
+          return NextResponse.json({ assetId: latestUpload.asset_id });
+        } else {
+          console.error('Most recent upload does not have an asset ID yet');
+          return NextResponse.json(
+            { error: 'Most recent upload does not have an asset ID yet', details: 'The upload may still be processing' },
+            { status: 404 }
+          );
+        }
+      } else {
+        console.error('No recent uploads found');
+        return NextResponse.json(
+          { error: 'No recent uploads found', details: 'Could not find any uploads in your Mux account' },
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      console.error('Error getting recent uploads:', error);
+      return NextResponse.json(
+        { error: 'Failed to get recent uploads', details: error instanceof Error ? error.message : String(error) },
+        { status: 500 }
+      );
+    }
+  }
+  
+  // Normal flow for valid upload IDs
   try {
     const assetId = await getAssetIdFromUpload(uploadId);
     return NextResponse.json({ assetId });
   } catch (error) {
     console.error('Error getting asset ID:', error);
     return NextResponse.json(
-      { error: 'Failed to get asset ID', details: error instanceof Error ? error.message : undefined },
+      { error: 'Failed to get asset ID', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

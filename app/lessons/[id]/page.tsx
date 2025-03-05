@@ -2,15 +2,15 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-// Define the props type using the Next.js convention
-type PageProps = {
+export default async function Page({
+  params,
+  searchParams
+}: {
   params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function Page(props: PageProps) {
+}) {
   // Access the id directly from params
-  const lessonId = props.params.id;
+  const lessonId = params.id;
   // We're not using the redirect parameter yet, but keeping it for future use
   // const redirect = searchParams?.redirect || null;
   

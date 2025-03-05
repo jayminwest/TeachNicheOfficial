@@ -444,6 +444,9 @@ export function LessonForm({
                   console.log("Set muxAssetId in form:", assetId);
                   console.log("Form values after setting muxAssetId:", form.getValues());
                   
+                  // Store the asset ID in session storage for later use
+                  window.sessionStorage.setItem('lastMuxAssetId', assetId);
+                  
                   // Don't set a temporary playback ID - we'll get the real one from Mux
                   console.log("Setting only the asset ID for now, playback ID will be set when processing completes");
                   

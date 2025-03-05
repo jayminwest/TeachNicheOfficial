@@ -221,6 +221,9 @@ export function VideoUploader({
             });
           }
           
+          // Ensure we properly encode the assetId when fetching playback ID later
+          window.sessionStorage.setItem('lastMuxAssetId', uploadId);
+          
           handleUploadSuccess(uploadId);
         }}
         onError={(event) => {

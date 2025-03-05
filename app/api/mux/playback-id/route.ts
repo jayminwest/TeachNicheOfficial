@@ -111,3 +111,70 @@ export async function GET(request: Request) {
     );
   }
 }
+import { NextResponse } from 'next/server';
+import { Video } from '@mux/mux-node';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+
+export async function GET(request: Request) {
+  try {
+    // Authenticate the request using Supabase
+    const supabase = await createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: { message: 'Unauthorized', type: 'auth_error' } },
+        { status: 401 }
+      );
+    }
+
+    if (!Video || typeof Video.assets?.retrieve !== 'function') {
+      return NextResponse.json(
+        { error: 'Mux Video client not properly initialized' },
+        { status: 500 }
+      );
+    }
+
+    // Parse the URL and get the assetId parameter
+    const url = new URL(request.url);
+    const assetId = url.searchParams.get('assetId');
+
+    if (!assetId) {
+      return NextResponse.json(
+        { error: 'Asset ID required' },
+        { status: 400 }
+      );
+    }
+
+    // Retrieve the asset from Mux
+    const asset = await Video.assets.retrieve(assetId);
+    
+    if (!asset) {
+      return NextResponse.json(
+        { error: 'Asset not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get the playback ID
+    const playbackId = asset.playback_ids?.[0]?.id || null;
+
+    if (!playbackId) {
+      return NextResponse.json(
+        { error: 'No playback ID found for this asset' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ playbackId });
+  } catch (error) {
+    console.error('Error retrieving playback ID:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to retrieve playback ID',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}

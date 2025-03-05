@@ -78,6 +78,12 @@ export function useVideoUpload({
   // since we now use webhooks instead of polling
   const pollAssetStatus = useCallback(async (assetId: string, lessonId: string): Promise<boolean | void> => {
     console.log("pollAssetStatus is deprecated - using webhooks instead");
+    
+    // Store the assetId in session storage with proper encoding
+    if (assetId) {
+      window.sessionStorage.setItem('lastMuxAssetId', assetId);
+    }
+    
     return true; // Return true to indicate "success" without actually polling
   }, []);
 
@@ -277,7 +283,9 @@ export function useVideoUpload({
       try {
         // Use the API endpoint to get the asset ID
         console.log(`Fetching asset ID for upload ${uploadId}`);
-        const response = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
+        // Ensure we properly encode the uploadId parameter
+        const encodedUploadId = encodeURIComponent(uploadId);
+        const response = await fetch(`/api/mux/asset-from-upload?uploadId=${encodedUploadId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'

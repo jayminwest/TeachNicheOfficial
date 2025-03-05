@@ -1,115 +1,4 @@
 import { NextResponse } from 'next/server';
-import { Video } from '@mux/mux-node';
-
-export async function GET(request: Request) {
-  console.log('Playback ID endpoint called');
-  try {
-    // Check if Video API is available
-    if (!Video || typeof Video.Assets?.retrieve !== 'function') {
-      console.error('Mux Video.Assets API not available', { 
-        videoExists: !!Video,
-        assetsExists: !!Video?.Assets,
-        retrieveIsFunction: typeof Video?.Assets?.retrieve === 'function'
-      });
-      return NextResponse.json(
-        { error: 'Mux Video Assets API not properly initialized' },
-        { status: 500 }
-      );
-    }
-
-    // Parse the URL and get the assetId parameter
-    let assetId;
-    
-    // Use a more robust URL parsing approach
-    const urlString = request.url;
-    console.log('Processing URL:', urlString);
-    
-    // Extract assetId using regex - more reliable than URL parsing
-    const assetIdMatch = urlString.match(/assetId=([^&]+)/);
-    assetId = assetIdMatch ? decodeURIComponent(assetIdMatch[1]) : null;
-    
-    console.log('Extracted assetId:', assetId);
-
-    if (!assetId) {
-      return NextResponse.json(
-        { error: 'Asset ID required' },
-        { status: 400 }
-      );
-    }
-
-    console.log('Retrieving asset for ID:', assetId);
-    
-    // Retrieve the asset from Mux
-    const asset = await Video.Assets.retrieve(assetId);
-    
-    if (!asset) {
-      return NextResponse.json(
-        { error: 'Asset not found' },
-        { status: 404 }
-      );
-    }
-
-    console.log('Asset retrieved, status:', asset.status);
-    
-    // Get the playback ID if it exists
-    const playbackId = asset.playback_ids?.[0]?.id || null;
-
-    // If we don't have a playback ID but the asset is ready, create one
-    if (!playbackId && asset.status === 'ready') {
-      console.log('Creating new playback ID for ready asset');
-      try {
-        const newPlaybackId = await Video.Assets.createPlaybackId(assetId, {
-          policy: 'public'
-        });
-        
-        if (newPlaybackId && newPlaybackId.id) {
-          console.log('Created new playback ID:', newPlaybackId.id);
-          return NextResponse.json({ playbackId: newPlaybackId.id });
-        }
-      } catch (createError) {
-        console.error('Error creating playback ID:', createError);
-        return NextResponse.json(
-          { 
-            error: 'Failed to create playback ID',
-            details: createError instanceof Error ? createError.message : 'Unknown error'
-          },
-          { status: 500 }
-        );
-      }
-    }
-
-    if (!playbackId) {
-      // If asset is not ready, return appropriate status
-      if (asset.status !== 'ready') {
-        return NextResponse.json(
-          { 
-            error: 'Asset not ready for playback',
-            status: asset.status,
-            assetId: assetId
-          },
-          { status: 202 } // 202 Accepted - request accepted but processing not complete
-        );
-      }
-      
-      return NextResponse.json(
-        { error: 'No playback ID found for this asset' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ playbackId });
-  } catch (error) {
-    console.error('Error retrieving playback ID:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to retrieve playback ID',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
-import { NextResponse } from 'next/server';
 import { getMuxClient } from '@/app/services/mux';
 
 export async function GET(request: Request) {
@@ -133,6 +22,42 @@ export async function GET(request: Request) {
       
       // Check if the asset has playback IDs
       if (!asset.playback_ids || asset.playback_ids.length === 0) {
+        // If the asset is ready but has no playback ID, create one
+        if (asset.status === 'ready') {
+          console.log('Creating new playback ID for ready asset');
+          try {
+            const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+              policy: 'public'
+            });
+            
+            if (newPlaybackId && newPlaybackId.id) {
+              console.log('Created new playback ID:', newPlaybackId.id);
+              return NextResponse.json({ playbackId: newPlaybackId.id });
+            }
+          } catch (createError) {
+            console.error('Error creating playback ID:', createError);
+            return NextResponse.json(
+              { 
+                error: 'Failed to create playback ID',
+                details: createError instanceof Error ? createError.message : String(createError)
+              },
+              { status: 500 }
+            );
+          }
+        }
+        
+        // If asset is not ready, return appropriate status
+        if (asset.status !== 'ready') {
+          return NextResponse.json(
+            { 
+              error: 'Asset not ready for playback',
+              status: asset.status,
+              assetId: assetId
+            },
+            { status: 202 }
+          );
+        }
+        
         return NextResponse.json(
           { error: 'No playback IDs found for this asset' },
           { status: 404 }

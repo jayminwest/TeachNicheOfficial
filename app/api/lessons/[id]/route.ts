@@ -156,7 +156,7 @@ export async function GET(
   context: { params: { id: string } }
 ) {
   try {
-    const lessonId = params.id;
+    const lessonId = context.params.id;
     
     const { data: lesson, error } = await lessonsService.getLessonById(lessonId);
     

@@ -16,7 +16,8 @@
     "type-check": "tsc --noEmit",
     "rls:migrate": "ts-node scripts/run-rls-migration.ts",
     "playwright": "playwright test --config=e2e-tests/playwright.config.ts",
-    "find:unused": "next-unused"
+    "find:unused": "next-unused",
+    "verify-unused": "bash ./cleanup-script.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",

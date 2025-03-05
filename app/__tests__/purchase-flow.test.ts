@@ -56,8 +56,8 @@ jest.mock('@/app/api/lessons/purchase/route', () => ({
 }));
 
 jest.mock('@/app/api/lessons/check-purchase/route', () => ({
-  POST: jest.fn().mockImplementation(async (req) => {
-    const body = await req.json();
+  POST: jest.fn().mockImplementation(async (request) => {
+    const body = await request.json();
     const { lessonId, sessionId } = body;
     
     if (sessionId) {

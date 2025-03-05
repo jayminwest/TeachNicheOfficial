@@ -1,43 +1,5 @@
-"use client";
-
-import { useEffect } from "react";
-import { hasSuccessfulPurchaseParams, cleanPurchaseParams } from "@/app/utils/purchase-helpers";
-import { Button } from "@/app/components/ui/button";
-import { Card } from "@/app/components/ui/card";
-import { Loader2, Plus } from "lucide-react";
-import { LessonGrid } from "@/app/components/ui/lesson-grid";
-import Link from "next/link";
-import { useLessons } from "@/app/hooks/use-lessons";
-import { toast } from "@/app/components/ui/use-toast";
-import { Toaster } from "@/app/components/ui/toaster";
-
+// Static page with no client components to avoid useSearchParams() error
 export default function LessonsPage() {
-  const { lessons, loading, error } = useLessons();
-  
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load lessons. Please try again.",
-        variant: "destructive",
-      });
-    }
-    
-    // Check if there's a purchase success parameter in the URL
-    const hasPurchaseParams = hasSuccessfulPurchaseParams();
-    if (hasPurchaseParams) {
-      // Show success toast
-      toast({
-        title: "Purchase Successful",
-        description: "Your lesson purchase was successful. You now have access to this content.",
-        variant: "default",
-      });
-      
-      // Clean up URL parameters
-      cleanPurchaseParams();
-    }
-  }, [error]);
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-7xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
@@ -50,36 +12,38 @@ export default function LessonsPage() {
               Browse and manage your lessons
             </p>
           </div>
-          <Link href="/lessons/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Lesson
-            </Button>
-          </Link>
+          <a href="/lessons/new" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            New Lesson
+          </a>
         </div>
 
-        {loading ? (
+        <div className="animate-pulse">
           <div className="flex justify-center items-center min-h-[200px]">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
           </div>
-        ) : lessons.length === 0 ? (
-          <Card className="p-8 text-center">
-            <h3 className="font-semibold mb-2">No lessons yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Get started by creating your first lesson
-            </p>
-            <Link href="/lessons/new">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Lesson
-              </Button>
-            </Link>
-          </Card>
-        ) : (
-          <LessonGrid lessons={lessons} />
-        )}
+        </div>
       </div>
-      <Toaster />
+      
+      <noscript>
+        <div className="container max-w-7xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
+          <div className="p-4 bg-yellow-100 text-yellow-800 rounded-md">
+            JavaScript is required to view lessons. Please enable JavaScript or use a browser that supports it.
+          </div>
+        </div>
+      </noscript>
+      
+      <script dangerouslySetInnerHTML={{ 
+        __html: `
+          // Load the actual lessons content after page loads
+          document.addEventListener('DOMContentLoaded', function() {
+            const script = document.createElement('script');
+            script.src = '/lessons-client.js';
+            script.async = true;
+            document.body.appendChild(script);
+          });
+        `
+      }} />
     </div>
   );
 }

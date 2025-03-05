@@ -23,6 +23,7 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const [jwt, setJwt] = useState<string>();
   const [isMounted, setIsMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   // Use a stable timestamp for player initialization
   const [playerInitTime] = useState(() => Date.now().toString());
 
@@ -30,6 +31,12 @@ export function VideoPlayer({
     setIsMounted(true);
     
     let isMounted = true;
+    
+    // Validate the playback ID
+    if (playbackId && (playbackId.startsWith('temp_') || playbackId.startsWith('dummy_') || playbackId.startsWith('local_'))) {
+      setError(`Invalid playback ID: ${playbackId}. Video may still be processing.`);
+      return;
+    }
     
     if (!isFree) {
       // Get signed JWT from your backend
@@ -56,6 +63,9 @@ export function VideoPlayer({
       })
       .catch(error => {
         console.error('Error fetching playback token:', error);
+        if (isMounted) {
+          setError(`Error loading video: ${error.message}`);
+        }
         // Continue without a token - will use public playback if available
       });
     }
@@ -79,6 +89,24 @@ export function VideoPlayer({
     );
   }
 
+  // Show error state if we have an error
+  if (error) {
+    return (
+      <div
+        className={cn(
+          "w-full aspect-video bg-muted/30 flex items-center justify-center rounded-lg",
+          className
+        )}
+      >
+        <div className="text-red-500 p-4 text-center">
+          <p className="font-semibold mb-2">Video Playback Error</p>
+          <p>{error}</p>
+          <p className="text-sm mt-2">Please try again later or contact support if this persists.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
       <MuxPlayer
@@ -91,6 +119,10 @@ export function VideoPlayer({
         streamType="on-demand"
         tokens={{
           playback: jwt
+        }}
+        onError={(error) => {
+          console.error('Mux player error:', error);
+          setError(`Video playback error: ${error.message || 'Unknown error'}`);
         }}
       />
     </div>

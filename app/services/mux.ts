@@ -151,16 +151,9 @@ class MuxService {
   public async getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
     this.ensureInitialized();
 
-    // Don't try to get status for temporary asset IDs
-    if (assetId.startsWith('temp_')) {
-      return {
-        id: assetId,
-        status: 'preparing',
-        error: {
-          message: 'This is a temporary asset ID',
-          type: 'temp_asset'
-        }
-      };
+    // Don't handle temporary asset IDs - they should never exist
+    if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+      throw new Error(`Invalid asset ID: ${assetId}. Temporary IDs should not be used.`);
     }
 
     try {
@@ -192,14 +185,7 @@ class MuxService {
         }
       }
       
-      return {
-        id: assetId,
-        status: 'errored',
-        error: {
-          message: errorMessage,
-          type: errorType
-        }
-      };
+      throw error;
     }
   }
 
@@ -211,11 +197,6 @@ class MuxService {
 
     // Clean up the upload ID
     const cleanId = this.cleanUploadId(uploadId);
-    
-    // If this is already a temporary ID, just return it
-    if (uploadId.startsWith('temp_')) {
-      return uploadId;
-    }
 
     let attempts = 0;
     
@@ -245,8 +226,8 @@ class MuxService {
       await new Promise(resolve => setTimeout(resolve, options.interval));
     }
     
-    // If we've exhausted all attempts, create a temporary asset ID
-    return `temp_${uploadId.substring(0, 20)}`;
+    // Instead of creating a temporary ID, throw an error
+    throw new Error(`Could not get asset ID for upload ${uploadId} after ${options.maxAttempts} attempts`);
   }
 
   public async waitForAssetReady(assetId: string, options = {
@@ -255,6 +236,11 @@ class MuxService {
     isFree: false
   }): Promise<{status: string, playbackId?: string}> {
     this.ensureInitialized();
+
+    // Don't handle temporary asset IDs - they should never exist
+    if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+      throw new Error(`Invalid asset ID: ${assetId}. Temporary IDs should not be used.`);
+    }
 
     let attempts = 0;
 

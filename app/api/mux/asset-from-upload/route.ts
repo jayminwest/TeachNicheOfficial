@@ -16,39 +16,48 @@ export async function GET(request: Request) {
     
     console.log(`API: Getting asset ID for upload ${uploadId}`);
     
-    // If the upload ID is very long, it might be a direct upload URL or contain extra data
-    // Let's create a temporary asset ID immediately for very long IDs
-    if (uploadId.length > 100) {
-      const tempAssetId = `temp_${Date.now()}`;
-      console.log(`API: Upload ID is very long, using temporary asset ID ${tempAssetId}`);
-      return NextResponse.json({ assetId: tempAssetId });
+    // Remove temporary ID creation for long IDs
+    // Instead, validate the upload ID format
+    if (uploadId.startsWith('temp_') || uploadId.startsWith('dummy_') || uploadId.startsWith('local_')) {
+      return NextResponse.json(
+        { error: `Invalid upload ID: ${uploadId}. Temporary IDs should not be used.` },
+        { status: 400 }
+      );
     }
     
     try {
-      // First try to get the asset ID from the upload
+      // Get the asset ID from the upload
       const assetId = await getAssetIdFromUpload(uploadId);
+      
+      // Validate that we got a real asset ID
+      if (!assetId || assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+        throw new Error(`Invalid asset ID returned: ${assetId}`);
+      }
+      
       console.log(`API: Found asset ID ${assetId} for upload ${uploadId}`);
       return NextResponse.json({ assetId });
     } catch (error) {
       console.error(`API: Error getting asset ID for upload ${uploadId}:`, error);
       
-      // If all else fails, return a temporary asset ID based on the upload ID
-      // Use a shorter version of the upload ID to avoid issues
-      const shortId = uploadId.length > 20 ? uploadId.substring(0, 20) : uploadId;
-      const fallbackAssetId = `temp_${shortId}`;
-      console.log(`API: Using fallback asset ID ${fallbackAssetId}`);
-      return NextResponse.json({ assetId: fallbackAssetId });
+      // Return the error instead of creating a temporary ID
+      return NextResponse.json(
+        { 
+          error: 'Failed to get asset ID from upload',
+          details: error instanceof Error ? error.message : String(error)
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error('API: Error in asset-from-upload route:', error);
     
-    // Always return a valid response, even in case of errors
-    const tempAssetId = `temp_${Date.now()}`;
-    console.log(`API: Error occurred, using emergency temporary asset ID ${tempAssetId}`);
-    
-    return NextResponse.json({ 
-      assetId: tempAssetId,
-      error: error instanceof Error ? error.message : String(error)
-    });
+    // Return the error instead of creating a temporary ID
+    return NextResponse.json(
+      { 
+        error: 'Failed to process request',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
   }
 }

@@ -77,6 +77,12 @@ export function useVideoUpload({
   const pollAssetStatus = useCallback(async (assetId: string, lessonId: string) => {
     if (!assetId || !lessonId) return;
     
+    // Validate the asset ID
+    if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+      console.error(`Invalid asset ID: ${assetId}. Temporary IDs should not be used.`);
+      return;
+    }
+    
     try {
       console.log(`Starting to poll asset status for asset ${assetId}, lesson ${lessonId}`);
       
@@ -93,7 +99,14 @@ export function useVideoUpload({
         return res.json();
       });
       
+      // Validate the playback ID
       if (result.status === 'ready' && result.playbackId) {
+        // Make sure the playback ID is not a temporary one
+        if (result.playbackId.startsWith('dummy_') || result.playbackId.startsWith('temp_') || result.playbackId.startsWith('local_')) {
+          console.error(`Invalid playback ID returned: ${result.playbackId}`);
+          return;
+        }
+        
         console.log(`Asset ${assetId} is ready with playback ID ${result.playbackId}`);
         
         // Update the lesson with the playback ID and set status to published
@@ -309,47 +322,45 @@ export function useVideoUpload({
       setStatus('processing');
       setProgress(80); // Set progress to indicate processing has started
       
+      // Validate the upload ID
+      if (uploadId.startsWith('temp_') || uploadId.startsWith('dummy_') || uploadId.startsWith('local_')) {
+        throw new Error(`Invalid upload ID: ${uploadId}. Temporary IDs should not be used.`);
+      }
+      
       // Get the asset ID from the upload
       let assetId;
       
-      // Check if we're dealing with a temporary or local ID
-      if (uploadId.startsWith('temp_') || uploadId.startsWith('local_')) {
-        console.log("Using temporary/local ID as asset ID:", uploadId);
-        assetId = uploadId;
-      } else {
-        try {
-          // Use the new API endpoint to get the asset ID
-          console.log(`Fetching asset ID for upload ${uploadId}`);
-          const response = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (!response.ok) {
-            console.warn(`Failed to get asset ID: ${response.status}`);
-            // Create a temporary asset ID based on the upload ID
-            assetId = `temp_${uploadId.substring(0, 20)}`;
-            console.log("Created temporary asset ID:", assetId);
-          } else {
-            const data = await response.json();
-            assetId = data.assetId;
-            
-            if (!assetId) {
-              console.warn('No asset ID returned from API, creating temporary ID');
-              assetId = `temp_${uploadId.substring(0, 20)}`;
-              console.log("Created temporary asset ID:", assetId);
-            } else {
-              console.log("Retrieved assetId:", assetId);
-            }
+      try {
+        // Use the API endpoint to get the asset ID
+        console.log(`Fetching asset ID for upload ${uploadId}`);
+        const response = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
           }
-        } catch (error) {
-          console.error("Error getting asset ID:", error);
-          // Create a temporary asset ID based on the upload ID
-          assetId = `temp_${uploadId.substring(0, 20)}`;
-          console.log("Created temporary asset ID due to error:", assetId);
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Failed to get asset ID: ${response.status} - ${errorData.error || 'Unknown error'}`);
         }
+        
+        const data = await response.json();
+        assetId = data.assetId;
+        
+        if (!assetId) {
+          throw new Error('No asset ID returned from API');
+        }
+        
+        // Validate the asset ID
+        if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+          throw new Error(`Invalid asset ID returned: ${assetId}`);
+        }
+        
+        console.log("Retrieved assetId:", assetId);
+      } catch (error) {
+        console.error("Error getting asset ID:", error);
+        throw error; // Propagate the error instead of creating a temporary ID
       }
       
       // If we have a lesson ID, update it with the asset ID
@@ -365,12 +376,12 @@ export function useVideoUpload({
           });
           
           if (!updateResponse.ok) {
-            console.warn(`Failed to update lesson with asset ID: ${updateResponse.status}`);
-            // Continue anyway - we'll start polling for the asset status
+            const errorData = await updateResponse.json();
+            throw new Error(`Failed to update lesson with asset ID: ${updateResponse.status} - ${errorData.error || 'Unknown error'}`);
           }
         } catch (updateError) {
-          console.warn("Error updating lesson with asset ID:", updateError);
-          // Continue anyway - we'll start polling for the asset status
+          console.error("Error updating lesson with asset ID:", updateError);
+          throw updateError; // Propagate the error
         }
       }
       

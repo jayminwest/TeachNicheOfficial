@@ -16,21 +16,25 @@ export async function GET(request: Request) {
     
     console.log(`API: Waiting for asset ${assetId} to be ready`);
     
-    // Check if this is a temporary asset ID
-    if (assetId.startsWith('temp_')) {
-      console.log(`API: ${assetId} is a temporary ID, returning ready status with dummy playback ID`);
-      // For temporary IDs, just return a ready status with a dummy playback ID
-      return NextResponse.json({
-        status: 'ready',
-        playbackId: `dummy_${assetId.substring(5)}`
-      });
+    // Remove temporary ID handling - we should never have temporary IDs
+    if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+      return NextResponse.json(
+        { error: `Invalid asset ID: ${assetId}. Temporary IDs should not be used.` },
+        { status: 400 }
+      );
     }
     
     try {
       // Wait for the asset to be ready
       const result = await waitForAssetReady(assetId);
       console.log(`API: Asset ${assetId} status: ${result.status}, playback ID: ${result.playbackId || 'none'}`);
-      return NextResponse.json(result);
+      
+      // Validate that we have a playback ID before returning success
+      if (result.status === 'ready' && result.playbackId) {
+        return NextResponse.json(result);
+      } else {
+        throw new Error(`Asset ${assetId} is ready but has no playback ID`);
+      }
     } catch (error) {
       console.error(`API: Error waiting for asset ${assetId}:`, error);
       
@@ -60,14 +64,24 @@ export async function GET(request: Request) {
         }
       } catch (statusError) {
         console.error(`API: Error getting asset status for ${assetId}:`, statusError);
+        // Return the error instead of a dummy status
+        return NextResponse.json(
+          { 
+            error: 'Failed to get asset status',
+            details: statusError instanceof Error ? statusError.message : String(statusError)
+          },
+          { status: 500 }
+        );
       }
       
-      // If all else fails, return a dummy ready status
-      console.log(`API: Returning fallback ready status for ${assetId}`);
-      return NextResponse.json({
-        status: 'ready',
-        playbackId: `dummy_${assetId}`
-      });
+      // Return the original error instead of a dummy status
+      return NextResponse.json(
+        { 
+          error: 'Failed to wait for asset',
+          details: error instanceof Error ? error.message : String(error)
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error('API: Error in wait-for-asset route:', error);

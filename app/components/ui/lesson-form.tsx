@@ -27,8 +27,8 @@ const lessonFormSchema = z.object({
     .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
-  thumbnail_url: z.string().optional(),
-  thumbnailUrl: z.string().optional(), // Keep for backward compatibility
+  thumbnail_url: z.string().optional().default(""),
+  thumbnailUrl: z.string().optional().default(""), // Keep for backward compatibility
   price: z.number()
     .min(0, "Price must be positive")
     .max(999.99, "Price must be less than $1000")
@@ -106,7 +106,12 @@ export function LessonForm({
   }, []);
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      // Ensure both thumbnail fields are set if one is provided
+      thumbnail_url: initialData.thumbnail_url || initialData.thumbnailUrl || "",
+      thumbnailUrl: initialData.thumbnailUrl || initialData.thumbnail_url || "",
+    } : {
       title: "",
       description: "",
       content: "",
@@ -169,6 +174,19 @@ export function LessonForm({
               return;
             }
           }
+          
+          // Ensure thumbnail_url is properly set
+          // If only one of the thumbnail fields is set, copy it to the other
+          if (data.thumbnail_url && !data.thumbnailUrl) {
+            data.thumbnailUrl = data.thumbnail_url;
+          } else if (data.thumbnailUrl && !data.thumbnail_url) {
+            data.thumbnail_url = data.thumbnailUrl;
+          }
+          
+          console.log("Submitting lesson with thumbnail:", {
+            thumbnail_url: data.thumbnail_url,
+            thumbnailUrl: data.thumbnailUrl
+          });
           
           // Continue with form submission
           onSubmit(data);
@@ -337,6 +355,13 @@ export function LessonForm({
                   shouldValidate: true,
                   shouldDirty: true,
                   shouldTouch: true
+                });
+                
+                // Ensure the form data will include both properties when submitted
+                const currentValues = form.getValues();
+                console.log("Form values after setting thumbnail:", {
+                  thumbnail_url: currentValues.thumbnail_url,
+                  thumbnailUrl: currentValues.thumbnailUrl
                 });
                 
                 toast({

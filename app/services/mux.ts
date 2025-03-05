@@ -72,13 +72,30 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
 
 export async function getAssetIdFromUpload(uploadId: string): Promise<string> {
   const mux = getMuxClient();
-  const upload = await mux.video.uploads.retrieve(uploadId);
   
-  if (!upload.asset_id) {
-    throw new Error('No asset ID found for this upload');
+  try {
+    const upload = await mux.video.uploads.retrieve(uploadId);
+    
+    if (!upload.asset_id) {
+      // Check if the upload is still processing
+      if (upload.status === 'waiting') {
+        throw new Error('Upload is still processing, no asset ID available yet');
+      }
+      
+      // Check if the upload has errored
+      if (upload.status === 'errored') {
+        const errorMessage = upload.error ? JSON.stringify(upload.error) : 'Unknown error';
+        throw new Error(`Upload failed: ${errorMessage}`);
+      }
+      
+      throw new Error('No asset ID found for this upload');
+    }
+    
+    return upload.asset_id;
+  } catch (error) {
+    console.error(`Error getting asset ID from upload ${uploadId}:`, error);
+    throw error;
   }
-  
-  return upload.asset_id;
 }
 
 export async function deleteAsset(assetId: string): Promise<boolean> {

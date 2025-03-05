@@ -87,15 +87,31 @@ export async function GET(request: Request) {
       
       // If we don't have an asset ID yet, try to get it
       console.log(`API: Getting asset ID from upload ${uploadId}`);
-      const assetId = await getAssetIdFromUpload(uploadId);
+      let assetId;
       
-      // Log the asset ID we received
-      console.log(`API: Received asset ID from Mux: ${assetId}`);
-      
-      // Validate that we got a real asset ID
-      if (!assetId) {
-        console.error(`API: No asset ID returned for upload ${uploadId}`);
-        throw new Error('No asset ID returned from Mux');
+      try {
+        assetId = await getAssetIdFromUpload(uploadId);
+        
+        // Log the asset ID we received
+        console.log(`API: Received asset ID from Mux: ${assetId}`);
+        
+        // Validate that we got a real asset ID
+        if (!assetId) {
+          console.error(`API: No asset ID returned for upload ${uploadId}`);
+          return NextResponse.json(
+            { error: 'No asset ID returned from Mux', details: 'The upload may still be processing' },
+            { status: 404 }
+          );
+        }
+      } catch (assetError) {
+        console.error(`API: Error getting asset ID for upload ${uploadId}:`, assetError);
+        return NextResponse.json(
+          { 
+            error: 'Failed to get asset ID from Mux API', 
+            details: assetError instanceof Error ? assetError.message : String(assetError)
+          },
+          { status: 500 }
+        );
       }
       
       if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {

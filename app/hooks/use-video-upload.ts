@@ -85,14 +85,28 @@ export function useVideoUpload({
         cache: 'no-store'
       });
       
-      if (!response.ok) {
-        throw new Error(`Failed to get asset ID: ${response.status}`);
+      // Get the response text first for better error handling
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        // Try to parse the response as JSON
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', responseText);
+        throw new Error(`Invalid response format: ${responseText.substring(0, 100)}`);
       }
       
-      const data = await response.json();
+      if (!response.ok) {
+        const errorMessage = data.error || `Failed to get asset ID: ${response.status}`;
+        const errorDetails = data.details ? `: ${data.details}` : '';
+        throw new Error(`${errorMessage}${errorDetails}`);
+      }
+      
       const assetId = data.assetId;
       
       if (!assetId) {
+        console.error('No asset ID in response:', data);
         throw new Error('No asset ID returned from API');
       }
       

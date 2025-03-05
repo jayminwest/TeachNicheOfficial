@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkdownEditor } from "./markdown-editor";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { ImageUploader } from "./image-uploader";
 import { Button } from "./button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "./form";
 import { Input } from "./input";
@@ -26,6 +27,7 @@ const lessonFormSchema = z.object({
     .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
   price: z.number()
     .min(0, "Price must be positive")
     .max(999.99, "Price must be less than $1000")
@@ -110,6 +112,7 @@ export function LessonForm({
       price: 0,
       muxAssetId: "", // Initialize muxAssetId field
       muxPlaybackId: "", // Initialize muxPlaybackId field
+      thumbnailUrl: "", // Initialize thumbnailUrl field
     },
   });
 
@@ -303,6 +306,40 @@ export function LessonForm({
             )}
           />
         </div>
+
+        <Card className="p-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold">Lesson Thumbnail</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload a thumbnail image for your lesson
+              </p>
+            </div>
+            
+            <ImageUploader
+              initialImage={form.watch('thumbnailUrl')}
+              onUploadComplete={(url) => {
+                form.setValue("thumbnailUrl", url, { 
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
+                
+                toast({
+                  title: "Thumbnail uploaded",
+                  description: "Your thumbnail has been uploaded successfully.",
+                });
+              }}
+              onError={(error) => {
+                toast({
+                  title: "Upload failed",
+                  description: error.message,
+                  variant: "destructive",
+                });
+              }}
+            />
+          </div>
+        </Card>
 
         <Card className="p-6">
           <div className="space-y-4">

@@ -20,6 +20,16 @@ import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
 
 
+interface NavigationItem {
+    title: string;
+    href?: string;
+    description: string;
+    items?: Array<{
+        title: string;
+        href: string;
+    }>;
+}
+
 export function Header() {
     const { user, loading } = useAuth();
     const pathname = usePathname();

@@ -3,7 +3,10 @@
 import Link from 'next/link'
 import { Button } from '@/app/components/ui/button'
 
+// Removed useSearchParams since it's not needed here
 export default function NotFoundContent() {
+  // No client-side hooks that require Suspense
+  
   return (
     <div className="container flex flex-col items-center justify-center min-h-[70vh] py-12 text-center">
       <h1 className="text-6xl font-bold mb-4">404</h1>

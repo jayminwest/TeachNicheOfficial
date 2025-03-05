@@ -27,8 +27,8 @@ const nextConfig = {
   output: 'standalone',
   // Disable static generation for error pages
   excludeDefaultMomentLocales: true,
-  // Disable static generation for specific paths
-  unstable_excludeFiles: ['**/500/**', '**/404/**', '**/error/**', '**/global-error/**']
+  // Completely disable static generation
+  staticPageGenerationTimeout: 1
 }
 
 module.exports = nextConfig

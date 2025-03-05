@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "clean": "rm -rf .next",
-    "build": "npm run clean && NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production next build --no-lint",
+    "build": "npm run clean && NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production next build --no-lint --no-mangling",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

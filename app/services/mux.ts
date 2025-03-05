@@ -156,10 +156,16 @@ class MuxService {
         throw new Error('Mux API returned null or undefined asset');
       }
       
+      // Get the playback ID if the asset is ready
+      let playbackId = undefined;
+      if (asset.status === 'ready' && asset.playback_ids && asset.playback_ids.length > 0) {
+        playbackId = asset.playback_ids[0].id;
+      }
+      
       return {
         id: asset.id,
         status: asset.status as 'preparing' | 'ready' | 'errored',
-        playbackId: asset.playback_ids?.[0]?.id,
+        playbackId,
         error: undefined
       };
     } catch (error) {

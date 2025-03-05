@@ -383,6 +383,13 @@ export function useVideoUpload({
       } else {
         console.warn("onUploadComplete callback is not defined");
       }
+      
+      // Redirect to the asset status page
+      // This is the key change to mirror the TEMP_MUX_EXAMPLE approach
+      if (assetId) {
+        console.log(`Redirecting to asset status page for asset ${assetId}`);
+        window.location.href = `/lessons/asset/${assetId}`;
+      }
     } catch (error) {
       handleError(error instanceof Error ? error : new Error('Failed to process video upload'));
     }

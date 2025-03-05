@@ -202,7 +202,7 @@ export function VideoUploader({
             return;
           }
           
-          // Store the upload ID in the database
+          // Store the upload ID in the database if we have a lesson ID
           if (lessonId) {
             fetch('/api/lessons/update-upload-id', {
               method: 'POST',

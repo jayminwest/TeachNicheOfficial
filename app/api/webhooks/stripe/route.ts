@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
             { expand: ['line_items'] }
           );
           
-          const stripe = getStripe();
+          // Stripe instance already defined above
           // Try to extract from expanded session
           if (expandedSession.line_items?.data?.length > 0) {
             const description = expandedSession.line_items.data[0].description;

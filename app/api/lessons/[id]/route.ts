@@ -153,11 +153,12 @@ export async function PATCH(
 
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
-    const lessonId = params.id;
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const lessonId = pathParts[pathParts.length - 1];
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });

@@ -6,6 +6,7 @@ import { Button } from '@/app/components/ui/button';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useImageUpload } from '@/app/hooks/use-image-upload';
 import Image from 'next/image';
+import { Progress } from '@/app/components/ui/progress';
 
 interface ImageUploaderProps {
   initialImage?: string;
@@ -39,22 +40,28 @@ export function ImageUploader({
       setPreviewUrl(url);
       onUploadComplete(url);
     },
-    onError
+    onError,
+    onProgress: (progress) => {
+      console.log(`Upload progress: ${progress}%`);
+    }
   });
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Create a local preview
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    
-    // Upload the file
-    await uploadImage(file);
-    
-    // Clean up the object URL
-    URL.revokeObjectURL(objectUrl);
+    try {
+      // Upload the file directly without creating a local preview first
+      await uploadImage(file);
+    } catch (err) {
+      // Error is handled by the hook
+      console.error("File upload error:", err);
+    } finally {
+      // Reset the file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
   
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -63,25 +70,18 @@ export function ImageUploader({
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     
-    // Check file type
-    if (!acceptedTypes.includes(file.type)) {
-      onError(new Error(`Invalid file type. Accepted types: ${acceptedTypes.join(', ')}`));
-      return;
+    try {
+      // Upload the file directly
+      await uploadImage(file);
+    } catch (err) {
+      // Error is handled by the hook
+      console.error("File drop error:", err);
     }
-    
-    // Create a local preview
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    
-    // Upload the file
-    await uploadImage(file);
-    
-    // Clean up the object URL
-    URL.revokeObjectURL(objectUrl);
   };
   
   const handleRemoveImage = () => {
     setPreviewUrl(null);
+    onUploadComplete(''); // Clear the image URL in the parent component
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -95,6 +95,7 @@ export function ImageUploader({
         onChange={handleFileChange}
         className="hidden"
         ref={fileInputRef}
+        disabled={isUploading}
       />
       
       {previewUrl ? (
@@ -119,9 +120,12 @@ export function ImageUploader({
           )}
           
           {isUploading && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
               <Loader2 className="h-8 w-8 text-white animate-spin" />
-              <span className="ml-2 text-white font-medium">
+              <div className="w-3/4 bg-black/30 rounded-full overflow-hidden">
+                <Progress value={progress} className="h-2" />
+              </div>
+              <span className="text-white font-medium">
                 {Math.round(progress)}%
               </span>
             </div>
@@ -130,7 +134,7 @@ export function ImageUploader({
       ) : (
         <div
           className="border-2 border-dashed rounded-md p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors max-w-md mx-auto"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => !isUploading && fileInputRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
         >
@@ -138,6 +142,9 @@ export function ImageUploader({
             {isUploading ? (
               <>
                 <Loader2 className="h-10 w-10 text-muted-foreground animate-spin" />
+                <div className="w-full max-w-xs">
+                  <Progress value={progress} className="h-2 mb-2" />
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Uploading... {Math.round(progress)}%
                 </p>

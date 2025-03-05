@@ -48,8 +48,19 @@ export function useImageUpload({
     
     try {
       setIsUploading(true);
-      setProgress(0);
       setError(null);
+      
+      // Start progress simulation since Supabase doesn't provide progress events
+      let currentProgress = 0;
+      const progressInterval = setInterval(() => {
+        currentProgress += 10;
+        if (currentProgress >= 90) {
+          clearInterval(progressInterval);
+          currentProgress = 90; // Cap at 90% until actual completion
+        }
+        setProgress(currentProgress);
+        onProgress?.(currentProgress);
+      }, 200);
       
       // Generate a unique filename
       const timestamp = Date.now();
@@ -65,8 +76,11 @@ export function useImageUpload({
         .from(bucket)
         .upload(path, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true // Changed to true to allow overwriting
         });
+      
+      // Clear the progress interval
+      clearInterval(progressInterval);
       
       if (error) throw error;
       
@@ -77,8 +91,11 @@ export function useImageUpload({
       
       const publicUrl = urlData.publicUrl;
       
-      setImageUrl(publicUrl);
+      // Set final progress
       setProgress(100);
+      onProgress?.(100);
+      
+      setImageUrl(publicUrl);
       onUploadComplete?.(publicUrl);
       
       return publicUrl;

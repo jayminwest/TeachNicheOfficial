@@ -25,6 +25,17 @@ const initMuxClient = () => {
   });
 };
 
+// Get Mux client with proper structure
+const getMuxClient = () => {
+  const mux = initMuxClient();
+  return {
+    video: {
+      uploads: mux.video.uploads,
+      assets: mux.video.assets
+    }
+  };
+};
+
 // Wait for asset to be ready
 async function waitForAssetReady(assetId: string, options: { maxAttempts?: number; interval?: number } = {}) {
   const { maxAttempts = 60, interval = 10000 } = options;
@@ -35,12 +46,11 @@ async function waitForAssetReady(assetId: string, options: { maxAttempts?: numbe
     const uploadId = assetId.substring(5);
     
     // Initialize Mux client
-    const muxClient = initMuxClient();
-    const Video = muxClient.Video;
+    const muxClient = getMuxClient();
     
     // Try to get the upload to check if it has an asset ID
     try {
-      const upload = await Video.Uploads.get(uploadId);
+      const upload = await muxClient.video.uploads.get(uploadId);
       
       if (upload.asset_id) {
         // If the upload has an asset ID, use that instead
@@ -50,7 +60,7 @@ async function waitForAssetReady(assetId: string, options: { maxAttempts?: numbe
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
           await new Promise(resolve => setTimeout(resolve, interval));
           
-          const updatedUpload = await Video.Uploads.get(uploadId);
+          const updatedUpload = await muxClient.video.uploads.get(uploadId);
           
           if (updatedUpload.asset_id) {
             assetId = updatedUpload.asset_id;
@@ -74,13 +84,12 @@ async function waitForAssetReady(assetId: string, options: { maxAttempts?: numbe
   }
   
   // Now we should have a real asset ID
-  const muxClient = initMuxClient();
-  const Video = muxClient.Video;
+  const muxClient = getMuxClient();
   
   // Poll for asset status
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const asset = await Video.Assets.get(assetId);
+      const asset = await muxClient.video.assets.get(assetId);
       
       if (asset.status === 'ready') {
         // Get the playback ID

@@ -31,6 +31,24 @@ export function LessonAccessGate({
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
+  // Check if URL indicates a successful purchase - moved up to ensure hooks are called in the same order
+  const isSuccess = hasSuccessfulPurchaseParams();
+  
+  // All hooks must be called unconditionally at the top level
+  const [shouldRefresh] = useState(isSuccess && !hasAccess);
+  
+  // Force refresh if we have success parameters to ensure database is checked
+  useEffect(() => {
+    if (shouldRefresh) {
+      // Set a small timeout to allow webhook to process
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRefresh]);
+  
   // Check if current user is the lesson creator
   const isOwner = creatorId && user?.id === creatorId;
   
@@ -79,22 +97,6 @@ export function LessonAccessGate({
     );
   }
   
-  // Check if URL indicates a successful purchase
-  const isSuccess = hasSuccessfulPurchaseParams();
-  
-  // Force refresh if we have success parameters to ensure database is checked
-  // This hook must be called unconditionally to follow React's rules of hooks
-  const [shouldRefresh] = useState(isSuccess && !hasAccess);
-  useEffect(() => {
-    if (shouldRefresh) {
-      // Set a small timeout to allow webhook to process
-      const timer = setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [shouldRefresh]);
   
   // If user has access or payment was just successful, show the content
   if (hasAccess || isSuccess) {

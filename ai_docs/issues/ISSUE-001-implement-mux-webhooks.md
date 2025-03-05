@@ -287,6 +287,6 @@ if (!signature) {
 
 ## References
 
-- [Mux Uploader Documentation](https://www.mux.com/docs/guides/mux-uploader)
-- [Mux Webhooks Documentation](https://www.mux.com/docs/core/listen-for-webhooks)
-- [Mux Webhook Signature Verification](https://www.mux.com/docs/core/verify-webhook-signatures)
+- [Mux Uploader Documentation](https://www.mux.com/docs/guides/mux-uploader
+- [Mux Webhooks Documentation](https://www.mux.com/docs/core/listen-for-webhooks
+- [Mux Webhook Signature Verification](https://www.mux.com/docs/core/verify-webhook-signatures

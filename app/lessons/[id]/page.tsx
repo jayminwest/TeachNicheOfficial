@@ -6,12 +6,15 @@ interface PageProps {
   params: {
     id: string;
   };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   // Await the params object before accessing its properties
   const resolvedParams = await params;
   const lessonId = resolvedParams.id;
+  // Get redirect parameter if it exists
+  const redirect = searchParams?.redirect || null;
   
   const supabase = await createServerSupabaseClient();
   

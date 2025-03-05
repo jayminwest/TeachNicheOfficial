@@ -1,10 +1,9 @@
 // Import dependencies first
-import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
 
 // Create mock response factory
-const createMockResponse = (body: any, status = 200) => ({
+const createMockResponse = (body: unknown, status = 200) => ({
   status,
   headers: new Headers(),
   json: () => Promise.resolve(body)
@@ -30,8 +29,8 @@ jest.mock('next/server', () => {
   };
 });
 
-// Import the NextResponse and NextRequest after mocking
-import { NextResponse, NextRequest } from 'next/server';
+// Import the NextRequest after mocking
+import { NextRequest } from 'next/server';
 
 // Import the API routes
 import * as purchaseRoute from '@/app/api/lessons/purchase/route';
@@ -98,7 +97,7 @@ jest.mock('@/app/services/database/purchasesService', () => ({
 }));
 
 // Helper to create a mock request
-function createMockRequest(body: any): NextRequest {
+function createMockRequest(body: Record<string, unknown>): NextRequest {
   return {
     json: () => Promise.resolve(body),
     text: () => Promise.resolve(JSON.stringify(body)),
@@ -110,8 +109,31 @@ function createMockRequest(body: any): NextRequest {
 }
 
 describe('Purchase Flow', () => {
-  let mockStripe: any;
-  let mockSupabase: any;
+  let mockStripe: {
+    checkout: {
+      sessions: {
+        create: jest.Mock;
+        retrieve: jest.Mock;
+      }
+    };
+    webhooks: {
+      constructEvent: jest.Mock;
+    }
+  };
+  let mockSupabase: {
+    auth: {
+      getSession: jest.Mock;
+    };
+    from: jest.Mock;
+    select: jest.Mock;
+    eq: jest.Mock;
+    ilike: jest.Mock;
+    order: jest.Mock;
+    limit: jest.Mock;
+    single: jest.Mock;
+    update: jest.Mock;
+    insert: jest.Mock;
+  };
   
   beforeEach(() => {
     // Reset mocks

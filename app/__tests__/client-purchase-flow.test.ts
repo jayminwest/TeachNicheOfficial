@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 // This would be a custom hook that handles the purchase flow
 // You would need to create this hook based on your client-side implementation
@@ -13,7 +14,7 @@ jest.mock('next/navigation', () => ({
 global.fetch = jest.fn();
 
 describe('Client Purchase Flow', () => {
-  let mockRouter: any;
+  let mockRouter: AppRouterInstance;
   
   beforeEach(() => {
     jest.resetAllMocks();
@@ -22,7 +23,7 @@ describe('Client Purchase Flow', () => {
     mockRouter = {
       push: jest.fn(),
       refresh: jest.fn(),
-    };
+    } as unknown as AppRouterInstance;
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     
     // Setup fetch mock
@@ -162,7 +163,7 @@ describe('Client Purchase Flow', () => {
       
       // Mock implementation that will be called twice
       // First call returns no access, second call returns access
-      (global.fetch as jest.Mock).mockImplementation((url, options) => {
+      (global.fetch as jest.Mock).mockImplementation(() => {
         // Increment call count manually to ensure it's tracked correctly
         const callCount = (global.fetch as jest.Mock).mock.calls.length;
         

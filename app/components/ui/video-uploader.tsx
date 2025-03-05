@@ -23,6 +23,7 @@ interface VideoUploaderProps {
   chunkSize?: number;
   dynamicChunkSize?: boolean;
   useLargeFileWorkaround?: boolean;
+  lessonId?: string; // Add this parameter
 }
 
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
@@ -40,7 +41,8 @@ export function VideoUploader({
   noDrop = false,
   chunkSize,
   dynamicChunkSize = false,
-  useLargeFileWorkaround = false
+  useLargeFileWorkaround = false,
+  lessonId
 }: VideoUploaderProps) {
   const getVideoResolution = (file: File): Promise<{width: number; height: number}> => {
     return new Promise((resolve, reject) => {
@@ -98,7 +100,8 @@ export function VideoUploader({
       if (progress === 100) {
         onUploadStart?.();
       }
-    }
+    },
+    lessonId
   });
   
   const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {

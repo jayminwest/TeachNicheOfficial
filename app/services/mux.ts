@@ -265,12 +265,28 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
+  // Don't try to get status for temporary asset IDs
+  if (assetId.startsWith('temp_')) {
+    return {
+      id: assetId,
+      status: 'preparing',
+      error: {
+        message: 'This is a temporary asset ID',
+        type: 'temp_asset'
+      }
+    };
+  }
+
   try {
     const asset = await muxClient.video.assets.get(assetId);
     
     if (!asset) {
       throw new Error('Mux API returned null or undefined asset');
     }
+    
+    // Log more details about the asset for debugging
+    console.log(`Asset ${assetId} status: ${asset.status}, playback IDs:`, 
+      asset.playback_ids ? asset.playback_ids.map(p => p.id).join(', ') : 'none');
     
     return {
       id: asset.id,
@@ -280,11 +296,31 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
     };
   } catch (error) {
     console.error('Mux API error:', error);
-    throw new Error(
-      error instanceof Error
-        ? `Failed to get asset status: ${error.message}`
-        : 'Failed to get asset status'
-    );
+    
+    // Provide more detailed error information
+    let errorType = 'unknown';
+    let errorMessage = 'Unknown error occurred';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      if (errorMessage.includes('not found')) {
+        errorType = 'not_found';
+      } else if (errorMessage.includes('rate limit')) {
+        errorType = 'rate_limit';
+      } else if (errorMessage.includes('unauthorized')) {
+        errorType = 'auth_error';
+      }
+    }
+    
+    return {
+      id: assetId,
+      status: 'errored',
+      error: {
+        message: errorMessage,
+        type: errorType
+      }
+    };
   }
 }
 

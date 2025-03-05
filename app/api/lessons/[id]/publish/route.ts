@@ -5,12 +5,12 @@ import { Database } from '@/types/database';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-    const lessonId = params.id;
+    const lessonId = context.params.id;
     
     // Get the current user session
     const { data: { session } } = await supabase.auth.getSession();

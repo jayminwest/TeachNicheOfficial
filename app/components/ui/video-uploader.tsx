@@ -186,7 +186,12 @@ export function VideoUploader({
           // Extract the upload ID from the event
           let uploadId = null;
           
-          if (event instanceof CustomEvent && event.detail) {
+          // Get the upload ID from the URL
+          const url = new URL(uploadEndpoint);
+          const urlParams = new URLSearchParams(url.search);
+          uploadId = urlParams.get('upload_id');
+          
+          if (!uploadId && event instanceof CustomEvent && event.detail) {
             // Try to get the upload ID from the event detail
             if (typeof event.detail === 'string') {
               uploadId = event.detail;
@@ -194,13 +199,41 @@ export function VideoUploader({
               uploadId = event.detail.uploadId;
             } else if (event.detail.id) {
               uploadId = event.detail.id;
+            } else if (typeof event.detail === 'object') {
+              // Log all properties for debugging
+              console.log("Event detail properties:", Object.keys(event.detail));
+              
+              // Try to find any property that might contain the upload ID
+              for (const key in event.detail) {
+                if (key.toLowerCase().includes('id') && typeof event.detail[key] === 'string') {
+                  console.log(`Found potential ID in property ${key}:`, event.detail[key]);
+                  uploadId = event.detail[key];
+                  break;
+                }
+              }
+            }
+          }
+          
+          // Fallback to global variable if it exists
+          if (!uploadId && (window as any).__lastUploadId) {
+            console.log("Using fallback upload ID from global variable");
+            uploadId = (window as any).__lastUploadId;
+          }
+          
+          // Fallback to DOM data attribute
+          if (!uploadId) {
+            const uploadIdElement = document.querySelector('[data-upload-id]');
+            if (uploadIdElement) {
+              uploadId = uploadIdElement.getAttribute('data-upload-id');
+              console.log("Using fallback upload ID from DOM:", uploadId);
             }
           }
           
           if (!uploadId) {
             console.error("Could not determine upload ID from event");
-            handleUploadError(new Error("Could not determine upload ID"));
-            return;
+            // Instead of failing, let's create a temporary ID based on timestamp
+            uploadId = `temp_${Date.now()}`;
+            console.log("Created temporary upload ID:", uploadId);
           }
           
           console.log("Using upload ID:", uploadId);

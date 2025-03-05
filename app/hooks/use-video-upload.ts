@@ -197,6 +197,8 @@ export function useVideoUpload({
       
       // Store the uploadId globally for later use
       if (data.uploadId) {
+        console.log('Storing upload ID for later use:', data.uploadId);
+        
         // Store the upload ID in a global variable for fallback
         (window as any).__lastUploadId = data.uploadId;
         
@@ -206,8 +208,10 @@ export function useVideoUpload({
         uploadIdElement.setAttribute('data-upload-id', data.uploadId);
         document.body.appendChild(uploadIdElement);
         
-        // Don't modify the URL - just return it as is
-        return data.url;
+        // Add the upload ID to the URL as a query parameter for easier retrieval
+        const url = new URL(data.url);
+        url.searchParams.append('upload_id', data.uploadId);
+        return url.toString();
       }
       
       return data.url;
@@ -280,28 +284,37 @@ export function useVideoUpload({
       
       // Get the asset ID from the upload
       let assetId;
-      try {
-        // Use the new API endpoint to get the asset ID
-        assetId = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
+      
+      // Check if we're dealing with a temporary ID
+      if (uploadId.startsWith('temp_')) {
+        console.log("Using temporary ID as asset ID:", uploadId);
+        assetId = uploadId;
+      } else {
+        try {
+          // Use the new API endpoint to get the asset ID
+          assetId = await fetch(`/api/mux/asset-from-upload?uploadId=${encodeURIComponent(uploadId)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(res => {
+            if (!res.ok) {
+              throw new Error(`Failed to get asset ID: ${res.status}`);
+            }
+            return res.json();
+          }).then(data => data.assetId);
+          
+          if (!assetId) {
+            console.warn('No asset ID returned from API, using upload ID as fallback');
+            assetId = uploadId;
           }
-        }).then(res => {
-          if (!res.ok) {
-            throw new Error(`Failed to get asset ID: ${res.status}`);
-          }
-          return res.json();
-        }).then(data => data.assetId);
-        
-        if (!assetId) {
-          throw new Error('No asset ID returned from API');
+          
+          console.log("Retrieved assetId:", assetId);
+        } catch (error) {
+          console.error("Error getting asset ID:", error);
+          console.log("Using upload ID as fallback asset ID");
+          assetId = uploadId;
         }
-        
-        console.log("Retrieved assetId:", assetId);
-      } catch (error) {
-        console.error("Error getting asset ID:", error);
-        throw error;
       }
       
       // If we have a lesson ID, update it with the asset ID

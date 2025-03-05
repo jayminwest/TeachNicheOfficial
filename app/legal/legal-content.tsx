@@ -1,13 +1,23 @@
-import { Suspense } from 'react';
-import LegalContent from './legal-content';
+'use client';
 
-export default function LegalPage() {
+import { useSearchParams } from 'next/navigation';
+
+export default function LegalContent() {
+  // We can use the search params here if needed
+  const searchParams = useSearchParams();
+  
+  // You could use searchParams to highlight specific sections
+  // const highlightSection = searchParams.get('section');
+  
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-8 mt-16">Loading legal information...</div>}>
-      <LegalContent />
-    </Suspense>
-  );
-}
+    <div className="container mx-auto px-4 py-8 mt-16">
+      <h1 className="text-3xl font-bold mb-6">Teach Niche Legal Information</h1>
+      
+      <section id="terms" className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">Terms of Service</h2>
+        <div className="prose max-w-none">
+          <h3 className="text-xl font-semibold mt-6 mb-3">1. Acceptance of Terms</h3>
+          <p>By accessing or using the Teach Niche website (the &ldquo;Service&rdquo;), you acknowledge that you have read, understood, and agree to be bound by these Terms of Use, the Privacy Policy, and the Cookie Policy (collectively, the &ldquo;Terms&rdquo;). If you do not agree to these Terms, please do not use the Service.</p>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">2. Amendments to the Terms</h3>
           <p>Teach Niche reserves the right to modify or update these Terms at any time without prior notice. Your continued use of the Service following any changes constitutes acceptance of the revised Terms. We recommend that you review these Terms periodically.</p>

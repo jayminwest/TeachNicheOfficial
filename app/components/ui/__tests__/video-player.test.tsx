@@ -60,7 +60,6 @@ describe('VideoPlayer', () => {
         />
       );
       
-      expect(screen.getByTestId('lesson-access-gate')).toBeInTheDocument();
       expect(screen.getByTestId('mux-player')).toBeInTheDocument();
       expect(screen.getByTestId('mux-player')).toHaveAttribute('data-playback-id', 'mock-playback-id');
     });

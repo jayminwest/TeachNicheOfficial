@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/components/ui/card"
-import { Switch } from "@/app/components/ui/switch"
 import { toast } from "@/app/components/ui/use-toast"
 import { StripeConnectButton } from "@/app/components/ui/stripe-connect-button"
 import { useEffect, useState } from "react"
@@ -18,7 +17,7 @@ export function AccountSettings() {
     stripeAccountId: string | null;
     isComplete: boolean;
     status?: string;
-    details?: any;
+    details?: Record<string, unknown>;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

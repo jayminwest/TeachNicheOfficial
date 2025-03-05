@@ -31,6 +31,24 @@ export function LessonAccessGate({
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
+  // Check if URL indicates a successful purchase - moved up to ensure hooks are called in the same order
+  const isSuccess = hasSuccessfulPurchaseParams();
+  
+  // All hooks must be called unconditionally at the top level
+  const [shouldRefresh] = useState(isSuccess && !hasAccess);
+  
+  // Force refresh if we have success parameters to ensure database is checked
+  useEffect(() => {
+    if (shouldRefresh) {
+      // Set a small timeout to allow webhook to process
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRefresh]);
+  
   // Check if current user is the lesson creator
   const isOwner = creatorId && user?.id === creatorId;
   
@@ -79,21 +97,25 @@ export function LessonAccessGate({
     );
   }
   
-  // Check if URL indicates a successful purchase
-  const isSuccess = hasSuccessfulPurchaseParams();
   
-  // Force refresh if we have success parameters to ensure database is checked
-  useEffect(() => {
-    if (isSuccess && !hasAccess) {
-      // Set a small timeout to allow webhook to process
-      const timer = setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess, hasAccess]);
-  
+  // If user is not authenticated, show sign-in prompt regardless of lesson price
+  if (!user) {
+    return (
+      <div className="p-6 bg-muted rounded-lg">
+        <h3 className="text-lg font-semibold mb-2">Sign In Required</h3>
+        <p className="text-muted-foreground mb-4">
+          Please sign in to access this {price === 0 ? 'free' : ''} lesson
+        </p>
+        <Button 
+          onClick={() => router.push(`/sign-in?redirect=${encodeURIComponent(`/lessons/${lessonId}`)}`)}
+          className="w-full"
+        >
+          Sign In to Continue
+        </Button>
+      </div>
+    );
+  }
+
   // If user has access or payment was just successful, show the content
   if (hasAccess || isSuccess) {
     // Remove the success parameters from the URL to prevent issues on refresh
@@ -125,8 +147,8 @@ export function LessonAccessGate({
   
   // If user doesn't have access, check if they need to purchase
   if (!hasAccess && price !== undefined) {
-    // For free lessons, show an "Access Lesson" button for authenticated users
-    if (price === 0 && user) {
+    // For free lessons - user is already authenticated at this point
+    if (price === 0) {
       return (
         <div className="p-6 bg-muted rounded-lg">
           <h3 className="text-lg font-semibold mb-2">Free Lesson</h3>

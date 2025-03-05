@@ -7,7 +7,7 @@ import { useUserLessons } from '@/app/hooks/use-user-lessons';
 jest.mock('@/app/hooks/use-user-lessons');
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: React.ComponentProps<'img'> & { src: string; alt: string }) => {
     // eslint-disable-next-line @next/next/no-img-element
     return <img {...props} src={props.src} alt={props.alt} />;
   },

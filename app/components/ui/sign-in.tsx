@@ -37,7 +37,9 @@ function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProp
           const redirectTo = searchParams?.get('redirect');
           
           if (redirectTo) {
-            window.location.href = redirectTo;
+            // Decode the URL if it's encoded
+            const decodedRedirect = decodeURIComponent(redirectTo);
+            window.location.href = decodedRedirect;
           } else {
             router.push('/profile');
           }

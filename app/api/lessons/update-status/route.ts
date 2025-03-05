@@ -5,11 +5,17 @@ import { Database } from '@/types/database';
 
 export async function POST(request: Request) {
   try {
-    // Make sure to await cookies()
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+    const { lessonId, muxAssetId, muxPlaybackId, status } = await request.json();
     
-    // Get the current user session
+    if (!lessonId) {
+      return NextResponse.json(
+        { error: 'Missing lessonId parameter' },
+        { status: 400 }
+      );
+    }
+    
+    // Get the current user
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
@@ -19,65 +25,53 @@ export async function POST(request: Request) {
       );
     }
     
-    // Parse the request body
-    const { lessonId, muxAssetId, muxPlaybackId, status } = await request.json();
+    console.log(`API: Updating lesson ${lessonId} status to ${status || 'published'}`);
+    console.log(`API: Asset ID: ${muxAssetId || 'not provided'}, Playback ID: ${muxPlaybackId || 'not provided'}`);
     
-    // Validate required fields
-    if (!lessonId || !muxAssetId || !muxPlaybackId || !status) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    // Prepare the update data
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+    
+    // Only include fields that are provided
+    if (status) {
+      updateData.status = status;
     }
     
-    // Verify the user has permission to update this lesson
-    const { data: lesson, error: lessonError } = await supabase
-      .from('lessons')
-      .select('creator_id')
-      .eq('id', lessonId)
-      .single();
-    
-    if (lessonError || !lesson) {
-      return NextResponse.json(
-        { error: 'Lesson not found' },
-        { status: 404 }
-      );
+    if (muxAssetId) {
+      updateData.mux_asset_id = muxAssetId;
     }
     
-    if (lesson.creator_id !== session.user.id) {
-      return NextResponse.json(
-        { error: 'You do not have permission to update this lesson' },
-        { status: 403 }
-      );
+    if (muxPlaybackId) {
+      updateData.mux_playback_id = muxPlaybackId;
     }
     
     // Update the lesson
-    const { error: updateError } = await supabase
+    const { data, error } = await supabase
       .from('lessons')
-      .update({
-        status,
-        mux_asset_id: muxAssetId,
-        mux_playback_id: muxPlaybackId,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', lessonId);
+      .update(updateData)
+      .eq('id', lessonId)
+      .eq('creator_id', session.user.id)
+      .select()
+      .single();
     
-    if (updateError) {
-      console.error('Error updating lesson:', updateError);
+    if (error) {
+      console.error('API: Error updating lesson status:', error);
       return NextResponse.json(
-        { error: 'Failed to update lesson' },
+        { error: 'Failed to update lesson status', details: error.message },
         { status: 500 }
       );
     }
     
-    return NextResponse.json({
-      success: true,
-      message: `Lesson status updated to ${status}`
-    });
+    return NextResponse.json({ success: true, lesson: data });
   } catch (error) {
-    console.error('Error in update-status API:', error);
+    console.error('API: Error updating lesson status:', error);
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Failed to update lesson status',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

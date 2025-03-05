@@ -153,7 +153,7 @@ export class LessonsService extends DatabaseService {
       if (!session?.user) {
         return { 
           data: null, 
-          error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as any 
+          error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as Error 
         };
       }
       
@@ -172,7 +172,7 @@ export class LessonsService extends DatabaseService {
               message: 'Failed to verify profile', 
               code: 'PROFILE_ERROR',
               details: profileError.message
-            } as any
+            } as Error
           };
         }
         
@@ -182,7 +182,7 @@ export class LessonsService extends DatabaseService {
             error: { 
               message: 'Stripe account required for paid lessons', 
               code: 'STRIPE_REQUIRED' 
-            } as any
+            } as Error
           };
         }
       }
@@ -239,7 +239,7 @@ export class LessonsService extends DatabaseService {
       if (!session?.user) {
         return { 
           data: null, 
-          error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as any 
+          error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as Error 
         };
       }
       
@@ -257,7 +257,7 @@ export class LessonsService extends DatabaseService {
       if (lessonData.instructor_id !== session.user.id) {
         return { 
           data: null, 
-          error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as any 
+          error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } as Error 
         };
       }
       

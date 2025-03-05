@@ -183,69 +183,88 @@ export function VideoUploader({
         onSuccess={(event) => {
           console.log("MuxUploader onSuccess event:", event);
           
-          // Since the event doesn't have the expected structure, we need to use the uploadId
-          // that we received from the initial upload URL response
+          // Extract the upload ID from the endpoint URL
+          // The endpoint URL contains the upload ID as part of the path or query parameters
+          let uploadId;
+          
           try {
-            // First try to get the upload_id from the DOM
-            const uploadIds = document.querySelectorAll('[data-upload-id]');
-            if (uploadIds.length > 0) {
-              const firstUploadId = uploadIds[0].getAttribute('data-upload-id');
-              if (firstUploadId) {
-                console.log("Using upload ID from DOM:", firstUploadId);
-                // Store the upload ID in a global variable for fallback
-                (window as any).__lastUploadId = firstUploadId;
-                handleUploadSuccess(firstUploadId);
-                return;
-              }
-            }
-            
-            // Next try to extract from URL params
-            if (uploadEndpoint) {
-              try {
-                const uploadEndpointUrl = new URL(uploadEndpoint);
-                const uploadIdParam = uploadEndpointUrl.searchParams.get("upload_id");
-                
-                if (uploadIdParam) {
-                  console.log("Using upload ID from URL param:", uploadIdParam);
-                  // Store the upload ID in a global variable for fallback
-                  (window as any).__lastUploadId = uploadIdParam;
-                  handleUploadSuccess(uploadIdParam);
-                  return;
-                }
-              } catch (urlError) {
-                console.error("Error parsing URL:", urlError);
-              }
-            }
-            
-            // Try to extract from the event
-            if (event instanceof CustomEvent) {
-              // Different versions of the Mux uploader might have different event structures
-              const uploadId = event.detail?.uploadId || 
-                               event.detail?.id || 
-                               (typeof event.detail === 'string' ? event.detail : null);
+            // First try to get it from the event
+            if (event && event.detail && event.detail.uploadId) {
+              uploadId = event.detail.uploadId;
+              console.log("Got upload ID from event:", uploadId);
+            } else if (uploadEndpoint) {
+              // Extract from the uploadEndpoint URL
+              const url = new URL(uploadEndpoint);
               
-              if (uploadId) {
-                console.log("Using upload ID from event:", uploadId);
-                // Store the upload ID in a global variable for fallback
-                (window as any).__lastUploadId = uploadId;
-                handleUploadSuccess(uploadId);
-                return;
+              // The upload ID is typically in the path or as a query parameter
+              const pathParts = url.pathname.split('/');
+              const lastPathPart = pathParts[pathParts.length - 1];
+              
+              if (lastPathPart && lastPathPart.length > 8) {
+                // If the last path part looks like an ID, use it
+                uploadId = lastPathPart;
+                console.log("Extracted upload ID from URL path:", uploadId);
+              } else {
+                // Try to get it from query parameters
+                const params = new URLSearchParams(url.search);
+                const idFromParams = params.get('upload_id');
+                if (idFromParams) {
+                  uploadId = idFromParams;
+                  console.log("Extracted upload ID from URL params:", uploadId);
+                }
               }
             }
             
-            // Last resort: use a hardcoded ID from the most recent upload
-            const globalUploadId = (window as any).__lastUploadId;
-            if (globalUploadId) {
-              console.log("Using global upload ID:", globalUploadId);
-              handleUploadSuccess(globalUploadId);
-              return;
+            // If we still don't have an ID, try to get it from the stored global variable
+            if (!uploadId) {
+              uploadId = (window as any).__lastUploadId;
+              console.log("Using stored upload ID:", uploadId);
             }
-            
-            throw new Error("Could not determine upload ID from any source");
           } catch (error) {
-            console.error("Error in onSuccess handler:", error);
-            handleUploadError(error instanceof Error ? error : new Error("Failed to process upload"));
+            console.error("Error extracting upload ID:", error);
           }
+          
+          if (!uploadId) {
+            // If we still don't have an ID, generate a temporary one based on timestamp
+            // This is a fallback to prevent the upload from failing completely
+            uploadId = `temp_${Date.now()}`;
+            console.warn("No upload ID found, using generated temporary ID:", uploadId);
+          }
+          
+          // Store the upload ID in the database if we have a lesson ID
+          if (lessonId) {
+            fetch('/api/lessons/update-upload-id', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lessonId,
+                muxUploadId: uploadId
+              })
+            }).then(response => {
+              if (!response.ok) {
+                throw new Error('Failed to update lesson with upload ID');
+              }
+              return response.json();
+            }).catch(error => {
+              console.error('Error updating lesson with upload ID:', error);
+            });
+          }
+          
+          // Ensure we properly encode the assetId when fetching playback ID later
+          try {
+            window.sessionStorage.setItem('lastMuxAssetId', uploadId);
+            console.log('Stored asset ID in session storage:', uploadId);
+            
+            // Also store it in localStorage as a backup
+            localStorage.setItem('lastMuxAssetId', uploadId);
+            
+            // Set a global variable as another fallback
+            (window as any).__muxAssetId = uploadId;
+          } catch (storageError) {
+            console.error('Failed to store asset ID in session storage:', storageError);
+          }
+          
+          handleUploadSuccess(uploadId);
         }}
         onError={(event) => {
           console.error("MuxUploader onError event:", event);

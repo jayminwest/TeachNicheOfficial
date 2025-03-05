@@ -5,8 +5,7 @@ import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { supabase } from "@/app/services/supabase";
-import { waitForAssetReady } from "@/app/services/mux";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { Loader2 } from "lucide-react";
 
@@ -72,16 +71,14 @@ export default function NewLessonPage() {
         return;
       }
       
-      // Check if muxPlaybackId exists and is not empty
+      // Don't require playbackId - it will be set when processing completes
+      // Just log that we're proceeding with a processing video
       if (!data.muxPlaybackId || data.muxPlaybackId.trim() === "") {
-        console.error("Missing muxPlaybackId in form submission");
-        toast({
-          title: "Video Processing Incomplete",
-          description: "Please wait for video processing to complete before creating the lesson",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
+        console.log("Creating lesson with processing video (no playbackId yet)");
+        // Set a flag to indicate video is still processing
+        data.videoProcessing = true;
+        // Set status to published by default
+        data.status = 'published';
       }
       
       // Handle temporary asset IDs
@@ -124,7 +121,7 @@ export default function NewLessonPage() {
           
           // Handle validation errors specifically
           if (errorData.error === 'Validation error' && errorData.details) {
-            const errorMessages = [];
+            const errorMessages: string[] = [];
             
             // Extract field-specific errors
             if (errorData.details.title) {
@@ -157,7 +154,7 @@ export default function NewLessonPage() {
               `Failed to create lesson: ${response.statusText}`;
           
           throw new Error(errorMessage);
-        } catch (parseError) {
+        } catch (_parseError) {
           if (errorData) {
             const errorMessage = 
               errorData.details ? 

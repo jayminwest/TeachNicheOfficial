@@ -25,8 +25,13 @@ const lessonFormSchema = z.object({
   content: z.string()
     .min(1, "Content is required")
     .max(50000, "Content must be less than 50000 characters"),
-  muxAssetId: z.string().optional(),
-  muxPlaybackId: z.string().optional(),
+  muxAssetId: z.string().optional().nullable(),
+  muxPlaybackId: z.union([
+    z.string(),
+    z.literal(""),
+    z.null(),
+    z.undefined()
+  ]).optional().transform(val => val || ""), // Transform null/undefined to empty string
   thumbnail_url: z.string().optional().default(""),
   thumbnailUrl: z.string().optional().default(""), // Keep for backward compatibility
   price: z.number()
@@ -183,9 +188,41 @@ export function LessonForm({
             data.thumbnail_url = data.thumbnailUrl;
           }
           
-          console.log("Submitting lesson with thumbnail:", {
-            thumbnail_url: data.thumbnail_url,
-            thumbnailUrl: data.thumbnailUrl
+          // Handle the case where a video is still processing
+          if (data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "processing" || data.muxPlaybackId === "")) {
+            console.log("Video is still processing, setting muxPlaybackId to empty string for now");
+            // Set to empty string to allow form submission - webhook will update it later
+            data.muxPlaybackId = "";
+            
+            // Set status to published even while processing
+            data.status = 'published';
+            
+            // Show a toast to inform the user
+            toast({
+              title: "Video Processing",
+              description: "Your video is still processing. The lesson is published and will be updated when processing is complete.",
+            });
+            
+            // Store a flag to redirect to the asset status page after form submission
+            window.sessionStorage.setItem('redirectToAssetStatus', data.muxAssetId);
+          }
+          
+          // Final validation check for muxPlaybackId
+          if (data.muxAssetId && !data.muxPlaybackId) {
+            console.log("Ensuring muxPlaybackId is set to empty string");
+            data.muxPlaybackId = "";
+          }
+          
+          console.log("Submitting lesson with data:", {
+            title: data.title,
+            thumbnail: {
+              thumbnail_url: data.thumbnail_url,
+              thumbnailUrl: data.thumbnailUrl
+            },
+            video: {
+              muxAssetId: data.muxAssetId,
+              muxPlaybackId: data.muxPlaybackId
+            }
           });
           
           // Continue with form submission
@@ -407,24 +444,80 @@ export function LessonForm({
                   console.log("Set muxAssetId in form:", assetId);
                   console.log("Form values after setting muxAssetId:", form.getValues());
                   
-                  // Always use a temporary playback ID for now
-                  // This simplifies the flow and avoids unnecessary API calls
-                  console.log("Using temporary playback ID for asset");
-                  const playbackId = `temp_playback_${assetId.replace(/^temp_/, '')}`;
+                  // Store the asset ID in session storage for later use
+                  try {
+                    window.sessionStorage.setItem('lastMuxAssetId', assetId);
+                    console.log("Stored asset ID in session storage:", assetId);
+                    
+                    // Try to fetch the playback ID immediately in case it's already available
+                    // Use absolute URL to avoid parsing issues
+                    try {
+                      const apiUrl = new URL('/api/mux/playback-id', window.location.origin);
+                      apiUrl.searchParams.append('assetId', assetId);
+                      
+                      console.log('Fetching playback ID from:', apiUrl.toString());
+                      
+                      fetch(apiUrl.toString(), {
+                        method: 'GET',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        cache: 'no-store',
+                        // Add a timeout to prevent hanging requests
+                        signal: AbortSignal.timeout(10000) // 10 second timeout
+                      })
+                    .then(response => {
+                      if (response.ok) {
+                        return response.json();
+                      }
+                      // If not ready, that's expected - we'll continue with processing status
+                      console.log("Playback ID not ready yet, will be set when processing completes");
+                      return null;
+                    })
+                    .then(data => {
+                      if (data && data.playbackId) {
+                        console.log("Playback ID already available:", data.playbackId);
+                        form.setValue("muxPlaybackId", data.playbackId, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true
+                        });
+                      }
+                    })
+                    .catch(error => {
+                      // Just log the error, don't block the flow
+                      console.error("Error checking for playback ID:", error);
+                      // Continue with form submission even if playback ID check fails
+                      console.log("Continuing with form submission despite playback ID check failure");
+                    });
+                    } catch (urlError) {
+                      // Handle URL creation errors
+                      console.error("Error creating URL for playback ID check:", urlError);
+                      // Continue with form submission even if URL creation fails
+                    }
+                  } catch (storageError) {
+                    console.error("Failed to store asset ID in session storage:", storageError);
+                  }
                   
-                  // Set the muxPlaybackId in the form
-                  form.setValue("muxPlaybackId", playbackId, {
+                  // Don't set a temporary playback ID - we'll get the real one from Mux
+                  console.log("Setting only the asset ID for now, playback ID will be set when processing completes");
+                  
+                  // Set a temporary value for muxPlaybackId to indicate processing
+                  // This will be updated by the webhook when processing is complete
+                  form.setValue("muxPlaybackId", "processing", {
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true
                   });
                   
-                  console.log("Set muxPlaybackId in form:", playbackId);
-                  console.log("Form values after setting both IDs:", form.getValues());
+                  // Ensure the form knows this field has been touched
+                  form.trigger("muxPlaybackId");
+                  
+                  console.log("Form values after setting asset ID:", form.getValues());
                   
                   toast({
                     title: "Video uploaded",
-                    description: "Your video has been uploaded and processed successfully.",
+                    description: "Your video has been uploaded and is now processing. You can continue filling out the form and submit when ready.",
                   });
                 } catch (error) {
                   toast({

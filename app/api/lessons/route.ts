@@ -82,11 +82,12 @@ async function createLessonHandler(request: Request) {
       description,
       price,
       content,
-      status,
+      // Keep status as published even when video is still processing
+      status: status || 'published',
       creator_id: session.user.id,
       category,
       mux_asset_id: muxAssetId,
-      mux_playback_id: muxPlaybackId,
+      mux_playback_id: muxPlaybackId || null, // Allow null playback ID for processing videos
       thumbnail_url: body.thumbnail_url || body.thumbnailUrl || null, // Ensure thumbnail URL is included
       stripe_product_id: null, // Will be updated after Stripe product creation
       stripe_price_id: null,   // Will be updated after Stripe price creation

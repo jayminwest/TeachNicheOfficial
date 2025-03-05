@@ -17,7 +17,7 @@ export default function EditLessonPage() {
   const lessonId = params.id as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [lesson, setLesson] = useState<any>(null);
+  const [lesson, setLesson] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { user, isLoading: authLoading } = useAuth();
   
@@ -59,14 +59,16 @@ export default function EditLessonPage() {
     }
   }, [lessonId, user, authLoading]);
 
-  const handleSubmit = async (data: {
+  interface LessonFormData {
     title: string;
     description: string;
     content: string;
     muxAssetId?: string;
     muxPlaybackId?: string;
     price?: number;
-  }) => {
+  }
+
+  const handleSubmit = async (data: LessonFormData) => {
     setIsSubmitting(true);
     try {
       // Check authentication

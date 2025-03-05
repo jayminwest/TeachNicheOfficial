@@ -1,111 +1,118 @@
 import { NextResponse } from 'next/server';
-import { Video } from '@/app/services/mux';
+import { getMuxClient } from '@/app/services/mux';
 
 export async function GET(request: Request) {
-  if (!Video || typeof Video.assets?.retrieve !== 'function') {
-    return NextResponse.json(
-      { error: 'Mux Video client not properly initialized' },
-      { status: 500 }
-    );
-  }
-
-  const { searchParams } = new URL(request.url);
-  const assetId = searchParams.get('assetId');
-
-  if (!assetId) {
-    return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(request.url);
+    const assetId = searchParams.get('assetId');
+    const isFree = searchParams.get('isFree') === 'true';
+    
+    if (!assetId) {
+      return NextResponse.json(
+        { error: 'Missing assetId parameter' },
+        { status: 400 }
+      );
+    }
+    
+    // Get the Mux client directly
+    const mux = getMuxClient();
+    
     try {
-      console.log('Creating playback ID for asset:', assetId);
-      // First check if the asset exists and is ready
-      const asset = await Video.assets.retrieve(assetId);
+      // Get the asset from Mux
+      const asset = await mux.video.assets.retrieve(assetId);
       
-      if (!asset || !asset.status) {
+      // Check if the asset has playback IDs
+      if (!asset.playback_ids || asset.playback_ids.length === 0) {
+        // If the asset is ready but has no playback ID, create one
+        if (asset.status === 'ready') {
+          console.log('Creating new playback ID for ready asset');
+          try {
+            // Use the appropriate policy based on whether the content is free
+            const policy = isFree ? 'public' : 'signed';
+            console.log(`Creating playback ID with policy: ${policy}`);
+            
+            const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+              policy
+            });
+            
+            if (newPlaybackId && newPlaybackId.id) {
+              console.log('Created new playback ID:', newPlaybackId.id);
+              return NextResponse.json({ playbackId: newPlaybackId.id });
+            }
+          } catch (createError) {
+            console.error('Error creating playback ID:', createError);
+            return NextResponse.json(
+              { 
+                error: 'Failed to create playback ID',
+                details: createError instanceof Error ? createError.message : String(createError)
+              },
+              { status: 500 }
+            );
+          }
+        }
+        
+        // If asset is not ready, return appropriate status
+        if (asset.status !== 'ready') {
+          return NextResponse.json(
+            { 
+              error: 'Asset not ready for playback',
+              status: asset.status,
+              assetId: assetId
+            },
+            { status: 202 }
+          );
+        }
+        
         return NextResponse.json(
-          { error: 'Asset not found or invalid' },
+          { error: 'No playback IDs found for this asset' },
           { status: 404 }
         );
       }
       
-      console.log('Asset status:', asset.status);
+      // Check if we have a playback ID with the right policy
+      const desiredPolicy = isFree ? 'public' : 'signed';
+      const matchingId = asset.playback_ids.find(id => id.policy === desiredPolicy);
       
-      if (asset.status !== 'ready') {
-        return NextResponse.json(
-          { error: 'Asset not ready', details: `Current status: ${asset.status}` },
-          { status: 400 }
-        );
-      }
-
-      if (!Video || typeof Video.assets?.createPlaybackId !== 'function') {
-        throw new Error('Mux Video client not properly initialized');
-      }
-
-      // Create a new playback ID
-      const playbackId = await Video.assets.createPlaybackId(assetId, {
-        policy: 'public' 
-      });
-      
-      console.log('Created playback ID:', JSON.stringify({
-        assetId: assetId,
-        playbackId: playbackId
-      }, null, 2));
-
-      if (!playbackId || !playbackId.id) {
-        throw new Error('Failed to create playback ID');
-      }
-
-      return NextResponse.json({ playbackId: playbackId.id });
-    } catch (muxError: unknown) {
-      interface MuxErrorType {
-        type?: string;
-        details?: string;
-        status?: number;
+      if (matchingId) {
+        console.log(`Found existing ${desiredPolicy} playback ID:`, matchingId.id);
+        return NextResponse.json({ playbackId: matchingId.id });
+      } else {
+        // If no matching policy ID exists, create one
+        console.log(`No ${desiredPolicy} playback ID found, creating one`);
+        try {
+          const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+            policy: desiredPolicy
+          });
+          
+          if (newPlaybackId && newPlaybackId.id) {
+            console.log(`Created new ${desiredPolicy} playback ID:`, newPlaybackId.id);
+            return NextResponse.json({ playbackId: newPlaybackId.id });
+          }
+        } catch (createError) {
+          console.error(`Error creating ${desiredPolicy} playback ID:`, createError);
+        }
       }
       
-      const errorDetails = {
-        error: muxError,
-        message: muxError instanceof Error ? muxError.message : 'Unknown error',
-        type: (muxError as MuxErrorType)?.type,
-        details: (muxError as MuxErrorType)?.details
-      };
-      console.error('Mux API error:', errorDetails);
-      throw muxError;
-    }
-  } catch (error: unknown) {
-    interface ExtendedError {
-      code?: string;
-      type?: string;
-      details?: string;
-      status?: number;
-      message?: string;
-    }
-
-    const errorDetails = {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      code: (error as ExtendedError)?.code,
-      type: (error as ExtendedError)?.type,
-      details: (error as ExtendedError)?.details || error
-    };
-    console.error('Error fetching Mux asset:', errorDetails);
-
-    // Check if it's a Mux API error
-    const typedError = error as ExtendedError;
-    if (typedError?.type?.startsWith('mux')) {
+      // Return the first playback ID as fallback if we couldn't create a new one
+      const playbackId = asset.playback_ids[0].id;
+      console.log(`Returning fallback playback ID: ${playbackId} with policy: ${asset.playback_ids[0].policy}`);
+      return NextResponse.json({ playbackId });
+    } catch (muxError) {
+      console.error('Error retrieving asset from Mux:', muxError);
       return NextResponse.json(
         { 
-          error: `Mux API error: ${typedError.type}`, 
-          details: typedError.message || 'Unknown error'
+          error: 'Failed to get asset from Mux API', 
+          details: muxError instanceof Error ? muxError.message : String(muxError)
         },
-        { status: typedError.status || 500 }
+        { status: 500 }
       );
     }
+  } catch (error) {
+    console.error('Error in playback-id route:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to fetch playback ID', 
-        details: typedError.message || 'Unknown error'
+        error: 'Failed to process request',
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     );

@@ -14,12 +14,14 @@ interface AccessCacheEntry {
 
 export function useLessonAccess(lessonId: string): LessonAccess & { 
   loading: boolean
-  error: Error | null 
+  error: Error | null
+  requiresAuth?: boolean
 } {
   const { user, loading: authLoading } = useAuth()
-  const [access, setAccess] = useState<LessonAccess>({ 
+  const [access, setAccess] = useState<LessonAccess & { requiresAuth?: boolean }>({ 
     hasAccess: false,
-    purchaseStatus: 'none'
+    purchaseStatus: 'none',
+    requiresAuth: !user // Set requiresAuth based on user authentication status
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -80,10 +82,14 @@ export function useLessonAccess(lessonId: string): LessonAccess & {
         return
       }
       
-      // If not logged in, no access
+      // If not logged in, no access - this is critical for both free and paid lessons
       if (!user) {
         if (mounted) {
-          setAccess({ hasAccess: false, purchaseStatus: 'none' })
+          setAccess({ 
+            hasAccess: false, 
+            purchaseStatus: 'none',
+            requiresAuth: true // Add a flag to indicate auth is required
+          })
           setLoading(false)
         }
         return

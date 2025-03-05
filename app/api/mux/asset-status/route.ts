@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
     if (!assetId) {
       return NextResponse.json(
-        { error: 'Asset ID required' },
+        { error: 'Missing assetId parameter' },
         { status: 400 }
       );
     }
@@ -24,6 +24,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(status);
   } catch (error) {
+    console.error('Error getting asset status:', error);
     return NextResponse.json(
       { 
         error: 'Failed to get asset status',

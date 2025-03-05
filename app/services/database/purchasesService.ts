@@ -1,5 +1,5 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
-import { PurchaseStatus, LessonAccess, Purchase } from '@/types/purchase'
+import { PurchaseStatus, LessonAccess } from '@/types/purchase'
 
 export interface PurchaseCreateData {
   lessonId: string;
@@ -16,9 +16,11 @@ export class PurchasesService extends DatabaseService {
    * @private
    */
   private getStripe() {
-    const Stripe = require('stripe');
-    return new Stripe(process.env.STRIPE_SECRET_KEY || 'test-key', {
-      apiVersion: '2025-01-27.acacia',
+    // Import dynamically to avoid require()
+    return import('stripe').then(Stripe => {
+      return new Stripe.default(process.env.STRIPE_SECRET_KEY || 'test-key', {
+        apiVersion: '2025-01-27.acacia',
+      });
     });
   }
 

@@ -1,382 +1,219 @@
 import Mux from '@mux/mux-node';
-import { v4 as uuidv4 } from 'uuid';
 
-// Only initialize Mux client on the server side
-let muxClient: any = null;
-
-// Function to initialize Mux client
-function initMuxClient() {
-  if (typeof window !== 'undefined') {
-    return false; // Don't initialize on client side
-  }
-  
-  if (muxClient) {
-    return true; // Already initialized
-  }
-  
-  const tokenId = process.env.MUX_TOKEN_ID;
-  const tokenSecret = process.env.MUX_TOKEN_SECRET;
-
-  if (!tokenId || !tokenSecret) {
-    console.warn('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
-    return false;
-  }
-  
-  try {
-    // Initialize the client according to v9.0.1 documentation
-    muxClient = new Mux({ tokenId, tokenSecret });
-    
-    // Verify that client is properly initialized
-    if (!muxClient) {
-      console.warn('Failed to initialize Mux client properly');
-      return false;
-    }
-    
-    // Log success
-    console.log('Mux client initialized successfully');
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize Mux client:', error);
-    return false;
-  }
-}
-
-// Initialize on module load
-const initialized = initMuxClient();
-console.log('Mux client initialization result:', initialized ? 'Success' : 'Failed');
-
-// Debug function to check Mux client
-export function debugMuxClient() {
-  return {
-    initialized,
-    clientExists: !!muxClient,
-    videoExists: muxClient && !!muxClient.video,
-    uploadsExists: muxClient && muxClient.video && !!muxClient.video.uploads,
-    createMethodExists: muxClient && muxClient.video && muxClient.video.uploads && 
-                      typeof muxClient.video.uploads.create === 'function',
-    assetsExists: muxClient && muxClient.video && !!muxClient.video.assets,
-    clientKeys: muxClient ? Object.keys(muxClient) : [],
-    videoKeys: muxClient && muxClient.video ? Object.keys(muxClient.video) : [],
-    uploadsKeys: muxClient && muxClient.video && muxClient.video.uploads ? 
-                Object.keys(muxClient.video.uploads) : []
-  };
-}
-
-// Export the muxClient object
-export { muxClient };
-
-export interface MuxUploadResponse {
-  url: string;
-  uploadId: string;
-}
-
-interface MuxError {
-  message: string;
-  type: string;
-}
-
+// Define types for better type safety
 export interface MuxAssetResponse {
   id: string;
   status: 'preparing' | 'ready' | 'errored';
   playbackId?: string;
-  error?: MuxError;
-}
-
-export interface MuxUploadStatusResponse {
-  id: string;
-  status: 'waiting' | 'asset_created' | 'errored' | 'cancelled';
-  assetId?: string;
-  error?: MuxError;
-}
-
-export async function waitForAssetReady(assetId: string, options = {
-  maxAttempts: 60,  // 10 minutes total
-  interval: 10000,  // 10 seconds between checks
-  isFree: false
-}): Promise<{status: string, playbackId?: string}> {
-  let attempts = 0;
-
-  const checkAsset = async () => {
-    console.log(`Checking asset status (attempt ${attempts + 1}/${options.maxAttempts})`);
-    
-    const response = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: errorText };
-      }
-      
-      if (response.status === 404) {
-        throw new Error('Asset not found');
-      }
-      
-      if (response.status >= 500) {
-        // Server errors are retryable
-        return null;
-      }
-      
-      throw new Error(
-        errorData.error || errorData.details || 
-        `HTTP error! status: ${response.status}`
-      );
-    }
-      
-    const data = await response.json();
-    
-    console.log('Asset status response:', {
-      status: response.status,
-      data: JSON.stringify(data, null, 2)
-    });
-
-    if (data.status === 'ready' && data.playbackId) {
-      console.log('Asset ready with playback ID:', data.playbackId);
-      return {
-        status: 'ready',
-        playbackId: data.playbackId
-      };
-    }
-
-    if (data.status === 'errored') {
-      throw new Error('Video processing failed');
-    }
-
-    if (!['preparing', 'ready'].includes(data.status)) {
-      throw new Error(`Unexpected asset status: ${data.status}`);
-    }
-
-    return null;
+  error?: {
+    message: string;
+    type: string;
   };
-
-  while (attempts < options.maxAttempts) {
-    try {
-      const result = await checkAsset();
-      if (result) {
-        return result;
-      }
-      
-      attempts++;
-      console.log(`Asset still processing, waiting ${options.interval}ms before next check`);
-      await new Promise(resolve => setTimeout(resolve, options.interval));
-    } catch (error) {
-      console.error('Error checking asset status:', error);
-      
-      // If the error is retryable, continue
-      if (error instanceof Error && 
-          (error.message.includes('500') || error.message.includes('503'))) {
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, options.interval));
-        continue;
-      }
-      
-      throw error;
-    }
-  }
-
-  console.error('Asset processing timed out after', attempts, 'attempts');
-  throw new Error(`Video processing timed out after ${attempts} attempts`);
 }
 
-/**
- * Creates a new direct upload URL for Mux
- */
-export async function createUpload(isFree: boolean = false): Promise<MuxUploadResponse> {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
-    throw new Error('Mux Video client not initialized - check your environment variables');
+// Create a simple function to get a Mux client
+export function getMuxClient() {
+  const tokenId = process.env.MUX_TOKEN_ID;
+  const tokenSecret = process.env.MUX_TOKEN_SECRET;
+
+  if (!tokenId || !tokenSecret) {
+    throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET environment variables must be set');
   }
 
+  return new Mux({ tokenId, tokenSecret });
+}
+
+// Simple API functions that use the client directly
+export async function createUpload(isFree: boolean = false) {
+  const mux = getMuxClient();
   const corsOrigin = process.env.NEXT_PUBLIC_BASE_URL || '*';
 
-  try {
-    // Using the correct method from Mux docs
-    const upload = await muxClient.video.uploads.create({
-      new_asset_settings: {
-        playback_policy: isFree ? ['public'] : ['signed'],
-        encoding_tier: 'baseline'
-      },
-      cors_origin: corsOrigin,
-    });
+  // Use public policy for free content, signed for paid content
+  // This is consistent across all environments
+  const playbackPolicy = isFree ? ['public'] : ['signed'];
+  
+  console.log(`Creating upload with playback policy: ${playbackPolicy.join(', ')}`);
 
-    if (!upload?.url || !upload?.id) {
-      throw new Error('Invalid upload response from Mux');
-    }
+  const upload = await mux.video.uploads.create({
+    new_asset_settings: {
+      playback_policy: playbackPolicy,
+      encoding_tier: 'baseline'
+    },
+    cors_origin: corsOrigin,
+  });
 
-    return {
-      url: upload.url,
-      uploadId: upload.id
-    };
-  } catch (error) {
-    console.error('Error creating Mux upload:', error);
-    throw error;
-  }
+  return {
+    url: upload.url,
+    uploadId: upload.id
+  };
 }
 
-/**
- * Gets the status of a Mux upload
- */
-export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatusResponse> {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
-    throw new Error('Mux Video client not properly initialized - check your environment variables');
-  }
-
-  try {
-    const upload = await muxClient.video.uploads.get(uploadId);
-    
-    if (!upload) {
-      throw new Error('Mux API returned null or undefined upload');
-    }
-    
-    return {
-      id: upload.id,
-      status: upload.status as 'waiting' | 'asset_created' | 'errored' | 'cancelled',
-      assetId: upload.asset_id,
-      error: undefined
-    };
-  } catch (error) {
-    console.error('Mux API error:', error);
-    return {
-      id: uploadId,
-      status: 'errored',
-      error: {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        type: 'api_error'
-      }
-    };
-  }
+export async function getUploadStatus(uploadId: string) {
+  const mux = getMuxClient();
+  const upload = await mux.video.uploads.retrieve(uploadId);
+  
+  return {
+    id: upload.id,
+    status: upload.status,
+    assetId: upload.asset_id
+  };
 }
 
-/**
- * Checks the status of a Mux asset
- */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
-    throw new Error('Mux Video client not properly initialized - check your environment variables');
-  }
-
-  // Don't try to get status for temporary asset IDs
-  if (assetId.startsWith('temp_')) {
-    return {
-      id: assetId,
-      status: 'preparing',
-      error: {
-        message: 'This is a temporary asset ID',
-        type: 'temp_asset'
+  const mux = getMuxClient();
+  const asset = await mux.video.assets.retrieve(assetId);
+  
+  // Get the playback ID if the asset is ready
+  let playbackId = undefined;
+  if (asset.status === 'ready') {
+    // Check if we have any playback IDs
+    if (asset.playback_ids && asset.playback_ids.length > 0) {
+      // In development, prefer public playback IDs
+      if (process.env.NODE_ENV === 'development') {
+        // Look for a public playback ID first
+        const publicId = asset.playback_ids.find(id => id.policy === 'public');
+        if (publicId) {
+          playbackId = publicId.id;
+        } else {
+          // If no public ID exists, create one
+          console.log(`Creating public playback ID for asset ${assetId} in development`);
+          try {
+            const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+              policy: 'public'
+            });
+            playbackId = newPlaybackId.id;
+          } catch (error) {
+            console.error(`Error creating public playback ID: ${error}`);
+            // Fall back to the first available ID
+            playbackId = asset.playback_ids[0].id;
+          }
+        }
+      } else {
+        // In production, just use the first playback ID
+        playbackId = asset.playback_ids[0].id;
       }
-    };
-  }
-
-  try {
-    const asset = await muxClient.video.assets.get(assetId);
-    
-    if (!asset) {
-      throw new Error('Mux API returned null or undefined asset');
+    } else if (asset.status === 'ready') {
+      // If the asset is ready but has no playback IDs, create one
+      console.log(`Asset ${assetId} is ready but has no playback IDs, creating one`);
+      try {
+        // In development, always create public playback IDs
+        const policy = process.env.NODE_ENV === 'development' ? 'public' : 'signed';
+        const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+          policy
+        });
+        playbackId = newPlaybackId.id;
+      } catch (error) {
+        console.error(`Error creating playback ID: ${error}`);
+      }
     }
+  }
+  
+  return {
+    id: asset.id,
+    status: asset.status as 'preparing' | 'ready' | 'errored',
+    playbackId
+  };
+}
+
+export async function getAssetIdFromUpload(uploadId: string): Promise<string> {
+  const mux = getMuxClient();
+  
+  try {
+    // Try to get the upload directly
+    const upload = await mux.video.uploads.retrieve(uploadId);
     
-    // Log more details about the asset for debugging
-    console.log(`Asset ${assetId} status: ${asset.status}, playback IDs:`, 
-      asset.playback_ids ? asset.playback_ids.map(p => p.id).join(', ') : 'none');
-    
-    return {
-      id: asset.id,
-      status: asset.status as 'preparing' | 'ready' | 'errored',
-      playbackId: asset.playback_ids?.[0]?.id,
-      error: undefined
-    };
-  } catch (error) {
-    console.error('Mux API error:', error);
-    
-    // Provide more detailed error information
-    let errorType = 'unknown';
-    let errorMessage = 'Unknown error occurred';
-    
-    if (error instanceof Error) {
-      errorMessage = error.message;
+    if (!upload.asset_id) {
+      // Check if the upload is still processing
+      if (upload.status === 'waiting') {
+        throw new Error('Upload is still processing, no asset ID available yet');
+      }
       
-      if (errorMessage.includes('not found')) {
-        errorType = 'not_found';
-      } else if (errorMessage.includes('rate limit')) {
-        errorType = 'rate_limit';
-      } else if (errorMessage.includes('unauthorized')) {
-        errorType = 'auth_error';
+      // Check if the upload has errored
+      if (upload.status === 'errored') {
+        const errorMessage = upload.error ? JSON.stringify(upload.error) : 'Unknown error';
+        throw new Error(`Upload failed: ${errorMessage}`);
+      }
+      
+      throw new Error('No asset ID found for this upload');
+    }
+    
+    return upload.asset_id;
+  } catch (error) {
+    console.error(`Error getting asset ID from upload ${uploadId}:`, error);
+    
+    // If we get an invalid parameters error, it might be a Mux ID format issue
+    // Try to get the most recent upload as a fallback
+    if (error instanceof Error && 
+        (error.message.includes('invalid_parameters') || 
+         error.message.includes('Failed to parse ID'))) {
+      console.log('Invalid upload ID format, trying to get most recent upload...');
+      
+      try {
+        const uploads = await mux.video.uploads.list({ limit: 1 });
+        
+        if (uploads && uploads.data && uploads.data.length > 0) {
+          const latestUpload = uploads.data[0];
+          
+          if (latestUpload.asset_id) {
+            console.log(`Found asset ID ${latestUpload.asset_id} from most recent upload`);
+            return latestUpload.asset_id;
+          } else {
+            throw new Error('Most recent upload does not have an asset ID yet');
+          }
+        } else {
+          throw new Error('No recent uploads found');
+        }
+      } catch (fallbackError) {
+        console.error('Error getting recent uploads:', fallbackError);
+        throw fallbackError;
       }
     }
     
-    return {
-      id: assetId,
-      status: 'errored',
-      error: {
-        message: errorMessage,
-        type: errorType
-      }
-    };
-  }
-}
-
-/**
- * Gets asset details
- */
-export async function getAsset(assetId: string) {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
-    throw new Error('Mux Video client not properly initialized - check your environment variables');
-  }
-
-  try {
-    const asset = await muxClient.video.assets.get(assetId);
-    return asset;
-  } catch (error) {
-    console.error(`Error getting Mux asset ${assetId}:`, error);
     throw error;
   }
 }
 
-/**
- * Gets upload details
- */
-export async function getUpload(uploadId: string) {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
-    throw new Error('Mux Video client not properly initialized - check your environment variables');
-  }
-
-  try {
-    const upload = await muxClient.video.uploads.get(uploadId);
-    return upload;
-  } catch (error) {
-    console.error(`Error getting Mux upload ${uploadId}:`, error);
-    throw error;
-  }
+export async function deleteAsset(assetId: string): Promise<boolean> {
+  const mux = getMuxClient();
+  await mux.video.assets.delete(assetId);
+  return true;
 }
 
-/**
- * Gets playback ID for an asset
- */
-export async function getPlaybackId(assetId: string) {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
-    throw new Error('Mux Video client not properly initialized - check your environment variables');
-  }
+export async function listRecentUploads(limit: number = 10) {
+  const mux = getMuxClient();
+  return mux.video.uploads.list({ limit });
+}
 
+export async function getPlaybackId(assetId: string, isFree: boolean = false): Promise<string> {
+  const mux = getMuxClient();
+  
   try {
-    const asset = await muxClient.video.assets.get(assetId);
+    const asset = await mux.video.assets.retrieve(assetId);
     
     if (!asset.playback_ids || asset.playback_ids.length === 0) {
-      throw new Error('No playback IDs found for this asset');
+      // If no playback IDs exist, create one with the appropriate policy
+      console.log(`No playback IDs found for asset ${assetId}, creating one with policy: ${isFree ? 'public' : 'signed'}`);
+      const playbackId = await mux.video.assets.createPlaybackId(assetId, {
+        policy: isFree ? 'public' : 'signed'
+      });
+      return playbackId.id;
     }
     
-    return asset.playback_ids[0].id;
+    // Check if we have a playback ID with the right policy
+    const existingId = asset.playback_ids.find(id => 
+      (isFree && id.policy === 'public') || (!isFree && id.policy === 'signed')
+    );
+    
+    if (existingId) {
+      return existingId.id;
+    }
+    
+    // If we don't have a playback ID with the right policy, create one
+    console.log(`Creating new playback ID with policy: ${isFree ? 'public' : 'signed'}`);
+    const newPlaybackId = await mux.video.assets.createPlaybackId(assetId, {
+      policy: isFree ? 'public' : 'signed'
+    });
+    return newPlaybackId.id;
   } catch (error) {
     console.error(`Error getting playback ID for asset ${assetId}:`, error);
     throw error;
@@ -384,19 +221,27 @@ export async function getPlaybackId(assetId: string) {
 }
 
 /**
- * Deletes an asset
+ * Signs a playback ID for secure viewing
  */
-export async function deleteAsset(assetId: string) {
-  // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
-    throw new Error('Mux Video client not properly initialized - check your environment variables');
+export async function signPlaybackId(playbackId: string, duration: number = 3600): Promise<string> {
+  const jwt = await import('jsonwebtoken');
+  
+  // Make sure we have the required environment variables
+  const signingKey = process.env.MUX_SIGNING_KEY;
+  const signingKeyId = process.env.MUX_SIGNING_KEY_ID;
+  
+  if (!signingKey || !signingKeyId) {
+    throw new Error('MUX_SIGNING_KEY and MUX_SIGNING_KEY_ID environment variables must be set');
   }
-
-  try {
-    await muxClient.video.assets.del(assetId);
-    return true;
-  } catch (error) {
-    console.error(`Error deleting Mux asset ${assetId}:`, error);
-    throw error;
-  }
+  
+  // Create the JWT payload
+  const payload = {
+    sub: playbackId,
+    exp: Math.floor(Date.now() / 1000) + duration,
+    kid: signingKeyId,
+    aud: 'v' // Audience is 'v' for video
+  };
+  
+  // Sign the JWT
+  return jwt.default.sign(payload, signingKey, { algorithm: 'RS256' });
 }

@@ -34,3 +34,22 @@ export function cleanPurchaseParams(): void {
   
   window.history.replaceState({}, '', url.toString());
 }
+
+/**
+ * Gets the redirect URL from the current URL's query parameters
+ */
+export function getRedirectUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('redirect');
+}
+
+/**
+ * Adds a redirect parameter to a URL
+ */
+export function addRedirectParam(url: string, redirectPath: string): string {
+  const redirectUrl = new URL(url, window.location.origin);
+  redirectUrl.searchParams.set('redirect', redirectPath);
+  return redirectUrl.toString();
+}

@@ -1,5 +1,6 @@
 'use client';
 
+// Don't use any hooks that would require Suspense
 export default function Custom500Content() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">

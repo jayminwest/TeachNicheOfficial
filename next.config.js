@@ -23,12 +23,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Disable static generation for problematic pages
+  // Use standalone output for better compatibility
   output: 'standalone',
-  // Skip static generation for error pages
-  staticPageGenerationTimeout: 120,
+  // Disable static generation for error pages
+  excludeDefaultMomentLocales: true,
   // Disable static generation for specific paths
-  excludeDefaultMomentLocales: true
+  unstable_excludeFiles: ['**/500/**', '**/404/**', '**/error/**', '**/global-error/**']
 }
 
 module.exports = nextConfig

@@ -34,10 +34,11 @@ export function getPublicUrl(bucket: string, path: string) {
 export async function uploadFile(bucket: string, path: string, file: File) {
   const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
     cacheControl: '3600',
-    upsert: false
+    upsert: true // Changed to true to allow overwriting existing files
   });
   
   if (error) {
+    console.error("Supabase upload error:", error);
     throw new Error(`Upload failed: ${error.message}`);
   }
   

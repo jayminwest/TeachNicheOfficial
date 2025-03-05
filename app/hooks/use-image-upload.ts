@@ -62,27 +62,42 @@ export function useImageUpload({
         onProgress?.(currentProgress);
       }, 200);
       
-      // Generate a unique filename
+      // Generate a unique filename with a shorter random string
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop() || 'jpg';
-      const filename = `${timestamp}_${Math.random().toString(36).substring(2, 15)}.${fileExtension}`;
+      // Use a shorter random string to avoid potential length issues
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const filename = `${timestamp}_${randomString}.${fileExtension}`;
       const path = folder ? `${folder}/${filename}` : filename;
+      
+      console.log("Uploading file to Supabase:", {
+        bucket,
+        path,
+        fileType: file.type,
+        fileSize: file.size
+      });
       
       // Get the Supabase client
       const supabase = createClientSupabaseClient();
       
-      // Upload the file
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, {
-          cacheControl: '3600',
-          upsert: true // Changed to true to allow overwriting
-        });
-      
-      // Clear the progress interval
-      clearInterval(progressInterval);
-      
-      if (error) throw error;
+      // Upload the file with direct API call to debug
+      try {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .upload(path, file, {
+            cacheControl: '3600',
+            upsert: true // Allow overwriting
+          });
+        
+        // Clear the progress interval
+        clearInterval(progressInterval);
+        
+        if (error) {
+          console.error("Supabase upload error:", error);
+          throw error;
+        }
+        
+        console.log("Upload successful:", data);
       
       // Get the public URL
       const { data: urlData } = supabase.storage

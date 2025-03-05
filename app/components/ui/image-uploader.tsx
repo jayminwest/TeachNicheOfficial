@@ -51,11 +51,20 @@ export function ImageUploader({
     if (!file) return;
     
     try {
-      // Upload the file directly without creating a local preview first
+      // Create a local preview immediately for better UX
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Upload the file
       await uploadImage(file);
+      
+      // Clean up the object URL
+      URL.revokeObjectURL(objectUrl);
     } catch (err) {
       // Error is handled by the hook
       console.error("File upload error:", err);
+      // If upload fails, clear the preview
+      setPreviewUrl(null);
     } finally {
       // Reset the file input so the same file can be selected again
       if (fileInputRef.current) {

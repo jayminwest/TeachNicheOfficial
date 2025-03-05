@@ -319,6 +319,12 @@ export function LessonForm({
             <ImageUploader
               initialImage={form.watch('thumbnailUrl')}
               onUploadComplete={(url) => {
+                if (!url) {
+                  console.log("No URL returned from upload");
+                  return;
+                }
+                
+                console.log("Thumbnail uploaded successfully:", url);
                 form.setValue("thumbnailUrl", url, { 
                   shouldValidate: true,
                   shouldDirty: true,
@@ -331,12 +337,15 @@ export function LessonForm({
                 });
               }}
               onError={(error) => {
+                console.error("Thumbnail upload error:", error);
                 toast({
                   title: "Upload failed",
                   description: error.message,
                   variant: "destructive",
                 });
               }}
+              maxSizeMB={5}
+              acceptedTypes={['image/jpeg', 'image/png', 'image/webp']}
             />
           </div>
         </Card>

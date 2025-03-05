@@ -32,6 +32,26 @@ function initMuxClient() {
       return false;
     }
     
+    // Log client structure for debugging
+    console.log('Mux client initialized with structure:');
+    console.log('- Client keys:', Object.keys(muxClient));
+    
+    if (muxClient.video) {
+      console.log('- Video keys:', Object.keys(muxClient.video));
+      
+      if (muxClient.video.uploads) {
+        console.log('- Uploads keys:', Object.keys(muxClient.video.uploads));
+        console.log('- Uploads methods:', 
+          Object.getOwnPropertyNames(Object.getPrototypeOf(muxClient.video.uploads)));
+      }
+      
+      if (muxClient.video.assets) {
+        console.log('- Assets keys:', Object.keys(muxClient.video.assets));
+        console.log('- Assets methods:', 
+          Object.getOwnPropertyNames(Object.getPrototypeOf(muxClient.video.assets)));
+      }
+    }
+    
     // Log success
     console.log('Mux client initialized successfully');
     return true;
@@ -97,7 +117,7 @@ export async function getAssetIdFromUpload(uploadId: string, options = {
   interval: 2000
 }): Promise<string> {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized');
   }
 
@@ -107,7 +127,12 @@ export async function getAssetIdFromUpload(uploadId: string, options = {
     try {
       console.log(`Checking upload status for ${uploadId} (attempt ${attempts + 1}/${options.maxAttempts})`);
       
-      const upload = await muxClient.video.uploads.get(uploadId);
+      // Debug the muxClient structure
+      console.log('Mux client structure:', Object.keys(muxClient));
+      console.log('Mux video structure:', Object.keys(muxClient.video));
+      
+      // Use the correct method to get upload status
+      const upload = await muxClient.video.uploads.retrieve(uploadId);
       
       if (!upload) {
         throw new Error('Mux API returned null or undefined upload');
@@ -150,7 +175,7 @@ export async function waitForAssetReady(assetId: string, options = {
   isFree: false
 }): Promise<{status: string, playbackId?: string}> {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized');
   }
 
@@ -160,7 +185,8 @@ export async function waitForAssetReady(assetId: string, options = {
     try {
       console.log(`Checking asset status for ${assetId} (attempt ${attempts + 1}/${options.maxAttempts})`);
       
-      const asset = await muxClient.video.assets.get(assetId);
+      // Use the correct method to get asset status
+      const asset = await muxClient.video.assets.retrieve(assetId);
       
       if (!asset) {
         throw new Error('Mux API returned null or undefined asset');
@@ -240,12 +266,17 @@ export async function createUpload(isFree: boolean = false): Promise<MuxUploadRe
  */
 export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatusResponse> {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
   try {
-    const upload = await muxClient.video.uploads.get(uploadId);
+    // Log the available methods for debugging
+    console.log('Available methods on muxClient.video.uploads:', 
+      Object.getOwnPropertyNames(Object.getPrototypeOf(muxClient.video.uploads)));
+    
+    // Use the correct method to get upload status
+    const upload = await muxClient.video.uploads.retrieve(uploadId);
     
     if (!upload) {
       throw new Error('Mux API returned null or undefined upload');
@@ -275,7 +306,7 @@ export async function getUploadStatus(uploadId: string): Promise<MuxUploadStatus
  */
 export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse> {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
@@ -292,7 +323,8 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
   }
 
   try {
-    const asset = await muxClient.video.assets.get(assetId);
+    // Use the correct method to get asset status
+    const asset = await muxClient.video.assets.retrieve(assetId);
     
     if (!asset) {
       throw new Error('Mux API returned null or undefined asset');
@@ -343,12 +375,13 @@ export async function getAssetStatus(assetId: string): Promise<MuxAssetResponse>
  */
 export async function getAsset(assetId: string) {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
   try {
-    const asset = await muxClient.video.assets.get(assetId);
+    // Use the correct method to get asset details
+    const asset = await muxClient.video.assets.retrieve(assetId);
     return asset;
   } catch (error) {
     console.error(`Error getting Mux asset ${assetId}:`, error);
@@ -361,12 +394,13 @@ export async function getAsset(assetId: string) {
  */
 export async function getUpload(uploadId: string) {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.uploads) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
   try {
-    const upload = await muxClient.video.uploads.get(uploadId);
+    // Use the correct method to get upload details
+    const upload = await muxClient.video.uploads.retrieve(uploadId);
     return upload;
   } catch (error) {
     console.error(`Error getting Mux upload ${uploadId}:`, error);
@@ -379,12 +413,13 @@ export async function getUpload(uploadId: string) {
  */
 export async function getPlaybackId(assetId: string) {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
   try {
-    const asset = await muxClient.video.assets.get(assetId);
+    // Use the correct method to get asset details
+    const asset = await muxClient.video.assets.retrieve(assetId);
     
     if (!asset.playback_ids || asset.playback_ids.length === 0) {
       throw new Error('No playback IDs found for this asset');
@@ -402,12 +437,13 @@ export async function getPlaybackId(assetId: string) {
  */
 export async function deleteAsset(assetId: string) {
   // Ensure client is initialized
-  if (!initMuxClient() || !muxClient || !muxClient.video || !muxClient.video.assets) {
+  if (!initMuxClient() || !muxClient || !muxClient.video) {
     throw new Error('Mux Video client not properly initialized - check your environment variables');
   }
 
   try {
-    await muxClient.video.assets.del(assetId);
+    // Use the correct method to delete an asset
+    await muxClient.video.assets.delete(assetId);
     return true;
   } catch (error) {
     console.error(`Error deleting Mux asset ${assetId}:`, error);

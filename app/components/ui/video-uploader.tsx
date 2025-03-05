@@ -225,6 +225,12 @@ export function VideoUploader({
           try {
             window.sessionStorage.setItem('lastMuxAssetId', uploadId);
             console.log('Stored asset ID in session storage:', uploadId);
+            
+            // Also store it in localStorage as a backup
+            localStorage.setItem('lastMuxAssetId', uploadId);
+            
+            // Set a global variable as another fallback
+            (window as any).__muxAssetId = uploadId;
           } catch (storageError) {
             console.error('Failed to store asset ID in session storage:', storageError);
           }

@@ -1,26 +1,10 @@
 import { NextResponse } from 'next/server';
-import MuxService from '@/app/services/mux';
+import { Video } from '@mux/mux-node';
 
 export async function GET(request: Request) {
   console.log('Playback ID endpoint called');
   try {
-    const muxService = MuxService.getInstance();
-    const muxClient = muxService.getClient();
-    
-    if (!muxClient) {
-      console.error('Mux client not initialized');
-      return NextResponse.json(
-        { error: 'Mux Video client not properly initialized' },
-        { status: 500 }
-      );
-    }
-    
-    // Log the mux client structure to debug
-    console.log('Mux client keys:', Object.keys(muxClient));
-    
-    // Access the Video object correctly
-    const Video = muxClient.Video;
-    
+    // Check if Video API is available
     if (!Video || typeof Video.Assets?.retrieve !== 'function') {
       console.error('Mux Video.Assets API not available', { 
         videoExists: !!Video,

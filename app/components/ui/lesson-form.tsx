@@ -451,20 +451,21 @@ export function LessonForm({
                     
                     // Try to fetch the playback ID immediately in case it's already available
                     // Use absolute URL to avoid parsing issues
-                    const apiUrl = new URL('/api/mux/playback-id', window.location.origin);
-                    apiUrl.searchParams.append('assetId', assetId);
-                    
-                    console.log('Fetching playback ID from:', apiUrl.toString());
-                    
-                    fetch(apiUrl.toString(), {
-                      method: 'GET',
-                      headers: {
-                        'Content-Type': 'application/json'
-                      },
-                      cache: 'no-store',
-                      // Add a timeout to prevent hanging requests
-                      signal: AbortSignal.timeout(10000) // 10 second timeout
-                    })
+                    try {
+                      const apiUrl = new URL('/api/mux/playback-id', window.location.origin);
+                      apiUrl.searchParams.append('assetId', assetId);
+                      
+                      console.log('Fetching playback ID from:', apiUrl.toString());
+                      
+                      fetch(apiUrl.toString(), {
+                        method: 'GET',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        cache: 'no-store',
+                        // Add a timeout to prevent hanging requests
+                        signal: AbortSignal.timeout(10000) // 10 second timeout
+                      })
                     .then(response => {
                       if (response.ok) {
                         return response.json();
@@ -486,7 +487,14 @@ export function LessonForm({
                     .catch(error => {
                       // Just log the error, don't block the flow
                       console.error("Error checking for playback ID:", error);
+                      // Continue with form submission even if playback ID check fails
+                      console.log("Continuing with form submission despite playback ID check failure");
                     });
+                    } catch (urlError) {
+                      // Handle URL creation errors
+                      console.error("Error creating URL for playback ID check:", urlError);
+                      // Continue with form submission even if URL creation fails
+                    }
                   } catch (storageError) {
                     console.error("Failed to store asset ID in session storage:", storageError);
                   }

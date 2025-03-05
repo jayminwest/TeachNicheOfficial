@@ -82,11 +82,12 @@ async function createLessonHandler(request: Request) {
       description,
       price,
       content,
-      status,
+      // If video is still processing, set status to 'processing'
+      status: muxAssetId && (!muxPlaybackId || muxPlaybackId === "") ? 'processing' : status,
       creator_id: session.user.id,
       category,
       mux_asset_id: muxAssetId,
-      mux_playback_id: muxPlaybackId,
+      mux_playback_id: muxPlaybackId || null, // Allow null playback ID for processing videos
       thumbnail_url: body.thumbnail_url || body.thumbnailUrl || null, // Ensure thumbnail URL is included
       stripe_product_id: null, // Will be updated after Stripe product creation
       stripe_price_id: null,   // Will be updated after Stripe price creation
@@ -382,7 +383,7 @@ export async function POST(request: Request) {
     // Otherwise, set it to 'published'
     // Ensure muxPlaybackId is defined before checking
     const muxPlaybackId = data.muxPlaybackId || "";
-    const isVideoProcessing = data.muxAssetId && (!muxPlaybackId || muxPlaybackId === "");
+    const isVideoProcessing = data.muxAssetId && (!muxPlaybackId || muxPlaybackId === "" || data.videoProcessing);
     const status = isVideoProcessing ? 'processing' : 'published';
     
     console.log(`Creating lesson with status: ${status}, video processing: ${isVideoProcessing}, muxPlaybackId: "${muxPlaybackId}"`);

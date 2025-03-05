@@ -71,16 +71,12 @@ export default function NewLessonPage() {
         return;
       }
       
-      // Check if muxPlaybackId exists and is not empty
+      // Don't require playbackId - it will be set when processing completes
+      // Just log that we're proceeding with a processing video
       if (!data.muxPlaybackId || data.muxPlaybackId.trim() === "") {
-        console.error("Missing muxPlaybackId in form submission");
-        toast({
-          title: "Video Processing Incomplete",
-          description: "Please wait for video processing to complete before creating the lesson",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
+        console.log("Creating lesson with processing video (no playbackId yet)");
+        // Set a flag to indicate video is still processing
+        data.videoProcessing = true;
       }
       
       // Handle temporary asset IDs

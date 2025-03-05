@@ -153,7 +153,7 @@ export async function PATCH(
 
 export async function GET(
   _request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const lessonId = context.params.id;

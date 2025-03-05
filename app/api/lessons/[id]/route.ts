@@ -6,11 +6,11 @@ import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } f
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     // Get the lesson ID from the URL
-    const lessonId = params.id;
+    const lessonId = context.params.id;
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });
@@ -153,7 +153,7 @@ export async function PATCH(
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const lessonId = params.id;
@@ -186,10 +186,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const lessonId = params.id;
+    const lessonId = context.params.id;
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });

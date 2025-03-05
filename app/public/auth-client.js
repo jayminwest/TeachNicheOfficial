@@ -1,15 +1,34 @@
 // This script will be loaded client-side only
 (function() {
+  function getErrorMessage() {
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    const messageParam = urlParams.get('message');
+    
+    if (!errorParam) return null;
+    
+    if (errorParam === 'callback_failed') {
+      return messageParam || 'Failed to complete authentication';
+    } else if (errorParam === 'no_code') {
+      return 'No authentication code received';
+    } else if (errorParam === 'no_session') {
+      return 'No session created';
+    } else if (errorParam === 'exception') {
+      return messageParam || 'An unexpected error occurred';
+    } else if (errorParam === 'flow_state_expired') {
+      return 'Your authentication session expired. Please try signing in again.';
+    } else {
+      return `Error: ${errorParam}`;
+    }
+  }
+
   function renderAuthClient() {
     const container = document.querySelector('.min-h-screen > div');
     if (!container) return;
     
-    // Get any error message that might be present
-    let errorMessage = null;
-    const errorDiv = container.querySelector('.bg-destructive\\/10');
-    if (errorDiv) {
-      errorMessage = errorDiv.textContent.trim();
-    }
+    // Get error message from URL parameters
+    const errorMessage = getErrorMessage();
     
     // Create the sign-in button
     container.innerHTML = `

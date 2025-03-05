@@ -3,14 +3,16 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "config": {
+        "typescript": {
+          "ignoreBuildErrors": true
+        },
+        "eslint": {
+          "ignoreDuringBuilds": true
+        }
+      }
     }
   ],
-  "devCommand": "next dev",
-  "typescript": {
-    "ignoreBuildErrors": true
-  },
-  "eslint": {
-    "ignoreDuringBuilds": true
-  }
+  "devCommand": "next dev"
 }

@@ -98,22 +98,26 @@ export function useImageUpload({
         }
         
         console.log("Upload successful:", data);
-      
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
-      
-      const publicUrl = urlData.publicUrl;
-      
-      // Set final progress
-      setProgress(100);
-      onProgress?.(100);
-      
-      setImageUrl(publicUrl);
-      onUploadComplete?.(publicUrl);
-      
-      return publicUrl;
+        
+        // Get the public URL
+        const { data: urlData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(data.path);
+        
+        const publicUrl = urlData.publicUrl;
+        
+        // Set final progress
+        setProgress(100);
+        onProgress?.(100);
+        
+        setImageUrl(publicUrl);
+        onUploadComplete?.(publicUrl);
+        
+        return publicUrl;
+      } catch (innerError) {
+        console.error("Error in inner try block:", innerError);
+        throw innerError;
+      }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown upload error');
       setError(error);

@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 
-// @ts-ignore - Next.js 15 type compatibility issue
+// @ts-expect-error - Next.js 15 type compatibility issue
 export async function POST(
   request: NextRequest,
   context: { params: { id: string } }

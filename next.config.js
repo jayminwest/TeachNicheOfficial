@@ -28,9 +28,7 @@ const nextConfig = {
   // Skip static generation for error pages
   staticPageGenerationTimeout: 120,
   // Disable static generation for specific paths
-  excludeDefaultMomentLocales: true,
-  // Configure runtime for error pages
-  runtime: 'nodejs'
+  excludeDefaultMomentLocales: true
 }
 
 module.exports = nextConfig

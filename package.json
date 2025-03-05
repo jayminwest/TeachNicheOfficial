@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "clean": "rm -rf .next",
-    "build": "npm run clean && NODE_OPTIONS='--no-warnings --max-old-space-size=4096' NEXT_TELEMETRY_DISABLED=1 next build --no-lint",
+    "build": "npm run clean && NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production next build --no-lint",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

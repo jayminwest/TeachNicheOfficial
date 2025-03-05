@@ -272,12 +272,18 @@ export function LessonAccessGate({
         <p className="text-muted-foreground mb-4">
           Purchase this lesson to get full access to the content
         </p>
+        {/* Show message if user already has access */}
+        {hasAccess && (
+          <div className="text-green-600 text-sm mb-2">
+            You already have access to this lesson
+          </div>
+        )}
         <LessonCheckout 
           lessonId={lessonId}
           price={price}
           searchParams={new URLSearchParams(window.location.search)}
           onAccessLesson={() => window.location.reload()}
-          hasAccess={isSuccess} // Pass isSuccess as hasAccess to show Access button
+          hasAccess={hasAccess || isSuccess} // Pass both hasAccess and isSuccess
         />
       </div>
     );

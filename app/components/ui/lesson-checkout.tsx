@@ -48,7 +48,7 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
   if (hasAccess || isSuccess) {
     return (
       <Button 
-        onClick={() => router.push(`/lessons/${lessonId}`)}
+        onClick={onAccessLesson || (() => router.push(`/lessons/${lessonId}`))}
         variant="outline"
         className="bg-green-600 hover:bg-green-700 text-white"
       >

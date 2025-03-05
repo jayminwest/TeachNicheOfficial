@@ -86,7 +86,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading...
                 </Button>
-              ) : lesson.price === 0 ? (
+              ) : hasAccess || lesson.price === 0 ? (
                 <Button 
                   variant="outline"
                   size="sm"

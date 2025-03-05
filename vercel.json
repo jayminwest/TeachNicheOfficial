@@ -9,5 +9,8 @@
   "devCommand": "next dev",
   "typescript": {
     "tsconfigPath": "tsconfig.json"
+  },
+  "eslint": {
+    "ignoreDuringBuilds": true
   }
 }

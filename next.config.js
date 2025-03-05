@@ -24,7 +24,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   // Disable static generation for problematic pages
-  output: 'standalone'
+  output: 'standalone',
+  // Skip static generation for error pages
+  staticPageGenerationTimeout: 120,
+  // Disable static generation for specific paths
+  excludeDefaultMomentLocales: true,
+  // Configure runtime for error pages
+  runtime: 'nodejs'
 }
 
 module.exports = nextConfig

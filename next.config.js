@@ -23,13 +23,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Disable middleware type checking
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'teach-niche.vercel.app'],
-    },
-    middlewareSourceMaps: false,
-  },
+  // Disable static generation for problematic pages
+  output: 'standalone',
 }
 
 module.exports = nextConfig

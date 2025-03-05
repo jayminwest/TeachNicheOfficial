@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "NODE_OPTIONS=--no-warnings next build --no-lint",
+    "clean": "rm -rf .next",
+    "build": "npm run clean && NODE_OPTIONS=--no-warnings next build --no-lint",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

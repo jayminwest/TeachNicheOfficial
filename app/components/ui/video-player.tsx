@@ -34,7 +34,7 @@ export function VideoPlayer({
     
     // Validate the playback ID
     if (playbackId && (playbackId.startsWith('temp_') || playbackId.startsWith('dummy_') || playbackId.startsWith('local_'))) {
-      setError(`Invalid playback ID: ${playbackId}. Video may still be processing.`);
+      setError(`Video is still processing. Please check back later.`);
       return;
     }
     

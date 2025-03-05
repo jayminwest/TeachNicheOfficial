@@ -75,66 +75,93 @@ export function useVideoUpload({
   const [retryCount, setRetryCount] = useState(0);
   
   const pollAssetStatus = useCallback(async (assetId: string, lessonId: string) => {
-    if (!assetId || !lessonId) return;
+    if (!assetId || !lessonId) return false;
     
     // Validate the asset ID
     if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
       console.error(`Invalid asset ID: ${assetId}. Temporary IDs should not be used.`);
-      return;
+      return false;
     }
     
     try {
       console.log(`Starting to poll asset status for asset ${assetId}, lesson ${lessonId}`);
       
-      // Poll for asset status
-      const result = await fetch(`/api/mux/wait-for-asset?assetId=${encodeURIComponent(assetId)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to wait for asset: ${res.status}`);
-        }
-        return res.json();
-      });
+      // Poll for asset status with retries
+      const maxAttempts = 10;
+      const delayBetweenAttempts = 3000;
       
-      // Validate the playback ID
-      if (result.status === 'ready' && result.playbackId) {
-        // Make sure the playback ID is not a temporary one
-        if (result.playbackId.startsWith('dummy_') || result.playbackId.startsWith('temp_') || result.playbackId.startsWith('local_')) {
-          console.error(`Invalid playback ID returned: ${result.playbackId}`);
-          return;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          console.log(`Polling attempt ${attempt + 1}/${maxAttempts} for asset ${assetId}`);
+          
+          const result = await fetch(`/api/mux/wait-for-asset?assetId=${encodeURIComponent(assetId)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(res => {
+            if (!res.ok) {
+              throw new Error(`Failed to wait for asset: ${res.status}`);
+            }
+            return res.json();
+          });
+          
+          // Validate the playback ID
+          if (result.status === 'ready' && result.playbackId) {
+            // Make sure the playback ID is not a temporary one
+            if (result.playbackId.startsWith('dummy_') || result.playbackId.startsWith('temp_') || result.playbackId.startsWith('local_')) {
+              console.error(`Invalid playback ID returned: ${result.playbackId}`);
+              // Wait and try again
+              await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
+              continue;
+            }
+            
+            console.log(`Asset ${assetId} is ready with playback ID ${result.playbackId}`);
+            
+            // Update the lesson with the playback ID and set status to published
+            const updateResponse = await fetch('/api/lessons/update-status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lessonId,
+                muxAssetId: assetId,
+                muxPlaybackId: result.playbackId,
+                status: 'published'
+              })
+            });
+            
+            if (updateResponse.ok) {
+              console.log(`Successfully updated lesson ${lessonId} to published status`);
+              return true;
+            } else {
+              console.error(`Failed to update lesson status: ${updateResponse.status}`);
+              return false;
+            }
+          } else if (result.status === 'preparing') {
+            console.log(`Asset ${assetId} is still preparing, waiting before next attempt...`);
+            await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
+          } else {
+            console.warn(`Asset ${assetId} has unexpected status: ${result.status}`);
+            if (attempt === maxAttempts - 1) {
+              return false;
+            }
+            await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
+          }
+        } catch (pollError) {
+          console.error(`Error in polling attempt ${attempt + 1}:`, pollError);
+          if (attempt === maxAttempts - 1) {
+            throw pollError;
+          }
+          await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
         }
-        
-        console.log(`Asset ${assetId} is ready with playback ID ${result.playbackId}`);
-        
-        // Update the lesson with the playback ID and set status to published
-        const updateResponse = await fetch('/api/lessons/update-status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            lessonId,
-            muxAssetId: assetId,
-            muxPlaybackId: result.playbackId,
-            status: 'published'
-          })
-        });
-        
-        if (updateResponse.ok) {
-          console.log(`Successfully updated lesson ${lessonId} to published status`);
-          return true;
-        } else {
-          console.error(`Failed to update lesson status: ${updateResponse.status}`);
-        }
-      } else {
-        console.warn(`Asset ${assetId} is not ready: ${result.status}`);
       }
+      
+      console.warn(`Asset ${assetId} did not become ready after ${maxAttempts} attempts`);
+      return false;
     } catch (error) {
       console.error('Error polling asset status:', error);
+      throw error;
     }
-    
-    return false;
   }, []);
 
   const handleError = useCallback((err: Error) => {
@@ -424,10 +451,16 @@ export function useVideoUpload({
         }
       }
       
-      // Start polling for asset status in the background
+      // Start polling for asset status in the background and wait for result
       if (lessonId) {
-        pollAssetStatus(assetId, lessonId)
-          .catch(error => console.error("Error polling asset status:", error));
+        try {
+          console.log("Starting asset status polling and waiting for result");
+          const result = await pollAssetStatus(assetId, lessonId);
+          console.log("Asset polling completed with result:", result);
+        } catch (pollError) {
+          console.error("Error polling asset status:", pollError);
+          // Continue with the flow even if polling fails
+        }
       }
       
       // Set status to complete

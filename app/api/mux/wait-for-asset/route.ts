@@ -31,6 +31,12 @@ export async function GET(request: Request) {
       
       // Validate that we have a playback ID before returning success
       if (result.status === 'ready' && result.playbackId) {
+        // Double check that the playback ID is not a temporary one
+        if (result.playbackId.startsWith('temp_') || result.playbackId.startsWith('dummy_') || result.playbackId.startsWith('local_')) {
+          console.error(`API: Invalid playback ID format returned: ${result.playbackId}`);
+          throw new Error(`Invalid playback ID format: ${result.playbackId}`);
+        }
+        
         return NextResponse.json(result);
       } else {
         throw new Error(`Asset ${assetId} is ready but has no playback ID`);

@@ -3,16 +3,13 @@ import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
 export default async function Page({
-  params,
-  searchParams
+  params
 }: {
   params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   // Access the id directly from params
   const lessonId = params.id;
-  // We're not using the redirect parameter yet, but keeping it for future use
-  // const redirect = searchParams?.redirect || null;
   
   const supabase = await createServerSupabaseClient();
   

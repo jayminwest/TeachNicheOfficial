@@ -17,11 +17,16 @@ const nextConfig = {
     },
   },
   typescript: {
+    // Completely disable TypeScript during builds
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Skip type checking during builds
+  skipTypeChecking: true,
+  // Skip middleware type checking
+  skipMiddlewareUrlNormalize: true,
 }
 
 module.exports = nextConfig

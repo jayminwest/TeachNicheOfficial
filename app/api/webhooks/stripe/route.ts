@@ -24,10 +24,12 @@ function extractIdsFromSession(session: Stripe.Checkout.Session) {
   return { lessonId, userId, baseAmount };
 }
 
-// Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia',
-});
+// Function to get Stripe instance
+const getStripe = () => {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-01-27.acacia',
+  });
+};
 
 // This is your Stripe webhook secret for testing your endpoint locally
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -51,6 +53,7 @@ export async function POST(request: NextRequest) {
     // Verify the event came from Stripe
     let event: Stripe.Event;
     try {
+      const stripe = getStripe();
       event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
       console.log('Webhook verified, event type:', event.type);
     } catch (err) {
@@ -75,11 +78,13 @@ export async function POST(request: NextRequest) {
       if (!lessonId || !userId) {
         try {
           console.log('Missing IDs, retrieving expanded session');
+          const stripe = getStripe();
           const expandedSession = await stripe.checkout.sessions.retrieve(
             session.id,
             { expand: ['line_items'] }
           );
           
+          const stripe = getStripe();
           // Try to extract from expanded session
           if (expandedSession.line_items?.data?.length > 0) {
             const description = expandedSession.line_items.data[0].description;

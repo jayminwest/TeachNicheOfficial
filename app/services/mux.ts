@@ -28,7 +28,7 @@ export interface MuxUploadStatusResponse {
 // Singleton pattern for Mux client
 class MuxService {
   private static instance: MuxService;
-  private client: any = null;
+  private client: Mux | null = null;
   private initialized = false;
 
   private constructor() {
@@ -163,26 +163,20 @@ class MuxService {
         error: undefined
       };
     } catch (error) {
-      let errorType = 'unknown';
       let errorMessage = 'Unknown error occurred';
       
       if (error instanceof Error) {
         errorMessage = error.message;
-        
-        if (errorMessage.includes('not found')) {
-          errorType = 'not_found';
-        } else if (errorMessage.includes('rate limit')) {
-          errorType = 'rate_limit';
-        } else if (errorMessage.includes('unauthorized')) {
-          errorType = 'auth_error';
-        }
       }
       
       throw error;
     }
   }
 
-  public async getAssetIdFromUpload(uploadId: string, options = {
+  public async getAssetIdFromUpload(uploadId: string, options: {
+    maxAttempts: number;
+    interval: number;
+  } = {
     maxAttempts: 10,
     interval: 2000
   }): Promise<string> {
@@ -263,7 +257,11 @@ class MuxService {
     throw new Error(errorMsg);
   }
 
-  public async waitForAssetReady(assetId: string, options = {
+  public async waitForAssetReady(assetId: string, options: {
+    maxAttempts: number;
+    interval: number;
+    isFree: boolean;
+  } = {
     maxAttempts: 30,
     interval: 5000,
     isFree: false

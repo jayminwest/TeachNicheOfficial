@@ -180,7 +180,7 @@ export const createConnectSession = async (options: ConnectSessionOptions) => {
       try {
         new URL(url);
         return url;
-      } catch (e) {
+      } catch (_) {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
       }
@@ -229,9 +229,9 @@ export const calculateGrossAmount = (
 // Calculate the fee amount for a given net amount
 export const calculateFeeAmount = (
   netAmount: number,
-  currency: string = stripeConfig.defaultCurrency
+  _currency: string = stripeConfig.defaultCurrency
 ): number => {
-  const grossAmount = calculateGrossAmount(netAmount, currency);
+  const grossAmount = calculateGrossAmount(netAmount);
   return Math.round((grossAmount - netAmount) * 100) / 100;
 };
 

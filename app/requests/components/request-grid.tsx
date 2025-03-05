@@ -7,7 +7,6 @@ import { useAuth } from '@/app/services/auth/AuthContext'
 import { RequestCard } from './request-card'
 import { Loader2 } from 'lucide-react'
 import { toast } from '@/app/components/ui/use-toast'
-import { Button } from '@/app/components/ui/button'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface RequestGridProps {

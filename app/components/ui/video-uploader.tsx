@@ -183,82 +183,16 @@ export function VideoUploader({
         onSuccess={(event) => {
           console.log("MuxUploader onSuccess event:", event);
           
-          // Extract the upload ID from the event
-          let uploadId = null;
+          // Use the stored upload ID directly instead of trying to extract it from the URL
+          const uploadId = (window as any).__lastUploadId;
           
-          // First try to get the upload ID from the URL
-          try {
-            const url = new URL(uploadEndpoint);
-            const urlParams = new URLSearchParams(url.search);
-            uploadId = urlParams.get('upload_id');
-            
-            if (uploadId) {
-              console.log("Found upload ID in URL:", uploadId);
-            }
-          } catch (e) {
-            console.warn("Error parsing upload endpoint URL:", e);
-          }
-          
-          // Then try to get it from the event detail
-          if (!uploadId && event instanceof CustomEvent && event.detail) {
-            console.log("Examining event detail:", event.detail);
-            
-            // If detail is a string, use it directly
-            if (typeof event.detail === 'string') {
-              uploadId = event.detail;
-              console.log("Using string event detail as upload ID:", uploadId);
-            } 
-            // If detail has specific properties, check those
-            else if (typeof event.detail === 'object') {
-              // Check common ID properties
-              if (event.detail.uploadId) {
-                uploadId = event.detail.uploadId;
-                console.log("Found uploadId in event detail:", uploadId);
-              } else if (event.detail.id) {
-                uploadId = event.detail.id;
-                console.log("Found id in event detail:", uploadId);
-              } else if (event.detail.upload_id) {
-                uploadId = event.detail.upload_id;
-                console.log("Found upload_id in event detail:", uploadId);
-              } else {
-                // Log all properties for debugging
-                console.log("Event detail properties:", Object.keys(event.detail));
-                
-                // Try to find any property that might contain the upload ID
-                for (const key in event.detail) {
-                  if (key.toLowerCase().includes('id') && typeof event.detail[key] === 'string') {
-                    console.log(`Found potential ID in property ${key}:`, event.detail[key]);
-                    uploadId = event.detail[key];
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          
-          // Fallback to global variable if it exists
-          if (!uploadId && (window as any).__lastUploadId) {
-            console.log("Using fallback upload ID from global variable");
-            uploadId = (window as any).__lastUploadId;
-          }
-          
-          // Fallback to DOM data attribute
           if (!uploadId) {
-            const uploadIdElement = document.querySelector('[data-upload-id]');
-            if (uploadIdElement) {
-              uploadId = uploadIdElement.getAttribute('data-upload-id');
-              console.log("Using fallback upload ID from DOM:", uploadId);
-            }
+            console.error("No upload ID found in global storage");
+            handleUploadError(new Error("Upload ID not found"));
+            return;
           }
           
-          // If we still don't have an ID, create a temporary one
-          if (!uploadId) {
-            console.log("Could not determine upload ID from event, creating temporary ID");
-            uploadId = `temp_${Date.now()}`;
-            console.log("Created temporary upload ID:", uploadId);
-          }
-          
-          console.log("Final upload ID being used:", uploadId);
+          console.log("Using stored upload ID:", uploadId);
           handleUploadSuccess(uploadId);
         }}
         onError={(event) => {

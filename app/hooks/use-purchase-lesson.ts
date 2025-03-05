@@ -1,9 +1,16 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { calculateGrossAmount, calculateFeeAmount } from '@/app/services/stripe';
 
 interface PurchaseLessonParams {
   lessonId: string;
   price: number;
+}
+
+interface PriceBreakdown {
+  basePrice: number;
+  processingFee: number;
+  totalPrice: number;
 }
 
 interface CheckPurchaseParams {
@@ -18,6 +25,7 @@ export function usePurchaseLesson() {
   const [error, setError] = useState<string | null>(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [purchaseStatus, setPurchaseStatus] = useState<string | null>(null);
+  const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null);
 
   const purchaseLesson = useCallback(async ({ lessonId, price }: PurchaseLessonParams) => {
     setIsLoading(true);
@@ -26,12 +34,25 @@ export function usePurchaseLesson() {
     try {
       console.log('Initiating purchase for lesson:', lessonId);
       
+      // Calculate price breakdown with processing fee
+      const basePrice = price;
+      const processingFee = calculateFeeAmount(basePrice);
+      const totalPrice = calculateGrossAmount(basePrice);
+      
+      // Update price breakdown state
+      const breakdown = { basePrice, processingFee, totalPrice };
+      setPriceBreakdown(breakdown);
+      
       const response = await fetch('/api/lessons/purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ lessonId, price }),
+        body: JSON.stringify({ 
+          lessonId, 
+          price,
+          includeProcessingFee: true 
+        }),
       });
       
       const data = await response.json();
@@ -119,6 +140,14 @@ export function usePurchaseLesson() {
     }
   }, [router]);
 
+  // Calculate price breakdown for a given price
+  const getPriceBreakdown = useCallback((price: number): PriceBreakdown => {
+    const basePrice = price;
+    const processingFee = calculateFeeAmount(basePrice);
+    const totalPrice = calculateGrossAmount(basePrice);
+    return { basePrice, processingFee, totalPrice };
+  }, []);
+
   return {
     purchaseLesson,
     checkPurchaseStatus,
@@ -126,5 +155,7 @@ export function usePurchaseLesson() {
     error,
     hasAccess,
     purchaseStatus,
+    priceBreakdown,
+    getPriceBreakdown,
   };
 }

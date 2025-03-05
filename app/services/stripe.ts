@@ -30,6 +30,8 @@ export interface StripeConfig {
   platformFeePercent: number;
   supportedCountries: string[];
   defaultCurrency: string;
+  processingFeePercent: number;
+  processingFeeFixed: number;
 }
 
 export interface StripeAccountStatus {
@@ -85,7 +87,9 @@ export const stripeConfig: StripeConfig = {
   connectType: 'express', // Changed from 'standard' to 'express'
   platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
-  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd'
+  defaultCurrency: process.env.STRIPE_DEFAULT_CURRENCY || 'usd',
+  processingFeePercent: Number(process.env.STRIPE_PROCESSING_FEE_PERCENT || '2.9'),
+  processingFeeFixed: Number(process.env.STRIPE_PROCESSING_FEE_FIXED || '0.30')
 };
 
 export const stripeErrorMessages: Record<StripeErrorCode, string> = {
@@ -204,6 +208,31 @@ export const createConnectSession = async (options: ConnectSessionOptions) => {
       error instanceof Error ? error.message : 'Failed to create Connect session'
     );
   }
+};
+
+// Calculate gross amount that, after Stripe fees, will yield the desired net amount
+export const calculateGrossAmount = (
+  netAmount: number, 
+  currency: string = stripeConfig.defaultCurrency
+): number => {
+  // Default Stripe fee is 2.9% + $0.30 for USD
+  const percentageFee = stripeConfig.processingFeePercent / 100;
+  const fixedFee = stripeConfig.processingFeeFixed;
+  
+  // Formula: (Net Amount + Fixed Fee) / (1 - Percentage Fee)
+  const grossAmount = (netAmount + fixedFee) / (1 - percentageFee);
+  
+  // Round to 2 decimal places
+  return Math.round(grossAmount * 100) / 100;
+};
+
+// Calculate the fee amount for a given net amount
+export const calculateFeeAmount = (
+  netAmount: number,
+  currency: string = stripeConfig.defaultCurrency
+): number => {
+  const grossAmount = calculateGrossAmount(netAmount, currency);
+  return Math.round((grossAmount - netAmount) * 100) / 100;
 };
 
 export const verifyStripeWebhook = (

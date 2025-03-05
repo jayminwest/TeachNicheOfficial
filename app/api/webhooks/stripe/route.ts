@@ -8,6 +8,7 @@ function extractIdsFromSession(session: Stripe.Checkout.Session) {
   // First try metadata
   let lessonId = session.metadata?.lessonId;
   let userId = session.metadata?.userId;
+  let baseAmount = session.metadata?.baseAmount ? parseFloat(session.metadata.baseAmount) : undefined;
   
   // Then try client_reference_id
   if (!lessonId || !userId) {
@@ -20,7 +21,7 @@ function extractIdsFromSession(session: Stripe.Checkout.Session) {
     }
   }
   
-  return { lessonId, userId };
+  return { lessonId, userId, baseAmount };
 }
 
 // Initialize Stripe with the secret key
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       });
       
       // Extract IDs using the helper function
-      const { lessonId, userId } = extractIdsFromSession(session);
+      const { lessonId, userId, baseAmount } = extractIdsFromSession(session);
       
       // If we don't have the necessary information, try to get it from expanded session
       if (!lessonId || !userId) {
@@ -153,7 +154,8 @@ export async function POST(request: NextRequest) {
       if (updateResult.error) {
         console.log('No existing purchase found, creating new purchase record');
         
-        const amount = session.amount_total ? (session.amount_total / 100) : undefined;
+        // Use the base amount from metadata if available, otherwise use the total amount
+        const amount = baseAmount || (session.amount_total ? (session.amount_total / 100) : undefined);
         const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : undefined;
         
         const createResult = await purchasesService.createPurchase({

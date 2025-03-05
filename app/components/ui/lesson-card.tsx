@@ -45,6 +45,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
             alt={lesson.title}
             fill
             className="object-cover rounded-t-lg"
+            unoptimized={!lesson.thumbnailUrl} // Skip optimization for placeholder
           />
         </div>
         <div className="p-6">

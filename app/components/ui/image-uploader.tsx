@@ -123,6 +123,7 @@ export function ImageUploader({
             alt="Thumbnail preview"
             fill
             className="object-cover"
+            unoptimized={previewUrl.startsWith('blob:')} // Skip optimization for blob URLs
           />
           
           {!isUploading && (

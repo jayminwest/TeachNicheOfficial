@@ -46,6 +46,7 @@ export function LessonPreviewDialog({ lesson, isOpen, onClose }: LessonPreviewDi
             fill
             className="object-cover"
             priority
+            unoptimized={!lesson.thumbnailUrl} // Skip optimization for placeholder
           />
         </div>
 

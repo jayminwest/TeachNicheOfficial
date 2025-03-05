@@ -17,12 +17,13 @@ export default function CreateLessonPage() {
       
       // If we have an asset ID but no playback ID, the video is still processing
       // We should still allow the form to be submitted
-      const isVideoProcessing = data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "processing");
+      const isVideoProcessing = data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "processing" || data.muxPlaybackId === "");
       
       if (isVideoProcessing) {
         console.log("Video is still processing, continuing with form submission");
-        // Set an empty string for muxPlaybackId to ensure it's included in the request
+        // Ensure muxPlaybackId is an empty string (not null or undefined)
         data.muxPlaybackId = "";
+        console.log("Set muxPlaybackId to empty string:", data);
       }
       
       // Continue with form submission

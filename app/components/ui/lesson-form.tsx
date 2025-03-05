@@ -25,8 +25,13 @@ const lessonFormSchema = z.object({
   content: z.string()
     .min(1, "Content is required")
     .max(50000, "Content must be less than 50000 characters"),
-  muxAssetId: z.string().optional(),
-  muxPlaybackId: z.string().optional().or(z.literal("")), // Allow empty string explicitly
+  muxAssetId: z.string().optional().nullable(),
+  muxPlaybackId: z.union([
+    z.string(),
+    z.literal(""),
+    z.null(),
+    z.undefined()
+  ]).optional().transform(val => val || ""), // Transform null/undefined to empty string
   thumbnail_url: z.string().optional().default(""),
   thumbnailUrl: z.string().optional().default(""), // Keep for backward compatibility
   price: z.number()
@@ -184,7 +189,7 @@ export function LessonForm({
           }
           
           // Handle the case where a video is still processing
-          if (data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "processing")) {
+          if (data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "processing" || data.muxPlaybackId === "")) {
             console.log("Video is still processing, setting muxPlaybackId to empty string for now");
             // Set to empty string to allow form submission - webhook will update it later
             data.muxPlaybackId = "";
@@ -194,6 +199,12 @@ export function LessonForm({
               title: "Video Processing",
               description: "Your video is still processing. The lesson will be published automatically when processing is complete.",
             });
+          }
+          
+          // Final validation check for muxPlaybackId
+          if (data.muxAssetId && !data.muxPlaybackId) {
+            console.log("Ensuring muxPlaybackId is set to empty string");
+            data.muxPlaybackId = "";
           }
           
           console.log("Submitting lesson with data:", {
@@ -437,6 +448,9 @@ export function LessonForm({
                     shouldDirty: true,
                     shouldTouch: true
                   });
+                  
+                  // Ensure the form knows this field has been touched
+                  form.trigger("muxPlaybackId");
                   
                   console.log("Form values after setting asset ID:", form.getValues());
                   

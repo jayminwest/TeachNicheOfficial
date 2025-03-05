@@ -380,10 +380,12 @@ export async function POST(request: Request) {
     
     // If we have an asset ID but no playback ID, set the status to 'processing'
     // Otherwise, set it to 'published'
-    const isVideoProcessing = data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "");
+    // Ensure muxPlaybackId is defined before checking
+    const muxPlaybackId = data.muxPlaybackId || "";
+    const isVideoProcessing = data.muxAssetId && (!muxPlaybackId || muxPlaybackId === "");
     const status = isVideoProcessing ? 'processing' : 'published';
     
-    console.log(`Creating lesson with status: ${status}, video processing: ${isVideoProcessing}`);
+    console.log(`Creating lesson with status: ${status}, video processing: ${isVideoProcessing}, muxPlaybackId: "${muxPlaybackId}"`);
     
     // Create the lesson
     const { data: lesson, error } = await supabase
@@ -395,7 +397,7 @@ export async function POST(request: Request) {
         price: data.price || 0,
         thumbnail_url: data.thumbnail_url || data.thumbnailUrl || null,
         mux_asset_id: data.muxAssetId || null,
-        mux_playback_id: data.muxPlaybackId || null,
+        mux_playback_id: data.muxPlaybackId === "" ? null : data.muxPlaybackId,
         creator_id: session.user.id,
         status: status
       })

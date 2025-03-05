@@ -1,157 +1,149 @@
-// This script will be loaded client-side only
 (function() {
+  // State
+  let lessons = [];
+  let loading = true;
+  let error = null;
+  
+  // Fetch lessons from the API
   async function fetchLessons() {
     try {
-      const response = await fetch('/api/lessons');
+      // Get filter parameters from URL if needed
+      const urlParams = new URLSearchParams(window.location.search);
+      const category = urlParams.get('category');
+      
+      // Build the API URL with any filters
+      let apiUrl = '/api/lessons';
+      if (category) {
+        apiUrl += `?category=${encodeURIComponent(category)}`;
+      }
+      
+      const response = await fetch(apiUrl);
+      
       if (!response.ok) {
         throw new Error('Failed to fetch lessons');
       }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching lessons:', error);
-      showError(error.message || 'Failed to load lessons. Please try again.');
-      return { lessons: [] };
+      
+      const data = await response.json();
+      return data.lessons || [];
+    } catch (err) {
+      console.error('Error fetching lessons:', err);
+      showError(err.message || 'Failed to load lessons. Please try again later.');
+      return [];
     }
   }
-
+  
+  // Show error message
   function showError(message) {
-    const toastContainer = document.createElement('div');
-    toastContainer.className = 'fixed top-4 right-4 z-50 flex flex-col gap-2';
-    toastContainer.style.maxWidth = '420px';
+    error = message;
     
-    const toast = document.createElement('div');
-    toast.className = 'bg-destructive text-destructive-foreground p-4 rounded-md shadow-lg flex items-start gap-2';
-    toast.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-      <div>
-        <h4 class="font-medium">Error</h4>
-        <p class="text-sm">${message}</p>
-      </div>
+    const container = document.querySelector('.container');
+    if (!container) return;
+    
+    const loadingEl = container.querySelector('.animate-pulse');
+    if (loadingEl) {
+      loadingEl.innerHTML = `
+        <div class="p-4 bg-red-100 text-red-800 rounded-md">
+          ${message}
+        </div>
+      `;
+    }
+  }
+  
+  // Render lessons grid
+  function renderLessons(lessons) {
+    const container = document.querySelector('.container');
+    if (!container) return;
+    
+    const loadingEl = container.querySelector('.animate-pulse');
+    if (!loadingEl) return;
+    
+    if (lessons.length === 0) {
+      loadingEl.innerHTML = `
+        <div class="text-center py-12">
+          <p class="text-lg text-muted-foreground">No lessons found.</p>
+          <p class="mt-2">
+            <a href="/lessons/new" class="text-primary hover:underline">Create your first lesson</a>
+          </p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Create the lessons grid
+    let lessonsHtml = `
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     `;
     
-    toastContainer.appendChild(toast);
-    document.body.appendChild(toastContainer);
+    // Add each lesson card
+    lessons.forEach(lesson => {
+      const thumbnailHtml = lesson.thumbnailUrl 
+        ? `<img src="${lesson.thumbnailUrl}" alt="${lesson.title}" class="object-cover w-full h-full">`
+        : `<div class="flex items-center justify-center h-full bg-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-12 w-12 text-muted-foreground/50"><path d="M15 8h.01"></path><rect width="16" height="16" x="4" y="4" rx="3"></rect><path d="M4 15l4-4a3 5 0 0 1 3 0l5 5"></path><path d="M14 14l1-1a3 5 0 0 1 3 0l2 2"></path></svg>
+          </div>`;
+      
+      lessonsHtml += `
+        <div class="bg-card rounded-lg shadow-sm border overflow-hidden">
+          <div class="aspect-video bg-muted relative">
+            ${thumbnailHtml}
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-lg mb-1 truncate">${lesson.title}</h3>
+            <p class="text-muted-foreground text-sm line-clamp-2 mb-3">${lesson.description}</p>
+            <div class="flex justify-between items-center">
+              <span class="font-medium">$${lesson.price.toFixed(2)}</span>
+              <a href="/lessons/${lesson.id}" class="text-primary hover:underline text-sm">
+                View Details
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    });
     
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s ease-out';
-      setTimeout(() => {
-        document.body.removeChild(toastContainer);
-      }, 300);
-    }, 5000);
+    lessonsHtml += `</div>`;
+    
+    // Replace loading element with lessons grid
+    loadingEl.innerHTML = lessonsHtml;
   }
-
-  function showSuccessToast(title, message) {
-    const toastContainer = document.createElement('div');
-    toastContainer.className = 'fixed top-4 right-4 z-50 flex flex-col gap-2';
-    toastContainer.style.maxWidth = '420px';
-    
-    const toast = document.createElement('div');
-    toast.className = 'bg-background text-foreground border p-4 rounded-md shadow-lg flex items-start gap-2';
-    toast.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
-      <div>
-        <h4 class="font-medium">${title}</h4>
-        <p class="text-sm">${message}</p>
-      </div>
-    `;
-    
-    toastContainer.appendChild(toast);
-    document.body.appendChild(toastContainer);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s ease-out';
-      setTimeout(() => {
-        document.body.removeChild(toastContainer);
-      }, 300);
-    }, 5000);
-  }
-
-  function checkPurchaseParams() {
+  
+  // Initialize the page
+  async function init() {
+    // Check for purchase success parameters
     const urlParams = new URLSearchParams(window.location.search);
     const status = urlParams.get('status');
     const lessonId = urlParams.get('lessonId');
     
     if (status === 'success' && lessonId) {
-      showSuccessToast(
-        'Purchase Successful',
-        'Your lesson purchase was successful. You now have access to this content.'
-      );
+      // Show success toast
+      const toastContainer = document.createElement('div');
+      toastContainer.className = 'fixed top-4 right-4 z-50 flex flex-col gap-2';
+      toastContainer.style.maxWidth = '420px';
       
-      // Clean up URL parameters
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-  }
-
-  function renderLessons(lessons) {
-    const container = document.querySelector('.container');
-    if (!container) return;
-    
-    const contentContainer = container.querySelector('.animate-pulse');
-    if (!contentContainer) return;
-    
-    if (lessons.length === 0) {
-      contentContainer.innerHTML = `
-        <div class="bg-card text-card-foreground rounded-lg border shadow-sm p-8 text-center">
-          <h3 class="font-semibold mb-2">No lessons yet</h3>
-          <p class="text-muted-foreground mb-4">
-            Get started by creating your first lesson
-          </p>
-          <a href="/lessons/new" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-4 w-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Create Lesson
-          </a>
+      const toast = document.createElement('div');
+      toast.className = 'bg-background text-foreground border p-4 rounded-md shadow-lg flex items-start gap-3';
+      toast.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <div>
+          <h3 class="font-medium">Purchase Successful</h3>
+          <p class="text-sm text-muted-foreground">Your lesson purchase was successful. You now have access to this content.</p>
         </div>
       `;
-    } else {
-      // Create grid layout
-      const grid = document.createElement('div');
-      grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6';
       
-      // Add lesson cards
-      lessons.forEach(lesson => {
-        const card = document.createElement('div');
-        card.className = 'bg-card text-card-foreground rounded-lg border shadow-sm overflow-hidden';
-        
-        card.innerHTML = `
-          <div class="relative aspect-video">
-            <img 
-              src="${lesson.thumbnailUrl || '/placeholder-lesson.jpg'}" 
-              alt="${lesson.title}" 
-              class="object-cover w-full h-full"
-            />
-          </div>
-          <div class="p-4">
-            <h3 class="font-semibold text-lg mb-1">${lesson.title}</h3>
-            <p class="text-muted-foreground text-sm line-clamp-2 mb-3">${lesson.description}</p>
-            <div class="flex justify-between items-center">
-              <span class="font-medium">${lesson.price > 0 ? '$' + lesson.price.toFixed(2) : 'Free'}</span>
-              <a href="/lessons/${lesson.id}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
-                View Lesson
-              </a>
-            </div>
-          </div>
-        `;
-        
-        grid.appendChild(card);
-      });
+      toastContainer.appendChild(toast);
+      document.body.appendChild(toastContainer);
       
-      contentContainer.innerHTML = '';
-      contentContainer.appendChild(grid);
+      // Remove toast after 5 seconds
+      setTimeout(() => {
+        document.body.removeChild(toastContainer);
+      }, 5000);
     }
-  }
-
-  async function init() {
-    // Check for purchase success parameters
-    checkPurchaseParams();
     
     // Fetch and render lessons
-    const { lessons } = await fetchLessons();
+    const lessons = await fetchLessons();
     renderLessons(lessons);
   }
   
-  // Initialize the page
+  // Run initialization
   init();
 })();

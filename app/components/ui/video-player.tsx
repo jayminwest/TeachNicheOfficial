@@ -33,6 +33,11 @@ export function VideoPlayer({
     let isMounted = true;
     
     // Validate the playback ID
+    if (!playbackId) {
+      setError('Video is still processing. Please check back later.');
+      return;
+    }
+    
     if (playbackId && (playbackId.startsWith('temp_') || playbackId.startsWith('dummy_') || playbackId.startsWith('local_'))) {
       setError(`Video is still processing. Please check back later.`);
       return;

@@ -193,6 +193,26 @@ export function VideoUploader({
           }
           
           console.log("Using stored upload ID:", uploadId);
+          
+          // Store the upload ID in the database
+          if (lessonId) {
+            fetch('/api/lessons/update-upload-id', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lessonId,
+                muxUploadId: uploadId
+              })
+            }).then(response => {
+              if (!response.ok) {
+                throw new Error('Failed to update lesson with upload ID');
+              }
+              return response.json();
+            }).catch(error => {
+              console.error('Error updating lesson with upload ID:', error);
+            });
+          }
+          
           handleUploadSuccess(uploadId);
         }}
         onError={(event) => {

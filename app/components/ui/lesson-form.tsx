@@ -421,7 +421,7 @@ export function LessonForm({
                   
                   toast({
                     title: "Video uploaded",
-                    description: "Your video has been uploaded and processed successfully.",
+                    description: "Your video has been uploaded and is now processing. You'll be notified when it's ready.",
                   });
                 } catch (error) {
                   toast({

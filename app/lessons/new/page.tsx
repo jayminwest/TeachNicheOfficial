@@ -5,7 +5,6 @@ import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { Loader2 } from "lucide-react";
 
@@ -154,7 +153,7 @@ export default function NewLessonPage() {
               `Failed to create lesson: ${response.statusText}`;
           
           throw new Error(errorMessage);
-        } catch (_parseError) {
+        } catch (_) {
           if (errorData) {
             const errorMessage = 
               errorData.details ? 

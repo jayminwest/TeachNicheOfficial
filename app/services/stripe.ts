@@ -372,14 +372,14 @@ export const verifyConnectedAccount = async (
       accountId,
       status
     };
-  } catch (error) {
-    if (error instanceof StripeError) {
-      throw error;
+  } catch (err) {
+    if (err instanceof StripeError) {
+      throw err;
     }
-    console.error('Account verification failed:', error);
+    console.error('Account verification failed:', err);
     throw new StripeError(
       'profile_verification_failed',
-      error instanceof Error ? error.message : 'Account verification failed'
+      err instanceof Error ? err.message : 'Account verification failed'
     );
   }
 };

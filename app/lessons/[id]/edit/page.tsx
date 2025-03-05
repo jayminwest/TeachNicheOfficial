@@ -1,15 +1,3 @@
-"use client";
-
-import { LessonForm } from "@/app/components/ui/lesson-form";
-import { toast } from "@/app/components/ui/use-toast";
-import { Toaster } from "@/app/components/ui/toaster";
-import { useRouter, useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { supabase } from "@/app/services/supabase";
-import { useAuth } from "@/app/services/auth/AuthContext";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import Link from "next/link";
 
 export default function EditLessonPage() {
   const router = useRouter();
@@ -227,7 +215,7 @@ export default function EditLessonPage() {
   const params = useParams();
   const router = useRouter();
   const lessonId = params.id as string;
-  const [lesson, setLesson] = useState<any>(null);
+  const [lesson, setLesson] = useState<Record<string, unknown>>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading: authLoading } = useAuth();

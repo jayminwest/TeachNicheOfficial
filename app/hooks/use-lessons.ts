@@ -36,7 +36,7 @@ export function useLessons(options?: UseLessonsOptions) {
     }
     
     fetchLessons()
-  }, [options?.limit, options?.offset, options?.orderBy, options?.orderDirection])
+  }, [options])
   
   return { lessons, loading, error }
 }

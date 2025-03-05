@@ -13,8 +13,8 @@ export default async function Page({ params, searchParams }: PageProps) {
   // Await the params object before accessing its properties
   const resolvedParams = await params;
   const lessonId = resolvedParams.id;
-  // Get redirect parameter if it exists
-  const redirect = searchParams?.redirect || null;
+  // We're not using the redirect parameter yet, but keeping it for future use
+  // const redirect = searchParams?.redirect || null;
   
   const supabase = await createServerSupabaseClient();
   

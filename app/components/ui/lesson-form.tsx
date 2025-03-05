@@ -450,7 +450,13 @@ export function LessonForm({
                     console.log("Stored asset ID in session storage:", assetId);
                     
                     // Try to fetch the playback ID immediately in case it's already available
-                    fetch(`/api/mux/playback-id?assetId=${encodeURIComponent(assetId)}`, {
+                    // Use absolute URL to avoid parsing issues
+                    const apiUrl = new URL('/api/mux/playback-id', window.location.origin);
+                    apiUrl.searchParams.append('assetId', assetId);
+                    
+                    console.log('Fetching playback ID from:', apiUrl.toString());
+                    
+                    fetch(apiUrl.toString(), {
                       method: 'GET',
                       headers: {
                         'Content-Type': 'application/json'

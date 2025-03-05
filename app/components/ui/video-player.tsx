@@ -42,7 +42,8 @@ export function VideoPlayer({
       playbackId.startsWith('temp_') || 
       playbackId.startsWith('dummy_') || 
       playbackId.startsWith('local_') ||
-      playbackId === 'processing'
+      playbackId === 'processing' ||
+      playbackId === ''
     )) {
       setError(`Video is still processing. Please check back later.`);
       return;

@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { Video } from '@/app/services/mux';
+import MuxService from '@/app/services/mux';
 
 export async function GET(request: Request) {
   try {
+    const muxService = MuxService.getInstance();
+    const Video = muxService.getClient()?.video;
+    
     if (!Video || typeof Video.assets?.retrieve !== 'function') {
       return NextResponse.json(
         { error: 'Mux Video client not properly initialized' },
@@ -12,18 +15,16 @@ export async function GET(request: Request) {
 
     // Parse the URL and get the assetId parameter
     let assetId;
-    try {
-      // Try to parse the URL safely
-      const url = new URL(request.url);
-      assetId = url.searchParams.get('assetId');
-    } catch (urlError) {
-      console.error('URL parsing error:', urlError);
-      
-      // Fallback method to extract assetId from URL string
-      const urlString = request.url;
-      const assetIdMatch = urlString.match(/assetId=([^&]+)/);
-      assetId = assetIdMatch ? assetIdMatch[1] : null;
-    }
+    
+    // Use a more robust URL parsing approach
+    const urlString = request.url;
+    console.log('Processing URL:', urlString);
+    
+    // Extract assetId using regex - more reliable than URL parsing
+    const assetIdMatch = urlString.match(/assetId=([^&]+)/);
+    assetId = assetIdMatch ? decodeURIComponent(assetIdMatch[1]) : null;
+    
+    console.log('Extracted assetId:', assetId);
 
     if (!assetId) {
       return NextResponse.json(

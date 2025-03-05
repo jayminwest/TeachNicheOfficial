@@ -285,10 +285,14 @@ export function useVideoUpload({
         console.log(`Fetching asset ID for upload ${uploadId}`);
         // Ensure we properly encode the uploadId parameter
         const encodedUploadId = encodeURIComponent(uploadId);
-        const url = `/api/mux/asset-from-upload?uploadId=${encodedUploadId}`;
-        console.log(`Making request to: ${url}`);
         
-        const response = await fetch(url, {
+        // Use absolute URL to avoid parsing issues
+        const apiUrl = new URL('/api/mux/asset-from-upload', window.location.origin);
+        apiUrl.searchParams.append('uploadId', encodedUploadId);
+        
+        console.log(`Making request to: ${apiUrl.toString()}`);
+        
+        const response = await fetch(apiUrl.toString(), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'

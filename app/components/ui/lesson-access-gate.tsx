@@ -10,6 +10,7 @@ import { useAuth } from '@/app/services/auth/AuthContext';
 import { Button } from './button';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { hasSuccessfulPurchaseParams, cleanPurchaseParams } from '@/app/utils/purchase-helpers';
 
 interface LessonAccessGateProps {
   lessonId: string;
@@ -78,20 +79,13 @@ export function LessonAccessGate({
     );
   }
   
-  // Check URL parameters for purchase=success or session_id
-  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const isSuccess = urlParams?.get('purchase') === 'success' || 
-                    urlParams?.has('session_id') || 
-                    (typeof window !== 'undefined' && window.location.href.includes('session_id='));
+  // Check if URL indicates a successful purchase
+  const isSuccess = hasSuccessfulPurchaseParams();
   
   // If user has access or payment was just successful, show the content
   if (hasAccess || isSuccess) {
-    // Remove the success parameter from the URL to prevent issues on refresh
-    if (typeof window !== 'undefined' && urlParams?.has('purchase')) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('purchase');
-      window.history.replaceState({}, '', url.toString());
-    }
+    // Remove the success parameters from the URL to prevent issues on refresh
+    cleanPurchaseParams();
     
     return (
       <div className={cn(className)}>

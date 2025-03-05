@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
@@ -8,6 +8,7 @@ import { Button } from "@/app/components/ui/button";
 import { useRouter } from "next/navigation";
 import { PencilIcon, Loader2 } from "lucide-react";
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
+import { hasSuccessfulPurchaseParams } from '@/app/utils/purchase-helpers';
 
 interface LessonCardProps {
   lesson: {
@@ -32,6 +33,13 @@ export function LessonCard({ lesson }: LessonCardProps) {
   
   // Use the lesson access hook to check if user has purchased the lesson
   const { hasAccess, loading: accessLoading } = useLessonAccess(lesson.id);
+  
+  // Check if URL indicates a successful purchase
+  const [hasPurchaseSuccess, setHasPurchaseSuccess] = useState(false);
+  
+  useEffect(() => {
+    setHasPurchaseSuccess(hasSuccessfulPurchaseParams());
+  }, []);
 
   return (
     <>
@@ -86,7 +94,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading...
                 </Button>
-              ) : hasAccess || lesson.price === 0 ? (
+              ) : hasAccess || lesson.price === 0 || hasPurchaseSuccess ? (
                 <Button 
                   variant="outline"
                   size="sm"

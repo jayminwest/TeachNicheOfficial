@@ -86,7 +86,18 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading...
                 </Button>
-              ) : lesson.price > 0 && (
+              ) : lesson.price === 0 ? (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent opening preview
+                    router.push(`/lessons/${lesson.id}`);
+                  }}
+                >
+                  Access Lesson
+                </Button>
+              ) : (
                 <LessonCheckout 
                   lessonId={lesson.id} 
                   price={lesson.price}

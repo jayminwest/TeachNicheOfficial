@@ -4,7 +4,7 @@ import { Skeleton } from '../skeleton';
 
 // Mock the cn utility
 jest.mock('@/app/utils/cn', () => ({
-  cn: (...args: any[]) => args.filter(Boolean).join(' '),
+  cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
 }));
 
 describe('Skeleton', () => {

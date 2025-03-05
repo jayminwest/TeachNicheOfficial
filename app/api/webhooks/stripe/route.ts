@@ -8,7 +8,7 @@ function extractIdsFromSession(session: Stripe.Checkout.Session) {
   // First try metadata
   let lessonId = session.metadata?.lessonId;
   let userId = session.metadata?.userId;
-  let baseAmount = session.metadata?.baseAmount ? parseFloat(session.metadata.baseAmount) : undefined;
+  const baseAmount = session.metadata?.baseAmount ? parseFloat(session.metadata.baseAmount) : undefined;
   
   // Then try client_reference_id
   if (!lessonId || !userId) {

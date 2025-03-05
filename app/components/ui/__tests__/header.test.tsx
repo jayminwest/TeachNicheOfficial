@@ -1,7 +1,6 @@
-import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import { useAuth } from '@/app/services/auth/AuthContext'
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 // Mock the auth service before importing Header
 jest.mock('@/app/services/auth/supabaseAuth', () => ({
@@ -12,21 +11,17 @@ jest.mock('@/app/services/auth/supabaseAuth', () => ({
   })
 }));
 
-// Import Header after mocks are set up
-import { Header } from '../header'
+// Mock the dependencies
+jest.mock('@/app/services/auth/AuthContext', () => ({
+  useAuth: jest.fn()
+}));
 
 // Mock Lucide icons
 jest.mock('lucide-react', () => ({
   Menu: () => <div>Menu Icon</div>,
   MoveRight: () => <div>Move Right Icon</div>,
   X: () => <div>X Icon</div>
-}))
-
-// Mock the dependencies
-jest.mock('@/app/services/auth/AuthContext', () => ({
-  useAuth: jest.fn()
-}))
-
+}));
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -39,60 +34,58 @@ jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(() => ({
     get: jest.fn(() => null)
   }))
-}))
+}));
 
 // Mock next/link
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+  default: ({ children, href }) => (
     <a href={href}>{children}</a>
   )
-}))
-
+}));
 
 // Mock components
 jest.mock('@/app/components/ui/theme-toggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>
-}))
+}));
 
 jest.mock('@/app/components/ui/navigation-menu', () => ({
-  NavigationMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  NavigationMenuList: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  NavigationMenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  NavigationMenuTrigger: ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
+  NavigationMenu: ({ children }) => <div>{children}</div>,
+  NavigationMenuList: ({ children }) => <div>{children}</div>,
+  NavigationMenuItem: ({ children }) => <div>{children}</div>,
+  NavigationMenuTrigger: ({ children, onClick }) => (
     <button onClick={onClick}>{children}</button>
   ),
-  NavigationMenuContent: ({ children }: { children: React.ReactNode }) => <div data-testid="nav-content">{children}</div>,
-  NavigationMenuLink: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
-}))
+  NavigationMenuContent: ({ children }) => <div data-testid="nav-content">{children}</div>,
+  NavigationMenuLink: ({ children }) => <div>{children}</div>
+}));
 
 jest.mock('@/app/components/ui/dialog', () => ({
-  Dialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DialogTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DialogTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
-}))
+  Dialog: ({ children }) => <div>{children}</div>,
+  DialogContent: ({ children }) => <div>{children}</div>,
+  DialogTrigger: ({ children }) => <div>{children}</div>,
+  DialogTitle: ({ children }) => <div>{children}</div>
+}));
 
 jest.mock('@/app/components/ui/button', () => ({
-  Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
+  Button: ({ children, onClick }) => (
     <button onClick={onClick}>{children}</button>
   )
-}))
+}));
 
 jest.mock('@/app/components/ui/sign-in', () => ({
   SignInPage: () => <div>Sign In</div>
-}))
+}));
 
 jest.mock('@/app/components/ui/auth-dialog', () => ({
-  AuthDialog: ({ defaultView }: { 
-    children?: React.ReactNode, 
-    open: boolean, 
-    onOpenChange: (open: boolean) => void,
-    defaultView?: string
-  }) => (
+  AuthDialog: ({ defaultView }) => (
     <div data-testid="auth-dialog">Auth Dialog: {defaultView}</div>
   )
-}))
+}));
+
+// Import Header after mocks are set up
+import { Header } from '../header';
+import { useAuth } from '@/app/services/auth/AuthContext';
 
 
 describe('Header', () => {

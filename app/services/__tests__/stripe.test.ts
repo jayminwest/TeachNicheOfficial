@@ -22,8 +22,8 @@ describe('Stripe Fee Calculations', () => {
       // For $10 net with 2.9% + $0.30 fee, gross should be ~$10.61
       expect(calculateGrossAmount(10)).toBeCloseTo(10.61, 2);
       
-      // For $100 net with 2.9% + $0.30 fee, gross should be ~$103.29
-      expect(calculateGrossAmount(100)).toBeCloseTo(103.29, 2);
+      // For $100 net with 2.9% + $0.30 fee, gross should be ~$103.30
+      expect(calculateGrossAmount(100)).toBeCloseTo(103.30, 2);
       
       // For $5 net with 2.9% + $0.30 fee, gross should be ~$5.46
       expect(calculateGrossAmount(5)).toBeCloseTo(5.46, 2);
@@ -52,8 +52,8 @@ describe('Stripe Fee Calculations', () => {
       // For $10 base price, fee should be ~$0.61
       expect(calculateFeeAmount(10)).toBeCloseTo(0.61, 2);
       
-      // For $100 base price, fee should be ~$3.29
-      expect(calculateFeeAmount(100)).toBeCloseTo(3.29, 2);
+      // For $100 base price, fee should be ~$3.30
+      expect(calculateFeeAmount(100)).toBeCloseTo(3.30, 2);
     });
     
     test('handles small amounts correctly', () => {

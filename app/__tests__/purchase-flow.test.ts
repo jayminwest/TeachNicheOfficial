@@ -87,14 +87,19 @@ jest.mock('@/app/lib/supabase/server', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/app/services/database/purchasesService', () => ({
-  purchasesService: {
-    createPurchase: jest.fn(),
-    updatePurchaseStatus: jest.fn(),
-    checkLessonAccess: jest.fn(),
-    verifyStripeSession: jest.fn(),
-  }
-}));
+jest.mock('@/app/services/database/purchasesService', () => {
+  return {
+    purchasesService: {
+      createPurchase: jest.fn().mockResolvedValue({ data: { id: 'purchase-123' }, error: null }),
+      updatePurchaseStatus: jest.fn().mockResolvedValue({ data: { id: 'purchase-123' }, error: null }),
+      checkLessonAccess: jest.fn().mockResolvedValue({ data: { hasAccess: false }, error: null }),
+      verifyStripeSession: jest.fn().mockResolvedValue({ 
+        data: { isPaid: true, amount: 10, lessonId: 'lesson-123', userId: 'user-123' }, 
+        error: null 
+      }),
+    }
+  };
+});
 
 // Helper to create a mock request
 function createMockRequest(body: Record<string, unknown>): NextRequest {

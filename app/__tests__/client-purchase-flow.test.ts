@@ -75,7 +75,8 @@ describe('Client Purchase Flow', () => {
           method: 'POST',
           body: JSON.stringify({
             lessonId: 'lesson-123',
-            price: 10
+            price: 10,
+            includeProcessingFee: true
           })
         })
       );

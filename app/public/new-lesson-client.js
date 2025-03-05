@@ -315,7 +315,7 @@
           title: formData.get('title'),
           description: formData.get('description'),
           content: formData.get('content'),
-          price: parseFloat(formData.get('price') as string) || 0,
+          price: parseFloat(formData.get('price')) || 0,
           muxAssetId: formData.get('muxAssetId'),
           muxPlaybackId: formData.get('muxPlaybackId'),
           status: 'published'

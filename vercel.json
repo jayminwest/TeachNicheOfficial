@@ -6,9 +6,7 @@
       "use": "@vercel/next"
     }
   ],
-  "devCommand": "next dev"
-}
-{
+  "devCommand": "next dev",
   "typescript": {
     "tsconfigPath": "tsconfig.json"
   }

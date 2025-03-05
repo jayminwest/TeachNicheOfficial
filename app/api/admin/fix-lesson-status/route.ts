@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { getAssetStatus } from '@/app/services/mux';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     // This endpoint should only be accessible in development or by admins
     if (process.env.NODE_ENV !== 'development') {
@@ -41,7 +41,12 @@ export async function POST(request: Request) {
       updated: 0,
       failed: 0,
       skipped: 0,
-      details: [] as any[]
+      details: [] as Array<{
+        lessonId: string;
+        status: string;
+        reason?: string;
+        playbackId?: string;
+      }>
     };
     
     // Process each lesson

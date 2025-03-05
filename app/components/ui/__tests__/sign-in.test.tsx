@@ -119,7 +119,7 @@ describe('SignInPage', () => {
 
   it('shows loading state during Google sign-in', async () => {
     // Setup userEvent
-    const user = userEvent.setup();
+    userEvent.setup();
     // Make the sign-in function wait
     (signInWithGoogle as jest.Mock).mockImplementation(() => new Promise(resolve => {
       setTimeout(resolve, 100);

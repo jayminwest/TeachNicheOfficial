@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Footer } from "@/app/components/ui/footer";
 import { Header } from "@/app/components/ui/header";
 import { Providers } from "@/app/components/providers";
+import { Suspense } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,7 +44,9 @@ export default function RootLayout({
         >
           <Header />
           <main className="flex-1">
-            {children}
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+              {children}
+            </Suspense>
           </main>
           <Footer 
             logo={<Image src="/favicon.png" alt="Teach Niche Logo" width={24} height={24} />}

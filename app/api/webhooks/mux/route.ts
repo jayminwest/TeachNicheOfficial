@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
-import crypto from 'crypto';
 
 export async function POST(request: Request) {
   // Clone the request to read the body twice (once for verification, once for processing)

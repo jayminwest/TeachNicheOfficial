@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getStripe, createConnectSession } from '@/app/services/stripe';
+import { getStripe } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';

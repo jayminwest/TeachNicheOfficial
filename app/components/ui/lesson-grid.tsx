@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
 import { LessonCard } from "@/app/components/ui/lesson-card";
-import { hasSuccessfulPurchaseParams } from "@/app/utils/purchase-helpers";
 
 interface Lesson {
   id: string;

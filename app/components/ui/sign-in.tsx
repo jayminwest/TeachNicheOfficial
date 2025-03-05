@@ -15,10 +15,9 @@ import { VisuallyHidden } from './visually-hidden'
 
 interface SignInPageProps {
   onSignInSuccess?: () => void;
-  initialView?: 'sign-in' | 'sign-up';
 }
 
-function SignInPage({ onSignInSuccess, initialView = 'sign-in' }: SignInPageProps) {
+function SignInPage({ onSignInSuccess }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()

@@ -8,3 +8,8 @@
   ],
   "devCommand": "next dev"
 }
+{
+  "typescript": {
+    "tsconfigPath": "tsconfig.json"
+  }
+}

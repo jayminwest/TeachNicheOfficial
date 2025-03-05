@@ -39,8 +39,8 @@ import * as webhookRoute from '@/app/api/webhooks/stripe/route';
 
 // Mock the API routes with factory functions that don't reference NextResponse directly
 jest.mock('@/app/api/lessons/purchase/route', () => ({
-  POST: jest.fn().mockImplementation(async (req) => {
-    const body = await req.json();
+  POST: jest.fn().mockImplementation(async (request) => {
+    const body = await request.json();
     const { lessonId, price } = body;
     
     // Call the mocked purchasesService.createPurchase
@@ -84,21 +84,7 @@ jest.mock('@/app/api/webhooks/stripe/route', () => ({
     // Call the mocked updatePurchaseStatus
     purchasesService.updatePurchaseStatus('cs_test_123', 'completed');
     
-    // For the checkout.session.completed event
-    const mockEvent = {
-      type: 'checkout.session.completed',
-      data: {
-        object: {
-          id: 'cs_test_123',
-          payment_status: 'paid',
-          metadata: {
-            lessonId: 'lesson-123',
-            userId: 'user-123'
-          },
-          amount_total: 1000
-        }
-      }
-    };
+    // Process the checkout.session.completed event
     
     // Create purchase if needed
     purchasesService.createPurchase({

@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { RequestDialog } from '../request-dialog'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest, updateRequest, deleteRequest } from '@/app/lib/supabase/requests'
+import { useCategories } from '@/app/hooks/useCategories'
 
 // Mock dependencies
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/lib/supabase/requests')
+jest.mock('@/app/hooks/useCategories')
 
 const mockChildren = <div>Trigger Content</div>
 const mockRequest = {
@@ -29,6 +31,12 @@ describe('RequestDialog', () => {
     // Mock authenticated user by default
     ;(useAuth as jest.Mock).mockReturnValue({ 
       user: { id: 'test-user' }
+    })
+    // Mock categories hook
+    ;(useCategories as jest.Mock).mockReturnValue({
+      categories: [{ id: '1', name: 'Trick Tutorial' }],
+      loading: false,
+      error: null
     })
     // Mock request functions
     ;(createRequest as jest.Mock).mockResolvedValue({ id: 'test-request' })

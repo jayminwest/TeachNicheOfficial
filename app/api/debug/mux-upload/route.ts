@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createUpload, getUploadStatus, getAssetStatus, debugMuxClient } from '@/app/services/mux';
 import Mux from '@mux/mux-node';
+import { headers } from 'next/headers';
 
 /**
  * Debug endpoint for testing Mux video uploads
@@ -17,11 +18,14 @@ export async function GET(request: Request) {
       message: 'Debug endpoints are only available in development environment'
     }, { status: 403 });
   }
+  // Use URL constructor for parsing, which works in both environments
   const url = new URL(request.url);
-  const action = url.searchParams.get('action') || 'info';
-  const uploadId = url.searchParams.get('uploadId');
-  const assetId = url.searchParams.get('assetId');
-  const isFree = url.searchParams.get('isFree') === 'true';
+  const searchParams = url.searchParams;
+  
+  const action = searchParams.get('action') || 'info';
+  const uploadId = searchParams.get('uploadId');
+  const assetId = searchParams.get('assetId');
+  const isFree = searchParams.get('isFree') === 'true';
 
   try {
     // Check environment variables

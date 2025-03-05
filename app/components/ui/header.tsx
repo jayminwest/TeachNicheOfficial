@@ -8,15 +8,6 @@ import { useAuth } from "@/app/services/auth/AuthContext";
 import { AuthDialog } from "./auth-dialog";
 import { SignOutButton } from "./sign-out-button";
 
-interface NavigationItem {
-    title: string;
-    href?: string;
-    description: string;
-    items?: Array<{
-        title: string;
-        href: string;
-    }>;
-}
 import {
     NavigationMenu,
     NavigationMenuContent,

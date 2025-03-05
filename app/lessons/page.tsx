@@ -1,4 +1,7 @@
-// Static page with no client components to avoid useSearchParams() error
+import { Suspense } from 'react';
+import LessonsClient from './lessons-client';
+import LessonsLoading from './loading';
+
 export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
@@ -18,11 +21,9 @@ export default function LessonsPage() {
           </a>
         </div>
 
-        <div className="animate-pulse">
-          <div className="flex justify-center items-center min-h-[200px]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-          </div>
-        </div>
+        <Suspense fallback={<LessonsLoading />}>
+          <LessonsClient />
+        </Suspense>
       </div>
       
       <noscript>
@@ -32,18 +33,6 @@ export default function LessonsPage() {
           </div>
         </div>
       </noscript>
-      
-      <script dangerouslySetInnerHTML={{ 
-        __html: `
-          // Load the actual lessons content after page loads
-          document.addEventListener('DOMContentLoaded', function() {
-            const script = document.createElement('script');
-            script.src = '/lessons-client.js';
-            script.async = true;
-            document.body.appendChild(script);
-          });
-        `
-      }} />
     </div>
   );
 }

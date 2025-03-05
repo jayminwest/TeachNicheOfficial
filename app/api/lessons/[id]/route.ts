@@ -4,11 +4,9 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } } // eslint-disable-line @typescript-eslint/no-unused-vars
+  context: { params: { id: string } }
 ) {
   try {
     // Get the lesson ID from the URL
@@ -153,38 +151,6 @@ export async function PATCH(
   }
 }
 
-export async function GET(
-  _request: NextRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
-  { params }: { params: { id: string } } // eslint-disable-line @typescript-eslint/no-unused-vars
-) {
-  try {
-    const lessonId = params.id;
-    
-    const { data: lesson, error } = await lessonsService.getLessonById(lessonId);
-    
-    if (error) {
-      return NextResponse.json(
-        { message: 'Failed to fetch lesson', details: error },
-        { status: 500 }
-      );
-    }
-    
-    if (!lesson) {
-      return NextResponse.json(
-        { message: 'Lesson not found' },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json(lesson);
-  } catch (error) {
-    console.error('Error fetching lesson:', error);
-    return NextResponse.json(
-      { message: 'An unexpected error occurred' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function DELETE(
   request: NextRequest,

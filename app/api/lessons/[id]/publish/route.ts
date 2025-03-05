@@ -71,7 +71,8 @@ async function handlePublishLesson(lessonId: string) {
 }
 
 // Export the POST handler with the correct Next.js 15 signature
-// @ts-expect-error - Next.js 15 route handler type compatibility
+// @ts-expect-error - Next.js 15 route handler type compatibility issue with params object structure
+// This suppresses the "Type '{ params: { id: string; }; }' is not a valid type for the function's second argument" error
 export async function POST(
   request: Request, 
   { params }: { params: { id: string } }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
@@ -8,7 +8,6 @@ import { Button } from "@/app/components/ui/button";
 import { useRouter } from "next/navigation";
 import { PencilIcon, Loader2 } from "lucide-react";
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
-import { hasSuccessfulPurchaseParams } from '@/app/utils/purchase-helpers';
 
 interface LessonCardProps {
   lesson: {

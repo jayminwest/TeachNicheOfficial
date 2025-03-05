@@ -83,8 +83,10 @@ export function LessonAccessGate({
   const isSuccess = hasSuccessfulPurchaseParams();
   
   // Force refresh if we have success parameters to ensure database is checked
+  // This hook must be called unconditionally to follow React's rules of hooks
+  const [shouldRefresh] = useState(isSuccess && !hasAccess);
   useEffect(() => {
-    if (isSuccess && !hasAccess) {
+    if (shouldRefresh) {
       // Set a small timeout to allow webhook to process
       const timer = setTimeout(() => {
         window.location.reload();
@@ -92,7 +94,7 @@ export function LessonAccessGate({
       
       return () => clearTimeout(timer);
     }
-  }, [isSuccess, hasAccess]);
+  }, [shouldRefresh]);
   
   // If user has access or payment was just successful, show the content
   if (hasAccess || isSuccess) {

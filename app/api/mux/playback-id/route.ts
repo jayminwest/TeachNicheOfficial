@@ -109,3 +109,57 @@ export async function GET(request: Request) {
     );
   }
 }
+import { NextResponse } from 'next/server';
+import { getMuxClient } from '@/app/services/mux';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const assetId = searchParams.get('assetId');
+    
+    if (!assetId) {
+      return NextResponse.json(
+        { error: 'Missing assetId parameter' },
+        { status: 400 }
+      );
+    }
+    
+    // Get the Mux client directly
+    const mux = getMuxClient();
+    
+    try {
+      // Get the asset from Mux
+      const asset = await mux.video.assets.retrieve(assetId);
+      
+      // Check if the asset has playback IDs
+      if (!asset.playback_ids || asset.playback_ids.length === 0) {
+        return NextResponse.json(
+          { error: 'No playback IDs found for this asset' },
+          { status: 404 }
+        );
+      }
+      
+      // Return the first playback ID
+      const playbackId = asset.playback_ids[0].id;
+      return NextResponse.json({ playbackId });
+    } catch (muxError) {
+      console.error('Error retrieving asset from Mux:', muxError);
+      return NextResponse.json(
+        { 
+          error: 'Failed to get asset from Mux API', 
+          details: muxError instanceof Error ? muxError.message : String(muxError)
+        },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('Error in playback-id route:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to process request',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
+  }
+}

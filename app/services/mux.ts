@@ -138,3 +138,20 @@ export async function listRecentUploads(limit: number = 10) {
   const mux = getMuxClient();
   return mux.video.uploads.list({ limit });
 }
+
+export async function getPlaybackId(assetId: string): Promise<string> {
+  const mux = getMuxClient();
+  
+  try {
+    const asset = await mux.video.assets.retrieve(assetId);
+    
+    if (!asset.playback_ids || asset.playback_ids.length === 0) {
+      throw new Error('No playback IDs found for this asset');
+    }
+    
+    return asset.playback_ids[0].id;
+  } catch (error) {
+    console.error(`Error getting playback ID for asset ${assetId}:`, error);
+    throw error;
+  }
+}

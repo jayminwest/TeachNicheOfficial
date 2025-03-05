@@ -26,7 +26,7 @@ const lessonFormSchema = z.object({
     .min(1, "Content is required")
     .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
-  muxPlaybackId: z.string().optional(),
+  muxPlaybackId: z.string().optional().or(z.literal("")), // Allow empty string explicitly
   thumbnail_url: z.string().optional().default(""),
   thumbnailUrl: z.string().optional().default(""), // Keep for backward compatibility
   price: z.number()
@@ -188,6 +188,12 @@ export function LessonForm({
             console.log("Video is still processing, setting muxPlaybackId to empty string for now");
             // Set to empty string to allow form submission - webhook will update it later
             data.muxPlaybackId = "";
+            
+            // Show a toast to inform the user
+            toast({
+              title: "Video Processing",
+              description: "Your video is still processing. The lesson will be published automatically when processing is complete.",
+            });
           }
           
           console.log("Submitting lesson with data:", {

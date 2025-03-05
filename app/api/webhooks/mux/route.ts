@@ -13,42 +13,25 @@ export async function POST(request: Request) {
   if (webhookSecret) {
     try {
       const signature = request.headers.get('mux-signature');
-      if (!signature) {
-        console.warn('Missing Mux signature header');
+      
+      // Get the raw request body as text for signature verification
+      const rawBody = await clonedRequest.text();
+      
+      // Import the verification function
+      const { verifyMuxWebhookSignature } = await import('@/app/lib/mux-webhook');
+      
+      // Verify the signature
+      const isValid = verifyMuxWebhookSignature(signature, rawBody, webhookSecret);
+      
+      if (!isValid) {
         // Continue without verification in development
         if (process.env.NODE_ENV !== 'development') {
-          return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+          console.error('Invalid Mux webhook signature');
+          return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+        } else {
+          console.warn('Invalid Mux webhook signature, but continuing in development mode');
         }
       } else {
-        // Get the raw request body as text for signature verification
-        const rawBody = await clonedRequest.text();
-        
-        // Parse the signature header
-        const parts = signature.split(',');
-        const timestampPart = parts.find(p => p.startsWith('t='));
-        const signaturePart = parts.find(p => p.startsWith('v1='));
-        
-        if (!timestampPart || !signaturePart) {
-          console.error('Invalid Mux signature format');
-          return NextResponse.json({ error: 'Invalid signature format' }, { status: 401 });
-        }
-        
-        const timestamp = timestampPart.substring(2);
-        const signatureValue = signaturePart.substring(3);
-        
-        // Create the expected signature
-        const payload = `${timestamp}.${rawBody}`;
-        const expectedSignature = crypto
-          .createHmac('sha256', webhookSecret)
-          .update(payload)
-          .digest('hex');
-        
-        // Compare signatures
-        if (signatureValue !== expectedSignature) {
-          console.error('Invalid Mux signature');
-          return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-        }
-        
         console.log('Mux webhook signature verified successfully');
       }
     } catch (verificationError) {

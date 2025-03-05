@@ -354,3 +354,65 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   return deleteLessonHandler(request);
 }
+import { NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { Database } from '@/types/database';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const supabase = createRouteHandlerClient<Database>({ cookies });
+    
+    const data = await request.json();
+    
+    // Validate that we have at least the required fields
+    if (!data.title || !data.description || !data.content) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    
+    // If we have an asset ID but no playback ID, set the status to 'processing'
+    // Otherwise, set it to 'published'
+    const isVideoProcessing = data.muxAssetId && (!data.muxPlaybackId || data.muxPlaybackId === "");
+    const status = isVideoProcessing ? 'processing' : 'published';
+    
+    console.log(`Creating lesson with status: ${status}, video processing: ${isVideoProcessing}`);
+    
+    // Create the lesson
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .insert({
+        title: data.title,
+        description: data.description,
+        content: data.content,
+        price: data.price || 0,
+        thumbnail_url: data.thumbnail_url || data.thumbnailUrl || null,
+        mux_asset_id: data.muxAssetId || null,
+        mux_playback_id: data.muxPlaybackId || null,
+        creator_id: session.user.id,
+        status: status
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating lesson:', error);
+      return NextResponse.json({ error: 'Failed to create lesson' }, { status: 500 });
+    }
+    
+    return NextResponse.json(lesson);
+  } catch (error) {
+    console.error('Error in POST /api/lessons:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

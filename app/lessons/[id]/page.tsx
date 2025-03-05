@@ -2,14 +2,12 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({ 
+  params 
+}: { 
+  params: { id: string }; 
+  searchParams?: { [key: string]: string | string[] | undefined }; 
+}) {
   // Access the id directly from params
   const lessonId = params.id;
   // We're not using the redirect parameter yet, but keeping it for future use

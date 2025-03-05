@@ -27,16 +27,24 @@ export async function GET(request: Request) {
     }
     
     try {
+      // Log the exact request we're about to make to help debug
+      console.log(`API: About to call Mux API with upload ID: ${uploadId}`);
+      
       // First, check the upload status to see if it has an asset ID already
       console.log(`API: Checking upload status for ${uploadId}`);
       const uploadStatus = await getUploadStatus(uploadId);
       
+      // Log the full response from getUploadStatus
+      console.log(`API: Upload status response for ${uploadId}:`, JSON.stringify(uploadStatus, null, 2));
+      
       if (uploadStatus.status === 'errored') {
-        console.error(`API: Upload ${uploadId} has errored: ${uploadStatus.error?.message || 'Unknown error'}`);
+        const errorDetails = uploadStatus.error ? JSON.stringify(uploadStatus.error) : 'Unknown error';
+        console.error(`API: Upload ${uploadId} has errored: ${errorDetails}`);
         return NextResponse.json(
           { 
             error: 'Upload failed',
-            details: uploadStatus.error?.message || 'Unknown error'
+            details: errorDetails,
+            uploadStatus: uploadStatus
           },
           { status: 500 }
         );
@@ -52,6 +60,9 @@ export async function GET(request: Request) {
       console.log(`API: Getting asset ID from upload ${uploadId}`);
       const assetId = await getAssetIdFromUpload(uploadId);
       
+      // Log the asset ID we received
+      console.log(`API: Received asset ID from Mux: ${assetId}`);
+      
       // Validate that we got a real asset ID
       if (!assetId) {
         console.error(`API: No asset ID returned for upload ${uploadId}`);
@@ -66,7 +77,14 @@ export async function GET(request: Request) {
       console.log(`API: Found asset ID ${assetId} for upload ${uploadId}`);
       return NextResponse.json({ assetId });
     } catch (error) {
-      console.error(`API: Error getting asset ID for upload ${uploadId}:`, error);
+      // Log the full error details
+      console.error(`API: Error getting asset ID for upload ${uploadId}:`, 
+        error instanceof Error ? {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        } : error
+      );
       
       // Return the error with more details
       return NextResponse.json(
@@ -79,7 +97,14 @@ export async function GET(request: Request) {
       );
     }
   } catch (error) {
-    console.error('API: Error in asset-from-upload route:', error);
+    // Log the full error details
+    console.error('API: Error in asset-from-upload route:', 
+      error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : error
+    );
     
     // Return the error with more details
     return NextResponse.json(

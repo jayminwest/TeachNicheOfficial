@@ -340,35 +340,60 @@ export function useVideoUpload({
           }
         });
         
-        // Try to parse the response as JSON, but handle cases where it might not be valid JSON
+        console.log(`Asset ID fetch response status: ${response.status}`);
+        
+        // Get the response text first for logging
+        const responseText = await response.text();
+        console.log(`Asset ID fetch response body: ${responseText}`);
+        
+        // Try to parse the response as JSON
         let errorData;
         try {
-          errorData = await response.json();
+          // Parse the text we already got
+          errorData = JSON.parse(responseText);
         } catch (jsonError) {
           console.error("Error parsing response as JSON:", jsonError);
+          console.error("Raw response text:", responseText);
           errorData = { error: "Invalid response format" };
         }
         
         if (!response.ok) {
           // Provide a more detailed error message
           const errorDetails = errorData.details ? `: ${errorData.details}` : '';
-          throw new Error(`Failed to get asset ID: ${response.status} - ${errorData.error || 'Unknown error'}${errorDetails}`);
+          const fullError = `Failed to get asset ID: ${response.status} - ${errorData.error || 'Unknown error'}${errorDetails}`;
+          console.error(fullError);
+          
+          // Include the raw response in the error for debugging
+          const enhancedError = new Error(fullError);
+          (enhancedError as any).responseData = errorData;
+          (enhancedError as any).responseStatus = response.status;
+          (enhancedError as any).responseText = responseText;
+          
+          throw enhancedError;
         }
         
         assetId = errorData.assetId;
         
         if (!assetId) {
+          console.error('No asset ID returned from API:', errorData);
           throw new Error('No asset ID returned from API');
         }
         
         // Validate the asset ID
         if (assetId.startsWith('temp_') || assetId.startsWith('dummy_') || assetId.startsWith('local_')) {
+          console.error(`Invalid asset ID returned: ${assetId}`);
           throw new Error(`Invalid asset ID returned: ${assetId}`);
         }
         
         console.log("Retrieved assetId:", assetId);
       } catch (error) {
         console.error("Error getting asset ID:", error);
+        // Log additional details if available
+        if (error instanceof Error && (error as any).responseData) {
+          console.error("Response data:", (error as any).responseData);
+          console.error("Response status:", (error as any).responseStatus);
+          console.error("Response text:", (error as any).responseText);
+        }
         throw error; // Propagate the error instead of creating a temporary ID
       }
       

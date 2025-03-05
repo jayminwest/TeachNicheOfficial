@@ -1,6 +1,5 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Lesson } from '@/types/lesson';
 import { createClientSupabaseClient } from '@/app/lib/supabase/client';
@@ -9,8 +8,7 @@ export default function LessonsClient() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-
+  
   useEffect(() => {
     async function fetchLessons() {
       try {
@@ -18,7 +16,9 @@ export default function LessonsClient() {
         const supabase = createClientSupabaseClient();
         
         // Get filter parameters from URL if needed
-        const category = searchParams.get('category');
+        // Using window.location instead of useSearchParams
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category');
         
         let query = supabase.from('lessons').select('*');
         
@@ -42,7 +42,18 @@ export default function LessonsClient() {
     }
     
     fetchLessons();
-  }, [searchParams]);
+    
+    // Add event listener for URL changes
+    const handleUrlChange = () => {
+      fetchLessons();
+    };
+    
+    window.addEventListener('popstate', handleUrlChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+    };
+  }, []);
 
   if (loading) {
     return (

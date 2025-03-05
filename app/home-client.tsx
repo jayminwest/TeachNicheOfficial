@@ -1,20 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { AuthDialog } from "@/app/components/ui/auth-dialog";
 
 export default function HomeClient() {
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
-  const searchParams = useSearchParams()
+  const [redirectUrl, setRedirectUrl] = useState('/profile')
   
   useEffect(() => {
     // Check if we should show the auth dialog
-    const showAuth = searchParams?.get('auth') === 'signin'
+    const urlParams = new URLSearchParams(window.location.search);
+    const showAuth = urlParams.get('auth') === 'signin'
+    const redirect = urlParams.get('redirect')
+    
     if (showAuth) {
       setAuthDialogOpen(true)
     }
-  }, [searchParams])
+    
+    if (redirect) {
+      setRedirectUrl(redirect)
+    }
+  }, [])
   
   return (
     <>
@@ -23,10 +29,8 @@ export default function HomeClient() {
         open={authDialogOpen} 
         onOpenChange={setAuthDialogOpen}
         onSuccess={() => {
-          // Get the redirect parameter if it exists
-          const redirectTo = searchParams?.get('redirect') || '/profile'
           // Navigate to the redirect URL after successful auth
-          window.location.href = redirectTo
+          window.location.href = redirectUrl
         }}
       />
     </>

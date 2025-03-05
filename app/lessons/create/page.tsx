@@ -63,8 +63,17 @@ export default function CreateLessonPage() {
         });
       }
       
-      // Redirect to the lesson page
-      router.push(`/lessons/${lesson.id}`);
+      // Check if we need to redirect to the asset status page
+      const assetId = window.sessionStorage.getItem('redirectToAssetStatus');
+      if (assetId) {
+        // Clear the flag
+        window.sessionStorage.removeItem('redirectToAssetStatus');
+        // Redirect to the asset status page
+        router.push(`/lessons/asset/${assetId}`);
+      } else {
+        // Normal redirect to the lesson page
+        router.push(`/lessons/${lesson.id}`);
+      }
     } catch (error) {
       console.error('Error creating lesson:', error);
       toast({

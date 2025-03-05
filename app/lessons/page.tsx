@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { hasSuccessfulPurchaseParams, cleanPurchaseParams } from "@/app/utils/purchase-helpers";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";

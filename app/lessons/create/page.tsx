@@ -9,7 +9,16 @@ export default function CreateLessonPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (data: any) => {
+  interface LessonFormData {
+    title: string;
+    description: string;
+    content?: string;
+    muxAssetId?: string;
+    muxPlaybackId?: string;
+    price?: number;
+  }
+
+  const handleSubmit = async (data: LessonFormData) => {
     try {
       setIsSubmitting(true);
       

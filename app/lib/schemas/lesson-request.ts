@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { LessonRequest, LessonRequestStatus, LessonRequestVote } from '@/types/lesson'
+import { LessonRequestStatus } from '@/types/lesson'
 
 // Helper function to ensure status is one of the allowed values
 export function ensureValidStatus(status: string): LessonRequestStatus {

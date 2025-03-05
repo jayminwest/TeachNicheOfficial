@@ -333,8 +333,8 @@ export const canCreatePaidLessons = async (
     // Otherwise check with Stripe
     const status = await getAccountStatus(profile.stripe_account_id);
     return status.isComplete;
-  } catch (error) {
-    console.error('Error checking paid lesson capability:', error);
+  } catch (err) {
+    console.error('Error checking paid lesson capability:', err);
     return false;
   }
 };

@@ -5,8 +5,7 @@ import { toast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { supabase } from "@/app/services/supabase";
-import { waitForAssetReady } from "@/app/services/mux";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useAuth } from "@/app/services/auth/AuthContext";
 import { Loader2 } from "lucide-react";
 
@@ -124,7 +123,7 @@ export default function NewLessonPage() {
           
           // Handle validation errors specifically
           if (errorData.error === 'Validation error' && errorData.details) {
-            const errorMessages = [];
+            const errorMessages: string[] = [];
             
             // Extract field-specific errors
             if (errorData.details.title) {
@@ -157,7 +156,7 @@ export default function NewLessonPage() {
               `Failed to create lesson: ${response.statusText}`;
           
           throw new Error(errorMessage);
-        } catch (parseError) {
+        } catch (_parseError) {
           if (errorData) {
             const errorMessage = 
               errorData.details ? 

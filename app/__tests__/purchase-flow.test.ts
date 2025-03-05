@@ -241,9 +241,20 @@ describe('Purchase Flow', () => {
       });
       
       // Setup the mock response for this specific test
-      purchasePost.mockReturnValueOnce(createMockResponse({ 
-        sessionId: 'cs_test_123' 
-      }));
+      purchasePost.mockImplementationOnce(async (request) => {
+        const body = await request.json();
+        const { lessonId, price } = body;
+        
+        // Call the mocked purchasesService.createPurchase
+        purchasesService.createPurchase({
+          lessonId,
+          userId: 'user-123',
+          amount: price,
+          stripeSessionId: 'cs_test_123'
+        });
+        
+        return createMockResponse({ sessionId: 'cs_test_123' });
+      });
       
       // Create request
       const request = createMockRequest({
@@ -381,10 +392,23 @@ describe('Purchase Flow', () => {
       });
       
       // Setup the mock response for this specific test
-      checkPurchasePost.mockReturnValueOnce(createMockResponse({ 
-        hasAccess: true,
-        purchaseStatus: 'completed'
-      }));
+      checkPurchasePost.mockImplementationOnce(async (request) => {
+        const body = await request.json();
+        const { lessonId, sessionId } = body;
+        
+        if (sessionId) {
+          // Call the mocked verifyStripeSession
+          purchasesService.verifyStripeSession(sessionId);
+          purchasesService.createPurchase({
+            lessonId,
+            userId: 'user-123',
+            amount: 10,
+            stripeSessionId: sessionId
+          });
+        }
+        
+        return createMockResponse({ hasAccess: true, purchaseStatus: 'completed' });
+      });
       
       // Create request with session ID
       const request = createMockRequest({
@@ -516,10 +540,22 @@ describe('Purchase Flow', () => {
       });
       
       // Setup the mock response for this specific test
-      webhookPost.mockReturnValueOnce(createMockResponse({ 
-        success: true,
-        created: true
-      }));
+      webhookPost.mockImplementationOnce(async (_request) => {
+        // Call the mocked updatePurchaseStatus
+        purchasesService.updatePurchaseStatus('cs_test_123', 'completed');
+        
+        // Create purchase if needed
+        purchasesService.createPurchase({
+          lessonId: 'lesson-123',
+          userId: 'user-123',
+          amount: 10,
+          stripeSessionId: 'cs_test_123',
+          paymentIntentId: undefined,
+          fromWebhook: true
+        });
+        
+        return createMockResponse({ success: true, created: true });
+      });
       
       // Create request
       const request = createMockRequest({

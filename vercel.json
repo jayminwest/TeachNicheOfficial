@@ -8,7 +8,6 @@
   ],
   "devCommand": "next dev",
   "typescript": {
-    "tsconfigPath": "tsconfig.json",
     "ignoreBuildErrors": true
   },
   "eslint": {

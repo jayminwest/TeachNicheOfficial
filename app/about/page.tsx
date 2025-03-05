@@ -1,24 +1,14 @@
-'use client'
+export const dynamic = 'force-static'
 
-import { Suspense } from 'react'
-import Image from "next/image"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/app/components/ui/accordion"
-
-function AboutPageContent() {
+export default function AboutPage() {
   return (
     <div>
       <div className="relative h-[400px] w-full mb-16">
         <div className="absolute inset-0">
-          <Image
+          <img
             src="/303_group.png"
             alt="303 Kendama Group"
-            fill
-            className="object-cover filter grayscale pointer-events-none"
+            className="object-cover w-full h-full filter grayscale pointer-events-none"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
@@ -90,10 +80,13 @@ function AboutPageContent() {
 
           <section className="my-12">
             <h2 className="text-2xl font-semibold mb-6">Learn More About Teach Niche</h2>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="values">
-                <AccordionTrigger>Values</AccordionTrigger>
-                <AccordionContent>
+            <div className="space-y-4">
+              <div className="border rounded-lg">
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <h3 className="text-lg font-medium">Values</h3>
+                  <span>+</span>
+                </div>
+                <div className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">Community Collaboration</h4>
@@ -112,12 +105,15 @@ function AboutPageContent() {
                       <p>The platform supports long-term growth for kendama enthusiasts and professionals alike.</p>
                     </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
+                </div>
+              </div>
 
-              <AccordionItem value="why">
-                <AccordionTrigger>Why Teach Niche?</AccordionTrigger>
-                <AccordionContent>
+              <div className="border rounded-lg">
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <h3 className="text-lg font-medium">Why Teach Niche?</h3>
+                  <span>+</span>
+                </div>
+                <div className="p-4 border-t">
                   <div className="grid sm:grid-cols-2 gap-6 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">💪 Empowerment</h4>
@@ -136,12 +132,15 @@ function AboutPageContent() {
                       <p>Teach Niche is built to grow and evolve according to the needs and feedback of the community.</p>
                     </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
+                </div>
+              </div>
 
-              <AccordionItem value="commission">
-                <AccordionTrigger>Commission Structure</AccordionTrigger>
-                <AccordionContent>
+              <div className="border rounded-lg">
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <h3 className="text-lg font-medium">Commission Structure</h3>
+                  <span>+</span>
+                </div>
+                <div className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is committed to transparency and fairness in its operations. To sustain the platform and continue providing value to the community, Teach Niche charges a 15% commission on each transaction.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -150,12 +149,15 @@ function AboutPageContent() {
                       <li><span className="font-semibold">Community Investment:</span> By supporting the platform, users contribute to a sustainable ecosystem that benefits all members of the kendama community.</li>
                     </ul>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
+                </div>
+              </div>
 
-              <AccordionItem value="opensource">
-                <AccordionTrigger>Open Source Philosophy</AccordionTrigger>
-                <AccordionContent>
+              <div className="border rounded-lg">
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <h3 className="text-lg font-medium">Open Source Philosophy</h3>
+                  <span>+</span>
+                </div>
+                <div className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -165,12 +167,15 @@ function AboutPageContent() {
                     </ul>
                     <p>You can check out the repository on GitHub and take a look under the hood!</p>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
+                </div>
+              </div>
 
-              <AccordionItem value="growth">
-                <AccordionTrigger>Built to Grow with the Community</AccordionTrigger>
-                <AccordionContent>
+              <div className="border rounded-lg">
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <h3 className="text-lg font-medium">Built to Grow with the Community</h3>
+                  <span>+</span>
+                </div>
+                <div className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <p>The best way to serve the kendama community is by listening and adapting to its needs.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -180,9 +185,9 @@ function AboutPageContent() {
                     </ul>
                     <p>By keeping the platform intentionally adaptable, Teach Niche ensures that it evolves in step with the community it serves.</p>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">
@@ -197,17 +202,4 @@ function AboutPageContent() {
     </div>
     </div>
   );
-}
-
-export default function AboutPage() {
-  return (
-    <Suspense fallback={
-      <div className="container flex flex-col items-center justify-center min-h-[70vh] py-12 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mb-4"></div>
-        <p>Loading...</p>
-      </div>
-    }>
-      <AboutPageContent />
-    </Suspense>
-  )
 }

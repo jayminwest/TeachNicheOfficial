@@ -1,3 +1,6 @@
+'use client'
+
+import { Suspense } from 'react'
 import Image from "next/image"
 import {
   Accordion,
@@ -6,7 +9,7 @@ import {
   AccordionTrigger,
 } from "@/app/components/ui/accordion"
 
-export default function AboutPage() {
+function AboutPageContent() {
   return (
     <div>
       <div className="relative h-[400px] w-full mb-16">
@@ -194,4 +197,17 @@ export default function AboutPage() {
     </div>
     </div>
   );
+}
+
+export default function AboutPage() {
+  return (
+    <Suspense fallback={
+      <div className="container flex flex-col items-center justify-center min-h-[70vh] py-12 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mb-4"></div>
+        <p>Loading...</p>
+      </div>
+    }>
+      <AboutPageContent />
+    </Suspense>
+  )
 }

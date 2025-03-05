@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Header } from '../header';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -16,23 +16,29 @@ jest.mock('next/navigation', () => ({
 
 // Mock the child components
 jest.mock('../auth-dialog', () => ({
-  AuthDialog: ({ open, onOpenChange, defaultView }) => (
-    <div data-testid="auth-dialog" data-open={open} data-view={defaultView}>
-      <button onClick={() => onOpenChange(false)}>Close Dialog</button>
-    </div>
-  ),
+  AuthDialog: function MockAuthDialog({ open, onOpenChange, defaultView }) {
+    return (
+      <div data-testid="auth-dialog" data-open={open} data-view={defaultView}>
+        <button onClick={() => onOpenChange(false)}>Close Dialog</button>
+      </div>
+    );
+  }
 }));
 
 jest.mock('../theme-toggle', () => ({
-  ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>,
+  ThemeToggle: function MockThemeToggle() {
+    return <div data-testid="theme-toggle">Theme Toggle</div>;
+  }
 }));
 
 jest.mock('../sign-out-button', () => ({
-  SignOutButton: ({ variant, className }) => (
-    <button data-testid="sign-out-button" data-variant={variant} className={className}>
-      Sign Out
-    </button>
-  ),
+  SignOutButton: function MockSignOutButton({ variant, className }) {
+    return (
+      <button data-testid="sign-out-button" data-variant={variant} className={className}>
+        Sign Out
+      </button>
+    );
+  }
 }));
 
 // Mock scrollIntoView

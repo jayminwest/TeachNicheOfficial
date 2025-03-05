@@ -3,9 +3,9 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database';
 
-// Completely bypass the type system for the route handler
-// @ts-nocheck
-export async function POST(request: Request, context: any) {
+// Disable ESLint for this line to allow the specific type pattern needed for Next.js 15
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function POST(request: Request, context: { params: { id: string } }) {
   try {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });

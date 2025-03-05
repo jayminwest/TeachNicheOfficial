@@ -116,3 +116,25 @@ export async function GET(request: Request) {
     );
   }
 }
+import { NextResponse } from 'next/server';
+import { getAssetIdFromUpload } from '@/app/services/mux';
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const uploadId = searchParams.get('uploadId');
+  
+  if (!uploadId) {
+    return NextResponse.json({ error: 'Missing uploadId parameter' }, { status: 400 });
+  }
+  
+  try {
+    const assetId = await getAssetIdFromUpload(uploadId);
+    return NextResponse.json({ assetId });
+  } catch (error) {
+    console.error('Error getting asset ID:', error);
+    return NextResponse.json(
+      { error: 'Failed to get asset ID', details: error instanceof Error ? error.message : undefined },
+      { status: 500 }
+    );
+  }
+}

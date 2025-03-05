@@ -1,17 +1,15 @@
+import { getAssetStatus } from '@/app/services/mux';
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import { getAssetStatus } from '@/app/services/mux';
+import { Status } from './types';
 import AssetStatusPoll from './AssetStatusPoll';
 
-// Force dynamic to ensure we get fresh data on each request
-export const dynamic = 'force-dynamic';
-
-const checkAssetStatus = async (assetId: string) => {
+const checkAssetStatus = async (assetId: string): Promise<Status> => {
   try {
-    const assetStatus = await getAssetStatus(assetId);
-    
+    const asset = await getAssetStatus(assetId);
+
     // If the asset is ready and has a playback ID, update the lesson and redirect
-    if (assetStatus.status === 'ready' && assetStatus.playbackId) {
+    if (asset.status === 'ready' && asset.playbackId) {
       // Find the lesson associated with this asset
       const supabase = await createServerSupabaseClient();
       const { data: lesson } = await supabase
@@ -25,7 +23,7 @@ const checkAssetStatus = async (assetId: string) => {
         await supabase
           .from('lessons')
           .update({ 
-            mux_playback_id: assetStatus.playbackId,
+            mux_playback_id: asset.playbackId,
             updated_at: new Date().toISOString()
           })
           .eq('id', lesson.id);
@@ -34,8 +32,11 @@ const checkAssetStatus = async (assetId: string) => {
         redirect(`/lessons/${lesson.id}`);
       }
     }
-    
-    return assetStatus;
+
+    return {
+      status: asset.status,
+      playbackId: asset.playbackId
+    };
   } catch (error) {
     console.error('Error checking asset status:', error);
     return {
@@ -45,10 +46,10 @@ const checkAssetStatus = async (assetId: string) => {
   }
 };
 
-export default async function AssetStatusPage({ params }: { params: { assetId: string } }) {
+export const dynamic = 'force-dynamic';
+
+export default async function Page({ params }: { params: { assetId: string } }) {
   const { assetId } = params;
-  
-  // Get the initial status
   const initialStatus = await checkAssetStatus(assetId);
   
   return (

@@ -1,13 +1,4 @@
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
-
-// Use dynamic import with SSR disabled to avoid useSearchParams issues
-const AuthClient = dynamic(() => import('./client'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex min-h-screen items-center justify-center">Loading...</div>
-  ),
-});
+import AuthClientWrapper from './client-wrapper';
 
 export default function AuthPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   // Extract error parameters from the URL
@@ -33,5 +24,5 @@ export default function AuthPage({ searchParams }: { searchParams: { [key: strin
     }
   }
   
-  return <AuthClient errorMessage={errorMessage} />;
+  return <AuthClientWrapper errorMessage={errorMessage} />;
 }

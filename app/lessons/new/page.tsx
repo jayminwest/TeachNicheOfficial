@@ -153,7 +153,7 @@ export default function NewLessonPage() {
               `Failed to create lesson: ${response.statusText}`;
             
           throw new Error(errorMessage);
-        } catch (_) {
+        } catch {
           if (errorData) {
             const errorMessage = 
               errorData.details ? 

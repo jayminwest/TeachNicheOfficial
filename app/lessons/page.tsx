@@ -14,9 +14,6 @@ import { Toaster } from "@/app/components/ui/toaster";
 export default function LessonsPage() {
   const { lessons, loading, error } = useLessons();
   
-  // Track if we've detected a purchase success
-  const [purchaseDetected, setPurchaseDetected] = useState(false);
-  
   useEffect(() => {
     if (error) {
       toast({
@@ -29,8 +26,6 @@ export default function LessonsPage() {
     // Check if there's a purchase success parameter in the URL
     const hasPurchaseParams = hasSuccessfulPurchaseParams();
     if (hasPurchaseParams) {
-      setPurchaseDetected(true);
-      
       // Show success toast
       toast({
         title: "Purchase Successful",
@@ -81,10 +76,7 @@ export default function LessonsPage() {
             </Link>
           </Card>
         ) : (
-          <LessonGrid 
-            lessons={lessons} 
-            key={purchaseDetected ? 'post-purchase' : 'normal'}
-          />
+          <LessonGrid lessons={lessons} />
         )}
       </div>
       <Toaster />

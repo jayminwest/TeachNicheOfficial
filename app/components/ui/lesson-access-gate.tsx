@@ -82,6 +82,18 @@ export function LessonAccessGate({
   // Check if URL indicates a successful purchase
   const isSuccess = hasSuccessfulPurchaseParams();
   
+  // Force refresh if we have success parameters to ensure database is checked
+  useEffect(() => {
+    if (isSuccess && !hasAccess) {
+      // Set a small timeout to allow webhook to process
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, hasAccess]);
+  
   // If user has access or payment was just successful, show the content
   if (hasAccess || isSuccess) {
     // Remove the success parameters from the URL to prevent issues on refresh
@@ -131,129 +143,16 @@ export function LessonAccessGate({
       );
     }
     
-    // If we see success in URL but hasAccess is still false, show a check status button
+    // If we see success in URL but hasAccess is still false, show a processing message
     if (isSuccess) {
-      const [isChecking, setIsChecking] = useState(false);
-      const [checkCount, setCheckCount] = useState(0);
-      
-      // Auto-check status on first load
-      useEffect(() => {
-        if (isSuccess && !hasAccess) {
-          handleCheckStatus();
-        }
-      }, []);
-      
-      const handleCheckStatus = async () => {
-        try {
-          setIsChecking(true);
-          setCheckCount(prev => prev + 1);
-          
-          const response = await fetch('/api/lessons/check-purchase', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ lessonId })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.hasAccess) {
-              window.location.reload();
-            } else if (checkCount >= 3) {
-              // After 3 attempts, offer to force access
-              const forceAccess = confirm(
-                'Your payment was successful, but we\'re having trouble confirming it. ' +
-                'Would you like to access the content anyway? ' +
-                'Your purchase will be verified in the background.'
-              );
-              
-              if (forceAccess) {
-                // Remove the success parameter from the URL to prevent issues on refresh
-                if (typeof window !== 'undefined') {
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete('purchase');
-                  url.searchParams.set('force_access', 'true');
-                  window.location.href = url.toString();
-                }
-              }
-            } else {
-              // Less than 3 attempts, just show a message
-              alert('Your purchase is still being processed. Please try again in a moment.');
-            }
-          }
-        } catch (err) {
-          console.error('Error checking purchase status:', err);
-        } finally {
-          setIsChecking(false);
-        }
-      };
-      
-      const handleManualUpdate = async () => {
-        try {
-          setIsChecking(true);
-          
-          // Get the session ID and payment intent ID from URL if available
-          const url = new URL(window.location.href);
-          const sessionId = url.searchParams.get('session_id');
-          const paymentIntentId = url.searchParams.get('payment_intent');
-          
-          const response = await fetch('/api/lessons/update-purchase', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-              lessonId,
-              sessionId,
-              paymentIntentId
-            })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-              window.location.reload();
-            } else {
-              alert('Failed to update purchase: ' + (data.error || 'Unknown error'));
-            }
-          } else {
-            alert('Failed to update purchase. Please try again.');
-          }
-        } catch (err) {
-          console.error('Error manually updating purchase:', err);
-          alert('An error occurred while updating your purchase.');
-        } finally {
-          setIsChecking(false);
-        }
-      };
-      
       return (
         <div className="p-6 bg-muted rounded-lg">
           <h3 className="text-lg font-semibold mb-2">Processing Your Purchase</h3>
           <p className="text-muted-foreground mb-4">
-            Your payment was successful, but we're still processing your purchase. This usually takes just a few seconds.
+            Your payment was successful! We're processing your purchase and you'll have access momentarily.
           </p>
-          <div className="space-y-2">
-            <Button onClick={handleCheckStatus} disabled={isChecking} className="w-full">
-              {isChecking ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Checking...
-                </>
-              ) : (
-                'Check Purchase Status'
-              )}
-            </Button>
-            
-            <Button 
-              onClick={handleManualUpdate} 
-              variant="outline" 
-              className="w-full"
-              disabled={isChecking}
-            >
-              Manual Update
-            </Button>
+          <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </div>
       );

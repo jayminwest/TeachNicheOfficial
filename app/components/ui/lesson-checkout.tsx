@@ -45,8 +45,26 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
     );
   }
 
-  // If the user already has access or purchase was successful, show an "Access Lesson" button
-  if (hasAccess || isSuccess || hasSuccessfulPurchaseParams()) {
+  // If the user already has access, show an "Access Lesson" button
+  if (hasAccess) {
+    return (
+      <Button 
+        onClick={onAccessLesson || (() => router.push(`/lessons/${lessonId}`))}
+        variant="outline"
+        className="bg-green-600 hover:bg-green-700 text-white"
+      >
+        Access Lesson
+      </Button>
+    );
+  }
+  
+  // If payment was just successful, show access button
+  if (isSuccess || hasSuccessfulPurchaseParams()) {
+    // Clean up URL parameters
+    if (typeof window !== 'undefined') {
+      cleanPurchaseParams();
+    }
+    
     return (
       <Button 
         onClick={onAccessLesson || (() => router.push(`/lessons/${lessonId}`))}

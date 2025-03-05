@@ -34,15 +34,8 @@ export function LessonCard({ lesson }: LessonCardProps) {
   // Use the lesson access hook to check if user has purchased the lesson
   const { hasAccess, loading: accessLoading, purchaseStatus } = useLessonAccess(lesson.id);
   
-  // Check if URL indicates a successful purchase
-  const [hasPurchaseSuccess, setHasPurchaseSuccess] = useState(false);
-  
-  useEffect(() => {
-    setHasPurchaseSuccess(hasSuccessfulPurchaseParams());
-  }, []);
-  
-  // Determine if user has access to this lesson
-  const userHasAccess = hasAccess || hasPurchaseSuccess || purchaseStatus === 'completed';
+  // Determine if user has access to this lesson based on database status
+  const userHasAccess = hasAccess || purchaseStatus === 'completed';
 
   return (
     <>

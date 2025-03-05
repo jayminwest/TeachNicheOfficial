@@ -9,13 +9,11 @@
 export function hasSuccessfulPurchaseParams(): boolean {
   if (typeof window === 'undefined') return false;
   
-  const url = window.location.href;
   const urlParams = new URLSearchParams(window.location.search);
   
   return (
     urlParams.get('purchase') === 'success' ||
-    urlParams.has('session_id') ||
-    url.includes('session_id=')
+    urlParams.has('session_id')
   );
 }
 

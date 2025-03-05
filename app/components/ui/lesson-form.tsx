@@ -199,6 +199,9 @@ export function LessonForm({
               title: "Video Processing",
               description: "Your video is still processing. The lesson will be published automatically when processing is complete.",
             });
+            
+            // Store a flag to redirect to the asset status page after form submission
+            window.sessionStorage.setItem('redirectToAssetStatus', data.muxAssetId);
           }
           
           // Final validation check for muxPlaybackId
@@ -456,7 +459,7 @@ export function LessonForm({
                   
                   toast({
                     title: "Video uploaded",
-                    description: "Your video has been uploaded and is now processing. You'll be notified when it's ready.",
+                    description: "Your video has been uploaded and is now processing. You can continue filling out the form and submit when ready.",
                   });
                 } catch (error) {
                   toast({

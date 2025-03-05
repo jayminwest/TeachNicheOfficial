@@ -27,6 +27,8 @@ const lessonCreateSchema = z.object({
     .optional(),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
+  thumbnail_url: z.string().optional(),
+  thumbnailUrl: z.string().optional(), // For backward compatibility
   price: z.number()
     .min(0, "Price must be positive")
     .max(999.99, "Price must be less than $1000")
@@ -66,6 +68,8 @@ async function createLessonHandler(request: Request) {
       price = 0, 
       muxAssetId,
       muxPlaybackId,
+      thumbnail_url,
+      thumbnailUrl,
       content = '',
       status = 'published',
       category
@@ -83,10 +87,16 @@ async function createLessonHandler(request: Request) {
       category,
       mux_asset_id: muxAssetId,
       mux_playback_id: muxPlaybackId,
+      thumbnail_url: body.thumbnail_url || body.thumbnailUrl || null, // Ensure thumbnail URL is included
       stripe_product_id: null, // Will be updated after Stripe product creation
       stripe_price_id: null,   // Will be updated after Stripe price creation
       previous_stripe_price_ids: []
     };
+    
+    console.log("Creating lesson with data:", {
+      ...lessonData,
+      content: lessonData.content?.substring(0, 50) + (lessonData.content?.length > 50 ? '...' : ''),
+    });
 
     // Check if this is a paid lesson
     if (price > 0) {

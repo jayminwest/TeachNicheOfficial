@@ -7,6 +7,7 @@ import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { hasSuccessfulPurchaseParams } from '@/app/utils/purchase-helpers';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -15,9 +16,10 @@ interface LessonCheckoutProps {
   price: number;
   searchParams?: URLSearchParams;
   hasAccess?: boolean; // New prop to indicate if user already has access
+  onAccessLesson?: () => void; // Callback for when "Access Lesson" button is clicked
 }
 
-export function LessonCheckout({ lessonId, price, searchParams, hasAccess = false }: LessonCheckoutProps) {
+export function LessonCheckout({ lessonId, price, searchParams, hasAccess = false, onAccessLesson }: LessonCheckoutProps) {
   const isSuccess = searchParams?.get('purchase') === 'success';
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -43,11 +45,11 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
     );
   }
 
-  // If the user already has access, show an "Access Lesson" button instead
+  // If the user already has access, show an "Access Lesson" button
   if (hasAccess) {
     return (
       <Button 
-        onClick={() => router.push(`/lessons/${lessonId}`)}
+        onClick={onAccessLesson || (() => router.push(`/lessons/${lessonId}`))}
         variant="outline"
         className="bg-green-600 hover:bg-green-700 text-white"
       >
@@ -55,12 +57,17 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
       </Button>
     );
   }
-
-  // If purchase was successful, show access button
-  if (isSuccess) {
+  
+  // If payment was just successful, show access button
+  if (isSuccess || hasSuccessfulPurchaseParams()) {
+    // Clean up URL parameters
+    if (typeof window !== 'undefined') {
+      cleanPurchaseParams();
+    }
+    
     return (
       <Button 
-        onClick={() => router.push(`/lessons/${lessonId}`)}
+        onClick={onAccessLesson || (() => router.push(`/lessons/${lessonId}`))}
         variant="outline"
         className="bg-green-600 hover:bg-green-700 text-white"
       >

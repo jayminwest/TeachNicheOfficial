@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MarkdownEditor } from "./markdown-editor";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { ImageUploader } from "./image-uploader";
 import { Button } from "./button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "./form";
 import { Input } from "./input";
@@ -26,6 +27,8 @@ const lessonFormSchema = z.object({
     .max(50000, "Content must be less than 50000 characters"),
   muxAssetId: z.string().optional(),
   muxPlaybackId: z.string().optional(),
+  thumbnail_url: z.string().optional().default(""),
+  thumbnailUrl: z.string().optional().default(""), // Keep for backward compatibility
   price: z.number()
     .min(0, "Price must be positive")
     .max(999.99, "Price must be less than $1000")
@@ -103,13 +106,20 @@ export function LessonForm({
   }, []);
   const form = useForm<LessonFormData>({
     resolver: zodResolver(lessonFormSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      ...initialData,
+      // Ensure both thumbnail fields are set if one is provided
+      thumbnail_url: initialData.thumbnail_url || initialData.thumbnailUrl || "",
+      thumbnailUrl: initialData.thumbnailUrl || initialData.thumbnail_url || "",
+    } : {
       title: "",
       description: "",
       content: "",
       price: 0,
       muxAssetId: "", // Initialize muxAssetId field
       muxPlaybackId: "", // Initialize muxPlaybackId field
+      thumbnail_url: "", // Initialize thumbnail_url field (database column name)
+      thumbnailUrl: "", // Keep for backward compatibility
     },
   });
 
@@ -164,6 +174,19 @@ export function LessonForm({
               return;
             }
           }
+          
+          // Ensure thumbnail_url is properly set
+          // If only one of the thumbnail fields is set, copy it to the other
+          if (data.thumbnail_url && !data.thumbnailUrl) {
+            data.thumbnailUrl = data.thumbnail_url;
+          } else if (data.thumbnailUrl && !data.thumbnail_url) {
+            data.thumbnail_url = data.thumbnailUrl;
+          }
+          
+          console.log("Submitting lesson with thumbnail:", {
+            thumbnail_url: data.thumbnail_url,
+            thumbnailUrl: data.thumbnailUrl
+          });
           
           // Continue with form submission
           onSubmit(data);
@@ -303,6 +326,62 @@ export function LessonForm({
             )}
           />
         </div>
+
+        <Card className="p-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold">Lesson Thumbnail</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload a thumbnail image for your lesson
+              </p>
+            </div>
+            
+            <ImageUploader
+              initialImage={form.watch('thumbnail_url') || form.watch('thumbnailUrl')}
+              onUploadComplete={(url) => {
+                if (!url) {
+                  console.log("No URL returned from upload");
+                  return;
+                }
+                
+                console.log("Thumbnail uploaded successfully:", url);
+                // Set both properties for compatibility
+                form.setValue("thumbnail_url", url, { 
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
+                form.setValue("thumbnailUrl", url, { 
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true
+                });
+                
+                // Ensure the form data will include both properties when submitted
+                const currentValues = form.getValues();
+                console.log("Form values after setting thumbnail:", {
+                  thumbnail_url: currentValues.thumbnail_url,
+                  thumbnailUrl: currentValues.thumbnailUrl
+                });
+                
+                toast({
+                  title: "Thumbnail uploaded",
+                  description: "Your thumbnail has been uploaded successfully.",
+                });
+              }}
+              onError={(error) => {
+                console.error("Thumbnail upload error:", error);
+                toast({
+                  title: "Upload failed",
+                  description: error.message,
+                  variant: "destructive",
+                });
+              }}
+              maxSizeMB={5}
+              acceptedTypes={['image/jpeg', 'image/png', 'image/webp']}
+            />
+          </div>
+        </Card>
 
         <Card className="p-6">
           <div className="space-y-4">

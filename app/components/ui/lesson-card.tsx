@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Card } from "@/app/components/ui/card";
 import { LessonCheckout } from "@/app/components/ui/lesson-checkout";
@@ -8,6 +8,7 @@ import { Button } from "@/app/components/ui/button";
 import { useRouter } from "next/navigation";
 import { PencilIcon, Loader2 } from "lucide-react";
 import { useLessonAccess } from '@/app/hooks/use-lesson-access';
+import { hasSuccessfulPurchaseParams } from '@/app/utils/purchase-helpers';
 
 interface LessonCardProps {
   lesson: {
@@ -31,7 +32,10 @@ export function LessonCard({ lesson }: LessonCardProps) {
   const isOwner = user?.id === lesson.creatorId;
   
   // Use the lesson access hook to check if user has purchased the lesson
-  const { hasAccess, loading: accessLoading } = useLessonAccess(lesson.id);
+  const { hasAccess, loading: accessLoading, purchaseStatus } = useLessonAccess(lesson.id);
+  
+  // Determine if user has access to this lesson based on database status
+  const userHasAccess = hasAccess || purchaseStatus === 'completed';
 
   return (
     <>
@@ -41,10 +45,14 @@ export function LessonCard({ lesson }: LessonCardProps) {
       >
         <div className="relative aspect-video w-full">
           <Image
-            src={lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
+            src={lesson.thumbnail_url || lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
             alt={lesson.title}
             fill
             className="object-cover rounded-t-lg"
+            unoptimized={!(lesson.thumbnail_url || lesson.thumbnailUrl) || 
+              (lesson.thumbnail_url && lesson.thumbnail_url.startsWith('blob:')) || 
+              (lesson.thumbnailUrl && lesson.thumbnailUrl.startsWith('blob:'))} 
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
         <div className="p-6">
@@ -82,12 +90,24 @@ export function LessonCard({ lesson }: LessonCardProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading...
                 </Button>
-              ) : lesson.price > 0 && (
+              ) : userHasAccess || lesson.price === 0 ? (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent opening preview
+                    router.push(`/lessons/${lesson.id}`);
+                  }}
+                >
+                  Access Lesson
+                </Button>
+              ) : (
                 <LessonCheckout 
                   lessonId={lesson.id} 
                   price={lesson.price}
                   searchParams={new URLSearchParams(window.location.search)}
-                  hasAccess={hasAccess}
+                  hasAccess={userHasAccess}
+                  onAccessLesson={() => router.push(`/lessons/${lesson.id}`)}
                 />
               )}
             </div>

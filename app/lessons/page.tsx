@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { hasSuccessfulPurchaseParams, cleanPurchaseParams } from "@/app/utils/purchase-helpers";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
@@ -20,6 +21,20 @@ export default function LessonsPage() {
         description: error.message || "Failed to load lessons. Please try again.",
         variant: "destructive",
       });
+    }
+    
+    // Check if there's a purchase success parameter in the URL
+    const hasPurchaseParams = hasSuccessfulPurchaseParams();
+    if (hasPurchaseParams) {
+      // Show success toast
+      toast({
+        title: "Purchase Successful",
+        description: "Your lesson purchase was successful. You now have access to this content.",
+        variant: "default",
+      });
+      
+      // Clean up URL parameters
+      cleanPurchaseParams();
     }
   }, [error]);
 

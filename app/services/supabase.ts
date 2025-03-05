@@ -19,3 +19,28 @@ export const supabase = createClient<Database>(
 export function createClientSupabaseClient() {
   return createClientComponentClient<Database>();
 }
+
+/**
+ * Get a public URL for a file in Supabase storage
+ */
+export function getPublicUrl(bucket: string, path: string) {
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/**
+ * Upload a file to Supabase storage and return the public URL
+ */
+export async function uploadFile(bucket: string, path: string, file: File) {
+  const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
+    cacheControl: '3600',
+    upsert: true // Changed to true to allow overwriting existing files
+  });
+  
+  if (error) {
+    console.error("Supabase upload error:", error);
+    throw new Error(`Upload failed: ${error.message}`);
+  }
+  
+  return getPublicUrl(bucket, data.path);
+}

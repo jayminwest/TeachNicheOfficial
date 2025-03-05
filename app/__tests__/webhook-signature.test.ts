@@ -1,27 +1,26 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Stripe from 'stripe';
 import { NextRequest } from 'next/server';
 import { POST as webhookPost } from '@/app/api/webhooks/stripe/route';
 
 // Mock dependencies
-vi.mock('stripe', () => {
-  const StripeConstructor = vi.fn(() => ({
+jest.mock('stripe', () => {
+  const StripeConstructor = jest.fn(() => ({
     webhooks: {
-      constructEvent: vi.fn(),
+      constructEvent: jest.fn(),
     }
   }));
   
   return { default: StripeConstructor };
 });
 
-vi.mock('@/app/lib/supabase/server', () => ({
-  createServerSupabaseClient: vi.fn(),
+jest.mock('@/app/lib/supabase/server', () => ({
+  createServerSupabaseClient: jest.fn(),
 }));
 
-vi.mock('@/app/services/database/purchasesService', () => ({
+jest.mock('@/app/services/database/purchasesService', () => ({
   purchasesService: {
-    updatePurchaseStatus: vi.fn(),
-    createPurchase: vi.fn(),
+    updatePurchaseStatus: jest.fn(),
+    createPurchase: jest.fn(),
   }
 }));
 
@@ -33,7 +32,7 @@ describe('Webhook Signature Verification', () => {
   };
   
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     
     // Setup Stripe mock
     mockStripe = new Stripe('mock-key', { apiVersion: '2025-01-27.acacia' });
@@ -63,7 +62,7 @@ describe('Webhook Signature Verification', () => {
     const request = {
       text: () => Promise.resolve('{"type":"checkout.session.completed"}'),
       headers: {
-        get: vi.fn().mockReturnValue('mock-signature')
+        get: jest.fn().mockReturnValue('mock-signature')
       }
     } as unknown as NextRequest;
     
@@ -91,7 +90,7 @@ describe('Webhook Signature Verification', () => {
     const request = {
       text: () => Promise.resolve('{"type":"checkout.session.completed"}'),
       headers: {
-        get: vi.fn().mockReturnValue('invalid-signature')
+        get: jest.fn().mockReturnValue('invalid-signature')
       }
     } as unknown as NextRequest;
     
@@ -109,7 +108,7 @@ describe('Webhook Signature Verification', () => {
     const request = {
       text: () => Promise.resolve('{"type":"checkout.session.completed"}'),
       headers: {
-        get: vi.fn().mockReturnValue(null)
+        get: jest.fn().mockReturnValue(null)
       }
     } as unknown as NextRequest;
     

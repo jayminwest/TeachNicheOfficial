@@ -1,14 +1,7 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 
 export default function LegalContent() {
-  // We can use the search params here if needed
-  const searchParams = useSearchParams();
-  
-  // You could use searchParams to highlight specific sections
-  // const highlightSection = searchParams.get('section');
-  
   return (
     <div className="container mx-auto px-4 py-8 mt-16">
       <h1 className="text-3xl font-bold mb-6">Teach Niche Legal Information</h1>

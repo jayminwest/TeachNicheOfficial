@@ -1,13 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { LessonGrid } from '@/app/components/ui/lesson-grid';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 
-export default function LessonsClient() {
+interface LessonsClientProps {
+  initialQuery?: string;
+  initialCategory?: string;
+  initialPage?: number;
+}
+
+export default function LessonsClient({
+  initialQuery = '',
+  initialCategory = '',
+  initialPage = 1
+}: LessonsClientProps) {
+  // Use the props instead of useSearchParams directly
+  const [query, setQuery] = useState(initialQuery);
+  const [category, setCategory] = useState(initialCategory);
+  const [page, setPage] = useState(initialPage);
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

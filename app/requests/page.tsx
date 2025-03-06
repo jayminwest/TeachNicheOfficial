@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import RequestsClient from './requests-client';
+import SearchParamsWrapper from './search-params-wrapper';
 import { Skeleton } from '@/app/components/ui/skeleton';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
 
@@ -26,7 +26,7 @@ export default function RequestsPage() {
             </div>
           }
         >
-          <RequestsClient />
+          <SearchParamsWrapper />
         </ErrorBoundary>
       </Suspense>
       

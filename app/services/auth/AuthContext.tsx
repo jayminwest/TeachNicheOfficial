@@ -36,33 +36,49 @@ export function AuthProvider({
     let isMounted = true
     let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
     
+    console.log('AuthContext initializing...')
+    
     // Add safety timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
       if (isMounted && loading) {
-        console.warn('Auth loading safety timeout triggered')
+        console.warn('Auth loading safety timeout triggered after 2 seconds')
         setLoading(false)
         setUser(null) // Ensure user is null if timeout occurs
+        console.log('Auth state reset due to timeout')
       }
     }, 2000) // Reduced to 2 seconds for even faster fallback
 
     // Check active sessions and sets the user
     async function initializeAuth() {
       try {
+        console.log('Getting initial session...')
         // Get initial session
-        const { data: { session } } = await getSession()
+        const { data: { session }, error: sessionError } = await getSession()
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError)
+          throw sessionError
+        }
+        
+        console.log('Session retrieved:', session ? 'Valid session' : 'No session')
         
         if (session?.user && isMounted) {
+          console.log('Setting user from session')
           setUser(session.user)
           // Handle profile creation in a separate service
           try {
             await createOrUpdateProfile(session.user)
+            console.log('Profile created/updated successfully')
           } catch (profileError) {
             console.error('Error creating/updating profile:', profileError)
             // Continue even if profile creation fails
           }
+        } else {
+          console.log('No user in session')
         }
         
         if (isMounted) {
+          console.log('Setting loading to false after session check')
           setLoading(false)
         }
 
@@ -113,6 +129,7 @@ export function AuthProvider({
           setUser(null)
           setError(error instanceof Error ? error : new Error('Authentication error'))
           setLoading(false)
+          console.log('Auth state reset due to error')
         }
       }
     }
@@ -120,6 +137,7 @@ export function AuthProvider({
     initializeAuth()
 
     return () => {
+      console.log('AuthContext cleanup')
       isMounted = false
       clearTimeout(safetyTimeout)
       subscription.unsubscribe()

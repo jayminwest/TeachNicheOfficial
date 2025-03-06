@@ -6,7 +6,15 @@ import { useAuth } from '@/app/services/auth/AuthContext';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, Menu } from 'lucide-react';
 
-export default function RequestsClient() {
+interface RequestsClientProps {
+  initialCategory?: string;
+  initialSortBy?: string;
+}
+
+export default function RequestsClient({
+  initialCategory = '',
+  initialSortBy = 'recent'
+}: RequestsClientProps) {
   const [requests, setRequests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

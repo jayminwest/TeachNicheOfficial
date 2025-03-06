@@ -4,10 +4,14 @@ import { useSearchParams } from 'next/navigation';
 import LessonsClient from './lessons-client';
 
 export default function SearchParamsWrapper() {
-  // This component's sole purpose is to isolate the useSearchParams hook
-  // so it can be properly wrapped in a Suspense boundary
+  // Get the search params
   const searchParams = useSearchParams();
   
-  // You can pass the search params to the LessonsClient component if needed
-  return <LessonsClient />;
+  // Extract the values you need from searchParams
+  const query = searchParams.get('query') || '';
+  const category = searchParams.get('category') || '';
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  
+  // Pass only the extracted values to LessonsClient
+  return <LessonsClient initialQuery={query} initialCategory={category} initialPage={page} />;
 }

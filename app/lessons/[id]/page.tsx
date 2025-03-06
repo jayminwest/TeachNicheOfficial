@@ -9,9 +9,8 @@ export const metadata: Metadata = {
   description: 'View lesson details and content',
 };
 
-// Disable ESLint for this specific line to bypass the type error
-// @ts-expect-error - Next.js page props type mismatch
-export default async function LessonPage(props) {
+// Define proper types for the page props
+export default async function LessonPage(props: { params: { id: string } }) {
   // Get the lesson ID from the URL
   const lessonId = props.params?.id;
   

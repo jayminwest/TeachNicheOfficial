@@ -74,7 +74,7 @@ export default function EditLessonPage() {
     if (!authLoading) {
       fetchLesson();
     }
-  }, [lessonId, user, router, authLoading, supabase]);
+  }, [lessonId, user, router, authLoading, supabase, toast]);
   
   // Redirect if not authenticated
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function EditLessonPage() {
       });
       router.push(`/sign-in?redirect=/lessons/${lessonId}/edit`);
     }
-  }, [user, authLoading, router, lessonId]);
+  }, [user, authLoading, router, lessonId, toast]);
   
   const handleSubmit = async (data: {
     title: string;

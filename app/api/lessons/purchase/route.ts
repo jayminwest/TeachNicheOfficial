@@ -52,8 +52,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // We've verified lessonData exists, so we can safely use it
+    const lesson = lessonData as { id: string; title: string; price: number; creator_id: string };
+
     // Verify the price matches
-    if (lessonData.price !== price) {
+    if (lesson.price !== price) {
       return NextResponse.json(
         { error: 'Price mismatch' },
         { status: 400 }
@@ -61,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Don't allow creators to purchase their own lessons
-    if (lessonData.creator_id === userId) {
+    if (lesson.creator_id === userId) {
       return NextResponse.json(
         { error: 'You cannot purchase your own lesson' },
         { status: 400 }
@@ -98,8 +101,8 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: lessonData.title,
-              description: `Access to lesson: ${lessonData.title}`,
+              name: lesson.title,
+              description: `Access to lesson: ${lesson.title}`,
             },
             unit_amount: Math.round(price * 100), // Convert to cents
           },

@@ -4,21 +4,9 @@ import type { Database } from '@/app/types/database';
 
 export async function createServerSupabaseClient() {
   try {
-    // Create the client with a cookie store to avoid async issues
-    const cookieStore = cookies();
-    
-    // Create a custom cookies function that properly handles the cookies
-    const customCookies = () => {
-      return {
-        get: (name: string) => {
-          return cookieStore.get(name);
-        },
-        getAll: () => cookieStore.getAll()
-      };
-    };
-    
+    // Create a Supabase client with proper async cookie handling
     return createRouteHandlerClient<Database>({ 
-      cookies: customCookies
+      cookies
     });
   } catch (error) {
     console.error('Error creating Supabase client:', error);

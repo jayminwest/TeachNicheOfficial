@@ -30,7 +30,7 @@ test.describe('Stripe Connect Flow', () => {
     await page.waitForLoadState('networkidle');
     
     // Expect to see the Stripe Connect button - use a more flexible selector
-    const connectButton = page.getByRole('button').filter({ hasText: /connect|stripe/i, disabled: false });
+    const connectButton = page.getByRole('button').filter({ hasText: /connect|stripe/i });
     await expect(connectButton).toBeVisible();
   });
 
@@ -55,7 +55,7 @@ test.describe('Stripe Connect Flow', () => {
     await page.waitForLoadState('networkidle');
     
     // Click the connect button - use a more flexible selector
-    const connectButton = page.getByRole('button').filter({ hasText: /connect|stripe/i, disabled: false });
+    const connectButton = page.getByRole('button').filter({ hasText: /connect|stripe/i });
     await expect(connectButton).toBeVisible();
     
     // Expect a toast to appear

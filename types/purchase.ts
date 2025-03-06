@@ -24,4 +24,4 @@ export interface Purchase {
 }
 
 // Re-export these types to make them available from the purchasesService
-export { LessonAccess, PurchaseStatus };
+export type { LessonAccess, PurchaseStatus };

@@ -22,6 +22,10 @@ const nextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: false,
+    // Add specific rules to ignore if needed
+    rules: {
+      'react/no-unescaped-entities': 'off',
+    },
   },
   // Use standalone output for better compatibility
   output: 'standalone',

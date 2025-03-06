@@ -352,7 +352,7 @@ export default function ProfileClient() {
           </div>
         ) : (
           <div className="text-center p-8 border rounded-md bg-muted/10">
-            <p className="mb-4">You haven't created any lessons yet.</p>
+            <p className="mb-4">You have not created any lessons yet.</p>
             <Button onClick={() => window.location.href = '/lessons/create'}>
               Create Your First Lesson
             </Button>
@@ -380,7 +380,7 @@ export default function ProfileClient() {
           <div className="border-t pt-6">
             <h3 className="text-lg font-medium mb-2 text-destructive">Danger Zone</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Once you delete your account, there is no way to recover it. Please be certain.
+              Once you delete your account there is no way to recover it. Please be certain.
             </p>
             <Button 
               variant="destructive"

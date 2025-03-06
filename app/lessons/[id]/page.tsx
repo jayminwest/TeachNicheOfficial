@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
@@ -26,7 +27,17 @@ export default async function Page({ params }: { params: { id: string } }) {
     const session = data.session;
     
     // Return the component with props using the local lessonId variable
-    return <LessonDetail id={lessonId} session={session} />;
+    // Wrap any client components that might use useSearchParams in Suspense
+    return (
+      <Suspense fallback={
+        <div className="container mx-auto p-4">
+          <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md mb-4"></div>
+          <div className="h-64 w-full bg-muted animate-pulse rounded-md"></div>
+        </div>
+      }>
+        <LessonDetail id={lessonId} session={session} />
+      </Suspense>
+    );
   } catch (error) {
     console.error('Error fetching lesson:', error);
     notFound();

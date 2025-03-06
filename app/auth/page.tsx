@@ -1,9 +1,8 @@
-'use client';
+// Server component
 export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
-import SearchParamsWrapper from './search-params-wrapper';
+import ClientAuthWrapper from './client-auth-wrapper';
 
-// Use a static page with client-side only components to avoid SSR bailout
 export default function AuthPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -22,7 +21,7 @@ export default function AuthPage() {
             <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
           </div>
         }>
-          <SearchParamsWrapper />
+          <ClientAuthWrapper />
         </Suspense>
       </div>
       

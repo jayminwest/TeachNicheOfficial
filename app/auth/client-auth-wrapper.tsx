@@ -1,47 +1,82 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
-import AuthClientWrapper from './client-wrapper';
+import { Button } from '@/app/components/ui/button';
+import Link from 'next/link';
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 
 export default function ClientAuthWrapper() {
-  const [mounted, setMounted] = useState(false);
-  const [params, setParams] = useState<{error: string | null, redirect: string | null, showSignIn: boolean}>({
-    error: null,
-    redirect: null,
-    showSignIn: false
-  });
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Extract parameters directly from searchParams hook
+  const errorParam = searchParams.get('error');
+  const redirect = searchParams.get('redirect');
   
   useEffect(() => {
+    // Store redirect URL in session storage
+    if (redirect) {
+      sessionStorage.setItem('auth-redirect', redirect);
+    }
+    
+    // Set error from URL parameter if present
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+    }
+    
+    // Simulate loading to ensure client hydration
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [redirect, errorParam]);
+  
+  const handleGoogleSignIn = async () => {
     try {
-      setMounted(true);
+      setIsSigningIn(true);
+      setError(null);
       
-      // Extract URL parameters directly without useSearchParams
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        const error = url.searchParams.get('error') || null;
-        const redirect = url.searchParams.get('redirect') || null;
-        const showSignIn = url.searchParams.get('signin') === 'true';
-        
-        setParams({ error, redirect, showSignIn });
+      const { success, error: signInError } = await signInWithGoogle();
+      
+      if (!success || signInError) {
+        console.error('Sign in error:', signInError);
+        setError(signInError instanceof Error ? signInError.message : 'Failed to sign in with Google');
+        return;
+      }
+      
+      // Handle successful sign-in
+      const redirectUrl = sessionStorage.getItem('auth-redirect');
+      if (redirectUrl) {
+        sessionStorage.removeItem('auth-redirect');
+        router.push(redirectUrl);
+      } else {
+        router.push('/');
       }
     } catch (err) {
-      console.error('Error in ClientAuthWrapper:', err);
+      console.error('Exception during sign in:', err);
+      setError('An unexpected error occurred');
+    } finally {
+      setIsSigningIn(false);
     }
-  }, []);
+  };
   
-  // Show loading state during initial client render
-  if (!mounted) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
-        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
-        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
   
-  // Render the auth client wrapper once mounted with extracted params
   return (
     <ErrorBoundary
       fallback={
@@ -57,11 +92,31 @@ export default function ClientAuthWrapper() {
         </div>
       }
     >
-      <AuthClientWrapper 
-        errorMessage={params.error} 
-        redirectUrl={params.redirect}
-        showSignIn={params.showSignIn}
-      />
+      <div className="space-y-4">
+        {error && (
+          <div className="p-3 bg-destructive/10 text-destructive rounded-md flex items-center gap-2">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+        
+        <Button 
+          className="w-full" 
+          onClick={handleGoogleSignIn}
+          disabled={isSigningIn}
+        >
+          {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
+        </Button>
+        
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            By signing in, you agree to our{' '}
+            <Link href="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </Link>
+          </p>
+        </div>
+      </div>
     </ErrorBoundary>
   );
 }

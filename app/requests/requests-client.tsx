@@ -12,7 +12,12 @@ interface RequestsClientProps {
   initialSortBy?: string;
 }
 
-export default function RequestsClient({ initialCategory, initialSortBy }: RequestsClientProps = {}) {
+export default function RequestsClient({ 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  initialCategory, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  initialSortBy 
+}: RequestsClientProps = {}) {
   // State for requests data
   const [requests, setRequests] = useState([]);
   const [categories, setCategories] = useState([]);

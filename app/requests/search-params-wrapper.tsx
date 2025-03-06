@@ -3,13 +3,7 @@
 import { useState, useEffect } from 'react';
 import RequestsClient from './requests-client';
 
-// Define the props interface for RequestsClient
-interface RequestsClientProps {
-  initialCategory?: string;
-  initialSortBy?: string;
-}
-
-// No need to redeclare the module since we're importing it directly
+// No need to define the interface here since it's already defined in requests-client.tsx
 
 // This component is a client-side only wrapper that extracts URL parameters
 // without using the useSearchParams hook to avoid SSR bailout

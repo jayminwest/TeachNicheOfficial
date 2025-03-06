@@ -13,15 +13,25 @@ interface RequestsClientProps {
 
 export default function RequestsClient({
   initialCategory = '',
-  initialSortBy = 'recent'
+  initialSortBy = 'popular'
 }: RequestsClientProps) {
+  // Use the props directly instead of accessing search params
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [sortBy, setSortBy] = useState(initialSortBy as 'popular' | 'newest');
   const [requests, setRequests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
+  
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
   
   useEffect(() => {
     async function fetchData() {
@@ -59,6 +69,30 @@ export default function RequestsClient({
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
   };
+  
+  // Show loading skeleton if not mounted yet (server-side)
+  if (!mounted) {
+    return (
+      <div className="space-y-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <div className="h-10 w-40 bg-muted rounded animate-pulse mb-2"></div>
+            <div className="h-5 w-64 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="h-10 w-32 bg-muted rounded animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="border rounded-lg p-4 space-y-4">
+              <div className="h-6 w-3/4 bg-muted rounded animate-pulse"></div>
+              <div className="h-4 w-full bg-muted rounded animate-pulse"></div>
+              <div className="h-4 w-1/2 bg-muted rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   
   if (isLoading) {
     return (

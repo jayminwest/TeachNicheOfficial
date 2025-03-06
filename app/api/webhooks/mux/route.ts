@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     console.log(`Received Mux webhook: ${type}`, JSON.stringify(body, null, 2));
     
     // Create Supabase client
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookies() });
     
     // Handle video.upload.asset_created event
     if (type === 'video.upload.asset_created') {
@@ -71,7 +71,8 @@ export async function POST(request: Request) {
           video_processing_status: 'processing'
         })
         .eq('mux_upload_id', uploadId)
-        .select('id, title');
+        .select('id, title')
+        .returns<Array<{ id: string, title: string }>>();
       
       if (error) {
         console.error('Error updating lesson with asset ID:', error);
@@ -106,7 +107,8 @@ export async function POST(request: Request) {
           status: 'published'
         })
         .eq('mux_asset_id', assetId)
-        .select('id, title');
+        .select('id, title')
+        .returns<Array<{ id: string, title: string }>>();
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);

@@ -9,6 +9,11 @@ interface RequestsClientProps {
   initialSortBy: string;
 }
 
+// Make sure RequestsClient component is properly typed
+declare module './requests-client' {
+  export default function RequestsClient(props: RequestsClientProps): JSX.Element;
+}
+
 // This component is a client-side only wrapper that extracts URL parameters
 // without using the useSearchParams hook to avoid SSR bailout
 export default function SearchParamsWrapper() {
@@ -65,7 +70,6 @@ export default function SearchParamsWrapper() {
   }
   
   // Pass only the extracted values to RequestsClient
-  // @ts-expect-error - Component props need to be updated in RequestsClient
   return <RequestsClient 
     initialCategory={params.category} 
     initialSortBy={params.sortBy} 

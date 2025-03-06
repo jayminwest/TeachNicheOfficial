@@ -38,31 +38,58 @@ export default function LessonsClient() {
       }
     }, 10000); // 10 second timeout
     
+    // Delay the initial fetch slightly to ensure DOM is fully rendered
+    const initialFetchDelay = setTimeout(() => {
+      fetchLessons();
+    }, 100);
+    
     async function fetchLessons() {
       try {
         setIsLoading(true);
         setError(null);
         
+        console.log('Fetching lessons...');
+        
+        // Use AbortController to set a timeout for the fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        
         const response = await fetch('/api/lessons', {
           // Add cache control headers
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          signal: controller.signal
+        }).finally(() => clearTimeout(timeoutId));
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          const errorMessage = errorData?.error || `Server error: ${response.status}`;
+          let errorMessage = `Server error: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData?.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (parseError) {
+            console.error('Error parsing error response:', parseError);
+          }
           throw new Error(errorMessage);
         }
         
         const data = await response.json();
+        console.log('Lessons fetched successfully:', data.length);
         setLessons(data);
       } catch (err) {
         console.error('Error fetching lessons:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-        setError(`Failed to load lessons: ${errorMessage}`);
+        
+        // Handle AbortController timeout specifically
+        if (err.name === 'AbortError') {
+          setError('Request timed out. Please try again.');
+        } else {
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+          setError(`Failed to load lessons: ${errorMessage}`);
+        }
         
         // Auto-retry logic
         if (retryCount < maxRetries) {
@@ -76,9 +103,11 @@ export default function LessonsClient() {
       }
     }
     
-    fetchLessons();
-    
-    return () => clearTimeout(loadingTimeout);
+    // Clear both timeouts on cleanup
+    return () => {
+      clearTimeout(loadingTimeout);
+      clearTimeout(initialFetchDelay);
+    };
   }, [retryCount, mounted]);
   
   const handleNewLesson = () => {

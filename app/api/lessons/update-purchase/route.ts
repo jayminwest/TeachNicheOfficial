@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           amount: price,
           platform_fee: platformFee,
           creator_earnings: creatorEarnings,
-          fee_percentage: 10,
+          fee_percentage: 15,
           status: 'completed',
           stripe_session_id: sessionId || null,
           payment_intent_id: paymentIntentId || null,

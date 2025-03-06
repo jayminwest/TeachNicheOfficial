@@ -2,13 +2,41 @@ import { Suspense } from 'react';
 import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { Metadata } from 'next';
+
+// Add metadata generation for the page
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { id: string } 
+}): Promise<Metadata> {
+  const lessonId = params.id;
+  
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: lesson } = await supabase
+      .from('lessons')
+      .select('title, description')
+      .eq('id', lessonId)
+      .single();
+    
+    return {
+      title: lesson?.title || 'Lesson Details',
+      description: lesson?.description || 'View lesson details and content'
+    };
+  } catch (error) {
+    return {
+      title: 'Lesson Details',
+      description: 'View lesson details and content'
+    };
+  }
+}
 
 // Define the page component with proper Next.js types
 export default async function Page({
   params,
 }: {
   params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   // Access the id directly from params
   const lessonId = params.id;

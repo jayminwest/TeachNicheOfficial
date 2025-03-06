@@ -1,5 +1,5 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
-import { PurchaseStatus, LessonAccess } from '@/types/purchase'
+import { PurchaseStatus, LessonAccess } from '@/app/types/purchase'
 import { PostgrestError } from '@supabase/supabase-js'
 
 export interface PurchaseCreateData {

@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { LessonRequestStatus } from '@/types/lesson'
+import { LessonRequestStatus } from '@/app/types/lesson'
 
 // Define the LessonRequest interface to match the database structure
 export interface LessonRequest {

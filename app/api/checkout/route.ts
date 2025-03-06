@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getStripe, stripeConfig } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
+import { Database } from '@/app/types/database';
 import Stripe from 'stripe';
 
 // Helper function for creating checkout sessions (not exported as a route handler)

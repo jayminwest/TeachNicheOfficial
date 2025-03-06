@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npx next dev",
     "clean": "rm -rf .next",
-    "build": "npm run clean && NEXT_TELEMETRY_DISABLED=1 npx next build --no-lint --no-mangling",
+    "build": "npm run clean && npx next build",
     "start": "npx next start",
     "lint": "next lint",
     "test": "jest",

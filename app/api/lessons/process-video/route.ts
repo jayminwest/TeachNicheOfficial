@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
+import { Database } from '@/app/types/database';
 import Stripe from 'stripe';
 import { waitForAssetReady } from '@/app/services/mux';
 

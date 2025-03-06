@@ -1,5 +1,5 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
-import { Lesson } from '@/types/lesson'
+import { Lesson } from '@/app/types/lesson'
 import { PostgrestError } from '@supabase/supabase-js'
 
 interface LessonCreateData {

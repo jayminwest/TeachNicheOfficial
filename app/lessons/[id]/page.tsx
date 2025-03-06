@@ -9,8 +9,11 @@ export const metadata: Metadata = {
   description: 'View lesson details and content',
 };
 
-// Simple page component that avoids complex typing
-export default async function LessonPage(props: any) {
+// Simple page component with proper typing
+export default async function LessonPage(props: {
+  params: { id: string };
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
   // Get the lesson ID from the URL
   const lessonId = props.params?.id;
   

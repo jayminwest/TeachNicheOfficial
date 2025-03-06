@@ -3,11 +3,12 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-// Remove custom type and use inline type
+// Define the page component with proper Next.js types
 export default async function Page({
   params,
 }: {
   params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   // Access the id directly from params
   const lessonId = params.id;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { LessonGrid } from '@/app/components/ui/lesson-grid';
@@ -18,6 +18,8 @@ export default function LessonsClient({}: LessonsClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const hasInitialFetchRef = useRef(false);
+  const DEBUG = process.env.NODE_ENV === 'development';
   const { user } = useAuth();
   const router = useRouter();
   
@@ -27,36 +29,12 @@ export default function LessonsClient({}: LessonsClientProps) {
     return () => setMounted(false);
   }, []);
   
-  useEffect(() => {
-    // Don't fetch if not mounted (client-side only)
-    if (!mounted) return;
-    
-    const maxRetries = 3;
-    const retryDelay = 1000; // 1 second
-    
-    // Track if the component is still mounted
-    let isMounted = true;
-    
-    // Use a ref to track loading state internally without triggering re-renders
-    const isLoadingRef = { current: false };
-    
-    // Add safety timeout for loading state
-    const loadingTimeout = setTimeout(() => {
-      if (isLoadingRef.current) {
-        console.warn('Lessons loading timeout triggered');
-        setIsLoading(false);
-        setError('Loading timeout - please try again');
-      }
-    }, 10000); // 10 second timeout
-    
-    // Only fetch lessons once when the component mounts
-    const initialFetchDelay = setTimeout(() => {
-      if (isMounted && !isLoadingRef.current && retryCount === 0) fetchLessons();
-    }, 100);
-    
-    async function fetchLessons() {
-      // Don't proceed if component unmounted or already loading
-      if (!isMounted || isLoadingRef.current) return;
+  // Define fetchLessons outside useEffect and memoize it
+  const fetchLessons = useCallback(async () => {
+      // Don't proceed if already loading
+      if (isLoading) return;
+      
+      if (DEBUG) console.log('fetchLessons called');
       try {
         // Update UI loading state
         setIsLoading(true);
@@ -163,20 +141,56 @@ export default function LessonsClient({}: LessonsClientProps) {
       }
     }
     
+  }, []); // No dependencies for the useCallback
+  
+  // Separate useEffect for the initial fetch
+  useEffect(() => {
+    // Don't fetch if not mounted (client-side only) or if we've already fetched
+    if (!mounted || hasInitialFetchRef.current) return;
+    
+    if (DEBUG) console.log('Initial fetch useEffect triggered');
+    
+    // Mark that we've started the initial fetch
+    hasInitialFetchRef.current = true;
+    
+    // Track if the component is still mounted
+    let isMounted = true;
+    
+    // Use a ref to track loading state internally without triggering re-renders
+    const isLoadingRef = { current: false };
+    
+    // Add safety timeout for loading state
+    const loadingTimeout = setTimeout(() => {
+      if (isLoadingRef.current && isMounted) {
+        console.warn('Lessons loading timeout triggered');
+        setIsLoading(false);
+        setError('Loading timeout - please try again');
+      }
+    }, 10000); // 10 second timeout
+    
+    // Delay the initial fetch slightly to ensure DOM is fully rendered
+    const initialFetchDelay = setTimeout(() => {
+      if (isMounted && !isLoadingRef.current) {
+        fetchLessons();
+      }
+    }, 100);
+    
     // Clear both timeouts on cleanup
     return () => {
       isMounted = false;
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };
-  }, [retryCount, mounted]); // Only depend on retryCount and mounted
+  }, [mounted, fetchLessons]); // Only depend on mounted and the memoized fetchLessons
   
   const handleNewLesson = () => {
     router.push('/lessons/new');
   };
   
   const handleRetry = () => {
-    setRetryCount(prevCount => prevCount + 1); // Increment retry count to trigger a new fetch attempt
+    if (DEBUG) console.log('Manual retry triggered');
+    // Call fetchLessons directly instead of using retryCount
+    fetchLessons();
   };
   
   // Show loading skeleton if not mounted yet (server-side)

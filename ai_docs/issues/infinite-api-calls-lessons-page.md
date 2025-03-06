@@ -2,7 +2,7 @@
 
 ## Issue Description
 
-The lessons page is making repeated API calls to `/api/lessons` in an infinite loop, causing excessive server load and potential performance issues for users. The API endpoint is being called repeatedly even after the initial data has been loaded.
+The lessons page is making repeated API calls to `/api/lessons` in an infinite loop, causing excessive server load and potential performance issues for users. The API endpoint is being called repeatedly even after the initial data has been loaded. The lessons are being retrieved correctly and are visible to the user, but only for a split second before the page refreshes again, creating a poor user experience.
 
 ### Error Pattern
 ```

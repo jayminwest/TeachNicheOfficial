@@ -63,8 +63,11 @@ export async function POST(request: Request) {
       
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
+      // Use a type assertion to avoid deep type instantiation
+      const supabaseAny = supabase as any;
+      
       // Update the lesson with the asset ID
-      const updateResult = await supabase
+      const updateResult = await supabaseAny
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
@@ -74,8 +77,8 @@ export async function POST(request: Request) {
       
       const error = updateResult.error;
       
-      // Fetch the updated lesson in a separate query to avoid type issues
-      const lessonResult = await supabase
+      // Fetch the updated lesson in a separate query
+      const lessonResult = await supabaseAny
         .from('lessons')
         .select('id, title')
         .eq('mux_upload_id', uploadId);
@@ -108,8 +111,11 @@ export async function POST(request: Request) {
       
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
+      // Use a type assertion to avoid deep type instantiation
+      const supabaseAny = supabase as any;
+      
       // Update the lesson with the playback ID and set status to published
-      const updateResult = await supabase
+      const updateResult = await supabaseAny
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
@@ -120,8 +126,8 @@ export async function POST(request: Request) {
       
       const error = updateResult.error;
       
-      // Fetch the updated lesson in a separate query to avoid type issues
-      const lessonResult = await supabase
+      // Fetch the updated lesson in a separate query
+      const lessonResult = await supabaseAny
         .from('lessons')
         .select('id, title')
         .eq('mux_asset_id', assetId);

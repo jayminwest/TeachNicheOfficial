@@ -5,6 +5,7 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 
 interface AuthClientProps {
@@ -14,6 +15,7 @@ interface AuthClientProps {
 export default function AuthClient({ errorMessage }: AuthClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   
   // Set error message after component mounts to avoid hydration issues
   useEffect(() => {
@@ -25,15 +27,23 @@ export default function AuthClient({ errorMessage }: AuthClientProps) {
       setIsLoading(true);
       setError(null);
       
-      const { error } = await signInWithGoogle();
+      const result = await signInWithGoogle();
       
-      if (error) {
-        console.error('Sign in error:', error);
-        setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+      if (result.error) {
+        console.error('Sign in error:', result.error);
+        setError(result.error instanceof Error ? result.error.message : 'Failed to sign in with Google');
+        
+        // If there's a cookie-related error, try refreshing the page
+        if (result.error.message?.includes('cookies') || result.error.message?.includes('this.context')) {
+          setError('Authentication session issue detected. Refreshing the page...');
+          setTimeout(() => {
+            router.refresh();
+          }, 2000);
+        }
       }
     } catch (err) {
       console.error('Exception during sign in:', err);
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

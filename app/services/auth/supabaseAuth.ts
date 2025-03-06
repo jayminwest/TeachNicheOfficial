@@ -1,4 +1,5 @@
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
+import type { Database } from '@/types/database'
 
 /**
  * Standard response type for auth operations
@@ -84,6 +85,7 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
     // Use callbackUrl instead of redirect for Next.js compatibility
     const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl')
     
+    // Create options with proper typing
     const options = {
       redirectTo: callbackUrl 
         ? `${redirectTo}?redirect_to=${encodeURIComponent(callbackUrl)}`
@@ -91,20 +93,45 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
       skipBrowserRedirect: false,
     }
     
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options,
-    })
-    
-    return {
-      data,
-      error: error || null,
-      success: !error
+    // Wrap in try/catch to handle potential cookie errors
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options,
+      })
+      
+      if (error && error.message?.includes('cookies')) {
+        console.error('Cookie-related auth error:', error);
+        // Try a fallback approach for cookie issues
+        return {
+          data: null,
+          error: new Error(`Authentication cookie issue: ${error.message}. Please try again or clear your browser cookies.`),
+          success: false
+        }
+      }
+      
+      return {
+        data,
+        error: error || null,
+        success: !error
+      }
+    } catch (innerErr) {
+      console.error('Inner auth error:', innerErr);
+      return {
+        data: null,
+        error: innerErr instanceof Error 
+          ? innerErr 
+          : new Error('Authentication service error. Please try again.'),
+        success: false
+      }
     }
   } catch (err) {
+    console.error('Outer auth error:', err);
     return {
       data: null,
-      error: err instanceof Error ? err : new Error('Failed to sign in with Google'),
+      error: err instanceof Error 
+        ? err 
+        : new Error('Failed to sign in with Google. Please try again.'),
       success: false
     }
   }

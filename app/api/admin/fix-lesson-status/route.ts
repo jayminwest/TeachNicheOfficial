@@ -127,7 +127,7 @@ export async function POST() {
         console.error(`Error processing lesson ${lesson.id}:`, error);
         results.failed++;
         results.details.push({
-          lessonId: lesson.id,
+          lessonId: lesson.id as string,
           status: 'error',
           reason: error instanceof Error ? error.message : 'Unknown error'
         });

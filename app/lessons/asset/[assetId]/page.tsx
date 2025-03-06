@@ -28,10 +28,10 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
             mux_playback_id: asset.playbackId,
             updated_at: new Date().toISOString()
           })
-          .eq('id', lesson.id);
+          .eq('id', String(lesson.id));
         
         // Redirect to the lesson page
-        redirect(`/lessons/${lesson.id}`);
+        redirect(`/lessons/${String(lesson.id)}`);
       }
     } else if (asset.status === 'ready' && !asset.playbackId) {
       // If the asset is ready but doesn't have a playback ID, try to get one
@@ -68,10 +68,10 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
                   mux_playback_id: data.playbackId,
                   updated_at: new Date().toISOString()
                 })
-                .eq('id', lesson.id);
+                .eq('id', String(lesson.id));
               
               // Redirect to the lesson page
-              redirect(`/lessons/${lesson.id}`);
+              redirect(`/lessons/${String(lesson.id)}`);
             }
           }
         }

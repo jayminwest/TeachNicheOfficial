@@ -1,5 +1,6 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
 import { PurchaseStatus, LessonAccess } from '@/types/purchase'
+import { PostgrestError } from '@supabase/supabase-js'
 
 export interface PurchaseCreateData {
   lessonId: string;
@@ -369,7 +370,12 @@ export class PurchasesService extends DatabaseService {
       console.error('Could not find purchase to update for session/payment ID:', stripeSessionId);
       return { 
         data: null, 
-        error: new Error(`No purchase found for session/payment ID: ${stripeSessionId}`) 
+        error: {
+          message: `No purchase found for session/payment ID: ${stripeSessionId}`,
+          details: '',
+          hint: '',
+          code: 'NOT_FOUND'
+        } as PostgrestError
       };
     });
   }

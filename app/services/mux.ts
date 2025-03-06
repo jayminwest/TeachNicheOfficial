@@ -1,4 +1,5 @@
 import Mux from '@mux/mux-node';
+import { PlaybackPolicy } from '@mux/mux-node/resources/video/shared';
 
 // Define types for better type safety
 export interface MuxAssetResponse {
@@ -65,7 +66,7 @@ export async function createUpload(isFree: boolean = false) {
 
   // Use public policy for free content, signed for paid content
   // This is consistent across all environments
-  const playbackPolicy = isFree ? ['public'] : ['signed'];
+  const playbackPolicy: PlaybackPolicy[] = isFree ? ['public'] : ['signed'];
   
   console.log(`Creating upload with playback policy: ${playbackPolicy.join(', ')}`);
 
@@ -182,7 +183,7 @@ export async function waitForAssetReady(assetId: string, options: { maxAttempts?
             break;
           }
           
-          if (updatedUpload.status === 'error') {
+          if (updatedUpload.status === 'errored') {
             throw new Error(`Upload failed: ${updatedUpload.error?.message || 'Unknown error'}`);
           }
         }

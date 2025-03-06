@@ -349,7 +349,8 @@ export const canCreatePaidLessons = async (
     }
 
     // Otherwise check with Stripe
-    const status = await getAccountStatus(profile.stripe_account_id);
+    const stripeAccountId = profile.stripe_account_id as string;
+    const status = await getAccountStatus(stripeAccountId);
     return status.isComplete;
   } catch (err) {
     console.error('Error checking paid lesson capability:', err);
@@ -390,7 +391,8 @@ export const verifyConnectedAccount = async (
       throw new StripeError('account_mismatch', 'Account verification failed');
     }
 
-    const status = await getAccountStatus(accountId);
+    const stripeAccountId = accountId as string;
+    const status = await getAccountStatus(stripeAccountId);
 
     return {
       verified: true,

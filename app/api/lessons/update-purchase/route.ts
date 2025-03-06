@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
       const { data: newPurchase, error: createError } = await supabase
         .from('purchases')
         .insert({
+          // Generate a UUID for the id field
+          id: crypto.randomUUID(),
           lesson_id: lessonId,
           user_id: userId,
           creator_id: lesson.creator_id,

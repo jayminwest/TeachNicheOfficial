@@ -352,6 +352,29 @@ export class LessonsService extends DatabaseService {
       };
     });
   }
+
+  /**
+   * Delete a lesson (soft delete)
+   */
+  async deleteLesson(id: string): Promise<DatabaseResponse<null>> {
+    return this.executeWithRetry(async () => {
+      const supabase = this.getClient();
+      
+      // Perform a soft delete by setting deleted_at
+      const { error } = await supabase
+        .from('lessons')
+        .update({
+          deleted_at: new Date().toISOString()
+        })
+        .eq('id', id);
+      
+      if (error) {
+        return { data: null, error };
+      }
+      
+      return { data: null, error: null };
+    });
+  }
 }
 
 // Create a singleton instance

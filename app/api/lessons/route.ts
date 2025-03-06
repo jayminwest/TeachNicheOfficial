@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { Database } from '@/app/types/database';
 
 export async function GET() {
   try {
-    // Create the Supabase client
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    // Create the Supabase client using our direct approach
+    const supabase = createServerSupabaseClient();
     
-    // Skip user authentication for now to simplify the flow
-    // We'll implement proper user checking later
+    // Log that we're using the direct client approach
+    console.log('Using direct Supabase client for lessons API');
     
     // Fetch lessons
     const query = supabase

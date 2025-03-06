@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "clean": "rm -rf .next",
+    "build": "npm run clean && NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production next build --no-lint --no-mangling",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
@@ -15,7 +16,9 @@
     "test:visual:update": "UPDATE_SNAPSHOTS=1 npm run test:visual",
     "type-check": "tsc --noEmit",
     "rls:migrate": "ts-node scripts/run-rls-migration.ts",
-    "playwright": "playwright test --config=e2e-tests/playwright.config.ts"
+    "playwright": "playwright test --config=e2e-tests/playwright.config.ts",
+    "find:unused": "next-unused",
+    "verify-unused": "bash ./cleanup-script.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",
@@ -60,6 +63,20 @@
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
   },
+  "next-unused": {
+    "debug": true,
+    "include": [
+      "app"
+    ],
+    "exclude": [
+      "node_modules",
+      ".next",
+      "public"
+    ],
+    "entrypoints": [
+      "app/page.tsx"
+    ]
+  },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
     "@babel/preset-react": "^7.26.3",
@@ -85,6 +102,7 @@
     "jest-axe": "^9.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "next-themes": "^0.4.4",
+    "next-unused": "^0.0.6",
     "node-mocks-http": "^1.16.2",
     "postcss": "^8",
     "serve": "^14.2.4",

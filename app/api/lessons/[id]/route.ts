@@ -5,12 +5,13 @@ import { cookies } from 'next/headers';
 import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
 
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
     // Get the lesson ID from the URL
-    const lessonId = params.id;
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const lessonId = pathParts[pathParts.length - 1];
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });
@@ -151,45 +152,14 @@ export async function PATCH(
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const lessonId = params.id;
-    
-    const { data: lesson, error } = await lessonsService.getLessonById(lessonId);
-    
-    if (error) {
-      return NextResponse.json(
-        { message: 'Failed to fetch lesson', details: error },
-        { status: 500 }
-      );
-    }
-    
-    if (!lesson) {
-      return NextResponse.json(
-        { message: 'Lesson not found' },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json(lesson);
-  } catch (error) {
-    console.error('Error fetching lesson:', error);
-    return NextResponse.json(
-      { message: 'An unexpected error occurred' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
-    const lessonId = params.id;
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const lessonId = pathParts[pathParts.length - 1];
     
     // Get the current user session
     const supabase = createRouteHandlerClient({ cookies });
@@ -223,7 +193,7 @@ export async function DELETE(
     }
     
     // Soft delete the lesson
-    const { data, error } = await lessonsService.deleteLesson(lessonId);
+    const { error } = await lessonsService.deleteLesson(lessonId);
     
     if (error) {
       return NextResponse.json(

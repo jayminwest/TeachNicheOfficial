@@ -48,7 +48,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   // Set default category after categories load
   useEffect(() => {
     if (!request && categories.length > 0 && !form.getValues('category')) {
-      form.setValue('category', categories[0].name);
+      form.setValue('category', categories[0]?.name || 'Trick Tutorial');
     }
   }, [categories, form, request]);
 
@@ -217,9 +217,7 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
                           console.log('Delete request completed successfully:', result);
                           setOpen(false);
                           // Use a more reliable way to refresh the page
-                          setTimeout(() => {
-                            window.location.href = window.location.pathname;
-                          }, 500);
+                          window.location.reload();
                         } catch (error) {
                           // Log the detailed error for debugging
                           console.error('Failed to delete request:', 

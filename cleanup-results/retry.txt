@@ -1,0 +1,25 @@
+./app/__tests__/client-purchase-flow.test.ts:    it('should retry check-purchase if access is not granted immediately', async () => {
+./app/__tests__/client-purchase-flow.test.ts:          retryCount: 1
+./app/hooks/use-purchase-lesson.ts:  retryCount?: number;
+./app/hooks/use-purchase-lesson.ts:    retryCount = 0
+./app/hooks/use-purchase-lesson.ts:      if (!data.hasAccess && retryCount > 0) {
+./app/hooks/use-purchase-lesson.ts:        console.log(`No access yet, retrying in 2 seconds (${retryCount} retries left)`);
+./app/hooks/use-purchase-lesson.ts:            retryCount: retryCount - 1
+./app/hooks/use-video-upload.ts:        console.log('Upload is still processing, waiting 3 seconds before retrying...');
+./app/hooks/use-video-upload.ts:        // Wait 3 seconds and then retry
+./app/hooks/use-video-upload.ts:        // If we have a message about the upload still processing, wait and retry
+./app/hooks/use-video-upload.ts:          console.log('Upload is still processing, waiting 3 seconds before retrying...');
+./app/hooks/use-video-upload.ts:          // Wait 3 seconds and then retry
+./app/hooks/use-lesson-access.ts:    let retryTimeoutId: NodeJS.Timeout
+./app/hooks/use-lesson-access.ts:        // Only retry on non-timeout errors
+./app/hooks/use-lesson-access.ts:          retryTimeoutId = setTimeout(checkAccess, 1000 * attempts)
+./app/hooks/use-lesson-access.ts:      clearTimeout(retryTimeoutId)
+./app/lib/utils.ts: * @param fn The async function to retry
+./app/lib/utils.ts: * @param onRetry Optional callback for each retry attempt
+./app/lib/utils.ts:export async function retry<T>(
+./app/api/lessons/route.ts:        // In a production environment, you might want to implement a background job to retry
+./app/services/database/databaseService.ts: * Base class for database operations with error handling and retry logic
+./app/services/database/databaseService.ts:  private retryDelay = 1000; // ms
+./app/services/database/databaseService.ts:   * Execute a database operation with retry logic
+./app/services/database/databaseService.ts:        // Don't retry on permission errors or invalid inputs
+./app/services/database/databaseService.ts:          await new Promise(resolve => setTimeout(resolve, this.retryDelay));

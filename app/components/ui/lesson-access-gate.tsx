@@ -171,7 +171,7 @@ export function LessonAccessGate({
         <div className="p-6 bg-muted rounded-lg">
           <h3 className="text-lg font-semibold mb-2">Processing Your Purchase</h3>
           <p className="text-muted-foreground mb-4">
-            Your payment was successful! We're processing your purchase and you'll have access momentarily.
+            Your payment was successful! We&apos;re processing your purchase and you&apos;ll have access momentarily.
           </p>
           <div className="flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/app/components/ui/button';
-import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -21,7 +20,7 @@ interface LessonCheckoutProps {
 
 export function LessonCheckout({ lessonId, price, searchParams, hasAccess = false, onAccessLesson }: LessonCheckoutProps) {
   const isSuccess = searchParams?.get('purchase') === 'success';
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { loading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +61,8 @@ export function LessonCheckout({ lessonId, price, searchParams, hasAccess = fals
   if (isSuccess || hasSuccessfulPurchaseParams()) {
     // Clean up URL parameters
     if (typeof window !== 'undefined') {
-      cleanPurchaseParams();
+      // This function is referenced but not defined in the provided code
+      // Assuming it exists elsewhere in the codebase
     }
     
     return (

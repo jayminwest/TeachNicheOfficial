@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/app/lib/utils";
-import { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Progress } from "./progress";
 import { AlertCircle, CheckCircle2, Upload, Loader2 } from "lucide-react";
@@ -10,12 +9,10 @@ import { useVideoUpload } from "@/app/hooks/use-video-upload";
 
 
 interface VideoUploaderProps {
-  endpoint?: string;
   onUploadComplete: (assetId: string) => void;
   onError: (error: Error) => void;
   onUploadStart?: () => void;
   maxSizeMB?: number;
-  maxResolution?: { width: number; height: number };
   acceptedTypes?: string[];
   className?: string;
   pausable?: boolean;
@@ -23,18 +20,16 @@ interface VideoUploaderProps {
   chunkSize?: number;
   dynamicChunkSize?: boolean;
   useLargeFileWorkaround?: boolean;
-  lessonId?: string; // Add this parameter
+  lessonId?: string;
 }
 
 import type { MuxUploaderProps } from "@mux/mux-uploader-react";
 
 export function VideoUploader({ 
-  endpoint,
   onUploadComplete, 
   onError,
   onUploadStart,
   maxSizeMB = 2000,
-  maxResolution = { width: 1920, height: 1080 },
   acceptedTypes = ['video/mp4', 'video/quicktime', 'video/heic', 'video/heif'],
   className,
   pausable = false,
@@ -44,27 +39,6 @@ export function VideoUploader({
   useLargeFileWorkaround = false,
   lessonId
 }: VideoUploaderProps) {
-  const getVideoResolution = (file: File): Promise<{width: number; height: number}> => {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-
-      video.onloadedmetadata = () => {
-        URL.revokeObjectURL(video.src);
-        resolve({
-          width: video.videoWidth,
-          height: video.videoHeight
-        });
-      };
-
-      video.onerror = () => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error('Failed to load video metadata'));
-      };
-
-      video.src = URL.createObjectURL(file);
-    });
-  };
 
   const validateFile = async (file: File) => {
     if (file.size > maxSizeMB * 1024 * 1024) {
@@ -80,8 +54,8 @@ export function VideoUploader({
       throw new Error(`File type must be one of: ${acceptedTypes.join(', ')} or HEIC/HEIF format`);
     }
 
-    // Skip resolution check as requested
-    console.log("Skipping video resolution check as requested");
+    // Skip resolution check
+    console.log("Skipping video resolution check");
   };
   
   const {
@@ -217,7 +191,7 @@ export function VideoUploader({
             
             // If we still don't have an ID, try to get it from the stored global variable
             if (!uploadId) {
-              uploadId = (window as any).__lastUploadId;
+              uploadId = (window as unknown).__lastUploadId;
               console.log("Using stored upload ID:", uploadId);
             }
           } catch (error) {
@@ -259,7 +233,7 @@ export function VideoUploader({
             localStorage.setItem('lastMuxAssetId', uploadId);
             
             // Set a global variable as another fallback
-            (window as any).__muxAssetId = uploadId;
+            (window as unknown).__muxAssetId = uploadId;
           } catch (storageError) {
             console.error('Failed to store asset ID in session storage:', storageError);
           }

@@ -47,7 +47,7 @@ export default function AssetStatusPoll({
           )}
           
           <p className="text-sm mt-4">
-            Let's <Link href="/lessons/create" className="text-blue-600 hover:underline">try again</Link> with a different video.
+            Let&apos;s <Link href="/lessons/create" className="text-blue-600 hover:underline">try again</Link> with a different video.
           </p>
         </div>
       );
@@ -68,7 +68,7 @@ export default function AssetStatusPoll({
             {JSON.stringify({ status, errors }, null, 2)}
           </pre>
           <p className="text-sm mt-4">
-            Let's <Link href="/lessons/create" className="text-blue-600 hover:underline">try again</Link>.
+            Let&apos;s <Link href="/lessons/create" className="text-blue-600 hover:underline">try again</Link>.
           </p>
         </div>
       );

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUploadStatus, getAssetIdFromUpload, getMuxClient } from '@/app/services/mux';
+import { getMuxClient } from '@/app/services/mux';
 
 export async function GET(request: Request) {
   try {

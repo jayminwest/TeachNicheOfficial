@@ -18,9 +18,8 @@ export async function GET() {
     // If user is logged in, include their lessons
     // Note: The public column might be named is_public or published
     if (user) {
-      // Try to use creator_id without any filter on public status for now
-      // Use type assertion to match the expected column type
-      query = query.eq('creator_id', user.id as unknown as string);
+      // Use proper type casting for the user ID
+      query = query.eq('creator_id', user.id);
     } else {
       // For anonymous users, just return all lessons for now
       // We'll implement proper visibility filtering once we confirm the schema
@@ -42,17 +41,29 @@ export async function GET() {
     }
     
     // Transform the data to match the client-side expected format
-    const transformedLessons = (lessons || []).map(lesson => ({
-      id: lesson.id,
-      title: lesson.title || 'Untitled Lesson',
-      description: lesson.description || 'No description available',
-      price: typeof lesson.price === 'number' ? lesson.price : 0,
-      thumbnailUrl: lesson.thumbnail_url || '', // Map snake_case to camelCase
-      creatorId: lesson.creator_id || '',
-      // Provide default values for missing fields
-      averageRating: 0,
-      totalRatings: 0
-    }));
+    const transformedLessons = (lessons || []).map(lesson => {
+      // Ensure lesson is treated as a proper record type
+      const typedLesson = lesson as {
+        id: string;
+        title?: string;
+        description?: string;
+        price?: number;
+        thumbnail_url?: string;
+        creator_id?: string;
+      };
+      
+      return {
+        id: typedLesson.id,
+        title: typedLesson.title || 'Untitled Lesson',
+        description: typedLesson.description || 'No description available',
+        price: typeof typedLesson.price === 'number' ? typedLesson.price : 0,
+        thumbnailUrl: typedLesson.thumbnail_url || '', // Map snake_case to camelCase
+        creatorId: typedLesson.creator_id || '',
+        // Provide default values for missing fields
+        averageRating: 0,
+        totalRatings: 0
+      };
+    });
     
     return NextResponse.json(transformedLessons);
   } catch (error) {

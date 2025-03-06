@@ -95,7 +95,7 @@ export async function POST() {
               mux_playback_id: assetStatus.playbackId,
               updated_at: new Date().toISOString()
             })
-            .eq('id', lesson.id);
+            .eq('id', lesson.id as string);
           
           if (updateError) {
             throw new Error(`Failed to update lesson: ${updateError.message}`);
@@ -103,14 +103,14 @@ export async function POST() {
           
           results.updated++;
           results.details.push({
-            lessonId: lesson.id as string,
+            lessonId: String(lesson.id),
             status: 'updated',
             playbackId: assetStatus.playbackId
           });
         } else if (assetStatus.status === 'errored') {
           results.failed++;
           results.details.push({
-            lessonId: lesson.id as string,
+            lessonId: String(lesson.id),
             status: 'failed',
             reason: `Asset error: ${assetStatus.error?.message}`
           });
@@ -118,7 +118,7 @@ export async function POST() {
           // Still processing
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id as string,
+            lessonId: String(lesson.id),
             status: 'skipped',
             reason: `Asset still processing (status: ${assetStatus.status})`
           });

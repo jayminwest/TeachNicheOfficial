@@ -1,5 +1,6 @@
 import Mux from '@mux/mux-node';
-import { PlaybackPolicy } from '@mux/mux-node/resources/video/shared';
+// Define PlaybackPolicy type locally instead of importing from a module that might not exist
+type PlaybackPolicy = 'public' | 'signed';
 
 // Define types for better type safety
 export interface MuxAssetResponse {

@@ -3,6 +3,12 @@
 import { useState, useEffect } from 'react';
 import RequestsClient from './requests-client';
 
+// Define the props interface for RequestsClient
+interface RequestsClientProps {
+  initialCategory: string;
+  initialSortBy: string;
+}
+
 // This component is a client-side only wrapper that extracts URL parameters
 // without using the useSearchParams hook to avoid SSR bailout
 export default function SearchParamsWrapper() {
@@ -59,5 +65,8 @@ export default function SearchParamsWrapper() {
   }
   
   // Pass only the extracted values to RequestsClient
-  return <RequestsClient initialCategory={params.category} initialSortBy={params.sortBy} />;
+  return <RequestsClient 
+    initialCategory={params.category} 
+    initialSortBy={params.sortBy} 
+  />;
 }

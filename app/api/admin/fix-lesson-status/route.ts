@@ -118,7 +118,7 @@ export async function POST() {
           // Still processing
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: lesson.id as string,
             status: 'skipped',
             reason: `Asset still processing (status: ${assetStatus.status})`
           });

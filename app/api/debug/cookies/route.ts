@@ -4,11 +4,12 @@ import { cookies } from 'next/headers';
 export async function GET() {
   try {
     // In Next.js 15, we need to use cookies() directly without storing it
-    // Each method call on cookies() needs to be awaited
-    const allCookies = await cookies().getAll();
+    // Use the cookies() function directly without awaiting it
+    const cookieStore = cookies();
+    const allCookies = cookieStore.getAll();
     
-    // Get specific auth cookies - also needs to be awaited
-    const authCookie = await cookies().get('sb-erhavrzwpyvnpefifsfu-auth-token');
+    // Get specific auth cookies
+    const authCookie = cookieStore.get('sb-erhavrzwpyvnpefifsfu-auth-token');
     
     return NextResponse.json({
       message: 'Cookie debug information',

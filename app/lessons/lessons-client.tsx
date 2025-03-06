@@ -34,28 +34,34 @@ export default function LessonsClient({}: LessonsClientProps) {
     const maxRetries = 3;
     const retryDelay = 1000; // 1 second
     
+    // Track if the component is still mounted
+    let isMounted = true;
+    
+    // Use a ref to track loading state internally without triggering re-renders
+    const isLoadingRef = { current: false };
+    
     // Add safety timeout for loading state
     const loadingTimeout = setTimeout(() => {
-      if (isLoading) {
+      if (isLoadingRef.current) {
         console.warn('Lessons loading timeout triggered');
         setIsLoading(false);
         setError('Loading timeout - please try again');
       }
     }, 10000); // 10 second timeout
     
-    // Track if the component is still mounted
-    let isMounted = true;
-    
     // Delay the initial fetch slightly to ensure DOM is fully rendered
     const initialFetchDelay = setTimeout(() => {
-      if (isMounted) fetchLessons();
+      if (isMounted && !isLoadingRef.current) fetchLessons();
     }, 100);
     
     async function fetchLessons() {
-      // Don't proceed if component unmounted
-      if (!isMounted) return;
+      // Don't proceed if component unmounted or already loading
+      if (!isMounted || isLoadingRef.current) return;
       try {
+        // Update UI loading state
         setIsLoading(true);
+        // Update internal ref
+        isLoadingRef.current = true;
         setError(null);
         
         console.log('Fetching lessons...');
@@ -150,6 +156,9 @@ export default function LessonsClient({}: LessonsClientProps) {
           }
         }
       } finally {
+        // Update internal ref first
+        isLoadingRef.current = false;
+        // Then update UI state
         setIsLoading(false);
       }
     }
@@ -160,7 +169,7 @@ export default function LessonsClient({}: LessonsClientProps) {
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };
-  }, [retryCount, mounted, isLoading]);
+  }, [retryCount, mounted]); // Remove isLoading from dependencies
   
   const handleNewLesson = () => {
     router.push('/lessons/new');

@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
-          status: 'processing'
+          video_processing_status: 'processing'
         })
         .eq('mux_upload_id', uploadId)
         .select('id, title');
@@ -102,6 +102,7 @@ export async function POST(request: Request) {
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
+          video_processing_status: 'ready',
           status: 'published'
         })
         .eq('mux_asset_id', assetId)

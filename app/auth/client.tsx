@@ -9,6 +9,7 @@ import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 
 interface AuthClientProps {
   errorMessage?: string | null;
+  onSuccess?: () => void;
 }
 
 export default function AuthClient({ errorMessage }: AuthClientProps) {
@@ -25,11 +26,13 @@ export default function AuthClient({ errorMessage }: AuthClientProps) {
       setIsLoading(true);
       setError(null);
       
-      const { error } = await signInWithGoogle();
+      const result = await signInWithGoogle();
       
-      if (error) {
-        console.error('Sign in error:', error);
-        setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+      if (result.error) {
+        console.error('Sign in error:', result.error);
+        setError(result.error instanceof Error ? result.error.message : 'Failed to sign in with Google');
+      } else {
+        handleSuccess();
       }
     } catch (err) {
       console.error('Exception during sign in:', err);
@@ -39,6 +42,10 @@ export default function AuthClient({ errorMessage }: AuthClientProps) {
     }
   };
   
+  const handleSuccess = () => {
+    onSuccess?.();
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
       <Card className="w-full max-w-md">

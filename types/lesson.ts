@@ -13,7 +13,7 @@ export interface Lesson {
   mux_asset_id?: string;
   mux_playback_id?: string;
   content?: string;
-  video_processing_status?: string;
+  video_processing_status?: 'pending' | 'processing' | 'ready' | 'error';
   published?: boolean;
   isFeatured?: boolean;
 }

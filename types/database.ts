@@ -103,6 +103,7 @@ export type Database = {
           title: string
           user_id: string | null
           vote_count: number | null
+          instagram_handle: string | null
         }
         Insert: {
           category?: string | null
@@ -114,6 +115,7 @@ export type Database = {
           title: string
           user_id?: string | null
           vote_count?: number | null
+          instagram_handle?: string | null
         }
         Update: {
           category?: string | null
@@ -125,6 +127,7 @@ export type Database = {
           title?: string
           user_id?: string | null
           vote_count?: number | null
+          instagram_handle?: string | null
         }
         Relationships: []
       }
@@ -148,6 +151,7 @@ export type Database = {
           title: string
           updated_at: string
           version: number
+          video_processing_status: string | null
         }
         Insert: {
           content?: string | null
@@ -168,6 +172,7 @@ export type Database = {
           title: string
           updated_at?: string
           version?: number
+          video_processing_status?: string | null
         }
         Update: {
           content?: string | null
@@ -188,6 +193,7 @@ export type Database = {
           title?: string
           updated_at?: string
           version?: number
+          video_processing_status?: string | null
         }
         Relationships: [
           {
@@ -210,6 +216,9 @@ export type Database = {
           id: string
           social_media_tag: string | null
           stripe_account_id: string | null
+          stripe_account_status: string | null
+          stripe_account_details: Json | null
+          stripe_onboarding_complete: boolean | null
           updated_at: string
         }
         Insert: {
@@ -222,6 +231,9 @@ export type Database = {
           id: string
           social_media_tag?: string | null
           stripe_account_id?: string | null
+          stripe_account_status?: string | null
+          stripe_account_details?: Json | null
+          stripe_onboarding_complete?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -234,6 +246,9 @@ export type Database = {
           id?: string
           social_media_tag?: string | null
           stripe_account_id?: string | null
+          stripe_account_status?: string | null
+          stripe_account_details?: Json | null
+          stripe_onboarding_complete?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -360,6 +375,57 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      creator_earnings: {
+        Row: {
+          id: string
+          creator_id: string
+          payment_intent_id: string
+          amount: number
+          lesson_id: string
+          status: string
+          created_at: string | null
+          updated_at: string | null
+          payout_id: string | null
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          payment_intent_id: string
+          amount: number
+          lesson_id: string
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+          payout_id?: string | null
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          payment_intent_id?: string
+          amount?: number
+          lesson_id?: string
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+          payout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_earnings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_earnings_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          }
         ]
       }
       waitlist: {

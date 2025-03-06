@@ -2,7 +2,7 @@
 
 // Don't import useSearchParams directly in this component
 // Instead, use window.location in a useEffect hook
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import AuthClientWrapper from './auth-client';
 
 export default function SearchParamsWrapper() {
@@ -44,12 +44,19 @@ export default function SearchParamsWrapper() {
     );
   }
   
-  // Pass only the extracted values to AuthClientWrapper
+  // Pass only the extracted values to AuthClientWrapper, wrapped in Suspense boundary
   return (
-    <AuthClientWrapper 
-      errorMessage={params.error} 
-      redirectUrl={params.redirect}
-      showSignIn={params.showSignIn}
-    />
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+      </div>
+    }>
+      <AuthClientWrapper 
+        errorMessage={params.error} 
+        redirectUrl={params.redirect}
+        showSignIn={params.showSignIn}
+      />
+    </Suspense>
   );
 }

@@ -1,11 +1,12 @@
 export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
 import { RequestsPage } from './components/requests-page';
+import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 
 export default function Page() {
   return (
     <div className="min-h-screen pt-16">
-      <Suspense fallback={
+      <SearchParamsWrapper fallback={
         <div className="container mx-auto p-4">
           <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md mb-4"></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 p-4">
@@ -16,7 +17,7 @@ export default function Page() {
         </div>
       }>
         <RequestsPage />
-      </Suspense>
+      </SearchParamsWrapper>
     </div>
   );
 }

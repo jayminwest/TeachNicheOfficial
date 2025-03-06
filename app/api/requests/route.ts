@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
+import { createServerSupabaseClient } from '@/app/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const { searchParams } = new URL(request.url)
     
     const category = searchParams.get('category')

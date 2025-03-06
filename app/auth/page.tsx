@@ -2,10 +2,11 @@
 export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
 import AuthClient from './client';
+import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={
+    <SearchParamsWrapper fallback={
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6">
           <div className="space-y-1 mb-4">
@@ -21,6 +22,6 @@ export default function AuthPage() {
       </div>
     }>
       <AuthClient />
-    </Suspense>
+    </SearchParamsWrapper>
   );
 }

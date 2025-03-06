@@ -1,6 +1,7 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 
 // Define paths that should be restricted to authenticated users
 const RESTRICTED_PATHS: string[] = [
@@ -28,6 +29,7 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   
   // Create a Supabase client using the middleware helper
+  // Note: In middleware, we still need to use createMiddlewareClient with req and res
   const supabase = createMiddlewareClient({ req, res })
   
   const path = req.nextUrl.pathname

@@ -16,8 +16,8 @@ export default function ClientAuthWrapper() {
   const [error, setError] = useState<string | null>(null);
   
   // Extract parameters directly from searchParams hook
-  const errorParam = searchParams?.get('error');
-  const redirect = searchParams?.get('redirect');
+  const errorParam = searchParams.get('error');
+  const redirect = searchParams.get('redirect');
   
   useEffect(() => {
     // Store redirect URL in session storage

@@ -8,7 +8,7 @@ import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 
 interface LessonsClientProps {
-  // Props defined but not used yet - keeping for future implementation
+  initialLessons?: any[]; // Define props that might be used in the future
 }
 
 export default function LessonsClient({}: LessonsClientProps) {

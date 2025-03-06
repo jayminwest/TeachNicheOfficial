@@ -35,7 +35,7 @@ export default function AuthClientWrapper({
     }, 500);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [initialErrorMessage, redirectUrl]);
   
   if (isLoading) {
     return (

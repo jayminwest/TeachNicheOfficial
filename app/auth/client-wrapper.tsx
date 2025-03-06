@@ -8,13 +8,11 @@ import AuthClient from './client';
 interface AuthClientWrapperProps {
   errorMessage?: string | null;
   redirectUrl?: string | null;
-  showSignIn?: boolean;
 }
 
 export default function AuthClientWrapper({ 
   errorMessage: initialErrorMessage = null,
-  redirectUrl = null,
-  showSignIn = false
+  redirectUrl = null
 }: AuthClientWrapperProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(initialErrorMessage);
   const [isLoading, setIsLoading] = useState(true);

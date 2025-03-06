@@ -1,5 +1,4 @@
 export const dynamic = 'force-dynamic';
-import { Suspense } from 'react';
 import SearchParamsWrapper from './search-params-wrapper';
 // Static page component that doesn't use any client hooks
 export default function RequestsPage() {

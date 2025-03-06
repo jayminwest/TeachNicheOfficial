@@ -8,14 +8,10 @@ import { Loader2, Plus, Menu } from 'lucide-react';
 // Make sure we're not importing useSearchParams anywhere
 
 interface RequestsClientProps {
-  initialCategory?: string;
-  initialSortBy?: string;
+  // Props can be added here when needed
 }
 
-export default function RequestsClient({
-  initialCategory = '',
-  initialSortBy = 'popular'
-}: RequestsClientProps) {
+export default function RequestsClient() {
   // State for requests data
   const [requests, setRequests] = useState([]);
   const [categories, setCategories] = useState([]);

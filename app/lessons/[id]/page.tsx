@@ -3,13 +3,12 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Metadata } from 'next';
+import { PageProps, MetadataProps } from '@/app/types/next';
 
 // Add metadata generation for the page
 export async function generateMetadata({ 
   params 
-}: { 
-  params: { id: string } 
-}): Promise<Metadata> {
+}: MetadataProps): Promise<Metadata> {
   const lessonId = params.id;
   
   try {
@@ -44,9 +43,7 @@ export async function generateMetadata({
 // Define the page component with proper Next.js types
 export default async function Page({
   params,
-}: {
-  params: { id: string };
-}) {
+}: PageProps) {
   // Access the id directly from params
   const lessonId = params.id;
   

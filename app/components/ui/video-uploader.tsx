@@ -64,7 +64,7 @@ export function VideoUploader({
     error: errorMessage,
     uploadEndpoint,
     handleUploadStart: startUpload,
-    handleUploadProgress,
+    handleUploadProgress: setUploadProgress,
     handleUploadSuccess,
     handleUploadError,
   } = useVideoUpload({
@@ -77,6 +77,11 @@ export function VideoUploader({
     },
     lessonId
   });
+  
+  const handleUploadProgress = (event: CustomEvent<number>) => {
+    const progress = event.detail;
+    setUploadProgress(progress);
+  };
   
   const handleUploadStart: MuxUploaderProps["onUploadStart"] = (event) => {
     const file = event.detail?.file;
@@ -155,7 +160,7 @@ export function VideoUploader({
         onUploadStart={handleUploadStart}
         onProgress={(event) => {
           if (event instanceof CustomEvent) {
-            handleUploadProgress(event as CustomEvent<number>);
+            handleUploadProgress(event);
           }
         }}
         onSuccess={(event) => {
@@ -167,10 +172,12 @@ export function VideoUploader({
           
           try {
             // First try to get it from the event
-            const eventDetail = event?.detail as unknown as { uploadId?: string };
-            if (eventDetail?.uploadId) {
-              uploadId = eventDetail.uploadId;
-              console.log("Got upload ID from event:", uploadId);
+            if (event && event.detail && typeof event.detail === 'object') {
+              const eventDetail = event.detail as { uploadId?: string };
+              if (eventDetail.uploadId) {
+                uploadId = eventDetail.uploadId;
+                console.log("Got upload ID from event:", uploadId);
+              }
             } else if (uploadEndpoint) {
               // Extract from the uploadEndpoint URL
               const url = new URL(uploadEndpoint);
@@ -196,7 +203,7 @@ export function VideoUploader({
             
             // If we still don't have an ID, try to get it from the stored global variable
             if (!uploadId) {
-              uploadId = (window as any).__lastUploadId;
+              uploadId = (window as { __lastUploadId?: string }).__lastUploadId;
               console.log("Using stored upload ID:", uploadId);
             }
           } catch (error) {
@@ -238,7 +245,7 @@ export function VideoUploader({
             localStorage.setItem('lastMuxAssetId', uploadId);
             
             // Set a global variable as another fallback
-            (window as any).__muxAssetId = uploadId;
+            (window as { __muxAssetId?: string }).__muxAssetId = uploadId;
           } catch (storageError) {
             console.error('Failed to store asset ID in session storage:', storageError);
           }

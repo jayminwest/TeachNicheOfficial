@@ -95,7 +95,7 @@ export async function POST() {
               mux_playback_id: assetStatus.playbackId,
               updated_at: new Date().toISOString()
             } as any)
-            .eq('id', String(lesson.id));
+            .eq('id', lesson.id as string);
           
           if (updateError) {
             throw new Error(`Failed to update lesson: ${updateError.message}`);

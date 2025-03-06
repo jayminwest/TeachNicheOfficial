@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { Skeleton } from '@/app/components/ui/skeleton';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
-import ClientWrapper from './client-wrapper';
+import SearchParamsWrapper from './search-params-wrapper';
 
 export default function LessonsPage() {
   return (
@@ -25,7 +25,7 @@ export default function LessonsPage() {
               </div>
             }
           >
-            <ClientWrapper />
+            <SearchParamsWrapper />
           </ErrorBoundary>
         </Suspense>
       </div>

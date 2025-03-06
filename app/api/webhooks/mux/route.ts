@@ -68,6 +68,9 @@ export async function POST(request: Request) {
         from: (table: string) => {
           update: (data: Record<string, unknown>) => {
             eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+          },
+          select: (columns: string) => {
+            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
           }
         }
       };
@@ -121,6 +124,9 @@ export async function POST(request: Request) {
       const supabaseClient = (supabase as unknown) as {
         from: (table: string) => {
           update: (data: Record<string, unknown>) => {
+            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+          },
+          select: (columns: string) => {
             eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
           }
         }

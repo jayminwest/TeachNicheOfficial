@@ -5,14 +5,11 @@ import RequestsClient from './requests-client';
 
 // Define the props interface for RequestsClient
 interface RequestsClientProps {
-  initialCategory: string;
-  initialSortBy: string;
+  initialCategory?: string;
+  initialSortBy?: string;
 }
 
-// Make sure RequestsClient component is properly typed
-declare module './requests-client' {
-  export default function RequestsClient(props: RequestsClientProps): JSX.Element;
-}
+// No need to redeclare the module since we're importing it directly
 
 // This component is a client-side only wrapper that extracts URL parameters
 // without using the useSearchParams hook to avoid SSR bailout
@@ -71,7 +68,7 @@ export default function SearchParamsWrapper() {
   
   // Pass only the extracted values to RequestsClient
   return <RequestsClient 
-    initialCategory={params.category} 
+    initialCategory={params.category || undefined} 
     initialSortBy={params.sortBy} 
   />;
 }

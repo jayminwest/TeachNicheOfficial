@@ -10,7 +10,7 @@ export async function GET() {
     // We'll just fetch all lessons
     
     // Fetch lessons
-    let query = supabase
+    const query = supabase
       .from('lessons')
       .select('id, title, description, price, thumbnail_url, creator_id')
       .order('created_at', { ascending: false });

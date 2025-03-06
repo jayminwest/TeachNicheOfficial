@@ -380,7 +380,7 @@ export default function ProfileClient() {
           <div className="border-t pt-6">
             <h3 className="text-lg font-medium mb-2 text-destructive">Danger Zone</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Once you delete your account, there is no going back. Please be certain.
+              Once you delete your account, there is no way to recover it. Please be certain.
             </p>
             <Button 
               variant="destructive"

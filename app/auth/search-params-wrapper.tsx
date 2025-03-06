@@ -16,13 +16,14 @@ export default function SearchParamsWrapper() {
   useEffect(() => {
     console.log('SearchParamsWrapper: Extracting search params');
     try {
-      // Get the search params
-      const searchParams = new URLSearchParams(window.location.search);
+      // Get the search params directly from window.location
+      // This avoids using useSearchParams() which causes SSR bailout
+      const url = new URL(window.location.href);
       
-      // Extract the values you need from searchParams
-      const error = searchParams.get('error') || null;
-      const redirect = searchParams.get('redirect') || null;
-      const showSignIn = searchParams.get('signin') === 'true';
+      // Extract the values you need from URL
+      const error = url.searchParams.get('error') || null;
+      const redirect = url.searchParams.get('redirect') || null;
+      const showSignIn = url.searchParams.get('signin') === 'true';
       
       // Update state with the extracted values
       setParams({ error, redirect, showSignIn });

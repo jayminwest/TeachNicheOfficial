@@ -1,88 +1,37 @@
-import { Suspense } from 'react';
 import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Metadata } from 'next';
 
-// Add metadata generation for the page
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string };
-}): Promise<Metadata> {
-  const lessonId = params.id;
-  
-  try {
-    const supabase = await createServerSupabaseClient();
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .select('title, description')
-      .eq('id', lessonId)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching lesson metadata:', error);
-      return {
-        title: 'Lesson Details',
-        description: 'View lesson details and content'
-      };
-    }
-    
-    return {
-      title: lesson?.title || 'Lesson Details',
-      description: lesson?.description || 'View lesson details and content'
-    };
-  } catch (err) {
-    console.error('Error generating metadata:', err);
-    return {
-      title: 'Lesson Details',
-      description: 'View lesson details and content'
-    };
-  }
-}
+// Simple metadata function
+export const metadata: Metadata = {
+  title: 'Lesson Details',
+  description: 'View lesson details and content',
+};
 
-// Define the page component using Next.js 15 pattern
-export default async function Page({
-  params,
-}: {
-  params: { id: string };
-}) {
-  // Access the id directly from params
-  const lessonId = params.id;
+// Simple page component that avoids complex typing
+export default async function LessonPage(props: any) {
+  // Get the lesson ID from the URL
+  const lessonId = props.params?.id;
   
-  const supabase = await createServerSupabaseClient();
+  if (!lessonId) {
+    notFound();
+    return null;
+  }
   
   try {
-    // Check if the lesson exists before rendering the component
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('id', lessonId)
-      .single();
+    // Create Supabase client
+    const supabase = await createServerSupabaseClient();
     
-    // If lesson doesn't exist, show 404 page
-    if (error || !lesson) {
-      notFound();
-    }
-    
-    // Get the user session if available
+    // Get session
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
-    // Return the component with props using the local lessonId variable
-    // Wrap any client components that might use useSearchParams in Suspense
-    return (
-      <Suspense fallback={
-        <div className="container mx-auto p-4">
-          <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md mb-4"></div>
-          <div className="h-64 w-full bg-muted animate-pulse rounded-md"></div>
-        </div>
-      }>
-        <LessonDetail id={lessonId} session={session} />
-      </Suspense>
-    );
+    // Return the lesson detail component
+    return <LessonDetail id={lessonId} session={session} />;
   } catch (error) {
-    console.error('Error fetching lesson:', error);
+    console.error('Error in lesson page:', error);
     notFound();
+    return null;
   }
 }

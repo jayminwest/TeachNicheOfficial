@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // In Next.js 15, cookies() returns a ReadonlyRequestCookies object
-    const cookieStore = cookies();
+    // In Next.js 15, cookies() might return a Promise<ReadonlyRequestCookies>
+    const cookieStore = await cookies();
     
     // Get the auth cookie specifically
     const authCookie = cookieStore.get('sb-erhavrzwpyvnpefifsfu-auth-token');

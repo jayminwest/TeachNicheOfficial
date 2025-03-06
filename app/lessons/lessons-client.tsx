@@ -8,7 +8,7 @@ import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 
 interface LessonsClientProps {
-  initialLessons?: any[]; // Define props that might be used in the future
+  initialLessons?: Array<Record<string, unknown>>; // Define props that might be used in the future
 }
 
 export default function LessonsClient({}: LessonsClientProps) {
@@ -138,7 +138,7 @@ export default function LessonsClient({}: LessonsClientProps) {
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };
-  }, [retryCount, mounted]);
+  }, [retryCount, mounted, isLoading]);
   
   const handleNewLesson = () => {
     router.push('/lessons/new');

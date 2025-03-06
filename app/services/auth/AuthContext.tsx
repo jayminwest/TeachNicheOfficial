@@ -142,7 +142,7 @@ export function AuthProvider({
       clearTimeout(safetyTimeout)
       subscription.unsubscribe()
     }
-  }, [])
+  }, [loading])
 
   return (
     <AuthContext.Provider value={{ 

@@ -13,8 +13,9 @@
     // Parse URL parameters
     const url = new URL(window.location.href);
     const error = url.searchParams.get('error') || null;
-    const redirect = url.searchParams.get('redirect') || null;
-    const showSignIn = url.searchParams.get('signin') === 'true';
+    // These parameters are parsed but currently unused
+    // const redirect = url.searchParams.get('redirect') || null;
+    // const showSignIn = url.searchParams.get('signin') === 'true';
     
     // Create the auth component
     const authComponent = document.createElement('div');

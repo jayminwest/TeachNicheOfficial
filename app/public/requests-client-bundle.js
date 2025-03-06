@@ -12,8 +12,9 @@
   try {
     // Parse URL parameters
     const url = new URL(window.location.href);
-    const category = url.searchParams.get('category') || '';
-    const sortBy = url.searchParams.get('sort') || 'recent';
+    // These parameters are parsed but not currently used
+    // const category = url.searchParams.get('category') || '';
+    // const sortBy = url.searchParams.get('sort') || 'recent';
     
     // Create a simple requests component
     const requestsComponent = document.createElement('div');

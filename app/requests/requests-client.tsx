@@ -7,10 +7,7 @@ import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, Menu } from 'lucide-react';
 // Make sure we're not importing useSearchParams anywhere
 
-interface RequestsClientProps {
-  // Props can be added here when needed
-}
-
+// Removed empty interface since it's not used
 export default function RequestsClient() {
   // State for requests data
   const [requests, setRequests] = useState([]);

@@ -3,7 +3,8 @@
   // State
   let user = null;
   let profile = null;
-  let loading = true;
+  // loading state is set but not directly used elsewhere
+  // let loading = true;
   let activeTab = 'profile';
 
   // Fetch user and profile data
@@ -50,7 +51,7 @@
     } catch (err) {
       console.error('Error fetching profile data:', err);
     } finally {
-      loading = false;
+      // loading = false; // Not used directly
       renderProfile();
     }
   }

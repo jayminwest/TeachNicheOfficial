@@ -17,17 +17,20 @@ export default function SearchParamsWrapper() {
   // Get search params safely on the client side
   useEffect(() => {
     try {
-      // Get the search params directly from window.location
-      // This avoids using useSearchParams() which causes SSR bailout
-      const url = new URL(window.location.href);
-      
-      // Extract the values you need from URL
-      const query = url.searchParams.get('query') || '';
-      const category = url.searchParams.get('category') || '';
-      const page = parseInt(url.searchParams.get('page') || '1', 10);
-      
-      // Update state with the extracted values
-      setParams({ query, category, page });
+      // Check if window is defined (client-side only)
+      if (typeof window !== 'undefined') {
+        // Get the search params directly from window.location
+        // This avoids using useSearchParams() which causes SSR bailout
+        const url = new URL(window.location.href);
+        
+        // Extract the values you need from URL
+        const query = url.searchParams.get('query') || '';
+        const category = url.searchParams.get('category') || '';
+        const page = parseInt(url.searchParams.get('page') || '1', 10);
+        
+        // Update state with the extracted values
+        setParams({ query, category, page });
+      }
     } catch (err) {
       console.error('Error extracting search params:', err);
     } finally {

@@ -84,7 +84,7 @@ export async function POST() {
         }
         
         // Check the asset status
-        const assetStatus = await getAssetStatus(lesson.mux_asset_id);
+        const assetStatus = await getAssetStatus(String(lesson.mux_asset_id));
         
         if (assetStatus.status === 'ready' && assetStatus.playbackId) {
           // Update the lesson

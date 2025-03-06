@@ -8,16 +8,16 @@ export async function GET() {
     // In Next.js 15, cookies() returns a ReadonlyRequestCookies object
     const cookieStore = cookies();
     
-    // Get all cookies by getting them individually
-    const allCookies = cookieStore.getAll();
-    
-    // Get specific auth cookies
+    // Get the auth cookie specifically
     const authCookie = cookieStore.get('sb-erhavrzwpyvnpefifsfu-auth-token');
+    
+    // Get all cookie names by iterating through entries
+    const cookieEntries = cookieStore.getAll();
     
     return NextResponse.json({
       message: 'Cookie debug information',
-      cookieCount: allCookies.length,
-      cookieNames: allCookies.map(c => c.name),
+      cookieCount: cookieEntries.length,
+      cookieNames: cookieEntries.map(c => c.name),
       authCookieExists: !!authCookie,
       authCookieValue: authCookie ? '***' : null // Don't expose actual value
     });

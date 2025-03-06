@@ -54,51 +54,63 @@ export default function LessonsClient() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
-        const response = await fetch('/api/lessons', {
-          // Add cache control headers
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          },
-          signal: controller.signal
-        }).finally(() => clearTimeout(timeoutId));
+        // Use a try-catch block specifically for the fetch operation
+        try {
+          const response = await fetch('/api/lessons', {
+            // Add cache control headers
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
         
-        if (!response.ok) {
-          let errorMessage = `Server error: ${response.status}`;
-          try {
-            const errorData = await response.json();
-            if (errorData?.error) {
-              errorMessage = errorData.error;
+          if (!response.ok) {
+            let errorMessage = `Server error: ${response.status}`;
+            try {
+              const errorData = await response.json();
+              if (errorData?.error) {
+                errorMessage = errorData.error;
+              }
+            } catch (parseError) {
+              console.error('Error parsing error response:', parseError);
             }
-          } catch (parseError) {
-            console.error('Error parsing error response:', parseError);
+            throw new Error(errorMessage);
           }
-          throw new Error(errorMessage);
-        }
-        
-        const data = await response.json();
-        console.log('Lessons fetched successfully:', Array.isArray(data) ? data.length : 'Not an array');
-        console.log('Response data type:', typeof data);
-        console.log('First lesson sample:', Array.isArray(data) && data.length > 0 ? JSON.stringify(data[0], null, 2) : 'No lessons');
-        
-        // Ensure we're working with an array of lessons
-        if (Array.isArray(data)) {
-          setLessons(data);
-        } else if (data && typeof data === 'object' && Array.isArray(data.lessons)) {
-          // Handle case where API returns { lessons: [...] }
-          setLessons(data.lessons);
-        } else {
-          console.error('Unexpected data format from API:', data);
-          setLessons([]);
-          throw new Error('Invalid data format received from server');
+          
+          const data = await response.json();
+          console.log('Lessons fetched successfully:', Array.isArray(data) ? data.length : 'Not an array');
+          console.log('Response data type:', typeof data);
+          console.log('First lesson sample:', Array.isArray(data) && data.length > 0 ? JSON.stringify(data[0], null, 2) : 'No lessons');
+          
+          // Ensure we're working with an array of lessons
+          if (Array.isArray(data)) {
+            setLessons(data);
+          } else if (data && typeof data === 'object' && Array.isArray(data.lessons)) {
+            // Handle case where API returns { lessons: [...] }
+            setLessons(data.lessons);
+          } else {
+            console.error('Unexpected data format from API:', data);
+            setLessons([]);
+            throw new Error('Invalid data format received from server');
+          }
+        } catch (fetchError) {
+          // Handle network errors separately
+          clearTimeout(timeoutId);
+          console.error('Network error during fetch:', fetchError);
+          throw fetchError; // Re-throw to be caught by the outer catch block
         }
       } catch (err) {
         console.error('Error fetching lessons:', err);
         
-        // Handle AbortController timeout specifically
+        // Handle different types of errors
         if (err.name === 'AbortError') {
           setError('Request timed out. Please try again.');
+        } else if (err.message === 'Failed to fetch') {
+          setError('Network error: Could not connect to the server. Please check your internet connection and try again.');
         } else {
           const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
           setError(`Failed to load lessons: ${errorMessage}`);

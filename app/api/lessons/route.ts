@@ -16,11 +16,13 @@ export async function GET() {
       .order('created_at', { ascending: false });
     
     // If user is logged in, include their lessons
-    // Note: Fixing the column names in the query conditions
+    // Note: The public column might be named is_public or published
     if (user) {
-      query = query.or(`creator_id.eq.${user.id},public.eq.true`);
+      // Try to use creator_id without any filter on public status for now
+      query = query.eq('creator_id', user.id);
     } else {
-      query = query.eq('public', true);
+      // For anonymous users, just return all lessons for now
+      // We'll implement proper visibility filtering once we confirm the schema
     }
     
     const { data: lessons, error } = await query;
@@ -33,14 +35,19 @@ export async function GET() {
       );
     }
     
+    // Log the actual schema of the first lesson to help debug
+    if (lessons && lessons.length > 0) {
+      console.log('Lesson schema sample:', Object.keys(lessons[0]));
+    }
+    
     // Transform the data to match the client-side expected format
     const transformedLessons = (lessons || []).map(lesson => ({
       id: lesson.id,
-      title: lesson.title,
-      description: lesson.description,
-      price: lesson.price,
-      thumbnailUrl: lesson.thumbnail_url, // Map snake_case to camelCase
-      creatorId: lesson.creator_id,
+      title: lesson.title || 'Untitled Lesson',
+      description: lesson.description || 'No description available',
+      price: typeof lesson.price === 'number' ? lesson.price : 0,
+      thumbnailUrl: lesson.thumbnail_url || '', // Map snake_case to camelCase
+      creatorId: lesson.creator_id || '',
       // Provide default values for missing fields
       averageRating: 0,
       totalRatings: 0

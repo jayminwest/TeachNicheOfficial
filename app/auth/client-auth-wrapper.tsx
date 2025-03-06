@@ -1,23 +1,5 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { ErrorBoundary } from '@/app/components/ui/error-boundary';
-import { Button } from '@/app/components/ui/button';
-import Link from 'next/link';
-import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
-
-export default function ClientAuthWrapper() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Extract parameters directly from searchParams hook
-  const errorParam = searchParams.get('error');
-  const redirect = searchParams.get('redirect');
+// This file is no longer needed as we're using AuthClient directly
+// with proper Suspense boundaries in page.tsx
   
   useEffect(() => {
     // Store redirect URL in session storage

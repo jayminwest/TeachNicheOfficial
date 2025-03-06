@@ -7,7 +7,6 @@ import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { ErrorBoundary } from 'react-error-boundary';
 
 interface AuthClientProps {
   onSuccess?: () => void;
@@ -92,28 +91,6 @@ export function AuthClient({ onSuccess, redirectPath }: AuthClientProps) {
   }
 
   return (
-    <ErrorBoundary
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold">Authentication Error</CardTitle>
-              <CardDescription>
-                There was a problem with the authentication component.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
-                Refresh Page
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      }
-    >
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -148,6 +125,5 @@ export function AuthClient({ onSuccess, redirectPath }: AuthClientProps) {
           </CardFooter>
         </Card>
       </div>
-    </ErrorBoundary>
   );
 }

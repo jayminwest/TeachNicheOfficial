@@ -32,7 +32,8 @@ export async function generateMetadata({
       title: lesson?.title || 'Lesson Details',
       description: lesson?.description || 'View lesson details and content'
     };
-  } catch (error) {
+  } catch (err) {
+    console.error('Error generating metadata:', err);
     return {
       title: 'Lesson Details',
       description: 'View lesson details and content'

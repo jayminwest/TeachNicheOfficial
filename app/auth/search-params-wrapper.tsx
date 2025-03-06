@@ -46,17 +46,10 @@ export default function SearchParamsWrapper() {
   
   // Pass only the extracted values to AuthClientWrapper, wrapped in Suspense boundary
   return (
-    <Suspense fallback={
-      <div className="space-y-4">
-        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
-        <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
-      </div>
-    }>
-      <AuthClientWrapper 
-        errorMessage={params.error} 
-        redirectUrl={params.redirect}
-        showSignIn={params.showSignIn}
-      />
-    </Suspense>
+    <AuthClientWrapper 
+      errorMessage={params.error} 
+      redirectUrl={params.redirect}
+      showSignIn={params.showSignIn}
+    />
   );
 }

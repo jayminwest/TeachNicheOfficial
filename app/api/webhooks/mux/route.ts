@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
       // Update the lesson with the asset ID
-      const { data: updateResult, error } = await supabase
+      const updateResult = await supabase
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
@@ -72,13 +72,15 @@ export async function POST(request: Request) {
         })
         .eq('mux_upload_id', uploadId);
       
+      const error = updateResult.error;
+      
       // Fetch the updated lesson in a separate query to avoid type issues
-      const { data: lessonData } = await supabase
+      const lessonResult = await supabase
         .from('lessons')
         .select('id, title')
         .eq('mux_upload_id', uploadId);
       
-      const lessons = lessonData;
+      const lessons = lessonResult.data;
       
       // data and error are already destructured from the query result
       
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
       // Update the lesson with the playback ID and set status to published
-      const { data: updateResult, error } = await supabase
+      const updateResult = await supabase
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
@@ -116,13 +118,15 @@ export async function POST(request: Request) {
         })
         .eq('mux_asset_id', assetId);
       
+      const error = updateResult.error;
+      
       // Fetch the updated lesson in a separate query to avoid type issues
-      const { data: lessonData } = await supabase
+      const lessonResult = await supabase
         .from('lessons')
         .select('id, title')
         .eq('mux_asset_id', assetId);
       
-      const lessons = lessonData;
+      const lessons = lessonResult.data;
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);

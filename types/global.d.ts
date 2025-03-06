@@ -10,7 +10,13 @@ interface Window {
   };
 }
 
+// For testing Suspense boundaries
 declare global {
+  namespace NodeJS {
+    interface Global {
+      __SUSPENSE_TEST_FALLBACK__: boolean;
+    }
+  }
   var __SUSPENSE_TEST_FALLBACK__: boolean;
 }
 

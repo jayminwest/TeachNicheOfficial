@@ -1,11 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 
-// Mock the next/navigation hooks
+// Mock the next/navigation hooks before importing components that use them
 jest.mock('next/navigation', () => ({
-  useSearchParams: jest.fn(),
+  useSearchParams: jest.fn().mockReturnValue({
+    get: jest.fn((param) => param === 'q' ? 'test-query' : null),
+  }),
+  useRouter: jest.fn().mockReturnValue({
+    push: jest.fn(),
+  }),
 }));
+
+// Import the mocked useSearchParams after mocking
+const { useSearchParams } = require('next/navigation');
 
 // Mock React's Suspense for controlled testing
 jest.mock('react', () => {
@@ -42,11 +49,6 @@ describe('Suspense Boundary with useSearchParams', () => {
     
     // Reset the global flag
     global.__SUSPENSE_TEST_FALLBACK__ = false;
-    
-    // Mock the search params
-    (useSearchParams as jest.Mock).mockReturnValue({
-      get: (param: string) => param === 'q' ? 'test-query' : null,
-    });
   });
   
   it('renders the component with search params inside suspense boundary', () => {

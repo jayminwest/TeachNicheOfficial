@@ -94,7 +94,7 @@ export default function LessonsClient({}: LessonsClientProps) {
           console.error('Unexpected data format from API:', data);
           // Try to convert to array if possible
           const fallbackData = data && typeof data === 'object' ? Object.values(data) : [];
-          // @ts-ignore - Ignore TypeScript error for fallbackData[0].id
+          // @ts-expect-error - fallbackData[0] might not have an id property
           if (Array.isArray(fallbackData) && fallbackData.length > 0 && fallbackData[0]?.id) {
             console.log('Converted object to array successfully');
             setLessons(fallbackData);

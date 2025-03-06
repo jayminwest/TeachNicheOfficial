@@ -53,7 +53,7 @@ export async function POST() {
     for (const lesson of lessons) {
       try {
         // Skip lessons without an asset ID
-        if (!lesson.mux_asset_id) {
+        if (!('mux_asset_id' in lesson) || !lesson.mux_asset_id) {
           results.skipped++;
           results.details.push({
             lessonId: lesson.id,

@@ -65,8 +65,8 @@ export function ContentManagement() {
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs font-medium">{formatCurrency(lesson.price)}</span>
                       <span className="text-xs text-muted-foreground">
-                        {lesson.published ? "Published" : "Draft"}
-                        {lesson.isFeatured && " • Featured"}
+                        {lesson.status === "published" ? "Published" : "Draft"}
+                        {lesson.is_featured && " • Featured"}
                       </span>
                     </div>
                   </div>

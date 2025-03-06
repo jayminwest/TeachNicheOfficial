@@ -268,11 +268,34 @@ The project uses different approaches for client/server component splitting:
 
 ## Next Steps
 
-1. Implement the header component fix to ensure the Sign In button appears even if auth is still loading
-2. Update the client components to use the mounted pattern consistently
-3. Add better error handling and logging to diagnose any remaining issues
-4. Test the changes on all affected pages to ensure they load properly
+1. ✅ Implement the header component fix to ensure the Sign In button appears even if auth is still loading
+2. ✅ Update the client components to use the mounted pattern consistently
+3. ✅ Add Suspense boundaries around components using `useSearchParams()` to fix build failures
+4. ✅ Create dedicated client components for auth pages
+5. Add better error handling and logging to diagnose any remaining issues
+6. Test the changes on all affected pages to ensure they load properly
+7. Verify the build succeeds without the `useSearchParams()` errors
 
 ## Priority
 
-High - These issues are blocking core functionality of the site and preventing users from signing in or accessing content.
+Critical - These issues are blocking core functionality of the site, preventing users from signing in or accessing content, and causing production build failures.
+
+## Implementation Progress
+
+### Completed Fixes:
+
+1. Added Suspense boundaries to:
+   - Lessons page
+   - Requests page
+   - Sign-in page
+   - Auth page
+
+2. Created client components:
+   - SignInClient
+   - AuthClientWrapper with proper Suspense boundary
+
+3. Reduced safety timeouts:
+   - AuthContext (from 5 to 2 seconds)
+   - Header component (from 3 to 2 seconds)
+
+4. Added skeleton loading states to improve user experience during loading

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import AuthClient from './client';
 
@@ -9,12 +9,20 @@ export default function AuthClientWrapper() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
+  const router = useRouter();
   
   useEffect(() => {
     // Check for error in URL parameters
     const error = searchParams.get('error');
     if (error) {
       setErrorMessage(decodeURIComponent(error));
+    }
+    
+    // Check for redirect parameter
+    const redirect = searchParams.get('redirect');
+    if (redirect) {
+      // Store redirect URL in session storage to use after sign-in
+      sessionStorage.setItem('auth-redirect', redirect);
     }
     
     // Simulate loading to ensure client hydration
@@ -46,5 +54,19 @@ export default function AuthClientWrapper() {
     );
   }
   
-  return <AuthClient errorMessage={errorMessage} />;
+  const handleSignInSuccess = () => {
+    // Check for stored redirect URL
+    const redirect = sessionStorage.getItem('auth-redirect');
+    if (redirect) {
+      sessionStorage.removeItem('auth-redirect');
+      router.push(redirect);
+    } else {
+      router.push('/');
+    }
+  };
+  
+  return <AuthClient 
+    errorMessage={errorMessage} 
+    onSuccess={handleSignInSuccess}
+  />;
 }

@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import type { Database } from '@/app/types/database';
 
 export async function createServerSupabaseClient() {
-  const cookieStore = cookies();
+  // The cookies() function should be awaited
+  const cookieStore = await cookies();
   return createRouteHandlerClient<Database>({ 
     cookies: () => cookieStore 
   });

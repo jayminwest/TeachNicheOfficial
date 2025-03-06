@@ -11,7 +11,7 @@
   
   try {
     // Parse URL parameters
-    const url = new URL(window.location.href);
+    // const url = new URL(window.location.href);
     // These parameters are parsed but not currently used
     // const category = url.searchParams.get('category') || '';
     // const sortBy = url.searchParams.get('sort') || 'recent';

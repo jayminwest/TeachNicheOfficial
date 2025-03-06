@@ -54,7 +54,7 @@ describe('ClientAuthWrapper', () => {
     render(<ClientAuthWrapper />);
     
     // Should show loading spinner initially
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
   
   it('renders sign in button after loading', async () => {

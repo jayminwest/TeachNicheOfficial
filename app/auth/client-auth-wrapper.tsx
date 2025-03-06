@@ -71,7 +71,7 @@ export default function ClientAuthWrapper() {
     return (
       <div className="space-y-4">
         <div className="flex justify-center items-center py-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loading-spinner" />
         </div>
       </div>
     );

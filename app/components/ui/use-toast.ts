@@ -14,6 +14,7 @@ type ToastProps = {
 type Toast = ToastProps & {
   id: string
   visible: boolean
+  action?: React.ReactNode
 }
 
 export function useToast() {

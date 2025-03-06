@@ -23,10 +23,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a direct upload URL from Mux
-    const { id, url } = await muxService.createUpload();
+    const { uploadId, url } = await muxService.createUpload();
 
     return NextResponse.json({
-      uploadId: id,
+      uploadId: uploadId,
       uploadUrl: url
     });
   } catch (error) {

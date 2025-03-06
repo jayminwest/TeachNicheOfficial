@@ -10,12 +10,29 @@ export interface Lesson {
   creator_id: string;
   stripe_product_id?: string;
   stripe_price_id?: string;
+  previous_stripe_price_ids?: string[];
   mux_asset_id?: string;
   mux_playback_id?: string;
+  mux_upload_id?: string;
   content?: string;
   video_processing_status?: 'pending' | 'processing' | 'ready' | 'error';
+  status?: 'draft' | 'published' | 'archived' | 'uploading';
   published?: boolean;
   isFeatured?: boolean;
+}
+
+export interface LessonUpdateData {
+  title?: string;
+  description?: string;
+  content?: string;
+  price?: number;
+  mux_asset_id?: string;
+  mux_playback_id?: string;
+  stripe_product_id?: string;
+  stripe_price_id?: string;
+  previous_stripe_price_ids?: string[];
+  status?: 'draft' | 'published' | 'archived' | 'uploading';
+  video_processing_status?: string;
 }
 
 export type LessonRequestStatus = 'open' | 'in_progress' | 'completed';

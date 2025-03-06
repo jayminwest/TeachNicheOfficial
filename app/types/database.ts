@@ -457,7 +457,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      lesson_status: "draft" | "published" | "archived"
+      lesson_status: "draft" | "published" | "archived" | "uploading"
       purchase_status: "pending" | "completed" | "failed" | "refunded"
     }
     CompositeTypes: {

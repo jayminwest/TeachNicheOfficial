@@ -71,7 +71,10 @@ export async function POST(request: Request) {
           video_processing_status: 'processing'
         })
         .eq('mux_upload_id', uploadId)
-        .select('id, title');
+        .select();
+      
+      // Extract the needed fields after the query
+      const lessons = data as { id: string; title: string }[] | null;
       
       // data and error are already destructured from the query result
       
@@ -80,8 +83,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
       }
       
-      if (data && data.length > 0) {
-        console.log(`Updated lesson "${data[0].title}" (${data[0].id}) with asset ID ${assetId}`);
+      if (lessons && lessons.length > 0) {
+        console.log(`Updated lesson "${lessons[0].title}" (${lessons[0].id}) with asset ID ${assetId}`);
       } else {
         console.warn(`No lesson found with upload ID ${uploadId}`);
       }
@@ -108,15 +111,18 @@ export async function POST(request: Request) {
           status: 'published'
         })
         .eq('mux_asset_id', assetId)
-        .select('id, title');
+        .select();
+      
+      // Extract the needed fields after the query
+      const lessons = data as { id: string; title: string }[] | null;
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);
         return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
       }
       
-      if (data && data.length > 0) {
-        console.log(`Updated lesson "${data[0].title}" (${data[0].id}) with playback ID ${playbackId} and set status to published`);
+      if (lessons && lessons.length > 0) {
+        console.log(`Updated lesson "${lessons[0].title}" (${lessons[0].id}) with playback ID ${playbackId} and set status to published`);
       } else {
         console.warn(`No lesson found with asset ID ${assetId}`);
       }

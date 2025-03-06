@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
 
       // Create a new purchase record
       const purchaseData = {
+        id: crypto.randomUUID(), // Add required id field
         lesson_id: lessonId,
         user_id: userId,
         creator_id: typedLesson.creator_id,
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee,
         creator_earnings: creatorEarnings,
         fee_percentage: 15,
-        status: 'completed',
+        status: 'completed' as const, // Type assertion to match enum
         stripe_session_id: sessionId || null,
         payment_intent_id: paymentIntentId || null,
         created_at: new Date().toISOString(),
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
     const purchase = purchases[0] as { id: string; status: string } | undefined;
     if (purchase && purchase.status !== 'completed') {
       const updateData = {
-        status: 'completed',
+        status: 'completed' as const, // Type assertion to match enum
         updated_at: new Date().toISOString()
       };
       

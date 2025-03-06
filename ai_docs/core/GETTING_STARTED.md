@@ -64,24 +64,37 @@ The project follows a modular structure:
 - Follow strict ESLint configurations
 - Avoid using "any" types
 - Write self-documenting code with minimal comments
+- Use the DatabaseResponse<T> pattern for consistent error handling
+- Validate all data with Zod schemas
+- Implement proper error handling with try/catch blocks
 
 ### Component Development
 - Use functional components with hooks
 - Follow Atomic Design principles
 - Prefer Shadcn UI components
 - Ensure accessibility (WCAG compliance)
+- Create custom hooks for reusable logic
+- Implement proper loading states and error handling
+- Use TypeScript interfaces for component props
 
 ### Testing
 - Write tests before implementing features
-- Place tests in `__tests__` directories
+- Place tests in `__tests__` directories adjacent to the code being tested
 - Maintain 80% coverage minimum
 - Use provided testing utilities
+- Mock external dependencies consistently
+- Test error handling scenarios
+- Implement integration tests for API routes
+- Test user flows end-to-end
 
 ### Data Management
 - Initialize Supabase client in dedicated file
-- Validate all data with Zod
+- Extend the DatabaseService class for specific data operations
+- Implement the DatabaseResponse<T> pattern for consistent error handling
+- Validate all data with Zod schemas
 - Choose appropriate fetching strategy (SSR/CSR)
-- Write efficient queries
+- Implement caching strategies where appropriate
+- Write efficient queries with proper error handling
 
 ## Common Workflows
 

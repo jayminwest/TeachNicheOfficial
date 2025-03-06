@@ -30,57 +30,159 @@ This document provides a high-level overview of the Teach Niche platform archite
 
 1. **Content Creation**:
    ```typescript
-   // Example from lessonsService.ts
-   async createLesson(data: LessonCreateData, userId: string): Promise<DatabaseResponse<Lesson>> {
-     // Implementation for creating a new lesson
+   // Example from DatabaseService pattern
+   async executeWithRetry<T>(
+     operation: () => Promise<T>,
+     options?: { maxRetries?: number; retryDelay?: number }
+   ): Promise<DatabaseResponse<T>> {
+     const maxRetries = options?.maxRetries ?? this.defaultMaxRetries;
+     const retryDelay = options?.retryDelay ?? this.defaultRetryDelay;
+     
+     let lastError: Error | null = null;
+     
+     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+       try {
+         const data = await operation();
+         return { data, error: null, success: true };
+       } catch (error) {
+         lastError = error as Error;
+         if (attempt < maxRetries) {
+           await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
+         }
+       }
+     }
+     
+     return {
+       data: null,
+       error: lastError,
+       success: false
+     };
    }
    ```
 
 2. **Content Discovery**:
    ```typescript
-   // Example from lessonsService.ts
-   async getLessons(options?: { 
-     limit?: number; 
-     offset?: number; 
-     orderBy?: string;
-     orderDirection?: 'asc' | 'desc';
-   }): Promise<DatabaseResponse<Lesson[]>> {
-     // Implementation for retrieving lessons
+   // Example from API route pattern
+   export async function GET(request: Request) {
+     try {
+       const { searchParams } = new URL(request.url);
+       const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10;
+       const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0;
+       
+       const lessonsService = new LessonsService();
+       const response = await lessonsService.getLessons({ limit, offset });
+       
+       if (!response.success) {
+         return NextResponse.json(
+           { error: response.error?.message || 'Failed to fetch lessons' },
+           { status: 500 }
+         );
+       }
+       
+       return NextResponse.json(response.data);
+     } catch (error) {
+       return NextResponse.json(
+         { error: 'Internal server error' },
+         { status: 500 }
+       );
+     }
    }
    ```
 
-3. **Content Consumption**:
-   ```tsx
-   // Example from video-player.tsx
-   <MuxPlayer
-     playbackId={playbackId}
-     streamType="on-demand"
-     tokens={jwt ? { playback: jwt } : undefined}
-     // Additional configuration
-   />
-   ```
-
-4. **Transactions**:
+3. **Content Access Control**:
    ```typescript
-   // Example from purchasesService.ts
-   async createPurchase(data: PurchaseCreateData): Promise<DatabaseResponse<Purchase>> {
-     // Implementation for recording a purchase
+   // Example from use-lesson-access.ts
+   export function useLessonAccess(lessonId: string) {
+     const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+     const [isLoading, setIsLoading] = useState(true);
+     const [error, setError] = useState<string | null>(null);
+     
+     useEffect(() => {
+       const checkAccess = async () => {
+         try {
+           // Check sessionStorage cache first
+           const cachedAccess = sessionStorage.getItem(`lesson-access-${lessonId}`);
+           if (cachedAccess) {
+             setHasAccess(cachedAccess === 'true');
+             setIsLoading(false);
+             return;
+           }
+           
+           const response = await fetch(`/api/lessons/check-purchase?lessonId=${lessonId}`);
+           
+           if (!response.ok) {
+             throw new Error('Failed to check lesson access');
+           }
+           
+           const data = await response.json();
+           setHasAccess(data.hasAccess);
+           
+           // Cache the result
+           sessionStorage.setItem(`lesson-access-${lessonId}`, data.hasAccess.toString());
+         } catch (err) {
+           setError((err as Error).message);
+         } finally {
+           setIsLoading(false);
+         }
+       };
+       
+       checkAccess();
+     }, [lessonId]);
+     
+     return { hasAccess, isLoading, error };
    }
+   ```
+
+4. **Data Validation**:
+   ```typescript
+   // Example from schema validation pattern
+   export const lessonRequestSchema = z.object({
+     title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
+     description: z.string().min(20, "Description must be at least 20 characters").max(1000, "Description must be less than 1000 characters"),
+     category: z.string().min(1, "Category is required"),
+     instagram_handle: z.string().optional().transform(val => {
+       if (!val) return null;
+       // Remove @ if present
+       return val.startsWith('@') ? val.substring(1) : val;
+     }),
+     status: z.enum(["open", "in_progress", "completed"]).default("open")
+   });
    ```
 
 ## Security Architecture
 
-- **Authentication**: Supabase Auth with session management
-- **Authorization**: Row-Level Security in PostgreSQL
+- **Authentication**: Supabase Auth with session management and OAuth providers
+- **Authorization**: Row-Level Security in PostgreSQL with policy-based access control
 - **Data Protection**: Encryption at rest and in transit
-- **API Security**: Input validation with Zod, CSRF protection
-- **Content Security**: Signed URLs for video content
-- **End-to-End Testing**: Security flows tested with Playwright
+- **API Security**: Input validation with Zod schemas, CSRF protection
+- **Content Security**: Signed URLs for video content with JWT tokens
+- **Error Handling**: Consistent error patterns that don't leak sensitive information
+- **Database Access**: Structured through service classes with retry mechanisms
+- **Session Management**: Secure session handling with proper expiration
+- **End-to-End Testing**: Security flows tested with Jest and Playwright
 
 ## Testing Architecture
 
 - **Unit Testing**: Jest for component and function tests
-- **Integration Testing**: Testing interactions between components
+- **Integration Testing**: Testing interactions between components and services
+- **API Testing**: Dedicated tests for API routes with mocked dependencies
+  ```typescript
+  // Example from purchase-flow.test.ts
+  describe('Purchase Flow', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null
+      });
+    });
+    
+    it('should create a purchase record when checkout is successful', async () => {
+      // Test implementation
+    });
+  });
+  ```
+- **Mock Patterns**: Consistent mocking of external services
 - **End-to-End Testing**: Playwright for complete user journeys
   ```bash
   # From package.json

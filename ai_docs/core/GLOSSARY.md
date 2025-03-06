@@ -47,7 +47,7 @@ The interface where users manage their account, content, and view analytics.
 The structured storage system that holds all persistent data for the application.
 
 ### DatabaseService
-A base class for database operations that provides common functionality for derived services.
+A base class for database operations that provides common functionality for derived services. Implements retry logic, error handling, and returns a consistent DatabaseResponse<T> interface with data, error, and success properties.
 
 ## E
 
@@ -77,7 +77,7 @@ A user who consumes educational content on the platform.
 A single unit of educational content, typically a video with supporting materials.
 
 ### LessonsService
-A service class that handles database operations related to lessons.
+A service class that extends DatabaseService and handles database operations related to lessons, including creation, retrieval, updating, and deletion of lesson records.
 
 ## M
 
@@ -107,7 +107,7 @@ The percentage or fixed amount that the platform charges for each transaction.
 An end-to-end testing framework used to automate browser testing across Chromium, Firefox, and WebKit.
 
 ### PurchasesService
-A service class that handles database operations related to purchases.
+A service class that extends DatabaseService and handles database operations related to purchases, including creation, verification, and status updates of purchase records.
 
 ## R
 
@@ -175,7 +175,7 @@ A defined sequence of steps to complete a process in the platform.
 ## Z
 
 ### Zod
-A TypeScript-first schema validation library used to validate data throughout the application.
+A TypeScript-first schema validation library used to validate data throughout the application. Provides both runtime validation and static type inference, ensuring data consistency and type safety.
 
 ---
 

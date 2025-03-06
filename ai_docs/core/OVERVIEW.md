@@ -22,7 +22,10 @@ Our development approach emphasizes:
 - **Security**: Security is a fundamental consideration in all aspects of development
 - **Consistency**: Follow established patterns and practices
 - **Documentation**: Comprehensive documentation is essential for maintainability
-- **Complete Test Coverage**: Ensure all user journeys are tested with Playwright
+- **Complete Test Coverage**: Ensure all user journeys are tested with Jest and Playwright
+- **Error Handling**: Consistent error handling patterns with the DatabaseResponse pattern
+- **Data Validation**: Schema validation with Zod throughout the application
+- **Caching Strategies**: Appropriate caching for performance optimization
 
 ## Project Goals
 

@@ -24,8 +24,8 @@ export async function GET() {
       );
     }
     
-    // Log the actual schema of the first lesson to help debug
-    if (lessons && lessons.length > 0) {
+    // Only log in development environment
+    if (process.env.NODE_ENV === 'development' && lessons && lessons.length > 0) {
       console.log('Lesson schema sample:', Object.keys(lessons[0]));
     }
     

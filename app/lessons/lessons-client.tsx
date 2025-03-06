@@ -49,9 +49,9 @@ export default function LessonsClient({}: LessonsClientProps) {
       }
     }, 10000); // 10 second timeout
     
-    // Delay the initial fetch slightly to ensure DOM is fully rendered
+    // Only fetch lessons once when the component mounts
     const initialFetchDelay = setTimeout(() => {
-      if (isMounted && !isLoadingRef.current) fetchLessons();
+      if (isMounted && !isLoadingRef.current && retryCount === 0) fetchLessons();
     }, 100);
     
     async function fetchLessons() {
@@ -169,14 +169,14 @@ export default function LessonsClient({}: LessonsClientProps) {
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };
-  }, [retryCount, mounted]); // Remove isLoading from dependencies
+  }, [retryCount, mounted]); // Only depend on retryCount and mounted
   
   const handleNewLesson = () => {
     router.push('/lessons/new');
   };
   
   const handleRetry = () => {
-    setRetryCount(0); // Reset retry count to trigger a new fetch attempt
+    setRetryCount(prevCount => prevCount + 1); // Increment retry count to trigger a new fetch attempt
   };
   
   // Show loading skeleton if not mounted yet (server-side)

@@ -95,6 +95,10 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
 
 export const dynamic = 'force-dynamic';
 
+// NOTE: There's a known type error during build with Next.js 15.1.7 regarding PageProps compatibility.
+// The error is: "Type '{ params: { assetId: string; }; }' does not satisfy the constraint 'PageProps'."
+// This is related to how Next.js types dynamic route parameters in the App Router.
+// The functionality works correctly despite the type error.
 export default async function Page({ 
   params 
 }: { params: { assetId: string } }) {

@@ -5,9 +5,9 @@ import { notFound } from "next/navigation";
 
 export default async function Page({ 
   params 
-}: { 
-  params: { id: string }
-}) {
+}: NextJS.PageProps) {
+  // Type-safe access to the id parameter
+  const lessonId = params.id;
   // Access the id directly from params
   const lessonId = params.id;
   

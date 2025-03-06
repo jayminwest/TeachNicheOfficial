@@ -8,7 +8,7 @@ declare namespace NextJS {
   }
   
   interface PageProps {
-    params: { [key: string]: string };
+    params: PageParams;
     searchParams?: { [key: string]: string | string[] | undefined };
   }
 }

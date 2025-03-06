@@ -65,7 +65,7 @@ export async function POST() {
         if (!('mux_asset_id' in lesson) || !lesson.mux_asset_id) {
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: typeof lesson.id === 'string' ? lesson.id : 'unknown',
             status: 'skipped',
             reason: 'No Mux asset ID'
           });

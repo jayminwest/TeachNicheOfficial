@@ -8,6 +8,7 @@ import AuthClient from './client';
 interface AuthClientWrapperProps {
   errorMessage?: string | null;
   redirectUrl?: string | null;
+  showSignIn?: boolean;
 }
 
 export default function AuthClientWrapper({ 

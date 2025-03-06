@@ -8,18 +8,11 @@ import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 
 interface LessonsClientProps {
-  initialQuery?: string;
-  initialCategory?: string;
-  initialPage?: number;
+  // Props defined but not used yet - keeping for future implementation
 }
 
-export default function LessonsClient({
-  initialQuery = '',
-  initialCategory = '',
-  initialPage = 1
-}: LessonsClientProps) {
-  // These state variables are initialized from props but not currently used
-  // Keeping them for future implementation
+export default function LessonsClient({}: LessonsClientProps) {
+  // State variables for lessons management
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -16,7 +16,16 @@ export default function Error({ statusCode }: ErrorProps) {
   );
 }
 
-Error.getInitialProps = ({ res, err }: any) => {
+interface ErrorInitialProps {
+  res?: {
+    statusCode?: number;
+  };
+  err?: {
+    statusCode?: number;
+  };
+}
+
+Error.getInitialProps = ({ res, err }: ErrorInitialProps) => {
   const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
   return { statusCode };
 };

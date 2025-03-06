@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/app/services/auth/AuthContext";

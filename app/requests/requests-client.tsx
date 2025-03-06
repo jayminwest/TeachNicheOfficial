@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Button } from '@/app/components/ui/button';
@@ -16,16 +16,14 @@ export default function RequestsClient({
   initialCategory = '',
   initialSortBy = 'popular'
 }: RequestsClientProps) {
-  // Use the props directly instead of accessing search params
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [sortBy, setSortBy] = useState(initialSortBy as 'popular' | 'newest');
+  // State for requests data
   const [requests, setRequests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const router = useRouter();
   
   // Handle client-side mounting
@@ -192,14 +190,16 @@ export default function RequestsClient({
                 Browse and vote on lesson requests or create your own
               </p>
 
-              <Button 
-                onClick={handleCreateRequest}
-                className="mt-4"
-                data-testid="create-request-button"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                New Request
-              </Button>
+              {currentUser && (
+                <Button 
+                  onClick={handleCreateRequest}
+                  className="mt-4"
+                  data-testid="create-request-button"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Request
+                </Button>
+              )}
             </div>
           </div>
           

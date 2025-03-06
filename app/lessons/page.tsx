@@ -1,5 +1,4 @@
 export const dynamic = 'force-dynamic';
-import { Skeleton } from '@/app/components/ui/skeleton';
 import SearchParamsWrapper from './search-params-wrapper';
 
 export default function LessonsPage() {

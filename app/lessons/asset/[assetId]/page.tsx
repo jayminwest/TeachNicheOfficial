@@ -95,7 +95,13 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
 
 export const dynamic = 'force-dynamic';
 
-export default async function Page({ params }: any) {
+interface PageParams {
+  params: {
+    assetId: string;
+  };
+}
+
+export default async function Page({ params }: PageParams) {
   const { assetId } = params;
   const initialStatus = await checkAssetStatus(assetId);
   

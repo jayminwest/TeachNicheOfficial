@@ -1,30 +1,21 @@
-// Static page with no client components to avoid useSearchParams() error
-export const dynamic = 'force-static';
+import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
+
+// Dynamically import the client component with no SSR
+const LessonsClient = dynamic(() => import('./lessons-client'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center items-center min-h-[200px]">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  )
+});
 
 export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">
       <div className="container max-w-7xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Lessons
-            </h1>
-            <p className="mt-2 text-muted-foreground">
-              Browse and manage your lessons
-            </p>
-          </div>
-          <a href="/lessons/new" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            New Lesson
-          </a>
-        </div>
-
-        <div id="lessons-container" className="animate-pulse">
-          <div className="flex justify-center items-center min-h-[200px]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-          </div>
-        </div>
+        <LessonsClient />
       </div>
       
       <noscript>
@@ -34,18 +25,6 @@ export default function LessonsPage() {
           </div>
         </div>
       </noscript>
-      
-      <script dangerouslySetInnerHTML={{ 
-        __html: `
-          // Load the actual lessons content after page loads
-          document.addEventListener('DOMContentLoaded', function() {
-            const script = document.createElement('script');
-            script.src = '/lessons-client.js';
-            script.async = true;
-            document.body.appendChild(script);
-          });
-        `
-      }} />
     </div>
   );
 }

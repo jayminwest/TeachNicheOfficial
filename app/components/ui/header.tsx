@@ -37,6 +37,11 @@ export function Header() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const searchParams = useSearchParams();
     
+    // Add debug logging
+    useEffect(() => {
+        console.log('Auth state in header:', { user: !!user, loading });
+    }, [user, loading]);
+    
     // Check for auth parameter to show sign-in dialog
     useEffect(() => {
         if (!searchParams) return;

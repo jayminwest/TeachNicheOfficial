@@ -35,6 +35,14 @@ export function AuthProvider({
   useEffect(() => {
     let isMounted = true
     let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
+    
+    // Add safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Auth loading safety timeout triggered')
+        setLoading(false)
+      }
+    }, 5000) // 5 second timeout
 
     // Check active sessions and sets the user
     async function initializeAuth() {
@@ -45,7 +53,12 @@ export function AuthProvider({
         if (session?.user && isMounted) {
           setUser(session.user)
           // Handle profile creation in a separate service
-          await createOrUpdateProfile(session.user)
+          try {
+            await createOrUpdateProfile(session.user)
+          } catch (profileError) {
+            console.error('Error creating/updating profile:', profileError)
+            // Continue even if profile creation fails
+          }
         }
         
         if (isMounted) {
@@ -57,29 +70,35 @@ export function AuthProvider({
           const authStateChange = onAuthStateChange(async (event, session: { user?: User }) => {
             if (!isMounted) return
             
-            // Handle auth state changes
-            if (event === 'SIGNED_IN' && session?.user) {
-              setUser(session.user)
-              await createOrUpdateProfile(session.user)
-              
-              // Handle redirect if needed
-              if (typeof window !== 'undefined') {
-                const params = new URLSearchParams(window.location.search)
-                const redirectTo = params.get('redirect')
-                if (redirectTo) {
-                  window.location.href = redirectTo
-                }
-              }
-            } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              if (session?.user) {
+            try {
+              // Handle auth state changes
+              if (event === 'SIGNED_IN' && session?.user) {
                 setUser(session.user)
+                await createOrUpdateProfile(session.user).catch(err => 
+                  console.error('Profile creation error during auth change:', err)
+                )
+                
+                // Handle redirect if needed
+                if (typeof window !== 'undefined') {
+                  const params = new URLSearchParams(window.location.search)
+                  const redirectTo = params.get('redirect')
+                  if (redirectTo) {
+                    window.location.href = redirectTo
+                  }
+                }
+              } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                if (session?.user) {
+                  setUser(session.user)
+                }
+              } else if (event === 'SIGNED_OUT') {
+                setUser(null)
               }
-            } else if (event === 'SIGNED_OUT') {
-              setUser(null)
-            }
-            
-            if (isMounted) {
-              setLoading(false)
+            } catch (error) {
+              console.error('Error during auth state change:', error)
+            } finally {
+              if (isMounted) {
+                setLoading(false)
+              }
             }
           })
           
@@ -88,6 +107,7 @@ export function AuthProvider({
           }
         }
       } catch (error) {
+        console.error('Authentication initialization error:', error)
         if (isMounted) {
           setUser(null)
           setError(error instanceof Error ? error : new Error('Authentication error'))
@@ -100,6 +120,7 @@ export function AuthProvider({
 
     return () => {
       isMounted = false
+      clearTimeout(safetyTimeout)
       subscription.unsubscribe()
     }
   }, [])

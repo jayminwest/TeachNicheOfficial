@@ -63,8 +63,8 @@ export async function POST(request: Request) {
       
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
-      // Use a type assertion with a more specific interface
-      const supabaseClient = supabase as {
+      // First cast to unknown to break the type chain, then to our interface
+      const supabaseClient = (supabase as unknown) as {
         from: (table: string) => {
           update: (data: Record<string, unknown>) => {
             eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
@@ -117,8 +117,8 @@ export async function POST(request: Request) {
       
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
-      // Use a type assertion with a more specific interface
-      const supabaseClient = supabase as {
+      // First cast to unknown to break the type chain, then to our interface
+      const supabaseClient = (supabase as unknown) as {
         from: (table: string) => {
           update: (data: Record<string, unknown>) => {
             eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>

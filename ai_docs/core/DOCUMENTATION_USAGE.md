@@ -65,6 +65,22 @@ When you find outdated or incorrect information:
 4. Submit through the established documentation update process
 5. Reference any related code changes
 
+## Documentation Structure
+
+The Teach Niche documentation is organized in the `ai_docs/` directory:
+
+- **core/**: Fundamental project information
+  - OVERVIEW.md - Project vision and goals
+  - ARCHITECTURE.md - System design and patterns
+  - GETTING_STARTED.md - Setup instructions
+  - GLOSSARY.md - Terminology definitions
+  - DOCUMENTATION_USAGE.md - This guide
+- **guides/**: Step-by-step instructions
+- **standards/**: Best practices and requirements
+- **processes/**: Workflow documentation
+- **reference/**: Technical details
+- **templates/**: Document templates
+
 ## Effective Documentation Practices
 
 1. **Be Concise**: Keep documentation clear and to the point
@@ -79,8 +95,9 @@ This approach allows you to discover and apply the appropriate documentation bas
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2025-02-24 | Documentation Team | Initial version |
-| 1.1 | 2025-02-25 | Documentation Team | Removed structure overlap, added maintenance section |
+| 1.0 | 2024-02-24 | Documentation Team | Initial version |
+| 1.1 | 2024-02-25 | Documentation Team | Removed structure overlap, added maintenance section |
+| 1.2 | 2025-03-05 | Documentation Team | Added documentation structure section and updated practices |
 
 ---
 

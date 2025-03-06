@@ -5,82 +5,148 @@ This document provides a high-level overview of the Teach Niche platform archite
 ## System Architecture
 
 ### Client Layer
-- **Web Application**: Next.js-based frontend with React components
-- **Mobile Responsive Design**: Adaptive UI for all device sizes
+- **Web Application**: Next.js v15.1.7 frontend with React v19.0.0 components
+- **Mobile Responsive Design**: Adaptive UI using Tailwind CSS
 - **Progressive Enhancement**: Core functionality works without JavaScript
 
 ### API Layer
-- **REST API**: Primary interface for client-server communication
-- **GraphQL API**: For complex data requirements and optimized queries
-- **Webhooks**: For integration with external services
+- **Next.js API Routes**: Server-side API endpoints in `/app/api/` directory
+- **Supabase API**: Direct database access with Row-Level Security
+- **Webhooks**: For integration with Stripe and Mux
 
 ### Service Layer
-- **Authentication Service**: User identity and access management
-- **Content Service**: Lesson management and delivery
-- **Payment Service**: Processing transactions and payouts
-- **Analytics Service**: Usage tracking and reporting
-- **Notification Service**: User alerts and communications
+- **Authentication Service**: Supabase Auth for user identity and access management
+- **Database Service**: Modular services for database operations
+- **Payment Service**: Stripe integration for processing transactions
+- **Video Service**: Mux for video processing and delivery
+- **Storage Service**: Supabase Storage for file management
 
 ### Data Layer
-- **Relational Database**: Primary data store for structured data
-- **Object Storage**: For video and other media content
-- **Search Index**: For efficient content discovery
-- **Cache**: For performance optimization
+- **PostgreSQL Database**: Primary data store via Supabase
+- **Supabase Storage**: For file storage
+- **Mux Storage**: For video content
 
 ## Data Flow
 
 1. **Content Creation**:
-   - Instructor creates lesson content
-   - Content is processed, validated, and stored
-   - Metadata is indexed for discovery
+   ```typescript
+   // Example from lessonsService.ts
+   async createLesson(data: LessonCreateData, userId: string): Promise<DatabaseResponse<Lesson>> {
+     // Implementation for creating a new lesson
+   }
+   ```
 
 2. **Content Discovery**:
-   - Users search or browse for content
-   - Recommendation engine suggests relevant content
-   - Search results are filtered based on user preferences
+   ```typescript
+   // Example from lessonsService.ts
+   async getLessons(options?: { 
+     limit?: number; 
+     offset?: number; 
+     orderBy?: string;
+     orderDirection?: 'asc' | 'desc';
+   }): Promise<DatabaseResponse<Lesson[]>> {
+     // Implementation for retrieving lessons
+   }
+   ```
 
 3. **Content Consumption**:
-   - User requests access to content
-   - Authorization check confirms access rights
-   - Content is delivered with appropriate controls
+   ```tsx
+   // Example from video-player.tsx
+   <MuxPlayer
+     playbackId={playbackId}
+     streamType="on-demand"
+     tokens={jwt ? { playback: jwt } : undefined}
+     // Additional configuration
+   />
+   ```
 
 4. **Transactions**:
-   - User initiates purchase
-   - Payment is processed securely
-   - Access rights are granted
-   - Instructor receives payout (minus platform fee)
+   ```typescript
+   // Example from purchasesService.ts
+   async createPurchase(data: PurchaseCreateData): Promise<DatabaseResponse<Purchase>> {
+     // Implementation for recording a purchase
+   }
+   ```
 
 ## Security Architecture
 
-- **Authentication**: Multi-factor authentication options
-- **Authorization**: Role-based access control
+- **Authentication**: Supabase Auth with session management
+- **Authorization**: Row-Level Security in PostgreSQL
 - **Data Protection**: Encryption at rest and in transit
-- **API Security**: Rate limiting, input validation, CSRF protection
-- **Monitoring**: Anomaly detection and alerting
-- **End-to-End Testing**: Comprehensive testing of security flows with Playwright
+- **API Security**: Input validation with Zod, CSRF protection
+- **Content Security**: Signed URLs for video content
+- **End-to-End Testing**: Security flows tested with Playwright
 
 ## Testing Architecture
 
-- **Unit Testing**: Component and function level tests
+- **Unit Testing**: Jest for component and function tests
 - **Integration Testing**: Testing interactions between components
-- **End-to-End Testing**: Playwright tests for complete user journeys
+- **End-to-End Testing**: Playwright for complete user journeys
+  ```bash
+  # From package.json
+  "test:e2e": "npx playwright test --config=e2e-tests/playwright.config.ts"
+  ```
 - **Visual Regression**: Screenshot comparison for UI consistency
-- **API Testing**: Validation of API contracts and behaviors
+  ```bash
+  # From package.json
+  "test:visual": "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 npx playwright test --project='Visual Tests' --config=e2e-tests/playwright.config.ts"
+  ```
+- **Accessibility Testing**: Using axe-core with Playwright
 
 ## Scalability Considerations
 
-- **Horizontal Scaling**: Stateless services for easy replication
-- **Caching Strategy**: Multi-level caching for performance
-- **Database Sharding**: For data growth management
-- **CDN Integration**: For global content delivery
-- **Microservices**: For independent scaling of components
+- **Edge Functions**: For global performance
+- **CDN Integration**: For static content delivery
+- **Database Indexing**: For query performance
+- **Connection Pooling**: For database scalability
+- **Serverless Architecture**: For automatic scaling
 
 ## Integration Points
 
-- **Payment Processors**: Stripe for payments and payouts
+- **Payment Processing**: Stripe Connect v17.6.0
+  ```typescript
+  // From stripe.ts
+  export interface StripeConfig {
+    secretKey: string;
+    publishableKey: string;
+    webhookSecret: string;
+    apiVersion: '2025-01-27.acacia';
+    // Additional configuration
+  }
+  ```
 - **Video Services**: Mux for video processing and delivery
-- **Analytics**: Internal analytics + optional Google Analytics
-- **Email Service**: For notifications and communications
-- **Social Media**: For sharing and authentication
+  ```typescript
+  // From video-player.tsx
+  interface VideoPlayerProps {
+    playbackId: string;
+    title: string;
+    // Additional properties
+  }
+  ```
+- **Authentication**: Supabase Auth
+  ```typescript
+  // From supabaseAuth.ts
+  export async function getSession() {
+    const supabase = createClientSupabaseClient()
+    return supabase.auth.getSession()
+  }
+  ```
+- **Database**: Supabase PostgreSQL
+  ```typescript
+  // From supabase.ts
+  export function createClientSupabaseClient() {
+    return createClientComponentClient<Database>();
+  }
+  ```
 
-This architecture is designed to be technology-agnostic while providing a clear structure for implementation. Specific technology choices should adhere to the principles outlined in this document.
+## Version History
+
+| Version | Date | Author | Description |
+|---------|------|--------|-------------|
+| 1.0 | 2024-02-24 | Architecture Team | Initial version |
+| 1.1 | 2024-08-15 | Architecture Team | Updated integration details |
+| 1.2 | 2025-03-05 | Documentation Team | Added code examples and updated to match current implementation |
+
+---
+
+*This document serves as a living reference. If you find information that is outdated or incorrect, please submit updates through the established documentation update process.*

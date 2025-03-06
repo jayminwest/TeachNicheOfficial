@@ -13,6 +13,9 @@ Data collection and analysis of user behavior, content performance, and business
 ### API (Application Programming Interface)
 A set of defined rules that allow different applications to communicate with each other.
 
+### API Route
+In Next.js, a serverless function endpoint defined in the `/app/api/` directory that handles HTTP requests.
+
 ## B
 
 ### Backend
@@ -32,6 +35,9 @@ A user who creates and publishes educational content on the platform.
 ### Conversion Rate
 The percentage of users who complete a desired action (e.g., sign up, purchase).
 
+### Component
+A reusable UI element built with React, typically found in the `/app/components/` directory.
+
 ## D
 
 ### Dashboard
@@ -39,6 +45,9 @@ The interface where users manage their account, content, and view analytics.
 
 ### Database
 The structured storage system that holds all persistent data for the application.
+
+### DatabaseService
+A base class for database operations that provides common functionality for derived services.
 
 ## E
 
@@ -67,6 +76,9 @@ A user who consumes educational content on the platform.
 ### Lesson
 A single unit of educational content, typically a video with supporting materials.
 
+### LessonsService
+A service class that handles database operations related to lessons.
+
 ## M
 
 ### Metadata
@@ -74,6 +86,14 @@ Descriptive information about content (title, description, tags, etc.).
 
 ### Monetization
 The process of generating revenue from content.
+
+### Mux
+The video hosting and streaming service used by Teach Niche.
+
+## N
+
+### Next.js
+The React framework used to build the Teach Niche platform.
 
 ## P
 
@@ -86,6 +106,9 @@ The percentage or fixed amount that the platform charges for each transaction.
 ### Playwright
 An end-to-end testing framework used to automate browser testing across Chromium, Firefox, and WebKit.
 
+### PurchasesService
+A service class that handles database operations related to purchases.
+
 ## R
 
 ### Retention
@@ -94,10 +117,19 @@ The ability to keep users engaged and returning to the platform over time.
 ### Role
 A set of permissions assigned to users based on their function (admin, creator, learner).
 
+### Row-Level Security (RLS)
+A PostgreSQL feature used in Supabase to control access to row data based on the user making the request.
+
 ## S
 
 ### SSR (Server-Side Rendering)
 A technique where pages are rendered on the server before being sent to the client.
+
+### Stripe
+The payment processing service used by Teach Niche.
+
+### Supabase
+The backend-as-a-service platform providing database, authentication, and storage for Teach Niche.
 
 ### Subscription
 A recurring payment model where users pay regularly for access to content.
@@ -140,6 +172,18 @@ An HTTP callback that occurs when a specific event happens in a system.
 ### Workflow
 A defined sequence of steps to complete a process in the platform.
 
+## Z
+
+### Zod
+A TypeScript-first schema validation library used to validate data throughout the application.
+
 ---
 
 This glossary will be updated regularly as new terms are introduced or existing definitions need clarification.
+
+## Version History
+
+| Version | Date | Author | Description |
+|---------|------|--------|-------------|
+| 1.0 | 2024-02-24 | Documentation Team | Initial version |
+| 1.1 | 2025-03-05 | Documentation Team | Added project-specific terms and updated definitions |

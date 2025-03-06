@@ -75,12 +75,13 @@ Our development approach emphasizes:
 
 ## Technology Stack
 
-- **Frontend**: Next.js, React, TypeScript, Shadcn UI
+- **Frontend**: Next.js v15.1.7, React v19.0.0, TypeScript, Shadcn UI
 - **Backend**: Next.js API routes, Edge Functions
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Payments**: Stripe Connect (v2025-01-27.acacia)
-- **Video**: Mux Video
+- **Authentication**: Supabase Auth v0.10.0
+- **Payments**: Stripe Connect v17.6.0 (API version: 2025-01-27.acacia)
+- **Video**: Mux Video v9.0.1
+- **Testing**: Jest v29.7.0, Playwright v1.50.1, Testing Library v16.2.0
 - **Deployment**: Vercel
 
 ## Documentation Structure
@@ -115,9 +116,10 @@ New team members should:
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2025-02-24 | Documentation Team | Initial version |
-| 1.1 | 2025-02-24 | Documentation Team | Updated as part of documentation restructuring |
-| 1.2 | 2025-02-25 | Documentation Team | Consolidated duplicate overview sections |
+| 1.0 | 2024-02-24 | Documentation Team | Initial version |
+| 1.1 | 2024-02-24 | Documentation Team | Updated as part of documentation restructuring |
+| 1.2 | 2024-02-25 | Documentation Team | Consolidated duplicate overview sections |
+| 1.3 | 2025-03-05 | Documentation Team | Updated technology stack versions and aligned with current implementation |
 
 ---
 

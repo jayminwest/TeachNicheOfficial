@@ -9,26 +9,6 @@ import { Button } from "./button";
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
-  const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number}>({ days: 0, hours: 0, minutes: 0 });
-
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const launchDate = new Date('2025-03-01T00:00:00');
-      const now = new Date();
-      const difference = launchDate.getTime() - now.getTime();
-      
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      
-      setTimeLeft({ days, hours, minutes });
-    };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
-
-    return () => clearInterval(timer);
-  }, []);
 
   const titles = useMemo(
     () => ["community", "kendama", "players", "pros", "students"],
@@ -58,12 +38,6 @@ function Hero() {
       </div>
       <div className="container mx-auto relative z-10 h-full">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
-          <div className="bg-orange-100 dark:bg-orange-950 text-orange-950 dark:text-orange-400 px-6 py-3 rounded-full font-medium text-sm shadow-lg flex items-center gap-2 border border-orange-200 dark:border-orange-900">
-            <span className="text-orange-700 dark:text-orange-200">Launching in:</span>
-            <span className="font-bold">{timeLeft.days}d</span>
-            <span className="font-bold">{timeLeft.hours}h</span>
-            <span className="font-bold">{timeLeft.minutes}m</span>
-          </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-3xl sm:text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular px-4">
               <span className="text-spektr-cyan-50">Support</span>

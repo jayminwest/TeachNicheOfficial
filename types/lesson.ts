@@ -7,6 +7,7 @@ export interface Lesson {
   averageRating: number;
   totalRatings: number;
   created_at: string;
+  creator_id: string;
   stripe_product_id?: string;
   stripe_price_id?: string;
   previous_stripe_price_ids?: string[];

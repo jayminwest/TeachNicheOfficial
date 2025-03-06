@@ -1,5 +1,6 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
 import { Lesson } from '@/types/lesson'
+import { PostgrestError } from '@supabase/supabase-js'
 
 interface LessonCreateData {
   title: string;
@@ -83,9 +84,9 @@ export class LessonsService extends DatabaseService {
           price: lesson.price,
           thumbnailUrl: lesson.thumbnail_url || '/placeholder-lesson.jpg',
           created_at: lesson.created_at,
-          muxAssetId: lesson.mux_asset_id || '',
-          muxPlaybackId: lesson.mux_playback_id || '',
-          creatorId: lesson.creator_id || '',
+          mux_asset_id: lesson.mux_asset_id || '',
+          mux_playback_id: lesson.mux_playback_id || '',
+          creator_id: lesson.creator_id || '',
           stripe_product_id: lesson.stripe_product_id,
           stripe_price_id: lesson.stripe_price_id,
           previous_stripe_price_ids: lesson.previous_stripe_price_ids || [],
@@ -162,7 +163,12 @@ export class LessonsService extends DatabaseService {
       if (!session?.user) {
         return { 
           data: null, 
-          error: new Error('Unauthorized')
+          error: {
+            message: 'Unauthorized',
+            details: 'User not authenticated',
+            hint: 'Please sign in',
+            code: 'UNAUTHORIZED'
+          } as PostgrestError
         };
       }
       
@@ -177,21 +183,35 @@ export class LessonsService extends DatabaseService {
         if (profileError) {
           return {
             data: null,
-            error: new Error(`Failed to verify profile: ${profileError.message}`)
+            error: {
+              message: `Failed to verify profile: ${profileError.message}`,
+              details: profileError.message,
+              hint: 'Check user profile',
+              code: 'PROFILE_ERROR'
+            } as PostgrestError
           };
         }
         
         if (!profileData.stripe_account_id) {
           return {
             data: null,
-            error: new Error('Stripe account required for paid lessons')
+            error: {
+              message: 'Stripe account required for paid lessons',
+              details: 'Missing Stripe account',
+              hint: 'Connect a Stripe account first',
+              code: 'STRIPE_REQUIRED'
+            } as PostgrestError
           };
         }
       }
       
+      // Generate a UUID for the new lesson
+      const lessonId = crypto.randomUUID();
+      
       const { data: insertData, error } = await supabase
         .from('lessons')
         .insert({
+          id: lessonId,
           title: data.title,
           description: data.description,
           content: data.content,
@@ -200,7 +220,10 @@ export class LessonsService extends DatabaseService {
           mux_playback_id: data.mux_playback_id,
           creator_id: session.user.id,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          status: 'draft',
+          is_featured: false,
+          version: 1
         })
         .select()
         .single();
@@ -219,7 +242,7 @@ export class LessonsService extends DatabaseService {
         created_at: insertData.created_at,
         mux_asset_id: insertData.mux_asset_id || '',
         mux_playback_id: insertData.mux_playback_id || '',
-        creatorId: insertData.creator_id || '',
+        creator_id: insertData.creator_id || '',
         averageRating: 0,
         totalRatings: 0
       };
@@ -241,7 +264,12 @@ export class LessonsService extends DatabaseService {
       if (!session?.user) {
         return { 
           data: null, 
-          error: new Error('Unauthorized')
+          error: {
+            message: 'Unauthorized',
+            details: 'User not authenticated',
+            hint: 'Please sign in',
+            code: 'UNAUTHORIZED'
+          } as PostgrestError
         };
       }
       
@@ -259,7 +287,12 @@ export class LessonsService extends DatabaseService {
       if (lessonData.creator_id !== session.user.id) {
         return { 
           data: null, 
-          error: new Error('Unauthorized')
+          error: {
+            message: 'Unauthorized',
+            details: 'User does not own this lesson',
+            hint: 'Check lesson ownership',
+            code: 'UNAUTHORIZED'
+          } as PostgrestError
         };
       }
       
@@ -271,8 +304,8 @@ export class LessonsService extends DatabaseService {
           description: data.description,
           content: data.content,
           price: data.price,
-          mux_asset_id: data.muxAssetId,
-          mux_playback_id: data.muxPlaybackId,
+          mux_asset_id: data.mux_asset_id,
+          mux_playback_id: data.mux_playback_id,
           stripe_product_id: data.stripe_product_id,
           stripe_price_id: data.stripe_price_id,
           previous_stripe_price_ids: data.previous_stripe_price_ids,
@@ -308,7 +341,7 @@ export class LessonsService extends DatabaseService {
         created_at: updateData.created_at,
         mux_asset_id: updateData.mux_asset_id || '',
         mux_playback_id: updateData.mux_playback_id || '',
-        creatorId: updateData.creator_id || '',
+        creator_id: updateData.creator_id || '',
         stripe_product_id: updateData.stripe_product_id,
         stripe_price_id: updateData.stripe_price_id,
         previous_stripe_price_ids: updateData.previous_stripe_price_ids || [],

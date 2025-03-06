@@ -3,14 +3,11 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-type PageParams = {
-  id: string;
-}
-
+// Remove custom type and use inline type
 export default async function Page({
   params,
 }: {
-  params: PageParams;
+  params: { id: string };
 }) {
   // Access the id directly from params
   const lessonId = params.id;

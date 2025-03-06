@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
       // Use a type assertion to avoid deep type instantiation
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabase as unknown;
       
       // Update the lesson with the asset ID
       const updateResult = await supabaseAny
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
       // Use a type assertion to avoid deep type instantiation
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabase as unknown;
       
       // Update the lesson with the playback ID and set status to published
       const updateResult = await supabaseAny

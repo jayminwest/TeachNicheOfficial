@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import AuthPage from '@/app/auth/page';
-import { Suspense } from 'react';
 
 // Mock the ClientAuthWrapper component
 jest.mock('@/app/auth/client-auth-wrapper', () => {

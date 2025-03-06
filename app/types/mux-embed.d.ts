@@ -12,7 +12,7 @@ declare module 'mux-embed' {
       video_id?: string;
       video_title?: string;
       video_stream_type?: string;
-      [key: string]: any;
+      [key: string]: unknown;
     };
   }): void;
 

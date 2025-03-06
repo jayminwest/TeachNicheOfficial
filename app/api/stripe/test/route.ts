@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     // Get the Stripe instance
-    const stripe = getStripe();
+    getStripe();
     
     // Test if we can access the Stripe API
     const testData = {

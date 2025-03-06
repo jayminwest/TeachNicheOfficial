@@ -1,7 +1,6 @@
 // @jest-environment jsdom
 
-import { render, screen } from '@testing-library/react';
-import { notFound } from 'next/navigation';
+import { render } from '@testing-library/react';
 
 // Set up the global flag for Suspense testing
 global.__SUSPENSE_TEST_FALLBACK__ = false;
@@ -19,7 +18,7 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/app/lessons/[id]/page', () => {
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(({ params }) => {
+    default: jest.fn().mockImplementation(() => {
       return <div data-testid="mocked-page">Mocked Page Component</div>
     })
   }
@@ -34,7 +33,7 @@ jest.mock('react', () => {
   const originalReact = jest.requireActual('react');
   return {
     ...originalReact,
-    Suspense: ({ children, fallback }) => children, // Simplified Suspense for testing
+    Suspense: ({ children }) => children, // Simplified Suspense for testing
   };
 });
 
@@ -42,7 +41,7 @@ jest.mock('react', () => {
 jest.mock('@/app/lessons/[id]/lesson-detail', () => {
   return {
     __esModule: true,
-    default: ({ id, session }: { id: string, session: any }) => (
+    default: ({ id }: { id: string, session: unknown }) => (
       <div data-testid="lesson-detail" data-id={id}>
         Lesson Detail Component
       </div>
@@ -51,8 +50,6 @@ jest.mock('@/app/lessons/[id]/lesson-detail', () => {
 }, { virtual: true });
 
 describe('Lesson Page', () => {
-  // Import the Page component dynamically within the test to avoid module resolution issues
-  let Page: any;
   
   beforeEach(() => {
     jest.clearAllMocks();
@@ -76,7 +73,7 @@ describe('Lesson Page', () => {
       },
     };
     
-    const { createServerSupabaseClient } = require('@/app/lib/supabase/server');
+    import { createServerSupabaseClient } from '@/app/lib/supabase/server';
     (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
   });
   

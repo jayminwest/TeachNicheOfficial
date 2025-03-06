@@ -16,7 +16,10 @@ declare namespace NextJS {
 // Augment the global namespace to include our custom types
 declare global {
   namespace JSX {
-    interface Element extends ReactNode {}
+    interface Element extends ReactNode {
+      // Adding a property to make this not empty
+      _reactNode?: unknown;
+    }
   }
 }
 

@@ -27,7 +27,6 @@ export function RequestDialog({ children, request, mode = 'create' }: RequestDia
   const [showAuth, setShowAuth] = useState(false)
   const { user } = useAuth();
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
-  const searchParams = useSearchParams();
   
   const form = useForm<LessonRequestFormData>({
     resolver: zodResolver(lessonRequestSchema),

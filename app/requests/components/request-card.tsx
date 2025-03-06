@@ -12,7 +12,6 @@ import { toast } from '@/app/components/ui/use-toast'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { voteOnRequest } from '@/app/lib/supabase/requests'
 import { SignInToVote } from './sign-in-to-vote'
-import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper'
 
 interface RequestCardProps {
   request: LessonRequest

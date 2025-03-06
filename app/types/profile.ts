@@ -10,7 +10,7 @@ export interface Profile {
   stripe_account_id?: string;
   deleted_at?: string;
   stripe_account_status?: string;
-  stripe_account_details?: any;
+  stripe_account_details?: Record<string, unknown>;
   stripe_onboarding_complete?: boolean;
 }
 

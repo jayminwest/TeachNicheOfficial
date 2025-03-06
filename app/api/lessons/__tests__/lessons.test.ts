@@ -303,7 +303,7 @@ describe('Lessons API', () => {
   describe('POST /api/lessons', () => {
     it('creates a lesson successfully', async () => {
       // Mock POST function since it's not exported from route.ts
-      const mockPOST = jest.fn().mockImplementation(async (req) => {
+      const mockPOST = jest.fn().mockImplementation(async () => {
         return {
           status: 201,
           body: { id: 'lesson-123', title: 'New Lesson' },
@@ -361,7 +361,7 @@ describe('Lessons API', () => {
 
     it('validates input data and returns 400 for invalid data', async () => {
       // Mock POST function
-      const mockPOST = jest.fn().mockImplementation(async (req) => {
+      const mockPOST = jest.fn().mockImplementation(async () => {
         return {
           status: 400,
           body: { error: 'Invalid data' },
@@ -383,7 +383,7 @@ describe('Lessons API', () => {
 
     it('enforces authentication for lesson creation', async () => {
       // Mock POST function
-      const mockPOST = jest.fn().mockImplementation(async (req) => {
+      const mockPOST = jest.fn().mockImplementation(async () => {
         return {
           status: 401,
           body: { error: 'Unauthorized' },
@@ -416,7 +416,7 @@ describe('Lessons API', () => {
   describe('PUT /api/lessons/:id', () => {
     it('updates a lesson successfully', async () => {
       // Mock PUT function
-      const mockPUT = jest.fn().mockImplementation(async (req) => {
+      const mockPUT = jest.fn().mockImplementation(async () => {
         return {
           status: 200,
           body: { id: 'lesson-123', title: 'Updated Lesson' },
@@ -446,7 +446,7 @@ describe('Lessons API', () => {
 
     it('enforces access control for lesson updates', async () => {
       // Mock PUT function
-      const mockPUT = jest.fn().mockImplementation(async (req) => {
+      const mockPUT = jest.fn().mockImplementation(async () => {
         return {
           status: 403,
           body: { error: 'Forbidden' },
@@ -477,7 +477,7 @@ describe('Lessons API', () => {
   describe('DELETE /api/lessons/:id', () => {
     it('deletes a lesson successfully', async () => {
       // Mock DELETE function
-      const mockDELETE = jest.fn().mockImplementation(async (req) => {
+      const mockDELETE = jest.fn().mockImplementation(async () => {
         return {
           status: 200,
           body: { message: 'Lesson deleted successfully' },
@@ -500,7 +500,7 @@ describe('Lessons API', () => {
 
     it('returns 404 for non-existent lessons', async () => {
       // Mock DELETE function
-      const mockDELETE = jest.fn().mockImplementation(async (req) => {
+      const mockDELETE = jest.fn().mockImplementation(async () => {
         return {
           status: 404,
           body: { error: 'Lesson not found' },

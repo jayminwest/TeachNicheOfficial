@@ -17,7 +17,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Import the mocked hooks after mocking
-const { useSearchParams, useRouter } = require('next/navigation');
+import { useSearchParams, useRouter } from 'next/navigation';
 
 // Mock React's Suspense for controlled testing
 jest.mock('react', () => {

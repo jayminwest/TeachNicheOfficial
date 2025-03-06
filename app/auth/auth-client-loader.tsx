@@ -2,18 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import SearchParamsWrapper from './search-params-wrapper';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
+import AuthClientWrapper from './auth-client';
 
 export default function AuthClientLoader() {
   const [mounted, setMounted] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [params, setParams] = useState<{error: string | null, redirect: string | null, showSignIn: boolean}>({
+    error: null,
+    redirect: null,
+    showSignIn: false
+  });
   
   useEffect(() => {
     console.log('AuthClientLoader mounting');
     try {
       setMounted(true);
+      
+      // Extract URL parameters directly without useSearchParams
+      try {
+        const url = new URL(window.location.href);
+        const error = url.searchParams.get('error') || null;
+        const redirect = url.searchParams.get('redirect') || null;
+        const showSignIn = url.searchParams.get('signin') === 'true';
+        
+        setParams({ error, redirect, showSignIn });
+        console.log('Parameters extracted:', { error, redirect, showSignIn });
+      } catch (paramErr) {
+        console.error('Error extracting URL parameters:', paramErr);
+      }
       
       // Safety timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
@@ -55,11 +73,9 @@ export default function AuthClientLoader() {
   // Show loading state during initial client render
   if (!mounted && !timedOut) {
     return (
-      <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6">
-        <div className="flex flex-col items-center justify-center p-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p>Initializing authentication...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p>Initializing authentication...</p>
       </div>
     );
   }
@@ -67,22 +83,20 @@ export default function AuthClientLoader() {
   // Show error state if timed out
   if (timedOut && !mounted) {
     return (
-      <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6">
-        <div className="p-4 border border-red-300 bg-red-50 text-red-800 rounded-md">
-          <h3 className="font-bold">Loading Error</h3>
-          <p>There was a problem loading the authentication page. Please refresh to try again.</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
-          >
-            Refresh Page
-          </button>
-        </div>
+      <div className="p-4 border border-red-300 bg-red-50 text-red-800 rounded-md">
+        <h3 className="font-bold">Loading Error</h3>
+        <p>There was a problem loading the authentication page. Please refresh to try again.</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Refresh Page
+        </button>
       </div>
     );
   }
   
-  // Render the search params wrapper once mounted
+  // Render the auth client wrapper once mounted with extracted params
   return (
     <ErrorBoundary
       fallback={
@@ -98,7 +112,11 @@ export default function AuthClientLoader() {
         </div>
       }
     >
-      <SearchParamsWrapper />
+      <AuthClientWrapper 
+        errorMessage={params.error} 
+        redirectUrl={params.redirect}
+        showSignIn={params.showSignIn}
+      />
     </ErrorBoundary>
   );
 }

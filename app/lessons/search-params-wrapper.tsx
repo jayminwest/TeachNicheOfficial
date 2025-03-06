@@ -1,8 +1,10 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LessonsClient from './lessons-client';
 
+// This component should only be rendered inside a Suspense boundary
 export default function SearchParamsWrapper() {
   // Get the search params
   const searchParams = useSearchParams();

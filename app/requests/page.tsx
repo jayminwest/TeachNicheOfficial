@@ -26,7 +26,18 @@ export default function RequestsPage() {
             </div>
           }
         >
-          <SearchParamsWrapper />
+          <Suspense fallback={
+            <div className="container p-8 space-y-6">
+              <Skeleton className="h-10 w-full max-w-sm" />
+              <div className="space-y-4">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-[120px] w-full rounded-lg" />
+                ))}
+              </div>
+            </div>
+          }>
+            <SearchParamsWrapper />
+          </Suspense>
         </ErrorBoundary>
       </Suspense>
       

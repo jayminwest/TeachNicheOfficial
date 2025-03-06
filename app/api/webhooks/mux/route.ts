@@ -64,19 +64,16 @@ export async function POST(request: Request) {
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
       // Update the lesson with the asset ID
-      const result = await supabase
+      const { data, error } = await supabase
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
           video_processing_status: 'processing'
         })
         .eq('mux_upload_id', uploadId)
-        .select('id, title') as { 
-          data: { id: string; title: string }[] | null; 
-          error: any 
-        };
+        .select('id, title');
       
-      const { data, error } = result;
+      // data and error are already destructured from the query result
       
       if (error) {
         console.error('Error updating lesson with asset ID:', error);
@@ -103,7 +100,7 @@ export async function POST(request: Request) {
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
       // Update the lesson with the playback ID and set status to published
-      const result = await supabase
+      const { data, error } = await supabase
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
@@ -111,12 +108,7 @@ export async function POST(request: Request) {
           status: 'published'
         })
         .eq('mux_asset_id', assetId)
-        .select('id, title') as {
-          data: { id: string; title: string }[] | null;
-          error: any
-        };
-      
-      const { data, error } = result;
+        .select('id, title');
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);

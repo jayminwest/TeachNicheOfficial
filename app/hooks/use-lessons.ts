@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { lessonsService } from '@/app/services/database/lessonsService'
-import { Lesson } from '@/types/lesson'
+import { Lesson } from '@/app/types/lesson'
 
 interface UseLessonsOptions {
   limit?: number;

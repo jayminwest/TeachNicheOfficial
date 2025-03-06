@@ -1,15 +1,4 @@
-import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
-
-// Dynamically import the client component with no SSR
-const RequestsClient = dynamic(() => import('./requests-client'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex justify-center items-center min-h-[200px]">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
-  )
-});
+import RequestsClient from './requests-client';
 
 export default function RequestsPage() {
   return (

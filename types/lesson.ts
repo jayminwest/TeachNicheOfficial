@@ -14,6 +14,8 @@ export interface Lesson {
   mux_playback_id?: string;
   content?: string;
   video_processing_status?: string;
+  published?: boolean;
+  isFeatured?: boolean;
 }
 
 export type LessonRequestStatus = 'open' | 'in_progress' | 'completed';

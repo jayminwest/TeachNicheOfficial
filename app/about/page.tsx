@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export const dynamic = 'force-static'
 
 export default function AboutPage() {
@@ -5,10 +7,13 @@ export default function AboutPage() {
     <div>
       <div className="relative h-[400px] w-full mb-16">
         <div className="absolute inset-0">
-          <img
+          {/* Using next/image for better performance */}
+          <Image
             src="/303_group.png"
             alt="303 Kendama Group"
             className="object-cover w-full h-full filter grayscale pointer-events-none"
+            fill
+            priority
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>

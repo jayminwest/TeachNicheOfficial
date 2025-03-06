@@ -83,7 +83,7 @@ export const stripeConfig: StripeConfig = {
   secretKey: process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_tests',
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_tests',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-01-27.acacia',
   connectType: 'express', // Changed from 'standard' to 'express'
   platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
@@ -318,21 +318,39 @@ export const canCreatePaidLessons = async (
     // Get profile with Stripe account ID
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete')
+      .select('stripe_account_id, stripe_account_status, stripe_onboarding_complete')
       .eq('id', userId)
       .single();
 
-    if (profileError || !profile?.stripe_account_id) {
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return false;
+    }
+    
+    if (!profile) {
+      return false;
+    }
+    
+    // Type guard to ensure profile has the expected properties
+    const hasStripeAccount = 'stripe_account_id' in profile && typeof profile.stripe_account_id === 'string';
+    
+    if (!hasStripeAccount || !profile.stripe_account_id) {
       return false;
     }
 
-    // If we already know onboarding is complete, return true
-    if (profile.stripe_onboarding_complete) {
+    // Check if onboarding is complete based on profile data
+    // Use optional chaining and type checking for safety
+    const isOnboardingComplete = 
+      ('stripe_onboarding_complete' in profile && profile.stripe_onboarding_complete === true) ||
+      ('stripe_account_status' in profile && profile.stripe_account_status === 'complete');
+      
+    if (isOnboardingComplete) {
       return true;
     }
 
     // Otherwise check with Stripe
-    const status = await getAccountStatus(profile.stripe_account_id);
+    const stripeAccountId = profile.stripe_account_id as string;
+    const status = await getAccountStatus(stripeAccountId);
     return status.isComplete;
   } catch (err) {
     console.error('Error checking paid lesson capability:', err);
@@ -349,7 +367,7 @@ export const verifyConnectedAccount = async (
     // Get profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('stripe_account_id')
+      .select('id, stripe_account_id')
       .eq('id', userId)
       .single();
 
@@ -358,7 +376,14 @@ export const verifyConnectedAccount = async (
       throw new StripeError('profile_verification_failed', 'Failed to fetch profile');
     }
 
-    if (!profile?.stripe_account_id) {
+    if (!profile) {
+      throw new StripeError('profile_verification_failed', 'Profile not found');
+    }
+    
+    // Type guard to ensure profile has the expected properties
+    const hasStripeAccount = 'stripe_account_id' in profile && typeof profile.stripe_account_id === 'string';
+    
+    if (!hasStripeAccount || !profile.stripe_account_id) {
       throw new StripeError('missing_account', 'No Stripe account found');
     }
 
@@ -366,7 +391,8 @@ export const verifyConnectedAccount = async (
       throw new StripeError('account_mismatch', 'Account verification failed');
     }
 
-    const status = await getAccountStatus(accountId);
+    const stripeAccountId = accountId as string;
+    const status = await getAccountStatus(stripeAccountId);
 
     return {
       verified: true,

@@ -5,7 +5,8 @@
   let sortBy = 'popular';
   let isSidebarOpen = false;
   let requests = [];
-  let error = null;
+  // error is set but not directly used as a variable
+  // let error = null;
 
   // Fetch requests from the API
   async function fetchRequests() {
@@ -40,7 +41,7 @@
 
   // Show error message
   function showError(message) {
-    error = message;
+    // error = message; // Not used directly as a variable
     
     // Create or update error alert
     let alertEl = document.querySelector('.error-alert');

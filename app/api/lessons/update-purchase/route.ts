@@ -31,8 +31,12 @@ export async function POST(request: NextRequest) {
     let query = supabase
       .from('purchases')
       .select('id, status')
-      .eq('lesson_id', lessonId)
-      .eq('user_id', userId);
+      .eq('lesson_id', lessonId);
+      
+    // Add user ID filter
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
 
     if (sessionId) {
       query = query.eq('stripe_session_id', sessionId);
@@ -67,32 +71,41 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Ensure lesson is properly typed
+      const typedLesson = lesson as {
+        price: number;
+        creator_id: string;
+      };
+      
       // Calculate fees
-      const price = lesson.price;
+      const price = typedLesson.price;
       const platformFee = Math.round(price * 0.1 * 100) / 100;
       const creatorEarnings = Math.round((price - platformFee) * 100) / 100;
 
       // Create a new purchase record
+      const purchaseData = {
+        id: crypto.randomUUID(), // Add required id field
+        lesson_id: lessonId,
+        user_id: userId,
+        creator_id: typedLesson.creator_id,
+        amount: price,
+        platform_fee: platformFee,
+        creator_earnings: creatorEarnings,
+        fee_percentage: 15,
+        status: 'completed' as const, // Type assertion to match enum
+        stripe_session_id: sessionId || null,
+        payment_intent_id: paymentIntentId || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        version: 1,
+        metadata: {
+          created_via: 'manual_update'
+        }
+      };
+      
       const { data: newPurchase, error: createError } = await supabase
         .from('purchases')
-        .insert({
-          lesson_id: lessonId,
-          user_id: userId,
-          creator_id: lesson.creator_id,
-          amount: price,
-          platform_fee: platformFee,
-          creator_earnings: creatorEarnings,
-          fee_percentage: 10,
-          status: 'completed',
-          stripe_session_id: sessionId || null,
-          payment_intent_id: paymentIntentId || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          version: 1,
-          metadata: {
-            created_via: 'manual_update'
-          }
-        })
+        .insert(purchaseData)
         .select('id')
         .single();
 
@@ -107,19 +120,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Purchase created successfully',
-        purchaseId: newPurchase.id
+        purchaseId: newPurchase?.id || 'unknown'
       });
     }
 
     // If purchase exists but is not completed, update it
-    const purchase = purchases[0];
-    if (purchase.status !== 'completed') {
+    const purchase = purchases[0] as { id: string; status: string } | undefined;
+    if (purchase && purchase.status !== 'completed') {
+      const updateData = {
+        status: 'completed' as const, // Type assertion to match enum
+        updated_at: new Date().toISOString()
+      };
+      
       const { data: updatedPurchase, error: updateError } = await supabase
         .from('purchases')
-        .update({
-          status: 'completed',
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', purchase.id)
         .select('id')
         .single();
@@ -135,7 +150,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Purchase updated successfully',
-        purchaseId: updatedPurchase.id
+        purchaseId: updatedPurchase?.id || purchase.id
       });
     }
 
@@ -143,7 +158,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Purchase already completed',
-      purchaseId: purchase.id
+      purchaseId: purchase?.id || 'unknown'
     });
   } catch (error) {
     console.error('Error in update purchase endpoint:', error);

@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       .from('purchases')
       .select('id, stripe_session_id, status, created_at')
       .eq('lesson_id', lessonId)
-      .eq('user_id', userId)
+      .filter('user_id', 'eq', userId)
       .order('created_at', { ascending: false })
       .limit(1);
 
@@ -114,6 +114,16 @@ export async function POST(request: NextRequest) {
     }
 
     const latestPurchase = purchases[0];
+    
+    // Make sure latestPurchase has the expected properties
+    if (!latestPurchase || typeof latestPurchase !== 'object') {
+      console.error('Invalid purchase record:', latestPurchase);
+      return NextResponse.json({
+        hasAccess: false,
+        purchaseStatus: 'none',
+        error: 'Invalid purchase record'
+      });
+    }
 
     // If the purchase is already completed, return access
     if (latestPurchase.status === 'completed') {

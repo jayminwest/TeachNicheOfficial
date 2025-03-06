@@ -9,3 +9,15 @@ interface Window {
     push: (url: string) => Promise<boolean>;
   };
 }
+
+// For testing Suspense boundaries
+declare global {
+  namespace NodeJS {
+    interface Global {
+      __SUSPENSE_TEST_FALLBACK__: boolean;
+    }
+  }
+  var __SUSPENSE_TEST_FALLBACK__: boolean;
+}
+
+export {};

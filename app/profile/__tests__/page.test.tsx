@@ -98,9 +98,17 @@ jest.mock('@/app/services/supabase', () => ({
 // Create a helper function instead of mocking
 function renderWithAuthContext(ui, authProps = {}) {
   const defaultAuthValues = {
-    user: { id: 'test-user-id', email: 'test@example.com' },
+    user: {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: { full_name: 'Test User' },
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z'
+    },
     loading: false,
     isAuthenticated: true,
+    error: null,
     signIn: jest.fn(),
     signOut: jest.fn(),
     signUp: jest.fn(),
@@ -144,7 +152,8 @@ describe('ProfilePage', () => {
         <AuthContext.Provider value={{ 
           user: null,
           loading: false, // Not loading
-          isAuthenticated: false
+          isAuthenticated: false,
+          error: null
         }}>
           <ProfilePage />
         </AuthContext.Provider>

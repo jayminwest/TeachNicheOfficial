@@ -149,6 +149,99 @@ This document provides a high-level overview of the Teach Niche platform archite
    });
    ```
 
+| table_name           | column_name                | data_type                | is_nullable | column_default               |
+| -------------------- | -------------------------- | ------------------------ | ----------- | ---------------------------- |
+| categories           | id                         | uuid                     | NO          | gen_random_uuid()            |
+| categories           | name                       | text                     | NO          | null                         |
+| categories           | created_at                 | timestamp with time zone | YES         | now()                        |
+| categories           | updated_at                 | timestamp with time zone | YES         | now()                        |
+| creator_earnings     | id                         | uuid                     | NO          | uuid_generate_v4()           |
+| creator_earnings     | creator_id                 | uuid                     | NO          | null                         |
+| creator_earnings     | payment_intent_id          | text                     | NO          | null                         |
+| creator_earnings     | amount                     | integer                  | NO          | null                         |
+| creator_earnings     | lesson_id                  | uuid                     | NO          | null                         |
+| creator_earnings     | status                     | text                     | NO          | 'pending'::text              |
+| creator_earnings     | created_at                 | timestamp with time zone | YES         | now()                        |
+| creator_earnings     | updated_at                 | timestamp with time zone | YES         | now()                        |
+| creator_earnings     | payout_id                  | uuid                     | YES         | null                         |
+| lesson_category      | lesson_id                  | uuid                     | NO          | null                         |
+| lesson_category      | category_id                | uuid                     | NO          | null                         |
+| lesson_request_votes | id                         | uuid                     | NO          | uuid_generate_v4()           |
+| lesson_request_votes | request_id                 | uuid                     | YES         | null                         |
+| lesson_request_votes | user_id                    | uuid                     | YES         | null                         |
+| lesson_request_votes | vote_type                  | text                     | YES         | null                         |
+| lesson_request_votes | created_at                 | timestamp with time zone | YES         | now()                        |
+| lesson_requests      | id                         | uuid                     | NO          | uuid_generate_v4()           |
+| lesson_requests      | title                      | text                     | NO          | null                         |
+| lesson_requests      | description                | text                     | NO          | null                         |
+| lesson_requests      | created_at                 | timestamp with time zone | YES         | now()                        |
+| lesson_requests      | user_id                    | uuid                     | YES         | null                         |
+| lesson_requests      | status                     | text                     | YES         | 'open'::text                 |
+| lesson_requests      | vote_count                 | integer                  | YES         | 0                            |
+| lesson_requests      | category                   | text                     | YES         | null                         |
+| lesson_requests      | tags                       | ARRAY                    | YES         | null                         |
+| lesson_requests      | instagram_handle           | text                     | YES         | null                         |
+| lessons              | id                         | uuid                     | NO          | null                         |
+| lessons              | title                      | text                     | NO          | null                         |
+| lessons              | description                | text                     | YES         | null                         |
+| lessons              | price                      | numeric                  | NO          | null                         |
+| lessons              | creator_id                 | uuid                     | NO          | null                         |
+| lessons              | created_at                 | timestamp with time zone | NO          | now()                        |
+| lessons              | updated_at                 | timestamp with time zone | NO          | now()                        |
+| lessons              | stripe_product_id          | text                     | YES         | null                         |
+| lessons              | stripe_price_id            | text                     | YES         | null                         |
+| lessons              | content                    | text                     | YES         | null                         |
+| lessons              | content_url                | text                     | YES         | null                         |
+| lessons              | thumbnail_url              | text                     | YES         | null                         |
+| lessons              | is_featured                | boolean                  | NO          | false                        |
+| lessons              | status                     | USER-DEFINED             | NO          | 'draft'::lesson_status       |
+| lessons              | deleted_at                 | timestamp with time zone | YES         | null                         |
+| lessons              | version                    | integer                  | NO          | 1                            |
+| lessons              | mux_asset_id               | text                     | YES         | null                         |
+| lessons              | mux_playback_id            | text                     | YES         | null                         |
+| lessons              | video_processing_status    | text                     | YES         | 'pending'::text              |
+| profiles             | id                         | uuid                     | NO          | null                         |
+| profiles             | full_name                  | text                     | NO          | null                         |
+| profiles             | email                      | text                     | NO          | null                         |
+| profiles             | bio                        | text                     | YES         | null                         |
+| profiles             | avatar_url                 | text                     | YES         | null                         |
+| profiles             | social_media_tag           | text                     | YES         | null                         |
+| profiles             | created_at                 | timestamp with time zone | NO          | now()                        |
+| profiles             | updated_at                 | timestamp with time zone | NO          | now()                        |
+| profiles             | stripe_account_id          | text                     | YES         | null                         |
+| profiles             | deleted_at                 | timestamp with time zone | YES         | null                         |
+| profiles             | stripe_account_status      | text                     | YES         | null                         |
+| profiles             | stripe_account_details     | jsonb                    | YES         | null                         |
+| profiles             | stripe_onboarding_complete | boolean                  | YES         | false                        |
+| purchases            | id                         | uuid                     | NO          | null                         |
+| purchases            | user_id                    | uuid                     | NO          | null                         |
+| purchases            | lesson_id                  | uuid                     | NO          | null                         |
+| purchases            | creator_id                 | uuid                     | NO          | null                         |
+| purchases            | purchase_date              | timestamp with time zone | NO          | now()                        |
+| purchases            | stripe_session_id          | text                     | NO          | null                         |
+| purchases            | amount                     | numeric                  | NO          | null                         |
+| purchases            | platform_fee               | numeric                  | NO          | null                         |
+| purchases            | creator_earnings           | numeric                  | NO          | null                         |
+| purchases            | payment_intent_id          | text                     | NO          | null                         |
+| purchases            | fee_percentage             | numeric                  | NO          | null                         |
+| purchases            | status                     | USER-DEFINED             | NO          | 'pending'::purchase_status   |
+| purchases            | metadata                   | jsonb                    | YES         | null                         |
+| purchases            | created_at                 | timestamp with time zone | NO          | now()                        |
+| purchases            | updated_at                 | timestamp with time zone | NO          | now()                        |
+| purchases            | version                    | integer                  | NO          | 1                            |
+| reviews              | id                         | uuid                     | NO          | null                         |
+| reviews              | user_id                    | uuid                     | NO          | null                         |
+| reviews              | lesson_id                  | uuid                     | NO          | null                         |
+| reviews              | rating                     | integer                  | NO          | null                         |
+| reviews              | comment                    | text                     | YES         | null                         |
+| reviews              | created_at                 | timestamp with time zone | NO          | now()                        |
+| reviews              | updated_at                 | timestamp with time zone | NO          | now()                        |
+| waitlist             | id                         | uuid                     | NO          | gen_random_uuid()            |
+| waitlist             | email                      | text                     | NO          | null                         |
+| waitlist             | signed_up_at               | timestamp with time zone | NO          | timezone('utc'::text, now()) |
+| waitlist             | created_at                 | timestamp with time zone | NO          | timezone('utc'::text, now()) |
+
+
 ## Security Architecture
 
 - **Authentication**: Supabase Auth with session management and OAuth providers
@@ -160,6 +253,7 @@ This document provides a high-level overview of the Teach Niche platform archite
 - **Database Access**: Structured through service classes with retry mechanisms
 - **Session Management**: Secure session handling with proper expiration
 - **End-to-End Testing**: Security flows tested with Jest and Playwright
+- **No Temporary Solutions**: NEVER use temporary workarounds, mock data, or hardcoded credentials in production environments
 
 ## Testing Architecture
 

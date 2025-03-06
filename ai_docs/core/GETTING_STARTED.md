@@ -67,6 +67,7 @@ The project follows a modular structure:
 - Use the DatabaseResponse<T> pattern for consistent error handling
 - Validate all data with Zod schemas
 - Implement proper error handling with try/catch blocks
+- NEVER use temporary workarounds or hardcoded data in production environments
 
 ### Component Development
 - Use functional components with hooks
@@ -95,6 +96,7 @@ The project follows a modular structure:
 - Choose appropriate fetching strategy (SSR/CSR)
 - Implement caching strategies where appropriate
 - Write efficient queries with proper error handling
+- NEVER use temporary data structures, mock data, or hardcoded values in production code
 
 ## Common Workflows
 

@@ -5,7 +5,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LessonForm } from "@/app/components/ui/lesson-form";
-import { toast } from "@/app/components/ui/use-toast";
+import { useToast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useAuth } from "@/app/services/auth/AuthContext";
@@ -20,8 +20,9 @@ export default function EditLessonPage() {
   const [lesson, setLesson] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   
   // Fetch lesson data
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function EditLessonPage() {
     if (!authLoading) {
       fetchLesson();
     }
-  }, [lessonId, user, router, authLoading, supabase]);
+  }, [lessonId, user, router, authLoading, supabase, toast]);
   
   // Redirect if not authenticated
   useEffect(() => {
@@ -85,7 +86,7 @@ export default function EditLessonPage() {
       });
       router.push(`/sign-in?redirect=/lessons/${lessonId}/edit`);
     }
-  }, [user, authLoading, router, lessonId]);
+  }, [user, authLoading, router, lessonId, toast]);
   
   const handleSubmit = async (data: {
     title: string;
@@ -195,12 +196,12 @@ export default function EditLessonPage() {
   
   // Transform lesson data for the form
   const formData = {
-    title: lesson.title,
-    description: lesson.description || '',
-    content: lesson.content || '',
-    price: lesson.price || 0,
-    muxAssetId: lesson.mux_asset_id || '',
-    muxPlaybackId: lesson.mux_playback_id || '',
+    title: lesson.title as string,
+    description: (lesson.description as string) || '',
+    content: (lesson.content as string) || '',
+    price: (lesson.price as number) || 0,
+    muxAssetId: (lesson.mux_asset_id as string) || '',
+    muxPlaybackId: (lesson.mux_playback_id as string) || '',
   };
   
   return (

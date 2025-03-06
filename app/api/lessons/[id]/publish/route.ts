@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
+import { Database } from '@/app/types/database';
 
 // Create a simple function that will be used as the route handler
 // This bypasses the Next.js type checking for route handlers

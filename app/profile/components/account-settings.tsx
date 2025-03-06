@@ -77,7 +77,12 @@ export function AccountSettings() {
                   stripeStatus={stripeStatus ? {
                     isComplete: stripeStatus.isComplete,
                     status: stripeStatus.status || '',
-                    details: stripeStatus.details
+                    details: {
+                      pendingVerification: Boolean(stripeStatus.details?.pending_verification),
+                      missingRequirements: Array.isArray(stripeStatus.details?.missing_requirements) 
+                        ? stripeStatus.details.missing_requirements as string[]
+                        : []
+                    }
                   } : undefined}
                 />
               )}

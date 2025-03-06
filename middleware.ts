@@ -1,6 +1,7 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 
 // Define paths that should be restricted to authenticated users
 const RESTRICTED_PATHS: string[] = [
@@ -28,6 +29,7 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   
   // Create a Supabase client using the middleware helper
+  // Note: In middleware, we still need to use createMiddlewareClient with req and res
   const supabase = createMiddlewareClient({ req, res })
   
   const path = req.nextUrl.pathname
@@ -61,20 +63,15 @@ export async function middleware(req: NextRequest) {
   // Get the session using the middleware client
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Skip middleware for auth routes
-  if (path.startsWith('/auth/callback') || path.startsWith('/auth/signin')) {
-    return NextResponse.next()
-  }
-
   // Redirect dashboard to profile
   if (path.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/profile', req.url))
   }
   
-  // For unauthenticated users trying to access the profile, redirect to home page with auth=signin parameter
+  // For unauthenticated users trying to access the profile, redirect to sign in page
   if (path.startsWith('/profile') && !session) {
-    const redirectUrl = new URL('/', req.url)
-    redirectUrl.searchParams.set('auth', 'signin')
+    const redirectUrl = new URL('/auth/signin', req.url)
+    redirectUrl.searchParams.set('redirect', '/profile')
     return NextResponse.redirect(redirectUrl)
   }
 

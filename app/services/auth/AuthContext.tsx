@@ -35,20 +35,50 @@ export function AuthProvider({
   useEffect(() => {
     let isMounted = true
     let subscription: { unsubscribe: () => void } = { unsubscribe: () => {} }
+    
+    console.log('AuthContext initializing...')
+    
+    // Add safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Auth loading safety timeout triggered after 2 seconds')
+        setLoading(false)
+        setUser(null) // Ensure user is null if timeout occurs
+        console.log('Auth state reset due to timeout')
+      }
+    }, 2000) // Reduced to 2 seconds for even faster fallback
 
     // Check active sessions and sets the user
     async function initializeAuth() {
       try {
+        console.log('Getting initial session...')
         // Get initial session
-        const { data: { session } } = await getSession()
+        const { data: { session }, error: sessionError } = await getSession()
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError)
+          throw sessionError
+        }
+        
+        console.log('Session retrieved:', session ? 'Valid session' : 'No session')
         
         if (session?.user && isMounted) {
+          console.log('Setting user from session')
           setUser(session.user)
           // Handle profile creation in a separate service
-          await createOrUpdateProfile(session.user)
+          try {
+            await createOrUpdateProfile(session.user)
+            console.log('Profile created/updated successfully')
+          } catch (profileError) {
+            console.error('Error creating/updating profile:', profileError)
+            // Continue even if profile creation fails
+          }
+        } else {
+          console.log('No user in session')
         }
         
         if (isMounted) {
+          console.log('Setting loading to false after session check')
           setLoading(false)
         }
 
@@ -57,29 +87,35 @@ export function AuthProvider({
           const authStateChange = onAuthStateChange(async (event, session: { user?: User }) => {
             if (!isMounted) return
             
-            // Handle auth state changes
-            if (event === 'SIGNED_IN' && session?.user) {
-              setUser(session.user)
-              await createOrUpdateProfile(session.user)
-              
-              // Handle redirect if needed
-              if (typeof window !== 'undefined') {
-                const params = new URLSearchParams(window.location.search)
-                const redirectTo = params.get('redirect')
-                if (redirectTo) {
-                  window.location.href = redirectTo
-                }
-              }
-            } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              if (session?.user) {
+            try {
+              // Handle auth state changes
+              if (event === 'SIGNED_IN' && session?.user) {
                 setUser(session.user)
+                await createOrUpdateProfile(session.user).catch(err => 
+                  console.error('Profile creation error during auth change:', err)
+                )
+                
+                // Handle redirect if needed
+                if (typeof window !== 'undefined') {
+                  const params = new URLSearchParams(window.location.search)
+                  const redirectTo = params.get('redirect')
+                  if (redirectTo) {
+                    window.location.href = redirectTo
+                  }
+                }
+              } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                if (session?.user) {
+                  setUser(session.user)
+                }
+              } else if (event === 'SIGNED_OUT') {
+                setUser(null)
               }
-            } else if (event === 'SIGNED_OUT') {
-              setUser(null)
-            }
-            
-            if (isMounted) {
-              setLoading(false)
+            } catch (error) {
+              console.error('Error during auth state change:', error)
+            } finally {
+              if (isMounted) {
+                setLoading(false)
+              }
             }
           })
           
@@ -88,10 +124,12 @@ export function AuthProvider({
           }
         }
       } catch (error) {
+        console.error('Authentication initialization error:', error)
         if (isMounted) {
           setUser(null)
           setError(error instanceof Error ? error : new Error('Authentication error'))
           setLoading(false)
+          console.log('Auth state reset due to error')
         }
       }
     }
@@ -99,10 +137,12 @@ export function AuthProvider({
     initializeAuth()
 
     return () => {
+      console.log('AuthContext cleanup')
       isMounted = false
+      clearTimeout(safetyTimeout)
       subscription.unsubscribe()
     }
-  }, [])
+  }, [loading])
 
   return (
     <AuthContext.Provider value={{ 

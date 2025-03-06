@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
+import { Database } from '@/app/types/database';
 
 export async function POST(request: Request) {
   // Clone the request to read the body twice (once for verification, once for processing)
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     console.log(`Received Mux webhook: ${type}`, JSON.stringify(body, null, 2));
     
     // Create Supabase client
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookies() });
     
     // Handle video.upload.asset_created event
     if (type === 'video.upload.asset_created') {
@@ -63,23 +63,49 @@ export async function POST(request: Request) {
       
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
+      // First cast to unknown to break the type chain, then to our interface
+      const supabaseClient = (supabase as unknown) as {
+        from: (table: string) => {
+          update: (data: Record<string, unknown>) => {
+            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+          },
+          select: (columns: string) => {
+            eq: (column: string, value: string) => Promise<{ 
+              data: Array<{ id: string; title: string }> | null; 
+              error: unknown 
+            }>
+          }
+        }
+      };
+      
       // Update the lesson with the asset ID
-      const { data, error } = await supabase
+      const updateResult = await supabaseClient
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
-          status: 'processing'
+          video_processing_status: 'processing'
         })
-        .eq('mux_upload_id', uploadId)
-        .select('id, title');
+        .eq('mux_upload_id', uploadId);
+      
+      const error = updateResult.error;
+      
+      // Fetch the updated lesson in a separate query
+      const lessonResult = await supabaseClient
+        .from('lessons')
+        .select('id, title')
+        .eq('mux_upload_id', uploadId);
+      
+      const lessons = lessonResult.data;
+      
+      // data and error are already destructured from the query result
       
       if (error) {
         console.error('Error updating lesson with asset ID:', error);
         return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
       }
       
-      if (data && data.length > 0) {
-        console.log(`Updated lesson "${data[0].title}" (${data[0].id}) with asset ID ${assetId}`);
+      if (lessons && lessons.length > 0) {
+        console.log(`Updated lesson "${lessons[0].title}" (${lessons[0].id}) with asset ID ${assetId}`);
       } else {
         console.warn(`No lesson found with upload ID ${uploadId}`);
       }
@@ -97,23 +123,48 @@ export async function POST(request: Request) {
       
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
+      // First cast to unknown to break the type chain, then to our interface
+      const supabaseClient = (supabase as unknown) as {
+        from: (table: string) => {
+          update: (data: Record<string, unknown>) => {
+            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+          },
+          select: (columns: string) => {
+            eq: (column: string, value: string) => Promise<{ 
+              data: Array<{ id: string; title: string }> | null; 
+              error: unknown 
+            }>
+          }
+        }
+      };
+      
       // Update the lesson with the playback ID and set status to published
-      const { data, error } = await supabase
+      const updateResult = await supabaseClient
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
+          video_processing_status: 'ready',
           status: 'published'
         })
-        .eq('mux_asset_id', assetId)
-        .select('id, title');
+        .eq('mux_asset_id', assetId);
+      
+      const error = updateResult.error;
+      
+      // Fetch the updated lesson in a separate query
+      const lessonResult = await supabaseClient
+        .from('lessons')
+        .select('id, title')
+        .eq('mux_asset_id', assetId);
+      
+      const lessons = lessonResult.data;
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);
         return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
       }
       
-      if (data && data.length > 0) {
-        console.log(`Updated lesson "${data[0].title}" (${data[0].id}) with playback ID ${playbackId} and set status to published`);
+      if (lessons && lessons.length > 0) {
+        console.log(`Updated lesson "${lessons[0].title}" (${lessons[0].id}) with playback ID ${playbackId} and set status to published`);
       } else {
         console.warn(`No lesson found with asset ID ${assetId}`);
       }

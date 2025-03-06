@@ -1,7 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { LessonRequest, LessonRequestFormData } from '@/app/lib/schemas/lesson-request'
 import { toast } from '@/app/components/ui/use-toast'
-import { RequestVoteResponse } from '@/app/types/request'
+import type { RequestVoteResponse } from '@/app/types/request'
 
 export async function createRequest(data: Omit<LessonRequestFormData, 'id'>): Promise<LessonRequest> {
   const supabase = createClientComponentClient()

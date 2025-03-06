@@ -1,5 +1,19 @@
 import * as z from 'zod'
-import { LessonRequestStatus } from '@/types/lesson'
+import { LessonRequestStatus } from '@/app/types/lesson'
+
+// Define the LessonRequest interface to match the database structure
+export interface LessonRequest {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  created_at: string;
+  status: LessonRequestStatus;
+  vote_count: number;
+  user_id: string;
+  instagram_handle?: string;
+  tags?: string[];
+}
 
 // Helper function to ensure status is one of the allowed values
 export function ensureValidStatus(status: string): LessonRequestStatus {

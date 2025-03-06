@@ -1,9 +1,16 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import type { Database } from '@/types/database';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/app/types/database';
 
-export async function createServerSupabaseClient() {
-  // Make cookies() awaitable and await it
-  const cookieStore = await cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+// Use a direct Supabase client approach to avoid cookie issues
+export function createServerSupabaseClient() {
+  try {
+    // Create a direct Supabase client without cookie handling
+    return createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  } catch (error) {
+    console.error('Error creating Supabase client:', error);
+    throw error;
+  }
 }

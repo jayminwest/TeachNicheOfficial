@@ -1,26 +1,18 @@
-
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
+    // Create the Supabase client using our direct approach
+    const supabase = createServerSupabaseClient();
     
-    // Get the current user
-    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Using direct Supabase client for lessons API');
     
-    // Fetch lessons
-    let query = supabase
+    // Fetch lessons with error handling
+    const query = supabase
       .from('lessons')
-      .select('id, title, description, price, thumbnailUrl, creatorId, averageRating, totalRatings')
+      .select('id, title, description, price, thumbnail_url, creator_id')
       .order('created_at', { ascending: false });
-    
-    // If user is logged in, include their lessons
-    if (user) {
-      query = query.or(`creatorId.eq.${user.id},public.eq.true`);
-    } else {
-      query = query.eq('public', true);
-    }
     
     const { data: lessons, error } = await query;
     
@@ -32,7 +24,37 @@ export async function GET() {
       );
     }
     
-    return NextResponse.json({ lessons: lessons || [] });
+    // Only log in development environment
+    if (process.env.NODE_ENV === 'development' && lessons && lessons.length > 0) {
+      console.log('Lesson schema sample:', Object.keys(lessons[0]));
+    }
+    
+    // Transform the data to match the client-side expected format
+    const transformedLessons = (lessons || []).map(lesson => {
+      // Ensure lesson is treated as a proper record type
+      const typedLesson = lesson as {
+        id: string;
+        title?: string;
+        description?: string;
+        price?: number;
+        thumbnail_url?: string;
+        creator_id?: string;
+      };
+      
+      return {
+        id: typedLesson.id,
+        title: typedLesson.title || 'Untitled Lesson',
+        description: typedLesson.description || 'No description available',
+        price: typeof typedLesson.price === 'number' ? typedLesson.price : 0,
+        thumbnailUrl: typedLesson.thumbnail_url || '', // Map snake_case to camelCase
+        creatorId: typedLesson.creator_id || '',
+        // Provide default values for missing fields
+        averageRating: 0,
+        totalRatings: 0
+      };
+    });
+    
+    return NextResponse.json(transformedLessons);
   } catch (error) {
     console.error('Exception fetching lessons:', error);
     return NextResponse.json(

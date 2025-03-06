@@ -26,6 +26,7 @@ Our development approach emphasizes:
 - **Error Handling**: Consistent error handling patterns with the DatabaseResponse pattern
 - **Data Validation**: Schema validation with Zod throughout the application
 - **Caching Strategies**: Appropriate caching for performance optimization
+- **Production Quality**: NEVER use temporary workarounds, mock data, or hardcoded values in production environments
 
 ## Project Goals
 
@@ -36,6 +37,7 @@ Our development approach emphasizes:
 5. Deliver a high-quality user experience
 6. Enable creators to monetize their expertise
 7. Provide interactive learning opportunities
+8. Maintain production environment integrity by NEVER allowing temporary workarounds or test data
 
 ## Core Values
 

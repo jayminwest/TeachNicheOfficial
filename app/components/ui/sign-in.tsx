@@ -15,6 +15,8 @@ import { VisuallyHidden } from './visually-hidden'
 
 interface SignInPageProps {
   onSignInSuccess?: () => void;
+  initialView?: 'sign-in' | 'sign-up';
+  onSwitchToSignUp?: () => void;
 }
 
 function SignInPage({ onSignInSuccess }: SignInPageProps) {

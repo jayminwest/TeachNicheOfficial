@@ -5,7 +5,7 @@ import { purchasesService } from '@/app/services/database/purchasesService';
 
 // Initialize Stripe with the secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-01-27.acacia',
 });
 
 export async function POST(request: NextRequest) {
@@ -39,18 +39,21 @@ export async function POST(request: NextRequest) {
     const userId = userSession.user.id;
 
     // Fetch the lesson to verify it exists and get creator info
-    const { data: lesson, error: lessonError } = await supabase
+    const { data: lessonData, error: lessonError } = await supabase
       .from('lessons')
       .select('id, title, price, creator_id')
       .eq('id', lessonId)
       .single();
 
-    if (lessonError || !lesson) {
+    if (lessonError || !lessonData) {
       return NextResponse.json(
         { error: 'Lesson not found' },
         { status: 404 }
       );
     }
+
+    // We've verified lessonData exists, so we can safely use it
+    const lesson = lessonData as { id: string; title: string; price: number; creator_id: string };
 
     // Verify the price matches
     if (lesson.price !== price) {

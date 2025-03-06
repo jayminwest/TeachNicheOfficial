@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   description: 'View lesson details and content',
 };
 
-// Use a more specific type and disable the ESLint rule for this line
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default async function LessonPage({ params }: { params: { id: string } }) {
+// Use a more generic type to avoid Next.js 15 type issues
+export default async function LessonPage(props: any) {
+  const params = props.params;
   // Get the lesson ID from the URL
   const lessonId = params?.id;
   

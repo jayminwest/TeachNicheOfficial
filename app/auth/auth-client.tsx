@@ -69,8 +69,12 @@ export default function AuthClientWrapper({
     }
   };
   
-  return <AuthClient 
-    errorMessage={errorMessage} 
-    onSuccess={handleSignInSuccess}
-  />;
+  return (
+    <Suspense fallback={<div>Loading authentication...</div>}>
+      <AuthClient 
+        errorMessage={errorMessage} 
+        onSuccess={handleSignInSuccess}
+      />
+    </Suspense>
+  );
 }

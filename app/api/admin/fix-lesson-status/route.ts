@@ -94,7 +94,7 @@ export async function POST() {
               status: 'published',
               mux_playback_id: assetStatus.playbackId,
               updated_at: new Date().toISOString()
-            })
+            } as any)
             .eq('id', lesson.id);
           
           if (updateError) {

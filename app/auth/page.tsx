@@ -34,7 +34,7 @@ export default function AuthPage() {
             <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
           </div>
         }>
-          <ClientAuthWrapper />
+          <SearchParamsWrapper />
         </Suspense>
       </div>
       

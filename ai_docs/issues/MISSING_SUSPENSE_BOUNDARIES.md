@@ -50,9 +50,10 @@ The current implementation has several issues:
 - [x] Added proper Suspense boundaries
 - [x] Implemented direct useSearchParams() usage within Suspense boundary
 - [x] Converted page.tsx to a server component
-- [x] Created consolidated client-auth-wrapper.tsx component
-- [x] Added proper error handling and loading states
-- [x] Tested authentication flow
+- [x] Removed redundant client-auth-wrapper.tsx component
+- [x] Enhanced AuthClient component with proper error handling
+- [x] Added comprehensive loading states
+- [x] Tested authentication flow with various scenarios
 - [x] Verified build succeeds without errors
 
 ### Phase 2: Fix Lesson Pages (Priority: Medium) ✅
@@ -70,9 +71,10 @@ The current implementation has several issues:
 
 ### Phase 4: General Cleanup (Priority: High) ✅
 - [x] Removed redundant wrapper components
-- [x] Created reusable Suspense wrapper component
+- [x] Created reusable SearchParamsWrapper component
 - [x] Added comprehensive tests for client-side data fetching
 - [x] Documented the pattern for future development
+- [x] Added detailed JSDoc comments to the SearchParamsWrapper component
 
 ## Solution Implemented
 
@@ -84,91 +86,95 @@ The auth page was converted to a server component with proper Suspense boundarie
 // app/auth/page.tsx (Server Component)
 export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
-import ClientAuthWrapper from './client-auth-wrapper';
+import AuthClient from './client';
 
 export default function AuthPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6">
-        <div className="space-y-1 mb-4">
-          <h1 className="text-2xl font-bold">Sign in</h1>
-          <p className="text-muted-foreground">
-            Sign in to access your account and lessons
-          </p>
-        </div>
-        
-        <Suspense fallback={
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6">
+          <div className="space-y-1 mb-4">
+            <div className="h-8 w-48 bg-muted animate-pulse rounded-md"></div>
+            <div className="h-4 w-64 bg-muted animate-pulse rounded-md"></div>
+          </div>
           <div className="space-y-4">
             <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
             <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
             <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
           </div>
-        }>
-          <ClientAuthWrapper />
-        </Suspense>
-      </div>
-      
-      <noscript>
-        <div className="mt-8 p-4 bg-yellow-100 text-yellow-800 rounded-md">
-          JavaScript is required to sign in. Please enable JavaScript or use a browser that supports it.
         </div>
-      </noscript>
-    </div>
+      </div>
+    }>
+      <AuthClient />
+    </Suspense>
   );
 }
 ```
 
-### 2. Created a Consolidated Client Component
+### 2. Enhanced Client Component with Proper Error Handling
 
-The client-auth-wrapper.tsx now properly uses useSearchParams within a Suspense boundary:
+The AuthClient component now properly uses useSearchParams within a Suspense boundary:
 
 ```tsx
-// app/auth/client-auth-wrapper.tsx (Client Component)
+// app/auth/client.tsx (Client Component)
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { ErrorBoundary } from '@/app/components/ui/error-boundary';
 import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
+import { ErrorBoundary } from '@/app/components/ui/error-boundary';
 
-export default function ClientAuthWrapper() {
+export default function AuthClient({ onSuccess }: AuthClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Extract parameters directly from searchParams hook
   const errorParam = searchParams.get('error');
   const redirect = searchParams.get('redirect');
   
-  useEffect(() => {
-    // Store redirect URL in session storage
-    if (redirect) {
-      sessionStorage.setItem('auth-redirect', redirect);
-    }
-    
-    // Set error from URL parameter if present
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-    }
-    
-    // Simulate loading to ensure client hydration
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [redirect, errorParam]);
-  
   // ... rest of component implementation
 }
 ```
 
-### 3. Applied the Same Pattern to Lesson Pages
+### 3. Created a Reusable SearchParamsWrapper Component
+
+A reusable wrapper component was created to simplify adding Suspense boundaries:
+
+```tsx
+// app/components/ui/search-params-wrapper.tsx
+'use client';
+
+import { Suspense, ReactNode } from 'react';
+
+interface SearchParamsWrapperProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+/**
+ * A wrapper component that provides a Suspense boundary for components
+ * that use client-side data fetching hooks like useSearchParams().
+ */
+export function SearchParamsWrapper({ 
+  children, 
+  fallback = <div className="w-full h-10 bg-muted animate-pulse rounded-md" />
+}: SearchParamsWrapperProps) {
+  return (
+    <Suspense fallback={fallback}>
+      {children}
+    </Suspense>
+  );
+}
+```
+
+### 4. Applied the Same Pattern to Lesson Pages
 
 The lesson detail page now uses Suspense boundaries:
 
@@ -224,6 +230,36 @@ After implementing the fix:
 - [React Documentation: Suspense](https://react.dev/reference/react/Suspense)
 - [Next.js App Router: Client Components](https://nextjs.org/docs/app/building-your-application/rendering/client-components)
 
+## Best Practices for Using Client-Side Hooks in Next.js
+
+When using client-side hooks like `useSearchParams()` in Next.js 15+, follow these best practices:
+
+1. **Always Use Suspense Boundaries**: Wrap any component that uses client-side data fetching hooks in a Suspense boundary.
+
+2. **Keep Client Components Focused**: Client components that use these hooks should have a single responsibility.
+
+3. **Provide Meaningful Fallbacks**: Design fallback UI that matches the shape and size of the actual content to prevent layout shifts.
+
+4. **Use Error Boundaries**: Combine Suspense with ErrorBoundary to handle both loading and error states.
+
+5. **Consider Using the SearchParamsWrapper**: For consistency, use the provided SearchParamsWrapper component when adding new features.
+
+Example usage:
+
+```tsx
+// In a server component
+import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
+import ClientComponent from './client-component';
+
+export default function ServerComponent() {
+  return (
+    <SearchParamsWrapper fallback={<CustomLoadingState />}>
+      <ClientComponent />
+    </SearchParamsWrapper>
+  );
+}
+```
+
 ## Version History
 
 | Version | Date | Author | Description |
@@ -231,3 +267,4 @@ After implementing the fix:
 | 1.0 | 2025-03-06 | Development Team | Initial issue report |
 | 1.1 | 2025-03-06 | Development Team | Updated with implementation status |
 | 1.2 | 2025-03-06 | Development Team | Updated with completed implementation |
+| 1.3 | 2025-03-06 | Development Team | Added best practices and updated solution details |

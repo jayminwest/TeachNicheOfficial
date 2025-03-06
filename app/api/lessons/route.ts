@@ -12,7 +12,7 @@ export async function GET() {
     // Fetch lessons
     let query = supabase
       .from('lessons')
-      .select('id, title, description, price, thumbnailUrl, creatorId, averageRating, totalRatings')
+      .select('id, title, description, price, thumbnail_url, creator_id, average_rating, total_ratings')
       .order('created_at', { ascending: false });
     
     // If user is logged in, include their lessons
@@ -32,7 +32,19 @@ export async function GET() {
       );
     }
     
-    return NextResponse.json({ lessons: lessons || [] });
+    // Transform the data to match the client-side expected format
+    const transformedLessons = (lessons || []).map(lesson => ({
+      id: lesson.id,
+      title: lesson.title,
+      description: lesson.description,
+      price: lesson.price,
+      thumbnailUrl: lesson.thumbnail_url, // Map snake_case to camelCase
+      creatorId: lesson.creator_id,
+      averageRating: lesson.average_rating,
+      totalRatings: lesson.total_ratings
+    }));
+    
+    return NextResponse.json(transformedLessons);
   } catch (error) {
     console.error('Exception fetching lessons:', error);
     return NextResponse.json(

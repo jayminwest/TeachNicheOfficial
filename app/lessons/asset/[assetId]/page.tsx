@@ -97,7 +97,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page({ 
   params 
-}: NextJS.PageProps) {
+}: { 
+  params: { assetId: string } 
+}) {
   const assetId = params.assetId;
   const initialStatus = await checkAssetStatus(assetId);
   

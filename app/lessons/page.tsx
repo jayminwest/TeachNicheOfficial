@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import LessonsClient from './lessons-client';
 import { Skeleton } from '@/app/components/ui/skeleton';
+import { ErrorBoundary } from '@/app/components/ui/error-boundary';
 
 export default function LessonsPage() {
   return (
@@ -16,7 +17,16 @@ export default function LessonsPage() {
             </div>
           </div>
         }>
-          <LessonsClient />
+          <ErrorBoundary
+            fallback={
+              <div className="p-6 bg-destructive/10 rounded-lg flex flex-col items-center justify-center">
+                <p className="text-lg font-medium">Something went wrong loading lessons</p>
+                <p className="text-muted-foreground mb-4">Please try refreshing the page</p>
+              </div>
+            }
+          >
+            <LessonsClient />
+          </ErrorBoundary>
         </Suspense>
       </div>
       

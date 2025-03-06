@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import RequestsClient from './requests-client';
 import { Skeleton } from '@/app/components/ui/skeleton';
+import { ErrorBoundary } from '@/app/components/ui/error-boundary';
 
 export default function RequestsPage() {
   return (
@@ -15,7 +16,18 @@ export default function RequestsPage() {
           </div>
         </div>
       }>
-        <RequestsClient />
+        <ErrorBoundary
+          fallback={
+            <div className="container p-8">
+              <div className="p-6 bg-destructive/10 rounded-lg flex flex-col items-center justify-center">
+                <p className="text-lg font-medium">Something went wrong loading requests</p>
+                <p className="text-muted-foreground mb-4">Please try refreshing the page</p>
+              </div>
+            </div>
+          }
+        >
+          <RequestsClient />
+        </ErrorBoundary>
       </Suspense>
       
       <noscript>

@@ -1,5 +1,21 @@
-// This file is no longer needed as we're using AuthClient directly
-// with proper Suspense boundaries in page.tsx
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/app/components/ui/button';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { ErrorBoundary } from '@/app/components/ui/error-boundary';
+import Link from 'next/link';
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
+
+interface ClientAuthWrapperProps {
+  redirect?: string;
+  errorParam?: string;
+}
+
+export default function ClientAuthWrapper({ redirect, errorParam }: ClientAuthWrapperProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   
   useEffect(() => {
     // Store redirect URL in session storage

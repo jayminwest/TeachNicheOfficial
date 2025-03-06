@@ -151,19 +151,6 @@ export function Header() {
                             >
                                 Sign In
                             </Button>
-                            <Button 
-                                onClick={() => {
-                                    if (pathname === '/') {
-                                        document.querySelector('#email-signup')?.scrollIntoView({ 
-                                            behavior: 'smooth'
-                                        });
-                                    } else {
-                                        window.location.href = '/#email-signup';
-                                    }
-                                }}
-                            >
-                                Join Teacher Waitlist <MoveRight className="w-4 h-4" />
-                            </Button>
                         </>
                     ) : null}
                 </div>
@@ -197,20 +184,6 @@ export function Header() {
                                             onClick={() => setDialogOpen(true)}
                                         >
                                             Sign In
-                                        </Button>
-                                        <Button 
-                                            className="w-full"
-                                            onClick={() => {
-                                                if (pathname === '/') {
-                                                    document.querySelector('#email-signup')?.scrollIntoView({ 
-                                                        behavior: 'smooth'
-                                                    });
-                                                } else {
-                                                    window.location.href = '/#email-signup';
-                                                }
-                                            }}
-                                        >
-                                            Join Teacher Waitlist <MoveRight className="w-4 h-4" />
                                         </Button>
                                     </>
                                 ) : null}

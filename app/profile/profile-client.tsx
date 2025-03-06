@@ -146,7 +146,7 @@ export default function ProfileClient() {
   }
   
   const handleDeleteAccount = async () => {
-    if (!confirm(&apos;Are you sure you want to delete your account? This action cannot be undone.&apos;)) {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       return
     }
     

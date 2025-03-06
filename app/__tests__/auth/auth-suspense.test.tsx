@@ -1,10 +1,11 @@
-/**
- * @jest-environment jsdom
- */
+// @jest-environment jsdom
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
 import userEvent from '@testing-library/user-event';
+
+// Set up the global flag for Suspense testing
+global.__SUSPENSE_TEST_FALLBACK__ = false;
 
 // Mock the next/navigation hooks
 jest.mock('next/navigation', () => ({
@@ -24,9 +25,6 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/app/services/auth/supabaseAuth', () => ({
   signInWithGoogle: jest.fn().mockResolvedValue({ success: true }),
 }));
-
-// Set up the global flag for Suspense testing
-global.__SUSPENSE_TEST_FALLBACK__ = false;
 
 // Mock React's Suspense for controlled testing
 jest.mock('react', () => {

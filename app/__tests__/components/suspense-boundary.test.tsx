@@ -1,9 +1,10 @@
-/**
- * @jest-environment jsdom
- */
+// @jest-environment jsdom
 
 import { render, screen } from '@testing-library/react';
 import { Suspense } from 'react';
+
+// Set up the global flag for Suspense testing
+global.__SUSPENSE_TEST_FALLBACK__ = false;
 
 // Mock the next/navigation hooks before importing components that use them
 jest.mock('next/navigation', () => ({
@@ -17,9 +18,6 @@ jest.mock('next/navigation', () => ({
 
 // Import the mocked useSearchParams after mocking
 const { useSearchParams } = require('next/navigation');
-
-// Set up the global flag for Suspense testing
-global.__SUSPENSE_TEST_FALLBACK__ = false;
 
 // Mock React's Suspense for controlled testing
 jest.mock('react', () => {

@@ -1,5 +1,10 @@
+// @jest-environment jsdom
+
 import { render } from '@testing-library/react';
 import { Suspense } from 'react';
+
+// Set up the global flag for Suspense testing
+global.__SUSPENSE_TEST_FALLBACK__ = false;
 
 // Mock the next/navigation hooks before importing components that use them
 jest.mock('next/navigation', () => ({

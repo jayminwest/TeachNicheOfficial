@@ -1,5 +1,10 @@
+// @jest-environment jsdom
+
 import { render, screen } from '@testing-library/react';
 import { notFound } from 'next/navigation';
+
+// Set up the global flag for Suspense testing
+global.__SUSPENSE_TEST_FALLBACK__ = false;
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({

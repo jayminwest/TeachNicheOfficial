@@ -43,13 +43,13 @@ export function Header() {
     useEffect(() => {
         console.log('Auth state in header:', { user: !!user, loading });
         
-        // Force sign-in button to appear after 3 seconds if still loading
+        // Force sign-in button to appear after 2 seconds if still loading
         let timeoutId: NodeJS.Timeout;
         if (loading) {
             timeoutId = setTimeout(() => {
                 console.warn('Header loading timeout triggered - forcing sign-in button render');
                 setForceShowSignIn(true);
-            }, 3000);
+            }, 2000);
         }
         
         return () => clearTimeout(timeoutId);

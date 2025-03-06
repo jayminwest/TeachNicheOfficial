@@ -43,7 +43,7 @@ export function AuthProvider({
         setLoading(false)
         setUser(null) // Ensure user is null if timeout occurs
       }
-    }, 3000) // Reduced from 5 to 3 seconds for faster fallback
+    }, 2000) // Reduced to 2 seconds for even faster fallback
 
     // Check active sessions and sets the user
     async function initializeAuth() {

@@ -63,20 +63,15 @@ export async function middleware(req: NextRequest) {
   // Get the session using the middleware client
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Skip middleware for auth routes
-  if (path.startsWith('/auth/callback') || path.startsWith('/auth/signin')) {
-    return NextResponse.next()
-  }
-
   // Redirect dashboard to profile
   if (path.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/profile', req.url))
   }
   
-  // For unauthenticated users trying to access the profile, redirect to home page with auth=signin parameter
+  // For unauthenticated users trying to access the profile, redirect to sign in page
   if (path.startsWith('/profile') && !session) {
-    const redirectUrl = new URL('/', req.url)
-    redirectUrl.searchParams.set('auth', 'signin')
+    const redirectUrl = new URL('/auth/signin', req.url)
+    redirectUrl.searchParams.set('redirect', '/profile')
     return NextResponse.redirect(redirectUrl)
   }
 

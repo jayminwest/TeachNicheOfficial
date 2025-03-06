@@ -14,7 +14,7 @@ interface LessonsClientProps {
 export default function LessonsClient({}: LessonsClientProps) {
   // State variables for lessons management
   const [lessons, setLessons] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -31,9 +31,7 @@ export default function LessonsClient({}: LessonsClientProps) {
   
   // Define fetchLessons outside useEffect and memoize it
   const fetchLessons = useCallback(async () => {
-    // Don't proceed if already loading
-    if (isLoading) return;
-    
+    // Remove the loading guard to allow initial fetch
     if (DEBUG) console.log('fetchLessons called');
     
     // Create a loading ref for this specific fetch operation
@@ -144,7 +142,7 @@ export default function LessonsClient({}: LessonsClientProps) {
       // Then update UI state
       setIsLoading(false);
     }
-  }, [isLoading, retryCount, setLessons, setIsLoading, setError, setRetryCount, DEBUG]); // Add proper dependencies
+  }, [retryCount, DEBUG]); // Minimize dependencies to prevent unnecessary re-renders
   
   // Separate useEffect for the initial fetch
   useEffect(() => {
@@ -163,17 +161,14 @@ export default function LessonsClient({}: LessonsClientProps) {
       setError('Loading timeout - please try again');
     }, 10000); // 10 second timeout
     
-    // Delay the initial fetch slightly to ensure DOM is fully rendered
-    const initialFetchDelay = setTimeout(() => {
-      fetchLessons();
-    }, 100);
+    // Trigger fetch immediately
+    fetchLessons();
     
-    // Clear both timeouts on cleanup
+    // Clear timeout on cleanup
     return () => {
       clearTimeout(loadingTimeout);
-      clearTimeout(initialFetchDelay);
     };
-  }, [mounted, fetchLessons, DEBUG]); // Include DEBUG in dependencies
+  }, [mounted, fetchLessons]); // Remove DEBUG from dependencies
   
   const handleNewLesson = () => {
     router.push('/lessons/new');

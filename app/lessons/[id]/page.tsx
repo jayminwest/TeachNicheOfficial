@@ -8,7 +8,9 @@ import { PageProps, MetadataProps } from '@/app/types/next';
 // Add metadata generation for the page
 export async function generateMetadata({ 
   params 
-}: MetadataProps): Promise<Metadata> {
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
   const lessonId = params.id;
   
   try {
@@ -43,7 +45,9 @@ export async function generateMetadata({
 // Define the page component with proper Next.js types
 export default async function Page({
   params,
-}: PageProps) {
+}: {
+  params: { id: string };
+}) {
   // Access the id directly from params
   const lessonId = params.id;
   

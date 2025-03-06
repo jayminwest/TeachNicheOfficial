@@ -9,8 +9,9 @@ export const metadata: Metadata = {
   description: 'View lesson details and content',
 };
 
-// Use any type to bypass Next.js 15 type checking issues
-export default async function LessonPage({ params }: any) {
+// Use a more specific type and disable the ESLint rule for this line
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function LessonPage({ params }: { params: { id: string } }) {
   // Get the lesson ID from the URL
   const lessonId = params?.id;
   

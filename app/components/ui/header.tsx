@@ -32,7 +32,6 @@ interface NavigationItem {
 
 export function Header() {
     const { user, loading } = useAuth();
-    const pathname = usePathname();
     const [showSignIn, setShowSignIn] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const searchParams = useSearchParams();

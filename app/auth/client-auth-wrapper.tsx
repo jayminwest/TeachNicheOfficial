@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
 import AuthClientWrapper from './client-wrapper';
 

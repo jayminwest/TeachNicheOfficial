@@ -18,10 +18,9 @@ export default function LessonsClient({
   initialCategory = '',
   initialPage = 1
 }: LessonsClientProps) {
-  // Use the props instead of useSearchParams directly
-  const [query, setQuery] = useState(initialQuery);
-  const [category, setCategory] = useState(initialCategory);
-  const [page, setPage] = useState(initialPage);
+  // These state variables are initialized from props but not currently used
+  // Keeping them for future implementation
+  const [lessons, setLessons] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -2,7 +2,7 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-export default async function Page({ params, searchParams }: any) {
+export default async function Page({ params }: { params: { id: string } }) {
   // Access the id directly from params
   const lessonId = params.id;
   

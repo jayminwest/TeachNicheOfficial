@@ -1,7 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
-import { Skeleton } from '@/app/components/ui/skeleton';
 import SearchParamsWrapper from './search-params-wrapper';
 
 // Use a static page with client-side only components to avoid SSR bailout

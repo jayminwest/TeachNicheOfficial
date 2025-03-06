@@ -12,12 +12,13 @@ export async function GET() {
     // Fetch lessons
     let query = supabase
       .from('lessons')
-      .select('id, title, description, price, thumbnail_url, creator_id, average_rating, total_ratings')
+      .select('id, title, description, price, thumbnail_url, creator_id')
       .order('created_at', { ascending: false });
     
     // If user is logged in, include their lessons
+    // Note: Fixing the column names in the query conditions
     if (user) {
-      query = query.or(`creatorId.eq.${user.id},public.eq.true`);
+      query = query.or(`creator_id.eq.${user.id},public.eq.true`);
     } else {
       query = query.eq('public', true);
     }
@@ -40,8 +41,9 @@ export async function GET() {
       price: lesson.price,
       thumbnailUrl: lesson.thumbnail_url, // Map snake_case to camelCase
       creatorId: lesson.creator_id,
-      averageRating: lesson.average_rating,
-      totalRatings: lesson.total_ratings
+      // Provide default values for missing fields
+      averageRating: 0,
+      totalRatings: 0
     }));
     
     return NextResponse.json(transformedLessons);

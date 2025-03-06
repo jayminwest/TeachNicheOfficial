@@ -318,7 +318,7 @@ export const canCreatePaidLessons = async (
     // Get profile with Stripe account ID
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('stripe_account_id, stripe_account_details')
+      .select('stripe_account_id, stripe_account_status')
       .eq('id', userId)
       .single();
 
@@ -331,9 +331,8 @@ export const canCreatePaidLessons = async (
       return false;
     }
 
-    // If we already know onboarding is complete based on account details
-    const accountDetails = profile.stripe_account_details as { status?: string } | null;
-    if (accountDetails?.status === 'complete') {
+    // If we already know onboarding is complete based on account status
+    if (profile.stripe_account_status === 'complete') {
       return true;
     }
 
@@ -355,7 +354,7 @@ export const verifyConnectedAccount = async (
     // Get profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('stripe_account_id')
+      .select('id, stripe_account_id')
       .eq('id', userId)
       .single();
 

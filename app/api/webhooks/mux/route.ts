@@ -71,7 +71,10 @@ export async function POST(request: Request) {
           video_processing_status: 'processing'
         })
         .eq('mux_upload_id', uploadId)
-        .select('id, title');
+        .select('id, title') as { 
+          data: { id: string; title: string }[] | null; 
+          error: any 
+        };
       
       const { data, error } = result;
       
@@ -108,7 +111,10 @@ export async function POST(request: Request) {
           status: 'published'
         })
         .eq('mux_asset_id', assetId)
-        .select('id, title');
+        .select('id, title') as {
+          data: { id: string; title: string }[] | null;
+          error: any
+        };
       
       const { data, error } = result;
       

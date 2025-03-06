@@ -4,7 +4,7 @@ import { useState, useCallback } from "react"
 
 type ToastVariant = 'default' | 'destructive'
 
-type ToastProps = {
+export type ToastProps = {
   title?: string
   description?: string
   variant?: ToastVariant
@@ -16,6 +16,12 @@ type Toast = ToastProps & {
   visible: boolean
   action?: React.ReactNode
 }
+
+// Create a singleton for the toast function
+let globalToast: (props: ToastProps) => string = () => {
+  console.warn('Toast called before initialization');
+  return '';
+};
 
 export function useToast() {
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -44,5 +50,11 @@ export function useToast() {
     }, 300) // Animation duration
   }, [])
 
+  // Update the global toast function
+  globalToast = toast;
+
   return { toast, dismiss, toasts }
 }
+
+// Export a toast function that can be imported directly
+export const toast = (props: ToastProps) => globalToast(props);

@@ -70,7 +70,10 @@ export async function POST(request: Request) {
             eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
           },
           select: (columns: string) => {
-            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+            eq: (column: string, value: string) => Promise<{ 
+              data: Array<{ id: string; title: string }> | null; 
+              error: unknown 
+            }>
           }
         }
       };
@@ -127,7 +130,10 @@ export async function POST(request: Request) {
             eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
           },
           select: (columns: string) => {
-            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+            eq: (column: string, value: string) => Promise<{ 
+              data: Array<{ id: string; title: string }> | null; 
+              error: unknown 
+            }>
           }
         }
       };

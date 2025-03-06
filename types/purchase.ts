@@ -23,5 +23,4 @@ export interface Purchase {
   createdAt: string;
 }
 
-// Re-export these types to make them available from the purchasesService
-export type { LessonAccess, PurchaseStatus };
+// These types are already defined above, no need to re-export

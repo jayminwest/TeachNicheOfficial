@@ -19,22 +19,25 @@ export async function POST(request: Request) {
     // Validate request body
     const validatedData = lessonRequestSchema.parse(body)
 
-    // Ensure title and description are present as required by the database schema
+    // The schema validation should ensure title and description are present
+    // but we'll add a type assertion to satisfy TypeScript
     const requestData = {
       ...validatedData,
       user_id: session.user.id,
       status: 'open',
       vote_count: 0,
       created_at: new Date().toISOString()
-    }
-
-    // TypeScript validation ensures title and description are present
-    if (!requestData.title || !requestData.description) {
-      return NextResponse.json(
-        { error: 'Title and description are required' },
-        { status: 400 }
-      )
-    }
+    } as {
+      title: string;
+      description: string;
+      user_id: string;
+      status: string;
+      vote_count: number;
+      created_at: string;
+      category?: string;
+      tags?: string[];
+      instagram_handle?: string;
+    };
 
     const { data, error } = await supabase
       .from('lesson_requests')

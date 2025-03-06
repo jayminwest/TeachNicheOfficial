@@ -17,6 +17,9 @@ interface LessonUpdateData {
   price?: number;
   muxAssetId?: string;
   muxPlaybackId?: string;
+  stripe_product_id?: string;
+  stripe_price_id?: string;
+  previous_stripe_price_ids?: string[];
 }
 
 export class LessonsService extends DatabaseService {
@@ -83,6 +86,9 @@ export class LessonsService extends DatabaseService {
           muxAssetId: lesson.mux_asset_id || '',
           muxPlaybackId: lesson.mux_playback_id || '',
           creatorId: lesson.instructor_id || '',
+          stripe_product_id: lesson.stripe_product_id,
+          stripe_price_id: lesson.stripe_price_id,
+          previous_stripe_price_ids: lesson.previous_stripe_price_ids,
           averageRating,
           totalRatings
         };
@@ -132,6 +138,9 @@ export class LessonsService extends DatabaseService {
         muxAssetId: data.mux_asset_id || '',
         muxPlaybackId: data.mux_playback_id || '',
         creatorId: data.instructor_id || '',
+        stripe_product_id: data.stripe_product_id,
+        stripe_price_id: data.stripe_price_id,
+        previous_stripe_price_ids: data.previous_stripe_price_ids,
         averageRating,
         totalRatings
       };
@@ -271,6 +280,9 @@ export class LessonsService extends DatabaseService {
           price: data.price,
           mux_asset_id: data.muxAssetId,
           mux_playback_id: data.muxPlaybackId,
+          stripe_product_id: data.stripe_product_id,
+          stripe_price_id: data.stripe_price_id,
+          previous_stripe_price_ids: data.previous_stripe_price_ids,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -304,6 +316,9 @@ export class LessonsService extends DatabaseService {
         muxAssetId: updateData.mux_asset_id || '',
         muxPlaybackId: updateData.mux_playback_id || '',
         creatorId: updateData.instructor_id || '',
+        stripe_product_id: updateData.stripe_product_id,
+        stripe_price_id: updateData.stripe_price_id,
+        previous_stripe_price_ids: updateData.previous_stripe_price_ids,
         averageRating,
         totalRatings
       };

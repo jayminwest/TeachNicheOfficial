@@ -1,6 +1,5 @@
 // Server component
 export const dynamic = 'force-dynamic';
-import { Suspense } from 'react';
 import AuthClient from './client';
 import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 

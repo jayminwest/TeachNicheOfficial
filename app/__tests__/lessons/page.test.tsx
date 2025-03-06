@@ -83,7 +83,7 @@ describe('Lesson Page', () => {
   });
   
   it('should call notFound when needed', () => {
-    const { notFound } = require('next/navigation');
+    const { notFound } = jest.requireMock('next/navigation');
     notFound();
     expect(notFound).toHaveBeenCalled();
   });

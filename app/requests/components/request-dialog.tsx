@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { useCategories } from '@/app/hooks/useCategories'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { createRequest, deleteRequest, updateRequest } from '@/app/lib/supabase/requests'

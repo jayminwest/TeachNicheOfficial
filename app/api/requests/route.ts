@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
 import { createServerSupabaseClient } from '@/app/lib/supabase/server'
 

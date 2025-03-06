@@ -28,7 +28,7 @@ describe('ClientAuthWrapper', () => {
     
     // Mock the search params with no parameters by default
     (useSearchParams as jest.Mock).mockReturnValue({
-      get: (_: string) => null,
+      get: (param: string) => null,
     });
     
     // Mock the sign in function to succeed by default

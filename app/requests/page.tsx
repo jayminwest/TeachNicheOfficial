@@ -1,5 +1,4 @@
 export const dynamic = 'force-dynamic';
-import { Suspense } from 'react';
 import { RequestsPage } from './components/requests-page';
 import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 

@@ -103,7 +103,7 @@ export async function POST() {
           
           results.updated++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: lesson.id as string,
             status: 'updated',
             playbackId: assetStatus.playbackId
           });

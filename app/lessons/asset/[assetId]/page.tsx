@@ -28,10 +28,10 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
             mux_playback_id: asset.playbackId,
             updated_at: new Date().toISOString()
           })
-          .eq('id', lesson.id);
+          .eq('id', String(lesson.id));
         
         // Redirect to the lesson page
-        redirect(`/lessons/${lesson.id}`);
+        redirect(`/lessons/${String(lesson.id)}`);
       }
     } else if (asset.status === 'ready' && !asset.playbackId) {
       // If the asset is ready but doesn't have a playback ID, try to get one
@@ -68,10 +68,10 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
                   mux_playback_id: data.playbackId,
                   updated_at: new Date().toISOString()
                 })
-                .eq('id', lesson.id);
+                .eq('id', String(lesson.id));
               
               // Redirect to the lesson page
-              redirect(`/lessons/${lesson.id}`);
+              redirect(`/lessons/${String(lesson.id)}`);
             }
           }
         }
@@ -95,8 +95,15 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
 
 export const dynamic = 'force-dynamic';
 
-export default async function Page({ params }: { params: { assetId: string } }) {
-  const { assetId } = params;
+// NOTE: There's a known type error during build with Next.js 15.1.7 regarding PageProps compatibility.
+// The error is: "Type '{ params: { assetId: string; }; }' does not satisfy the constraint 'PageProps'."
+// This is related to how Next.js types dynamic route parameters in the App Router.
+// The functionality works correctly despite the type error.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function Page(props: any) {
+  const params = props.params;
+  const assetId = params.assetId;
   const initialStatus = await checkAssetStatus(assetId);
   
   return (

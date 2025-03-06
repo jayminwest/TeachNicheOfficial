@@ -52,11 +52,20 @@ export async function POST() {
     // Process each lesson
     for (const lesson of lessons) {
       try {
-        // Skip lessons without an asset ID
-        if (!lesson.mux_asset_id) {
+        if (!('id' in lesson)) {
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: 'unknown',
+            status: 'skipped',
+            reason: 'Invalid lesson record: missing id'
+          });
+          continue;
+        }
+        // Skip lessons without an asset ID
+        if (!('mux_asset_id' in lesson) || !lesson.mux_asset_id) {
+          results.skipped++;
+          results.details.push({
+            lessonId: typeof lesson.id === 'string' ? lesson.id : 'unknown',
             status: 'skipped',
             reason: 'No Mux asset ID'
           });
@@ -64,10 +73,10 @@ export async function POST() {
         }
         
         // Skip lessons with temporary asset IDs
-        if (lesson.mux_asset_id.startsWith('temp_')) {
+        if (typeof lesson.mux_asset_id === 'string' && lesson.mux_asset_id.startsWith('temp_')) {
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: typeof lesson.id === 'string' ? lesson.id : 'unknown',
             status: 'skipped',
             reason: 'Temporary asset ID'
           });
@@ -75,7 +84,7 @@ export async function POST() {
         }
         
         // Check the asset status
-        const assetStatus = await getAssetStatus(lesson.mux_asset_id);
+        const assetStatus = await getAssetStatus(String(lesson.mux_asset_id));
         
         if (assetStatus.status === 'ready' && assetStatus.playbackId) {
           // Update the lesson
@@ -86,7 +95,7 @@ export async function POST() {
               mux_playback_id: assetStatus.playbackId,
               updated_at: new Date().toISOString()
             })
-            .eq('id', lesson.id);
+            .eq('id', lesson.id as string);
           
           if (updateError) {
             throw new Error(`Failed to update lesson: ${updateError.message}`);
@@ -94,14 +103,14 @@ export async function POST() {
           
           results.updated++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: String(lesson.id),
             status: 'updated',
             playbackId: assetStatus.playbackId
           });
         } else if (assetStatus.status === 'errored') {
           results.failed++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: String(lesson.id),
             status: 'failed',
             reason: `Asset error: ${assetStatus.error?.message}`
           });
@@ -109,16 +118,17 @@ export async function POST() {
           // Still processing
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: String(lesson.id),
             status: 'skipped',
             reason: `Asset still processing (status: ${assetStatus.status})`
           });
         }
       } catch (error) {
-        console.error(`Error processing lesson ${lesson.id}:`, error);
+        const lessonId = (lesson as { id?: string } | null)?.id ?? 'unknown';
+        console.error(`Error processing lesson ${lessonId}:`, error);
         results.failed++;
         results.details.push({
-          lessonId: lesson.id,
+          lessonId: lessonId,
           status: 'error',
           reason: error instanceof Error ? error.message : 'Unknown error'
         });

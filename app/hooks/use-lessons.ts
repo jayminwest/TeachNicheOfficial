@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { lessonsService } from '@/app/services/database/lessonsService'
-import { Lesson } from '@/types/lesson'
+import { Lesson } from '@/app/types/lesson'
 
 interface UseLessonsOptions {
   limit?: number;
@@ -14,29 +14,70 @@ export function useLessons(options?: UseLessonsOptions) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   
+  // Use a ref instead of state for tracking retries
+  // This won't trigger re-renders or affect the dependency array
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
+  
   useEffect(() => {
+    let isMounted = true;
+    retryCountRef.current = 0; // Reset retry count on options change
+    
     async function fetchLessons() {
-      setLoading(true)
-      setError(null)
+      // Skip if we've reached max retries
+      if (retryCountRef.current >= maxRetries) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
+      
+      if (isMounted) {
+        setLoading(true);
+        setError(null);
+      }
       
       try {
-        const { data, error, success } = await lessonsService.getLessons(options)
+        const { data, error, success } = await lessonsService.getLessons(options);
+        
+        if (!isMounted) return;
         
         if (!success || error) {
-          throw error || new Error('Failed to fetch lessons')
+          throw error || new Error('Failed to fetch lessons');
         }
         
-        setLessons(data || [])
+        setLessons(data || []);
       } catch (err) {
-        console.error('Error fetching lessons:', err)
-        setError(err instanceof Error ? err : new Error('An unknown error occurred'))
+        if (!isMounted) return;
+        
+        console.error('Error fetching lessons:', err);
+        setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+        
+        // Increment retry count without state updates
+        retryCountRef.current += 1;
+        
+        // Schedule a retry with exponential backoff
+        if (retryCountRef.current < maxRetries) {
+          const backoffTime = Math.pow(2, retryCountRef.current) * 1000; // Exponential backoff
+          setTimeout(() => {
+            if (isMounted) {
+              fetchLessons(); // Retry the fetch
+            }
+          }, backoffTime);
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
     
-    fetchLessons()
-  }, [options])
+    fetchLessons();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [options]); // Only depends on options
   
   return { lessons, loading, error }
 }

@@ -3,7 +3,7 @@
   function checkAuthParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const showAuth = urlParams.get('auth') === 'signin';
-    const redirect = urlParams.get('redirect') || '/profile';
+    // const redirect = urlParams.get('redirect') || '/profile';
     
     if (showAuth) {
       // Create a modal dialog for authentication

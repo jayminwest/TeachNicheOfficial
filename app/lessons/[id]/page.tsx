@@ -1,40 +1,39 @@
 import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { Metadata } from 'next';
 
-// @ts-expect-error - Next.js page props type mismatch
-export default async function Page({
-  params
-}: {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  // Access the id directly from params
-  const lessonId = params.id;
+// Simple metadata function
+export const metadata: Metadata = {
+  title: 'Lesson Details',
+  description: 'View lesson details and content',
+};
+
+// Use a more generic type to avoid Next.js 15 type issues
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function LessonPage(props: any) {
+  const params = props.params;
+  // Get the lesson ID from the URL
+  const lessonId = params?.id;
   
-  const supabase = await createServerSupabaseClient();
+  if (!lessonId) {
+    notFound();
+    return null;
+  }
   
   try {
-    // Check if the lesson exists before rendering the component
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('id', lessonId)
-      .single();
+    // Create Supabase client
+    const supabase = await createServerSupabaseClient();
     
-    // If lesson doesn't exist, show 404 page
-    if (error || !lesson) {
-      notFound();
-    }
-    
-    // Get the user session if available
+    // Get session
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
-    // Return the component with props using the local lessonId variable
+    // Return the lesson detail component
     return <LessonDetail id={lessonId} session={session} />;
   } catch (error) {
-    console.error('Error fetching lesson:', error);
+    console.error('Error in lesson page:', error);
     notFound();
+    return null;
   }
 }

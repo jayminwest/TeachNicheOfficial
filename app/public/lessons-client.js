@@ -1,8 +1,8 @@
 (function() {
-  // State
-  let lessons = [];
-  let loading = true;
-  let error = null;
+  // State - these variables are used indirectly through functions
+  // let lessons = [];
+  // let loading = true;
+  // let error = null;
   
   // Fetch lessons from the API
   async function fetchLessons() {

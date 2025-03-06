@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     
     return NextResponse.json({
       url: upload.url,
-      uploadId: upload.id
+      uploadId: upload.uploadId
     });
   } catch (error) {
     console.error('Error creating upload:', error);

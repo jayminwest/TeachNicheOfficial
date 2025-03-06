@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Database } from '@/types/database'
+import { Database } from '@/app/types/database'
 
 type Category = Database['public']['Tables']['categories']['Row']
 

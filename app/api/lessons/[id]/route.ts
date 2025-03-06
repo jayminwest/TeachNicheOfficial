@@ -3,6 +3,7 @@ import { lessonsService } from '@/app/services/database/lessonsService';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
+import { LessonUpdateData } from '@/app/types/lesson';
 
 export async function PATCH(
   request: NextRequest
@@ -127,12 +128,12 @@ export async function PATCH(
         description: data.description,
         content: data.content,
         price: data.price,
-        muxAssetId: data.muxAssetId,
-        muxPlaybackId: data.muxPlaybackId,
+        mux_asset_id: data.muxAssetId,
+        mux_playback_id: data.muxPlaybackId,
         stripe_product_id: data.stripe_product_id,
         stripe_price_id: data.stripe_price_id,
         previous_stripe_price_ids: data.previous_stripe_price_ids
-      }
+      } as LessonUpdateData
     );
     
     if (error) {

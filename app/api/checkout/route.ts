@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getStripe, stripeConfig } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { Database } from '@/types/database';
+import { Database } from '@/app/types/database';
+import Stripe from 'stripe';
 
 // Helper function for creating checkout sessions (not exported as a route handler)
 async function createCheckoutSession(lessonId: string, price: number, baseUrl: string, creatorStripeAccountId: string) {
@@ -10,7 +11,7 @@ async function createCheckoutSession(lessonId: string, price: number, baseUrl: s
     throw new Error('Invalid price: must be a positive number');
   }
 
-  const stripe = getStripe();
+  const stripe = getStripe() as Stripe;
   
   // Calculate the application fee amount based on the platform fee percentage
   const applicationFeeAmount = Math.round(price * 100 * (stripeConfig.platformFeePercent / 100));

@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { lessonRequestSchema } from '@/app/lib/schemas/lesson-request'
+import { createServerSupabaseClient } from '@/app/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -20,15 +19,29 @@ export async function POST(request: Request) {
     // Validate request body
     const validatedData = lessonRequestSchema.parse(body)
 
+    // The schema validation should ensure title and description are present
+    // but we'll add a type assertion to satisfy TypeScript
+    const requestData = {
+      ...validatedData,
+      user_id: session.user.id,
+      status: 'open',
+      vote_count: 0,
+      created_at: new Date().toISOString()
+    } as {
+      title: string;
+      description: string;
+      user_id: string;
+      status: string;
+      vote_count: number;
+      created_at: string;
+      category?: string;
+      tags?: string[];
+      instagram_handle?: string;
+    };
+
     const { data, error } = await supabase
       .from('lesson_requests')
-      .insert([{ 
-        ...validatedData,
-        user_id: session.user.id,
-        status: 'open',
-        vote_count: 0,
-        created_at: new Date().toISOString()
-      }])
+      .insert(requestData)
       .select()
       .single()
 
@@ -52,7 +65,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
     const { searchParams } = new URL(request.url)
     
     const category = searchParams.get('category')

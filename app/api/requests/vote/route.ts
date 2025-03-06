@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { voteSchema } from '@/app/lib/schemas/lesson-request'
-import { RequestVoteResponse } from '@/app/types/request'
+import type { RequestVoteResponse } from '@/app/types/request'
 
 export const runtime = 'edge'
 
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     }
 
     // Get updated vote count
-    const { data: voteCount, error: countError } = await supabase
+    const { count: voteCount, error: countError } = await supabase
       .from('lesson_request_votes')
       .select('*', { count: 'exact', head: true })
       .eq('request_id', requestId);

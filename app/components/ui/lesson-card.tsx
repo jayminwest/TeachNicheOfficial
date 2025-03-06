@@ -44,12 +44,11 @@ export function LessonCard({ lesson }: LessonCardProps) {
       >
         <div className="relative aspect-video w-full">
           <Image
-            src={lesson.thumbnail_url || lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
+            src={lesson.thumbnailUrl || '/placeholder-lesson.jpg'}
             alt={lesson.title}
             fill
             className="object-cover rounded-t-lg"
-            unoptimized={!(lesson.thumbnail_url || lesson.thumbnailUrl) || 
-              (lesson.thumbnail_url && lesson.thumbnail_url.startsWith('blob:')) || 
+            unoptimized={!lesson.thumbnailUrl || 
               (lesson.thumbnailUrl && lesson.thumbnailUrl.startsWith('blob:'))} 
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />

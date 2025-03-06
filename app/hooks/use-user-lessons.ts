@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { Lesson } from '@/types/lesson';
+import { Lesson } from '@/app/types/lesson';
+
 
 interface UseUserLessonsOptions {
   limit?: number;
@@ -68,8 +69,13 @@ export function useUserLessons({
           videoPlaybackId: lesson.mux_playback_id,
           creatorId: lesson.creator_id,
           published: lesson.status === 'published',
-          isFeatured: lesson.is_featured
-        }));
+          isFeatured: lesson.is_featured,
+          // Add missing properties required by Lesson interface
+          averageRating: 0,
+          totalRatings: 0,
+          created_at: lesson.created_at,
+          creator_id: lesson.creator_id
+        })) as Lesson[];
 
         setLessons(formattedLessons);
       } catch (err) {

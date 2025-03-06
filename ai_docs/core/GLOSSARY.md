@@ -106,6 +106,9 @@ The percentage or fixed amount that the platform charges for each transaction.
 ### Playwright
 An end-to-end testing framework used to automate browser testing across Chromium, Firefox, and WebKit.
 
+### Production Environment
+The live environment that serves real users. NEVER contains temporary workarounds, mock data, hardcoded values, or experimental features that haven't been properly tested and approved.
+
 ### PurchasesService
 A service class that extends DatabaseService and handles database operations related to purchases, including creation, verification, and status updates of purchase records.
 
@@ -138,6 +141,9 @@ A recurring payment model where users pay regularly for access to content.
 
 ### TDD (Test-Driven Development)
 A software development approach where tests are written before the code implementation.
+
+### Temporary Workaround
+A short-term solution to a problem that is NOT suitable for production environments. All temporary workarounds must be tracked, documented, and replaced with proper solutions before deployment to production.
 
 ### Type Safety
 The extent to which a programming language prevents type errors. In TypeScript, this means ensuring variables and functions use consistent types throughout the codebase.

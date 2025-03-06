@@ -18,17 +18,17 @@ const nextConfig = {
   },
   typescript: {
     // Completely disable TypeScript during builds
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
+    // Add specific rules to ignore if needed
+    rules: {
+      'react/no-unescaped-entities': 'off',
+    },
   },
   // Use standalone output for better compatibility
   output: 'standalone',
-  // Disable static generation for error pages
-  excludeDefaultMomentLocales: true,
-  // Completely disable static generation
-  staticPageGenerationTimeout: 1
 }
 
 module.exports = nextConfig

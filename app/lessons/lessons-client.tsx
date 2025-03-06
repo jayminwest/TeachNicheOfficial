@@ -144,7 +144,7 @@ export default function LessonsClient({}: LessonsClientProps) {
       // Then update UI state
       setIsLoading(false);
     }
-  }, [isLoading, retryCount, setLessons, setIsLoading, setError, setRetryCount]); // Add proper dependencies
+  }, [isLoading, retryCount, setLessons, setIsLoading, setError, setRetryCount, DEBUG]); // Add proper dependencies
   
   // Separate useEffect for the initial fetch
   useEffect(() => {
@@ -173,7 +173,7 @@ export default function LessonsClient({}: LessonsClientProps) {
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };
-  }, [mounted, fetchLessons]); // Only depend on mounted and the memoized fetchLessons
+  }, [mounted, fetchLessons, DEBUG]); // Include DEBUG in dependencies
   
   const handleNewLesson = () => {
     router.push('/lessons/new');

@@ -8,8 +8,8 @@ export async function GET() {
     // In Next.js 15, cookies() returns a ReadonlyRequestCookies object
     const cookieStore = cookies();
     
-    // Get all cookies by converting to array
-    const allCookies = Array.from(cookieStore);
+    // Get all cookies by getting them individually
+    const allCookies = cookieStore.getAll();
     
     // Get specific auth cookies
     const authCookie = cookieStore.get('sb-erhavrzwpyvnpefifsfu-auth-token');

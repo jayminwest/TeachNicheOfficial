@@ -67,6 +67,7 @@ The specific issues appear to be:
 - The client components might be rendering before the auth context is fully initialized
 - The static server components might not be properly transitioning to their client counterparts
 - The client components don't implement the mounted state pattern consistently
+- Components using `useSearchParams()` are not properly wrapped in Suspense boundaries, causing entire pages to bail out of Server-Side Rendering
 
 ## Current Implementation Analysis
 
@@ -180,6 +181,35 @@ The project uses different approaches for client/server component splitting:
    }
    ```
 
+### useSearchParams() Suspense Boundary Issue
+
+We've identified a critical issue with how `useSearchParams()` is being used in our application:
+
+1. **The Problem**: Components using `useSearchParams()` are not properly wrapped in Suspense boundaries, causing entire pages to bail out of Server-Side Rendering (SSR) and fall back to Client-Side Rendering (CSR).
+
+2. **Current Implementation**: In `app/lessons/search-params-wrapper.tsx`, we're using `useSearchParams()` but not properly isolating its effects:
+   ```tsx
+   'use client';
+   
+   import { useSearchParams } from 'next/navigation';
+   import LessonsClient from './lessons-client';
+   
+   export default function SearchParamsWrapper() {
+     // This component's sole purpose is to isolate the useSearchParams hook
+     // but it's not properly extracting and passing down the values
+     const searchParams = useSearchParams();
+     
+     // Directly rendering LessonsClient without passing extracted values
+     return <LessonsClient />;
+   }
+   ```
+
+3. **Impact**: This causes the entire page to be client-rendered, which:
+   - Delays initial content display
+   - Negatively impacts SEO
+   - Creates a poor user experience with potential page flashing
+   - Prevents proper prerendering during build time
+
 ## Steps to Reproduce
 
 1. Visit the site
@@ -261,7 +291,43 @@ The project uses different approaches for client/server component splitting:
    }
    ```
 
-4. **Implement Better Error Handling**:
+4. **Fix useSearchParams() Suspense Boundary Issue**:
+   - Update `search-params-wrapper.tsx` to properly extract and pass down search params:
+   ```tsx
+   'use client';
+   
+   import { useSearchParams } from 'next/navigation';
+   import LessonsClient from './lessons-client';
+   
+   export default function SearchParamsWrapper() {
+     // Get the search params
+     const searchParams = useSearchParams();
+     
+     // Extract the values you need from searchParams
+     const query = searchParams.get('query') || '';
+     const category = searchParams.get('category') || '';
+     const page = searchParams.get('page') || '1';
+     
+     // Pass only the extracted values to LessonsClient
+     return <LessonsClient query={query} category={category} page={page} />;
+   }
+   ```
+   
+   - Update `lessons-client.tsx` to accept the extracted search params as props:
+   ```tsx
+   interface LessonsClientProps {
+     query?: string;
+     category?: string;
+     page?: string;
+   }
+   
+   export default function LessonsClient({ query, category, page }: LessonsClientProps) {
+     // Use the props directly instead of calling useSearchParams() again
+     // ...
+   }
+   ```
+
+5. **Implement Better Error Handling**:
    - Wrap client components in error boundaries
    - Add timeouts to all loading states
    - Improve error logging
@@ -272,9 +338,10 @@ The project uses different approaches for client/server component splitting:
 2. ✅ Update the client components to use the mounted pattern consistently
 3. ✅ Add Suspense boundaries around components using `useSearchParams()` to fix build failures
 4. ✅ Create dedicated client components for auth pages
-5. Add better error handling and logging to diagnose any remaining issues
-6. Test the changes on all affected pages to ensure they load properly
-7. Verify the build succeeds without the `useSearchParams()` errors
+5. ✅ Fix the useSearchParams() implementation to properly extract and pass values as props
+6. Add better error handling and logging to diagnose any remaining issues
+7. Test the changes on all affected pages to ensure they load properly
+8. Verify the build succeeds without the `useSearchParams()` errors
 
 ## Priority
 
@@ -319,6 +386,8 @@ We've made significant progress on addressing the critical issues:
 - ✅ The auth callback implementation has been improved with comprehensive error handling
 - ✅ Added error boundaries to all page components
 - ✅ Created a reusable `ClientWrapper` component for consistent client-side rendering
+- ✅ Fixed the useSearchParams() implementation to properly isolate client-side rendering bailout
+- ✅ Implemented proper extraction and passing of search parameters as props
 
 Next steps:
 
@@ -326,5 +395,6 @@ Next steps:
 2. Update existing client components to use the new `ClientWrapper` component
 3. Test the complete user journey from authentication to content access
 4. Monitor error rates and loading times in production
+5. Apply the same useSearchParams() pattern to other pages with similar issues
 
-The most critical issues (missing sign-in button and infinite loading states) should be resolved with the current changes, but we need to verify this in production and continue monitoring for any remaining issues.
+The most critical issues (missing sign-in button, infinite loading states, and useSearchParams() bailout) should be resolved with the current changes, but we need to verify this in production and continue monitoring for any remaining issues.

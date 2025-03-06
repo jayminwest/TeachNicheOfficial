@@ -1,5 +1,4 @@
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
-import type { Database } from '@/types/database'
 
 /**
  * Standard response type for auth operations

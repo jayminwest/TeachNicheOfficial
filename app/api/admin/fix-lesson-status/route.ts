@@ -76,7 +76,7 @@ export async function POST() {
         if (typeof lesson.mux_asset_id === 'string' && lesson.mux_asset_id.startsWith('temp_')) {
           results.skipped++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: typeof lesson.id === 'string' ? lesson.id : 'unknown',
             status: 'skipped',
             reason: 'Temporary asset ID'
           });

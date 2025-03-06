@@ -39,13 +39,13 @@ export async function POST(request: NextRequest) {
     const userId = userSession.user.id;
 
     // Fetch the lesson to verify it exists and get creator info
-    const { data: lesson, error: lessonError } = await supabase
+    const { data: lessonData, error: lessonError } = await supabase
       .from('lessons')
       .select('id, title, price, creator_id')
       .eq('id', lessonId)
       .single();
 
-    if (lessonError || !lesson) {
+    if (lessonError || !lessonData) {
       return NextResponse.json(
         { error: 'Lesson not found' },
         { status: 404 }
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the price matches
-    if (lesson.price !== price) {
+    if (lessonData.price !== price) {
       return NextResponse.json(
         { error: 'Price mismatch' },
         { status: 400 }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Don't allow creators to purchase their own lessons
-    if (lesson.creator_id === userId) {
+    if (lessonData.creator_id === userId) {
       return NextResponse.json(
         { error: 'You cannot purchase your own lesson' },
         { status: 400 }
@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: lesson.title,
-              description: `Access to lesson: ${lesson.title}`,
+              name: lessonData.title,
+              description: `Access to lesson: ${lessonData.title}`,
             },
             unit_amount: Math.round(price * 100), // Convert to cents
           },

@@ -14,11 +14,19 @@ export async function generateMetadata({
   
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: lesson } = await supabase
+    const { data: lesson, error } = await supabase
       .from('lessons')
       .select('title, description')
       .eq('id', lessonId)
       .single();
+    
+    if (error) {
+      console.error('Error fetching lesson metadata:', error);
+      return {
+        title: 'Lesson Details',
+        description: 'View lesson details and content'
+      };
+    }
     
     return {
       title: lesson?.title || 'Lesson Details',

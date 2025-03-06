@@ -95,11 +95,9 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
 
 export const dynamic = 'force-dynamic';
 
-import { AppRouterPageProps } from '@/app/types/next-page';
-
 export default async function Page({ 
   params 
-}: AppRouterPageProps<{ assetId: string }>) {
+}: { params: { assetId: string } }) {
   const assetId = params.assetId;
   const initialStatus = await checkAssetStatus(assetId);
   

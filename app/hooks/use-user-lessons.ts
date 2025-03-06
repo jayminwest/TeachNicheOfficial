@@ -3,6 +3,22 @@ import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Lesson } from '@/types/lesson';
 
+// Define a type that matches the data structure we're working with
+interface LessonData {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+  thumbnailUrl: string;
+  videoAssetId: string;
+  videoPlaybackId: string;
+  creatorId: string;
+  published: boolean;
+  isFeatured: boolean;
+}
+
 interface UseUserLessonsOptions {
   limit?: number;
   orderBy?: string;
@@ -68,8 +84,13 @@ export function useUserLessons({
           videoPlaybackId: lesson.mux_playback_id,
           creatorId: lesson.creator_id,
           published: lesson.status === 'published',
-          isFeatured: lesson.is_featured
-        }));
+          isFeatured: lesson.is_featured,
+          // Add missing properties required by Lesson interface
+          averageRating: 0,
+          totalRatings: 0,
+          created_at: lesson.created_at,
+          creator_id: lesson.creator_id
+        })) as Lesson[];
 
         setLessons(formattedLessons);
       } catch (err) {

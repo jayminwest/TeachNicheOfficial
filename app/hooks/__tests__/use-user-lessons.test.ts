@@ -6,11 +6,15 @@ import { useAuth } from '@/app/services/auth/AuthContext';
 // Mock dependencies
 jest.mock('@/app/services/supabase', () => ({
   supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          order: jest.fn(() => ({
+            limit: jest.fn()
+          }))
+        }))
+      }))
+    }))
   },
 }));
 
@@ -72,14 +76,14 @@ describe('useUserLessons', () => {
 
   it('should fetch and format lessons correctly', async () => {
     // Mock the Supabase response
-    (supabase.from as jest.Mock).mockReturnThis();
-    (supabase.select as jest.Mock).mockReturnThis();
-    (supabase.eq as jest.Mock).mockReturnThis();
-    (supabase.order as jest.Mock).mockReturnThis();
-    (supabase.limit as jest.Mock).mockResolvedValue({
+    const mockLimit = jest.fn().mockResolvedValue({
       data: mockLessons,
       error: null,
     });
+    const mockOrder = jest.fn(() => ({ limit: mockLimit }));
+    const mockEq = jest.fn(() => ({ order: mockOrder }));
+    const mockSelect = jest.fn(() => ({ eq: mockEq }));
+    (supabase.from as jest.Mock).mockReturnValue({ select: mockSelect });
 
     const { result } = renderHook(() => useUserLessons());
 
@@ -111,14 +115,14 @@ describe('useUserLessons', () => {
     const testError = new Error('Database error');
     
     // Mock the Supabase response with an error
-    (supabase.from as jest.Mock).mockReturnThis();
-    (supabase.select as jest.Mock).mockReturnThis();
-    (supabase.eq as jest.Mock).mockReturnThis();
-    (supabase.order as jest.Mock).mockReturnThis();
-    (supabase.limit as jest.Mock).mockResolvedValue({
+    const mockLimit = jest.fn().mockResolvedValue({
       data: null,
       error: testError,
     });
+    const mockOrder = jest.fn(() => ({ limit: mockLimit }));
+    const mockEq = jest.fn(() => ({ order: mockOrder }));
+    const mockSelect = jest.fn(() => ({ eq: mockEq }));
+    (supabase.from as jest.Mock).mockReturnValue({ select: mockSelect });
 
     const { result } = renderHook(() => useUserLessons());
 
@@ -132,14 +136,14 @@ describe('useUserLessons', () => {
 
   it('should use custom options correctly', async () => {
     // Mock the Supabase response
-    (supabase.from as jest.Mock).mockReturnThis();
-    (supabase.select as jest.Mock).mockReturnThis();
-    (supabase.eq as jest.Mock).mockReturnThis();
-    (supabase.order as jest.Mock).mockReturnThis();
-    (supabase.limit as jest.Mock).mockResolvedValue({
+    const mockLimit = jest.fn().mockResolvedValue({
       data: mockLessons,
       error: null,
     });
+    const mockOrder = jest.fn(() => ({ limit: mockLimit }));
+    const mockEq = jest.fn(() => ({ order: mockOrder }));
+    const mockSelect = jest.fn(() => ({ eq: mockEq }));
+    (supabase.from as jest.Mock).mockReturnValue({ select: mockSelect });
 
     renderHook(() => useUserLessons({ 
       limit: 10, 
@@ -148,8 +152,9 @@ describe('useUserLessons', () => {
     }));
 
     expect(supabase.from).toHaveBeenCalledWith('lessons');
-    expect(supabase.eq).toHaveBeenCalledWith('creator_id', 'user-123');
-    expect(supabase.order).toHaveBeenCalledWith('title', { ascending: true });
-    expect(supabase.limit).toHaveBeenCalledWith(10);
+    expect(mockSelect).toHaveBeenCalled();
+    expect(mockEq).toHaveBeenCalledWith('creator_id', 'user-123');
+    expect(mockOrder).toHaveBeenCalledWith('title', { ascending: true });
+    expect(mockLimit).toHaveBeenCalledWith(10);
   });
 });

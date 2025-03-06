@@ -20,7 +20,7 @@ export default function EditLessonPage() {
   const [lesson, setLesson] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = createClientComponentClient();
   
   // Fetch lesson data
@@ -195,12 +195,12 @@ export default function EditLessonPage() {
   
   // Transform lesson data for the form
   const formData = {
-    title: lesson.title,
-    description: lesson.description || '',
-    content: lesson.content || '',
-    price: lesson.price || 0,
-    muxAssetId: lesson.mux_asset_id || '',
-    muxPlaybackId: lesson.mux_playback_id || '',
+    title: lesson.title as string,
+    description: (lesson.description as string) || '',
+    content: (lesson.content as string) || '',
+    price: (lesson.price as number) || 0,
+    muxAssetId: (lesson.mux_asset_id as string) || '',
+    muxPlaybackId: (lesson.mux_playback_id as string) || '',
   };
   
   return (

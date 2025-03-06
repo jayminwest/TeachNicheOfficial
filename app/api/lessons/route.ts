@@ -3,11 +3,16 @@ import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 export async function GET() {
   try {
-    // Make sure to properly await the createServerSupabaseClient function
+    // Create the Supabase client
     const supabase = await createServerSupabaseClient();
     
-    // Get the current user
-    const { data: { user } } = await supabase.auth.getUser();
+    // Get the current user with proper error handling
+    const { data, error: userError } = await supabase.auth.getUser();
+    const user = data?.user;
+    
+    if (userError) {
+      console.error('Error getting user:', userError);
+    }
     
     // Fetch lessons
     let query = supabase
@@ -16,14 +21,8 @@ export async function GET() {
       .order('created_at', { ascending: false });
     
     // If user is logged in, include their lessons
-    // Note: The public column might be named is_public or published
-    if (user) {
-      // Use proper type casting for the user ID
-      query = query.eq('creator_id', user.id);
-    } else {
-      // For anonymous users, just return all lessons for now
-      // We'll implement proper visibility filtering once we confirm the schema
-    }
+    // For now, we're returning all lessons regardless of user state
+    // We'll implement proper visibility filtering once we confirm the schema
     
     const { data: lessons, error } = await query;
     

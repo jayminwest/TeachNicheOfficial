@@ -318,7 +318,7 @@ export const canCreatePaidLessons = async (
     // Get profile with Stripe account ID
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete')
+      .select('stripe_account_id, stripe_account_status, stripe_onboarding_complete')
       .eq('id', userId)
       .single();
 
@@ -327,12 +327,24 @@ export const canCreatePaidLessons = async (
       return false;
     }
     
-    if (!profile || !profile.stripe_account_id) {
+    if (!profile) {
+      return false;
+    }
+    
+    // Type guard to ensure profile has the expected properties
+    const hasStripeAccount = 'stripe_account_id' in profile && typeof profile.stripe_account_id === 'string';
+    
+    if (!hasStripeAccount || !profile.stripe_account_id) {
       return false;
     }
 
-    // If we already know onboarding is complete based on profile data
-    if (profile.stripe_onboarding_complete) {
+    // Check if onboarding is complete based on profile data
+    // Use optional chaining and type checking for safety
+    const isOnboardingComplete = 
+      ('stripe_onboarding_complete' in profile && profile.stripe_onboarding_complete === true) ||
+      ('stripe_account_status' in profile && profile.stripe_account_status === 'complete');
+      
+    if (isOnboardingComplete) {
       return true;
     }
 
@@ -354,7 +366,7 @@ export const verifyConnectedAccount = async (
     // Get profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('id, stripe_account_id, stripe_onboarding_complete')
+      .select('id, stripe_account_id')
       .eq('id', userId)
       .single();
 
@@ -363,7 +375,14 @@ export const verifyConnectedAccount = async (
       throw new StripeError('profile_verification_failed', 'Failed to fetch profile');
     }
 
-    if (!profile?.stripe_account_id) {
+    if (!profile) {
+      throw new StripeError('profile_verification_failed', 'Profile not found');
+    }
+    
+    // Type guard to ensure profile has the expected properties
+    const hasStripeAccount = 'stripe_account_id' in profile && typeof profile.stripe_account_id === 'string';
+    
+    if (!hasStripeAccount || !profile.stripe_account_id) {
       throw new StripeError('missing_account', 'No Stripe account found');
     }
 

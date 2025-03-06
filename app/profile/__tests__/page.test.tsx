@@ -101,6 +101,7 @@ function renderWithAuthContext(ui, authProps = {}) {
     user: { id: 'test-user-id', email: 'test@example.com' },
     loading: false,
     isAuthenticated: true,
+    error: null,
     signIn: jest.fn(),
     signOut: jest.fn(),
     signUp: jest.fn(),
@@ -144,7 +145,8 @@ describe('ProfilePage', () => {
         <AuthContext.Provider value={{ 
           user: null,
           loading: false, // Not loading
-          isAuthenticated: false
+          isAuthenticated: false,
+          error: null
         }}>
           <ProfilePage />
         </AuthContext.Provider>

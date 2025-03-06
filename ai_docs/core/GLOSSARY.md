@@ -46,8 +46,8 @@ The interface where users manage their account, content, and view analytics.
 ### Database
 The structured storage system that holds all persistent data for the application.
 
-### DatabaseService
-A base class for database operations that provides common functionality for derived services. Implements retry logic, error handling, and returns a consistent DatabaseResponse<T> interface with data, error, and success properties.
+### DatabaseResponse<T>
+A standardized response format for database operations that includes the data of type T, any error that occurred, and a success boolean flag. Used throughout the application for consistent error handling.
 
 ## E
 

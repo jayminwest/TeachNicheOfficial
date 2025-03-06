@@ -68,7 +68,7 @@ export default function ProfileClient() {
     if (activeTab === 'content' && profile) {
       loadUserLessons()
     }
-  }, [activeTab, profile])
+  }, [activeTab, profile, loadUserLessons])
   
   const loadUserLessons = async () => {
     if (!profile) return
@@ -146,7 +146,7 @@ export default function ProfileClient() {
   }
   
   const handleDeleteAccount = async () => {
-    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+    if (!confirm(&apos;Are you sure you want to delete your account? This action cannot be undone.&apos;)) {
       return
     }
     

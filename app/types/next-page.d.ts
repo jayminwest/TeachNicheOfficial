@@ -19,3 +19,9 @@ declare global {
     interface Element extends ReactNode {}
   }
 }
+
+// Define a type for Next.js App Router page components
+export type AppRouterPageProps<T extends Record<string, string> = Record<string, string>> = {
+  params: T;
+  searchParams?: { [key: string]: string | string[] | undefined };
+};

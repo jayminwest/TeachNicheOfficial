@@ -21,7 +21,6 @@ export default function LessonsClient({
   // These state variables are initialized from props but not currently used
   // Keeping them for future implementation
   const [lessons, setLessons] = useState([]);
-  const [lessons, setLessons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);

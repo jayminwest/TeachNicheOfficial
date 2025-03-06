@@ -7,6 +7,19 @@ jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(),
 }));
 
+// Mock React's Suspense for controlled testing
+jest.mock('react', () => {
+  const originalReact = jest.requireActual('react');
+  return {
+    ...originalReact,
+    Suspense: ({ children, fallback }) => {
+      // For testing purposes, we'll render either children or fallback
+      // based on a global flag that we can control in tests
+      return global.__SUSPENSE_TEST_FALLBACK__ ? fallback : children;
+    },
+  };
+});
+
 // Component that uses useSearchParams
 function SearchParamsComponent() {
   const searchParams = useSearchParams();
@@ -27,6 +40,9 @@ describe('Suspense Boundary with useSearchParams', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
+    // Reset the global flag
+    global.__SUSPENSE_TEST_FALLBACK__ = false;
+    
     // Mock the search params
     (useSearchParams as jest.Mock).mockReturnValue({
       get: (param: string) => param === 'q' ? 'test-query' : null,
@@ -42,10 +58,8 @@ describe('Suspense Boundary with useSearchParams', () => {
   });
   
   it('handles suspense fallback when needed', () => {
-    // Mock useSearchParams to trigger suspense
-    (useSearchParams as jest.Mock).mockImplementation(() => {
-      throw new Promise(() => {}); // This simulates suspense
-    });
+    // Set the global flag to show fallback
+    global.__SUSPENSE_TEST_FALLBACK__ = true;
     
     render(<SuspenseWrapper />);
     

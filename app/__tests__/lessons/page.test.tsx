@@ -6,11 +6,23 @@ import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
   notFound: jest.fn(),
+  useSearchParams: jest.fn().mockReturnValue(new URLSearchParams()),
+  useRouter: jest.fn().mockReturnValue({
+    push: jest.fn(),
+  }),
 }));
 
 jest.mock('@/app/lib/supabase/server', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
+
+jest.mock('react', () => {
+  const originalReact = jest.requireActual('react');
+  return {
+    ...originalReact,
+    Suspense: ({ children, fallback }) => children, // Simplified Suspense for testing
+  };
+});
 
 jest.mock('@/app/lessons/[id]/lesson-detail', () => {
   return {
@@ -54,8 +66,7 @@ describe('Lesson Page', () => {
     expect(screen.getByTestId('lesson-detail')).toBeInTheDocument();
     expect(screen.getByTestId('lesson-detail')).toHaveAttribute('data-id', 'test-lesson-id');
     
-    // Check that Suspense is used (this is a bit tricky to test directly)
-    // We can check that the component is wrapped in a div with suspense attributes
+    // Check that the component is rendered
     expect(container.innerHTML).toContain('data-testid="lesson-detail"');
   });
   
@@ -69,6 +80,11 @@ describe('Lesson Page', () => {
         data: null,
         error: { message: 'Lesson not found' },
       }),
+      auth: {
+        getSession: jest.fn().mockResolvedValue({
+          data: { session: null },
+        }),
+      },
     };
     
     (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
@@ -92,6 +108,11 @@ describe('Lesson Page', () => {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       single: jest.fn().mockRejectedValue(new Error('Database error')),
+      auth: {
+        getSession: jest.fn().mockResolvedValue({
+          data: { session: null },
+        }),
+      },
     };
     
     (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);

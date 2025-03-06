@@ -9,3 +9,9 @@ interface Window {
     push: (url: string) => Promise<boolean>;
   };
 }
+
+declare global {
+  var __SUSPENSE_TEST_FALLBACK__: boolean;
+}
+
+export {};

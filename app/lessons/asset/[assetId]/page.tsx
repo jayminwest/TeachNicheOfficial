@@ -100,11 +100,9 @@ export const dynamic = 'force-dynamic';
 // This is related to how Next.js types dynamic route parameters in the App Router.
 // The functionality works correctly despite the type error.
 
-// @ts-expect-error - Next.js page props type mismatch
-export default async function Page(props: { 
-  params: Promise<{ assetId: string }> 
-}) {
-  const params = await props.params;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function Page(props: any) {
+  const params = props.params;
   const assetId = params.assetId;
   const initialStatus = await checkAssetStatus(assetId);
   

@@ -1,6 +1,18 @@
+import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
-import ClientAuthWrapper from './client-auth-wrapper';
 import { Skeleton } from '@/app/components/ui/skeleton';
+
+// Use dynamic import with SSR disabled to avoid useSearchParams issues
+const ClientAuthWrapper = dynamic(() => import('./client-auth-wrapper'), { 
+  ssr: false,
+  loading: () => (
+    <div className="space-y-4">
+      <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+      <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+      <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+    </div>
+  )
+});
 
 // Use a static page with client-side only components to avoid SSR bailout
 export default function AuthPage() {

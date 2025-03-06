@@ -160,6 +160,7 @@ This document provides a high-level overview of the Teach Niche platform archite
 - **Database Access**: Structured through service classes with retry mechanisms
 - **Session Management**: Secure session handling with proper expiration
 - **End-to-End Testing**: Security flows tested with Jest and Playwright
+- **No Temporary Solutions**: NEVER use temporary workarounds, mock data, or hardcoded credentials in production environments
 
 ## Testing Architecture
 

@@ -88,6 +88,7 @@ The Teach Niche documentation is organized in the `ai_docs/` directory:
 3. **Maintain Structure**: Follow the established documentation structure
 4. **Cross-Reference**: Link to related documentation
 5. **Keep Updated**: Update documentation when implementing changes
+6. **No Temporary Solutions**: Document that temporary workarounds, mock data, and hardcoded values are NEVER acceptable in production environments
 
 This approach allows you to discover and apply the appropriate documentation based on the specific context of each task, without overwhelming yourself with unnecessary information upfront.
 

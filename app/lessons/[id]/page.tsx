@@ -4,16 +4,11 @@ import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Metadata } from 'next';
 
-// Define the params type explicitly
-type LessonPageParams = {
-  id: string;
-};
-
 // Add metadata generation for the page
 export async function generateMetadata({
   params,
 }: {
-  params: LessonPageParams;
+  params: { id: string };
 }): Promise<Metadata> {
   const lessonId = params.id;
   
@@ -46,16 +41,14 @@ export async function generateMetadata({
   }
 }
 
-// Define the page component with explicit typing
-interface PageProps {
-  params: LessonPageParams;
-  searchParams?: Record<string, string | string[] | undefined>;
-}
-
-// Use the interface directly without importing from types
-export default async function Page(props: PageProps) {
+// Define the page component using Next.js 15 pattern
+export default async function Page({
+  params,
+}: {
+  params: { id: string };
+}) {
   // Access the id directly from params
-  const lessonId = props.params.id;
+  const lessonId = params.id;
   
   const supabase = await createServerSupabaseClient();
   

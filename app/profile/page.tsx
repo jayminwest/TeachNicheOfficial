@@ -8,8 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage() {
   // Create a Supabase client for the server component
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = createServerComponentClient({ cookies })
   
   // Get the session
   const { data: { session } } = await supabase.auth.getSession()

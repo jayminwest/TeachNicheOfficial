@@ -3,11 +3,8 @@ import { cookies } from 'next/headers';
 import type { Database } from '@/app/types/database';
 
 export async function createServerSupabaseClient() {
-  // Get cookies instance first
-  const cookieStore = cookies();
-  
-  // Pass the cookie store directly, not as a function
+  // Create the client with the cookies function directly
   return createRouteHandlerClient<Database>({ 
-    cookies: () => cookieStore
+    cookies
   });
 }

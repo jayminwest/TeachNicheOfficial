@@ -19,15 +19,26 @@ export async function POST(request: Request) {
     // Validate request body
     const validatedData = lessonRequestSchema.parse(body)
 
+    // Ensure title and description are present as required by the database schema
+    const requestData = {
+      ...validatedData,
+      user_id: session.user.id,
+      status: 'open',
+      vote_count: 0,
+      created_at: new Date().toISOString()
+    }
+
+    // TypeScript validation ensures title and description are present
+    if (!requestData.title || !requestData.description) {
+      return NextResponse.json(
+        { error: 'Title and description are required' },
+        { status: 400 }
+      )
+    }
+
     const { data, error } = await supabase
       .from('lesson_requests')
-      .insert({ 
-        ...validatedData,
-        user_id: session.user.id,
-        status: 'open',
-        vote_count: 0,
-        created_at: new Date().toISOString()
-      })
+      .insert(requestData)
       .select()
       .single()
 

@@ -20,7 +20,6 @@ interface LessonUpdateData {
   mux_playback_id?: string;
   stripe_product_id?: string;
   stripe_price_id?: string;
-  previous_stripe_price_ids?: string[];
 }
 
 export class LessonsService extends DatabaseService {
@@ -89,7 +88,6 @@ export class LessonsService extends DatabaseService {
           creator_id: lesson.creator_id || '',
           stripe_product_id: lesson.stripe_product_id,
           stripe_price_id: lesson.stripe_price_id,
-          previous_stripe_price_ids: lesson.previous_stripe_price_ids || [],
           averageRating,
           totalRatings
         };
@@ -138,10 +136,9 @@ export class LessonsService extends DatabaseService {
         created_at: data.created_at,
         mux_asset_id: data.mux_asset_id || '',
         mux_playback_id: data.mux_playback_id || '',
-        creatorId: data.creator_id || '',
+        creator_id: data.creator_id || '',
         stripe_product_id: data.stripe_product_id,
         stripe_price_id: data.stripe_price_id,
-        previous_stripe_price_ids: data.previous_stripe_price_ids || [],
         averageRating,
         totalRatings
       };
@@ -308,7 +305,6 @@ export class LessonsService extends DatabaseService {
           mux_playback_id: data.mux_playback_id,
           stripe_product_id: data.stripe_product_id,
           stripe_price_id: data.stripe_price_id,
-          previous_stripe_price_ids: data.previous_stripe_price_ids,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -344,7 +340,6 @@ export class LessonsService extends DatabaseService {
         creator_id: updateData.creator_id || '',
         stripe_product_id: updateData.stripe_product_id,
         stripe_price_id: updateData.stripe_price_id,
-        previous_stripe_price_ids: updateData.previous_stripe_price_ids || [],
         averageRating,
         totalRatings
       };

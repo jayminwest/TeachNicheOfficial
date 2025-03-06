@@ -10,7 +10,6 @@ export interface Lesson {
   creator_id: string;
   stripe_product_id?: string;
   stripe_price_id?: string;
-  previous_stripe_price_ids?: string[];
   mux_asset_id?: string;
   mux_playback_id?: string;
   content?: string;

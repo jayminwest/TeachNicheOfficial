@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { Database } from '@/app/types/database';
 
 export async function GET() {
   try {
     // Create the Supabase client
-    const supabase = await createServerSupabaseClient();
+    const supabase = createRouteHandlerClient<Database>({ cookies });
     
     // Skip user authentication for now to simplify the flow
     // We'll implement proper user checking later

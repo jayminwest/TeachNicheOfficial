@@ -194,9 +194,6 @@ export function LessonForm({
             // Set to empty string to allow form submission - webhook will update it later
             data.muxPlaybackId = "";
             
-            // Set status to published even while processing
-            data.status = 'published';
-            
             // Show a toast to inform the user
             toast({
               title: "Video Processing",
@@ -430,7 +427,6 @@ export function LessonForm({
             </div>
             
             <VideoUploader
-              endpoint="/api/mux/upload"
               onUploadComplete={async (assetId) => {
                 console.log("LessonForm received assetId:", assetId);
                 try {

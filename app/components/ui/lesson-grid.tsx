@@ -9,6 +9,7 @@ interface Lesson {
   thumbnailUrl: string;
   averageRating: number;
   totalRatings: number;
+  creatorId: string;
 }
 
 interface LessonGridProps {

@@ -63,11 +63,17 @@ export async function POST(request: Request) {
       
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
-      // Use a more specific type assertion
-      const supabaseAny = supabase as any;
+      // Use a type assertion with a more specific interface
+      const supabaseClient = supabase as {
+        from: (table: string) => {
+          update: (data: Record<string, unknown>) => {
+            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+          }
+        }
+      };
       
       // Update the lesson with the asset ID
-      const updateResult = await supabaseAny
+      const updateResult = await supabaseClient
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
@@ -78,7 +84,7 @@ export async function POST(request: Request) {
       const error = updateResult.error;
       
       // Fetch the updated lesson in a separate query
-      const lessonResult = await supabaseAny
+      const lessonResult = await supabaseClient
         .from('lessons')
         .select('id, title')
         .eq('mux_upload_id', uploadId);
@@ -111,11 +117,17 @@ export async function POST(request: Request) {
       
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
-      // Use a more specific type assertion
-      const supabaseAny = supabase as any;
+      // Use a type assertion with a more specific interface
+      const supabaseClient = supabase as {
+        from: (table: string) => {
+          update: (data: Record<string, unknown>) => {
+            eq: (column: string, value: string) => Promise<{ data: unknown; error: unknown }>
+          }
+        }
+      };
       
       // Update the lesson with the playback ID and set status to published
-      const updateResult = await supabaseAny
+      const updateResult = await supabaseClient
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
@@ -127,7 +139,7 @@ export async function POST(request: Request) {
       const error = updateResult.error;
       
       // Fetch the updated lesson in a separate query
-      const lessonResult = await supabaseAny
+      const lessonResult = await supabaseClient
         .from('lessons')
         .select('id, title')
         .eq('mux_asset_id', assetId);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { LessonGrid } from '@/app/components/ui/lesson-grid';
 import { Button } from '@/app/components/ui/button';

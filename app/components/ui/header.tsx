@@ -42,11 +42,6 @@ export function Header() {
         console.log('Auth state in header:', { user: !!user, loading });
     }, [user, loading]);
     
-    // Add debug logging
-    useEffect(() => {
-        console.log('Auth state in header:', { user: !!user, loading });
-    }, [user, loading]);
-    
     // Check for auth parameter to show sign-in dialog
     useEffect(() => {
         if (!searchParams) return;

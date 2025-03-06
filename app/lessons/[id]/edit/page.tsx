@@ -5,7 +5,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LessonForm } from "@/app/components/ui/lesson-form";
-import { toast } from "@/app/components/ui/use-toast";
+import { useToast } from "@/app/components/ui/use-toast";
 import { Toaster } from "@/app/components/ui/toaster";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useAuth } from "@/app/services/auth/AuthContext";
@@ -22,6 +22,7 @@ export default function EditLessonPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   
   // Fetch lesson data
   useEffect(() => {

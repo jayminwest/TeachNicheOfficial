@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
-import { Lesson } from '@/types/lesson';
+import { Lesson } from '@/app/types/lesson';
 
 // Define a type that matches the data structure we're working with
 interface LessonData {

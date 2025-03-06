@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 export async function GET() {
   try {
+    // Make sure to properly await the createServerSupabaseClient function
     const supabase = await createServerSupabaseClient();
     
     // Get the current user

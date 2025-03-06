@@ -16,7 +16,6 @@
           router.push(redirectUrl);
         } else {
           router.push('/');
->>>>>>> e1b87e2eaf6aac7d182afa6b20e7d8a685016e84
         }
       }
     } catch (err) {
@@ -111,7 +110,6 @@
     </ErrorBoundary>
   );
 }
-=======
       const { success, error: signInError } = await signInWithGoogle();
       
       if (!success || signInError) {
@@ -130,7 +128,6 @@
           router.push(redirectUrl);
         } else {
           router.push('/');
->>>>>>> e1b87e2eaf6aac7d182afa6b20e7d8a685016e84
         }
       }
     } catch (err) {

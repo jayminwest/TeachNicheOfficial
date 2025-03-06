@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       .from('purchases')
       .select('id, stripe_session_id, status, created_at')
       .eq('lesson_id', lessonId)
-      .eq('user_id', userId as string)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1);
 

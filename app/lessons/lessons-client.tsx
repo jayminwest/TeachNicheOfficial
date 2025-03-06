@@ -43,12 +43,17 @@ export default function LessonsClient({}: LessonsClientProps) {
       }
     }, 10000); // 10 second timeout
     
+    // Track if the component is still mounted
+    let isMounted = true;
+    
     // Delay the initial fetch slightly to ensure DOM is fully rendered
     const initialFetchDelay = setTimeout(() => {
-      fetchLessons();
+      if (isMounted) fetchLessons();
     }, 100);
     
     async function fetchLessons() {
+      // Don't proceed if component unmounted
+      if (!isMounted) return;
       try {
         setIsLoading(true);
         setError(null);
@@ -126,7 +131,13 @@ export default function LessonsClient({}: LessonsClientProps) {
           const nextRetry = retryCount + 1;
           setRetryCount(nextRetry);
           console.log(`Retrying (${nextRetry}/${maxRetries}) in ${retryDelay * Math.pow(2, retryCount)}ms...`);
-          setTimeout(() => fetchLessons(), retryDelay * Math.pow(2, retryCount));
+          
+          // Only retry if component is still mounted
+          if (isMounted) {
+            setTimeout(() => {
+              if (isMounted) fetchLessons();
+            }, retryDelay * Math.pow(2, retryCount));
+          }
         }
       } finally {
         setIsLoading(false);
@@ -135,6 +146,7 @@ export default function LessonsClient({}: LessonsClientProps) {
     
     // Clear both timeouts on cleanup
     return () => {
+      isMounted = false;
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };

@@ -6,13 +6,8 @@ export async function GET() {
     // Create the Supabase client
     const supabase = await createServerSupabaseClient();
     
-    // Get the current user with proper error handling
-    const { data, error: userError } = await supabase.auth.getUser();
-    const user = data?.user;
-    
-    if (userError) {
-      console.error('Error getting user:', userError);
-    }
+    // Skip user authentication for now to simplify the flow
+    // We'll just fetch all lessons
     
     // Fetch lessons
     let query = supabase

@@ -1,28 +1,29 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/app/types/database';
 
 export async function createServerSupabaseClient() {
   try {
-    // Create a custom cookie handler that properly awaits cookie operations
     const cookieStore = cookies();
     
-    // Create the Supabase client with a custom cookie handler
-    return createRouteHandlerClient<Database>({
-      cookies: () => {
-        return {
-          get: async (name: string) => {
-            const cookie = cookieStore.get(name);
-            return cookie;
+    // Use the newer createServerClient approach which properly handles async cookies
+    return createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
           },
-          getAll: async () => {
-            return cookieStore.getAll();
+          set(name: string, value: string, options: any) {
+            // This is a read-only context, we don't need to implement set
           },
-          set: () => {}, // Not used in route handlers
-          remove: () => {}, // Not used in route handlers
-        };
-      },
-    });
+          remove(name: string, options: any) {
+            // This is a read-only context, we don't need to implement remove
+          },
+        },
+      }
+    );
   } catch (error) {
     console.error('Error creating Supabase client:', error);
     throw error;

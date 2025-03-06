@@ -25,7 +25,7 @@ export default function LessonsPage() {
               </div>
             }
           >
-            <SearchParamsWrapper />
+            <ClientWrapper />
           </ErrorBoundary>
         </Suspense>
       </div>

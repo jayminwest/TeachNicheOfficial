@@ -76,7 +76,7 @@ describe('PurchasesService', () => {
     stripeMock.mockRetrieveImplementation = mockRetrieve;
     
     // Override the purchasesService's getStripe method
-    jest.spyOn(purchasesService as unknown, 'getStripe').mockReturnValue(mockStripe);
+    jest.spyOn(purchasesService as any, 'getStripe').mockReturnValue(mockStripe);
     
     // Setup Supabase client mock
     mockSupabase = {
@@ -91,7 +91,7 @@ describe('PurchasesService', () => {
     };
     
     // Mock the getClient method to return our mock
-    jest.spyOn(purchasesService as unknown, 'getClient').mockReturnValue(mockSupabase);
+    jest.spyOn(purchasesService as any, 'getClient').mockReturnValue(mockSupabase);
     
     // Setup environment variables
     process.env.STRIPE_SECRET_KEY = 'mock-key';
@@ -165,7 +165,7 @@ describe('PurchasesService', () => {
     
     it('should handle Stripe API errors', async () => {
       // Mock a Stripe error
-      jest.spyOn(purchasesService as unknown, 'getClient').mockReturnValue(mockSupabase);
+      jest.spyOn(purchasesService as any, 'getClient').mockReturnValue(mockSupabase);
       
       // Override the Stripe mock for this test
       const stripeMock = jest.requireMock('stripe');

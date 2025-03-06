@@ -1,10 +1,15 @@
 // This file provides type declarations for Next.js page components
 import { ReactNode } from 'react';
 
-// Define the structure for Next.js page params
+// Define the structure for Next.js page params and props
 declare namespace NextJS {
   interface PageParams {
     [key: string]: string;
+  }
+  
+  interface PageProps {
+    params: { [key: string]: string };
+    searchParams?: { [key: string]: string | string[] | undefined };
   }
 }
 

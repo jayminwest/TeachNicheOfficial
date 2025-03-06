@@ -71,8 +71,7 @@ export async function POST(request: Request) {
           video_processing_status: 'processing'
         })
         .eq('mux_upload_id', uploadId)
-        .select('id, title')
-        .returns<Array<{ id: string, title: string }>>();
+        .select('id, title');
       
       if (error) {
         console.error('Error updating lesson with asset ID:', error);
@@ -107,8 +106,7 @@ export async function POST(request: Request) {
           status: 'published'
         })
         .eq('mux_asset_id', assetId)
-        .select('id, title')
-        .returns<Array<{ id: string, title: string }>>();
+        .select('id, title');
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);

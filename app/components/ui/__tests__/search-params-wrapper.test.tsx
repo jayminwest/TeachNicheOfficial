@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SearchParamsWrapper } from '../search-params-wrapper';
 

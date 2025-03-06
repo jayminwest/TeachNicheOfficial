@@ -39,3 +39,22 @@ export function SearchParamsWrapper({
     </Suspense>
   );
 }
+'use client'
+
+import React, { Suspense, ReactNode } from 'react'
+
+interface SearchParamsWrapperProps {
+  children: ReactNode
+  fallback?: ReactNode
+}
+
+export function SearchParamsWrapper({ 
+  children, 
+  fallback = <div className="w-full h-32 bg-muted animate-pulse rounded-md" />
+}: SearchParamsWrapperProps) {
+  return (
+    <Suspense fallback={fallback}>
+      {children}
+    </Suspense>
+  )
+}

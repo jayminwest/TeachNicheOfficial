@@ -16,6 +16,9 @@ interface StripeConnectButtonProps {
     details?: {
       pendingVerification: boolean;
       missingRequirements: string[];
+      has_details_submitted?: boolean;
+      has_charges_enabled?: boolean;
+      has_payouts_enabled?: boolean;
     };
   } | null;
 }
@@ -182,11 +185,11 @@ export function StripeConnectButton({
                 </div>
                 
                 <div className={`flex items-center gap-2 p-2 rounded-md ${
-                  stripeStatus?.details?.pending_verification 
+                  stripeStatus?.details?.pendingVerification 
                     ? 'bg-amber-50/10' 
                     : (stripeStatus?.isComplete ? 'bg-background' : 'bg-background')
                 }`}>
-                  {stripeStatus?.details?.pending_verification 
+                  {stripeStatus?.details?.pendingVerification 
                     ? <Clock className="h-4 w-4 text-amber-500" /> 
                     : (stripeStatus?.isComplete ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertTriangle className="h-4 w-4 text-gray-500" />)}
                   <span>Verification Status</span>

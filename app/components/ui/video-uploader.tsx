@@ -153,18 +153,23 @@ export function VideoUploader({
         className="mux-uploader"
         endpoint={uploadEndpoint}
         onUploadStart={handleUploadStart}
-        onProgress={handleUploadProgress}
+        onProgress={(event) => {
+          if (event instanceof CustomEvent) {
+            handleUploadProgress(event as CustomEvent<number>);
+          }
+        }}
         onSuccess={(event) => {
           console.log("MuxUploader onSuccess event:", event);
           
           // Extract the upload ID from the endpoint URL
           // The endpoint URL contains the upload ID as part of the path or query parameters
-          let uploadId;
+          let uploadId: string | undefined;
           
           try {
             // First try to get it from the event
-            if (event && event.detail && event.detail.uploadId) {
-              uploadId = event.detail.uploadId;
+            const eventDetail = event?.detail as unknown as { uploadId?: string };
+            if (eventDetail?.uploadId) {
+              uploadId = eventDetail.uploadId;
               console.log("Got upload ID from event:", uploadId);
             } else if (uploadEndpoint) {
               // Extract from the uploadEndpoint URL
@@ -191,7 +196,7 @@ export function VideoUploader({
             
             // If we still don't have an ID, try to get it from the stored global variable
             if (!uploadId) {
-              uploadId = (window as unknown).__lastUploadId;
+              uploadId = (window as any).__lastUploadId;
               console.log("Using stored upload ID:", uploadId);
             }
           } catch (error) {
@@ -233,7 +238,7 @@ export function VideoUploader({
             localStorage.setItem('lastMuxAssetId', uploadId);
             
             // Set a global variable as another fallback
-            (window as unknown).__muxAssetId = uploadId;
+            (window as any).__muxAssetId = uploadId;
           } catch (storageError) {
             console.error('Failed to store asset ID in session storage:', storageError);
           }

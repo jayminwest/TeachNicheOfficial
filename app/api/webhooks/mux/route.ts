@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
       // Update the lesson with the asset ID
-      const { data, error } = await supabase
+      const result = await supabase
         .from('lessons')
         .update({ 
           mux_asset_id: assetId,
@@ -72,6 +72,8 @@ export async function POST(request: Request) {
         })
         .eq('mux_upload_id', uploadId)
         .select('id, title');
+      
+      const { data, error } = result;
       
       if (error) {
         console.error('Error updating lesson with asset ID:', error);
@@ -98,7 +100,7 @@ export async function POST(request: Request) {
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
       // Update the lesson with the playback ID and set status to published
-      const { data, error } = await supabase
+      const result = await supabase
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
@@ -107,6 +109,8 @@ export async function POST(request: Request) {
         })
         .eq('mux_asset_id', assetId)
         .select('id, title');
+      
+      const { data, error } = result;
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);

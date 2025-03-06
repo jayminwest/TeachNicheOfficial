@@ -12,19 +12,44 @@ export default function LessonsClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
   
+  // Handle client-side mounting
   useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+  
+  useEffect(() => {
+    // Don't fetch if not mounted (client-side only)
+    if (!mounted) return;
+    
     const maxRetries = 3;
     const retryDelay = 1000; // 1 second
+    
+    // Add safety timeout for loading state
+    const loadingTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Lessons loading timeout triggered');
+        setIsLoading(false);
+        setError('Loading timeout - please try again');
+      }
+    }, 10000); // 10 second timeout
     
     async function fetchLessons() {
       try {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch('/api/lessons');
+        const response = await fetch('/api/lessons', {
+          // Add cache control headers
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
@@ -52,7 +77,9 @@ export default function LessonsClient() {
     }
     
     fetchLessons();
-  }, [retryCount]);
+    
+    return () => clearTimeout(loadingTimeout);
+  }, [retryCount, mounted]);
   
   const handleNewLesson = () => {
     router.push('/lessons/new');
@@ -61,6 +88,30 @@ export default function LessonsClient() {
   const handleRetry = () => {
     setRetryCount(0); // Reset retry count to trigger a new fetch attempt
   };
+  
+  // Show loading skeleton if not mounted yet (server-side)
+  if (!mounted) {
+    return (
+      <div className="space-y-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <div className="h-10 w-40 bg-muted rounded animate-pulse mb-2"></div>
+            <div className="h-5 w-64 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="h-10 w-32 bg-muted rounded animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="border rounded-lg p-4 space-y-4">
+              <div className="aspect-video bg-muted rounded animate-pulse"></div>
+              <div className="h-6 w-3/4 bg-muted rounded animate-pulse"></div>
+              <div className="h-4 w-1/2 bg-muted rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   
   if (isLoading) {
     return (

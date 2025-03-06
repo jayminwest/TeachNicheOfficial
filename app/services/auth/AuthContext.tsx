@@ -41,8 +41,9 @@ export function AuthProvider({
       if (isMounted && loading) {
         console.warn('Auth loading safety timeout triggered')
         setLoading(false)
+        setUser(null) // Ensure user is null if timeout occurs
       }
-    }, 5000) // 5 second timeout
+    }, 3000) // Reduced from 5 to 3 seconds for faster fallback
 
     // Check active sessions and sets the user
     async function initializeAuth() {

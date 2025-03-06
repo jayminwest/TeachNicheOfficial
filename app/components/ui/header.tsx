@@ -37,9 +37,22 @@ export function Header() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const searchParams = useSearchParams();
     
-    // Add debug logging
+    // Add debug logging and force sign-in button to appear if loading takes too long
+    const [forceShowSignIn, setForceShowSignIn] = useState(false);
+    
     useEffect(() => {
         console.log('Auth state in header:', { user: !!user, loading });
+        
+        // Force sign-in button to appear after 3 seconds if still loading
+        let timeoutId: NodeJS.Timeout;
+        if (loading) {
+            timeoutId = setTimeout(() => {
+                console.warn('Header loading timeout triggered - forcing sign-in button render');
+                setForceShowSignIn(true);
+            }, 3000);
+        }
+        
+        return () => clearTimeout(timeoutId);
     }, [user, loading]);
     
     // Check for auth parameter to show sign-in dialog
@@ -136,14 +149,14 @@ export function Header() {
                 </div>
                 <div className="hidden lg:flex justify-end w-full gap-2 items-center">
                     <ThemeToggle />
-                    {!loading && user ? (
+                    {(!loading && user) ? (
                         <>
                             <Link href="/profile">
                                 <Button variant="ghost" data-testid="profile-button">Profile</Button>
                             </Link>
                             <SignOutButton variant="ghost" />
                         </>
-                    ) : !loading ? (
+                    ) : (!loading || forceShowSignIn) ? (
                         <>
                             <AuthDialog 
                                 open={dialogOpen} 
@@ -170,14 +183,14 @@ export function Header() {
                                 <div className="flex justify-end">
                                     <ThemeToggle />
                                 </div>
-                                {!loading && user ? (
+                                {(!loading && user) ? (
                                     <>
                                         <Link href="/profile">
                                             <Button variant="ghost" className="w-full">Profile</Button>
                                         </Link>
                                         <SignOutButton variant="ghost" className="w-full" />
                                     </>
-                                ) : !loading ? (
+                                ) : (!loading || forceShowSignIn) ? (
                                     <>
                                         <AuthDialog 
                                             open={dialogOpen} 

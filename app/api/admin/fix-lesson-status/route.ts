@@ -110,7 +110,7 @@ export async function POST() {
         } else if (assetStatus.status === 'errored') {
           results.failed++;
           results.details.push({
-            lessonId: lesson.id,
+            lessonId: lesson.id as string,
             status: 'failed',
             reason: `Asset error: ${assetStatus.error?.message}`
           });

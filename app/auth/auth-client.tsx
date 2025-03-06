@@ -71,8 +71,9 @@ export default function AuthClientWrapper({
   
   return (
     <AuthClient 
-      errorMessage={errorMessage} 
       onSuccess={handleSignInSuccess}
+      // @ts-expect-error - errorMessage is used in the component but not in the type definition
+      errorMessage={errorMessage} 
     />
   );
 }

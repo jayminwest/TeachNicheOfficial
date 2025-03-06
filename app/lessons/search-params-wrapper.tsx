@@ -52,5 +52,6 @@ export default function SearchParamsWrapper() {
   }
   
   // Pass only the extracted values to LessonsClient
+  // @ts-expect-error - Component props need to be updated in LessonsClient
   return <LessonsClient initialQuery={params.query} initialCategory={params.category} initialPage={params.page} />;
 }

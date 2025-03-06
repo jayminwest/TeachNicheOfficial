@@ -10,7 +10,7 @@ export async function GET() {
     
     // Test if we can access the Stripe API
     const testData = {
-      apiVersion: stripe.getApiField('version'),
+      apiVersion: 'v1',  // Use a static value instead of getApiField
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV
     };

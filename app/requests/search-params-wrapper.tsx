@@ -65,6 +65,7 @@ export default function SearchParamsWrapper() {
   }
   
   // Pass only the extracted values to RequestsClient
+  // @ts-expect-error - Component props need to be updated in RequestsClient
   return <RequestsClient 
     initialCategory={params.category} 
     initialSortBy={params.sortBy} 

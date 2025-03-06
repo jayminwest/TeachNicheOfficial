@@ -1,101 +1,104 @@
-# Issue: Update AI Documentation to Reflect Production Status and Codebase Patterns
+# Documentation Update Progress Tracker
 
-## Description
-The `ai_docs/` directory needs a comprehensive update to accurately reflect the current state of the Teach Niche platform. The existing documentation treats the project as hypothetical or in-development, when it is actually a live production application with active users. This disconnect creates challenges for development tools like Aider that rely on accurate documentation to understand the codebase.
+## Overview
+This file tracks the progress of updating the AI documentation to accurately reflect the current status of Teach Niche and its codebase patterns. This tracker will help ensure all necessary updates are completed systematically and consistently.
 
-## Technical Analysis
-After reviewing the codebase, we've identified several key areas where documentation needs to be updated:
+## Status Summary
+- [ ] Core documentation updated to reflect actual project status
+- [ ] Component patterns documented
+- [ ] API route patterns documented
+- [ ] Authentication flow documented
+- [ ] Database access patterns documented
+- [ ] Testing approach documented
+- [ ] AI tool guidance created
 
-1. **Project Status**: Documentation should clearly state this is a production application with real users, not a future implementation.
+## Detailed Progress
 
-2. **Tech Stack Reality**: The actual tech stack in use includes:
-   - Next.js 15.1.7 with App Router
-   - React 19.0.0
-   - TypeScript with strict null checks
-   - Supabase for authentication and database
-   - Mux for video processing and playback
-   - Stripe Connect for payments (using API version 2025-01-27.acacia)
-   - Shadcn UI components
-   - Jest and Playwright for testing
+### Core Documentation Files
 
-3. **Component Patterns**: The codebase follows specific patterns for components:
-   - Client components are marked with "use client" directive
-   - Props interfaces are defined at the top of component files
-   - Components use the function declaration style
-   - Optional props are consistently marked with `?` in TypeScript interfaces
-   - Components use the `cn()` utility for className composition
+#### 1. ai_docs/core/OVERVIEW.md
+- [ ] Update project status to reflect actual application status
+- [ ] Update tech stack with specific versions from package.json
+- [ ] Review and update version history
+- [ ] Update target audience section
+- [ ] Update project goals to reflect current direction
 
-4. **API Route Patterns**: API routes follow consistent patterns:
-   - Organized by feature in the `app/api/` directory
-   - Use NextResponse for standardized response formatting
-   - Implement proper error handling with status codes
-   - Follow RESTful conventions with HTTP methods
-   - Use Supabase client for database operations
+**Inconsistencies to address:**
+- Document dates need review
+- Project description may need updating
+- Tech stack details need verification
 
-5. **Authentication Flow**: The authentication system uses:
-   - Supabase Auth with route handlers
-   - OAuth providers (Google)
-   - Session-based authentication
-   - Protected routes and content
+#### 2. ai_docs/core/ARCHITECTURE.md
+- [ ] Update system architecture to reflect actual implementation
+- [ ] Add concrete examples of component patterns
+- [ ] Document API route patterns
+- [ ] Update security architecture section
+- [ ] Update testing architecture section
 
-6. **Database Access**: Database operations follow patterns:
-   - Type-safe database access with generated types
-   - Row-level security (RLS) for data protection
-   - Consistent error handling for database operations
+**Inconsistencies to address:**
+- Architecture description may need verification against actual implementation
+- Examples from codebase should be added
+- Testing section needs alignment with actual practices
 
-7. **Testing Strategy**: The project uses:
-   - Jest for unit and integration tests
-   - Playwright for end-to-end and visual regression tests
-   - Mock implementations for external services
+#### 3. ai_docs/core/DOCUMENTATION_USAGE.md
+- [ ] Update to reflect how documentation should be used with the codebase
+- [ ] Add sections for AI tools to understand codebase patterns
+- [ ] Review and update version history
 
-## Affected Files
-The entire `ai_docs/` directory needs review, with particular focus on:
-- `ai_docs/core/ARCHITECTURE.md`
-- `ai_docs/core/OVERVIEW.md`
-- `ai_docs/core/DOCUMENTATION_USAGE.md`
-- Any files describing component patterns, API patterns, and data flow
+**Inconsistencies to address:**
+- Dates need review
+- May need additional sections for AI tool usage
 
-## Proposed Changes
-1. Update all documentation to clearly state this is a production application with real users
-2. Document the actual component patterns used (based on files like `app/components/ui/video-player.tsx`)
-3. Document the TypeScript interface patterns (e.g., consistent use of optional properties)
-4. Document the API route patterns (based on `app/api/lessons/route.ts`)
-5. Document the authentication flows (based on `app/api/auth/callback/route.ts`)
-6. Document the error handling patterns
-7. Document the testing approach (based on `app/api/__tests__/requests.test.ts`)
-8. Create new documentation files for areas not currently covered
+### New Documentation Files to Consider
 
-## Implementation Plan
-1. First, update core documentation files to reflect production status
-2. Create or update pattern documentation for components, API routes, and hooks
-3. Document database access patterns and type safety approach
-4. Document testing strategy and patterns
-5. Create a comprehensive guide for AI tools like Aider to understand the codebase
+#### 1. ai_docs/patterns/COMPONENTS.md
+- [ ] Document component patterns
+- [ ] Document TypeScript interface patterns for props
+- [ ] Document component styling approaches
+- [ ] Include examples from actual codebase
 
-## Testing Requirements
-- Documentation should be reviewed for accuracy against the actual codebase
-- Documentation should be tested with Aider to ensure it improves code understanding
-- No functional testing required as this is a documentation-only change
+#### 2. ai_docs/patterns/API_ROUTES.md
+- [ ] Document API organization
+- [ ] Document response formatting
+- [ ] Document error handling patterns
+- [ ] Document API conventions
+- [ ] Include examples from actual codebase
 
-## Additional Context
-This documentation update is critical for maintaining the codebase effectively as it grows. Accurate documentation will:
-1. Help new developers understand the established patterns
-2. Ensure consistency in future development
-3. Improve AI tool effectiveness when working with the codebase
-4. Reduce the risk of introducing inconsistencies or bugs
+#### 3. ai_docs/patterns/AUTHENTICATION.md
+- [ ] Document authentication implementation
+- [ ] Document authentication flow
+- [ ] Document protected content implementation
+- [ ] Include examples from actual codebase
 
-The current tech stack as seen in package.json includes React 19, Next.js 15, and other cutting-edge dependencies, indicating this is an actively maintained production application.
+#### 4. ai_docs/patterns/DATABASE.md
+- [ ] Document database access patterns
+- [ ] Document security implementations
+- [ ] Document error handling
+- [ ] Include examples from actual codebase
 
-## Labels
-- documentation
-- enhancement
-- high priority
+#### 5. ai_docs/patterns/TESTING.md
+- [ ] Document testing approaches
+- [ ] Document test organization
+- [ ] Document mock implementations
+- [ ] Include examples from actual codebase
 
-## Acceptance Criteria
-- All documentation accurately reflects the production status of the application
-- Component patterns are clearly documented with examples
-- API route patterns are clearly documented with examples
-- Authentication flow is accurately described
-- Database access patterns are documented
-- Testing approach is documented
-- AI tools like Aider can effectively understand the codebase structure
+#### 6. ai_docs/guides/AI_TOOLS.md
+- [ ] Create guide for AI tools to understand codebase
+- [ ] Document common patterns AI should recognize
+- [ ] Provide examples of effective AI prompts
+
+## Implementation Notes
+- When updating documentation, ensure language accurately reflects the project's current state
+- Replace hypothetical examples with actual code examples where possible
+- Review all dates for accuracy
+- Ensure consistency in terminology across all documentation files
+
+## Completed Updates
+*This section will be populated as updates are completed*
+
+## Next Steps
+1. Review core documentation files to understand current state
+2. Examine codebase to identify actual patterns in use
+3. Update core documentation files first
+4. Create new pattern documentation files as needed
+5. Test documentation with AI tools to verify effectiveness

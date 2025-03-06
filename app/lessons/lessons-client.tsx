@@ -168,7 +168,7 @@ export default function LessonsClient({}: LessonsClientProps) {
     return () => {
       clearTimeout(loadingTimeout);
     };
-  }, [mounted, fetchLessons]); // Remove DEBUG from dependencies
+  }, [mounted, fetchLessons, DEBUG]);
   
   const handleNewLesson = () => {
     router.push('/lessons/new');

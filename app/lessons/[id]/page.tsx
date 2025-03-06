@@ -3,7 +3,6 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Metadata } from 'next';
-import { PageProps, MetadataProps } from '@/app/types/next';
 
 // Add metadata generation for the page
 export async function generateMetadata({ 

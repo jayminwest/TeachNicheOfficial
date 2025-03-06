@@ -23,9 +23,8 @@ export async function POST(request: Request) {
       );
     }
     
-    // Get the current user session - make sure to await cookies()
-    const cookieStore = await cookies();
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
+    // Get the current user session
+    const supabase = createRouteHandlerClient<Database>({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {

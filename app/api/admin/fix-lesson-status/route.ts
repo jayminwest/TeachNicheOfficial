@@ -124,7 +124,7 @@ export async function POST() {
           });
         }
       } catch (error) {
-        const lessonId = (lesson != null && typeof lesson === 'object' && 'id' in lesson) ? String(lesson.id) : 'unknown';
+        const lessonId = lesson?.id ? String(lesson.id) : 'unknown';
         console.error(`Error processing lesson ${lessonId}:`, error);
         results.failed++;
         results.details.push({

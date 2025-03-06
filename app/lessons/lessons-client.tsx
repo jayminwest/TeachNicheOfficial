@@ -78,8 +78,21 @@ export default function LessonsClient() {
         }
         
         const data = await response.json();
-        console.log('Lessons fetched successfully:', data.length);
-        setLessons(data);
+        console.log('Lessons fetched successfully:', Array.isArray(data) ? data.length : 'Not an array');
+        console.log('Response data type:', typeof data);
+        console.log('First lesson sample:', Array.isArray(data) && data.length > 0 ? JSON.stringify(data[0], null, 2) : 'No lessons');
+        
+        // Ensure we're working with an array of lessons
+        if (Array.isArray(data)) {
+          setLessons(data);
+        } else if (data && typeof data === 'object' && Array.isArray(data.lessons)) {
+          // Handle case where API returns { lessons: [...] }
+          setLessons(data.lessons);
+        } else {
+          console.error('Unexpected data format from API:', data);
+          setLessons([]);
+          throw new Error('Invalid data format received from server');
+        }
       } catch (err) {
         console.error('Error fetching lessons:', err);
         

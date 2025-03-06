@@ -102,10 +102,20 @@ export default function LessonsClient({}: LessonsClientProps) {
           } else if (data && typeof data === 'object' && Array.isArray(data.lessons)) {
             // Handle case where API returns { lessons: [...] }
             setLessons(data.lessons);
+          } else if (data && typeof data === 'object' && data.error) {
+            // Handle error response from API
+            throw new Error(data.error);
           } else {
             console.error('Unexpected data format from API:', data);
-            setLessons([]);
-            throw new Error('Invalid data format received from server');
+            // Try to convert to array if possible
+            const fallbackData = data && typeof data === 'object' ? Object.values(data) : [];
+            if (Array.isArray(fallbackData) && fallbackData.length > 0 && fallbackData[0].id) {
+              console.log('Converted object to array successfully');
+              setLessons(fallbackData);
+            } else {
+              setLessons([]);
+              throw new Error('Invalid data format received from server');
+            }
           }
         } catch (fetchError) {
           // Handle network errors separately

@@ -6,18 +6,13 @@ export async function GET() {
     // Create the Supabase client using our direct approach
     const supabase = createServerSupabaseClient();
     
-    // Log that we're using the direct client approach
     console.log('Using direct Supabase client for lessons API');
     
-    // Fetch lessons
+    // Fetch lessons with error handling
     const query = supabase
       .from('lessons')
       .select('id, title, description, price, thumbnail_url, creator_id')
       .order('created_at', { ascending: false });
-    
-    // If user is logged in, include their lessons
-    // For now, we're returning all lessons regardless of user state
-    // We'll implement proper visibility filtering once we confirm the schema
     
     const { data: lessons, error } = await query;
     

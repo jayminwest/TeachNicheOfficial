@@ -101,9 +101,10 @@ export const dynamic = 'force-dynamic';
 // The functionality works correctly despite the type error.
 
 // @ts-expect-error - Next.js page props type mismatch
-export default async function Page({ 
-  params 
-}: { params: { assetId: string } }) {
+export default async function Page(props: { 
+  params: Promise<{ assetId: string }> 
+}) {
+  const params = await props.params;
   const assetId = params.assetId;
   const initialStatus = await checkAssetStatus(assetId);
   

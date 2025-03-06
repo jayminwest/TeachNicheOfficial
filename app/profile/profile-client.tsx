@@ -65,36 +65,36 @@ export default function ProfileClient() {
   }, [supabase])
   
   useEffect(() => {
+    const loadUserLessons = async () => {
+      if (!profile) return
+      
+      setLessonsLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('lessons')
+          .select('*')
+          .eq('creator_id', profile.id)
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+        
+        setLessons(data || [])
+      } catch (err) {
+        console.error('Error loading lessons:', err)
+        toast({
+          variant: 'destructive',
+          title: 'Error loading lessons',
+          description: err.message
+        })
+      } finally {
+        setLessonsLoading(false)
+      }
+    }
+
     if (activeTab === 'content' && profile) {
       loadUserLessons()
     }
-  }, [activeTab, profile, loadUserLessons])
-  
-  const loadUserLessons = async () => {
-    if (!profile) return
-    
-    setLessonsLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('lessons')
-        .select('*')
-        .eq('creator_id', profile.id)
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
-      
-      setLessons(data || [])
-    } catch (err) {
-      console.error('Error loading lessons:', err)
-      toast({
-        variant: 'destructive',
-        title: 'Error loading lessons',
-        description: err.message
-      })
-    } finally {
-      setLessonsLoading(false)
-    }
-  }
+  }, [activeTab, profile, supabase, toast])
   
   const handleInputChange = (e) => {
     const { name, value } = e.target

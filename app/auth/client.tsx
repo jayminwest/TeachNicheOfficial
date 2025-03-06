@@ -56,6 +56,19 @@ export default function AuthClient({ onSuccess }: AuthClientProps) {
       if (!success || signInError) {
         console.error('Sign in error:', signInError);
         setError(signInError instanceof Error ? signInError.message : 'Failed to sign in with Google');
+        
+        // Enhanced error detection for cookie issues
+        const errorMessage = signInError instanceof Error ? signInError.message : String(signInError);
+        if (errorMessage.includes('cookies') || 
+            errorMessage.includes('this.context') || 
+            errorMessage.includes('is not a function')) {
+          setError('Authentication session issue detected. Refreshing the page...');
+          // Force a full page reload instead of just router.refresh()
+          setTimeout(() => {
+            window.location.href = window.location.href;
+          }, 2000);
+          return;
+        }
         return;
       }
       
@@ -94,7 +107,19 @@ export default function AuthClient({ onSuccess }: AuthClientProps) {
       }
     } catch (err) {
       console.error('Exception during sign in:', err);
-      setError('An unexpected error occurred. Please try again.');
+      
+      // Also handle unexpected errors that might be cookie-related
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes('cookies') || 
+          errorMessage.includes('this.context') || 
+          errorMessage.includes('is not a function')) {
+        setError('Authentication session issue detected. Refreshing the page...');
+        setTimeout(() => {
+          window.location.href = window.location.href;
+        }, 2000);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

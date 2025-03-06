@@ -29,8 +29,10 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   
   // Create a Supabase client using the middleware helper
-  // Note: In middleware, we still need to use createMiddlewareClient with req and res
   const supabase = createMiddlewareClient({ req, res })
+  
+  // This is critical for cookie handling - explicitly refresh the session
+  await supabase.auth.getSession()
   
   const path = req.nextUrl.pathname
   
@@ -49,7 +51,7 @@ export async function middleware(req: NextRequest) {
       }
     }
     // In development, allow access to debug routes
-    return NextResponse.next();
+    return res;
   }
   
   // Skip middleware for public paths
@@ -57,7 +59,7 @@ export async function middleware(req: NextRequest) {
       path.startsWith('/auth/callback') || 
       path.startsWith('/auth/signin') ||
       path.startsWith('/api/auth/verify-config')) {
-    return NextResponse.next()
+    return res;
   }
   
   // Get the session using the middleware client
@@ -94,6 +96,7 @@ export async function middleware(req: NextRequest) {
 // Configure which paths the middleware should run on
 export const config = {
   matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
     '/lessons/:path*',
     '/profile/:path*',
     '/dashboard/:path*',
@@ -101,6 +104,5 @@ export const config = {
     '/auth/callback',
     '/auth/signin',
     '/debug/:path*', // Add debug routes
-    // Add other paths that need middleware checking
   ]
 }

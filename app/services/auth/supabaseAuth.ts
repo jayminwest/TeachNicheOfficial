@@ -95,25 +95,39 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
     
     // Wrap in try/catch to handle potential cookie errors
     try {
+      // First, try to get the session to ensure cookies are working
+      await supabase.auth.getSession()
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options,
       })
       
-      if (error && error.message?.includes('cookies')) {
-        console.error('Cookie-related auth error:', error);
-        // Try a fallback approach for cookie issues
+      if (error) {
+        console.error('OAuth sign-in error:', error);
+        
+        // Special handling for cookie-related errors
+        if (error.message?.includes('cookies') || 
+            error.message?.includes('this.context') ||
+            error.message?.includes('is not a function')) {
+          return {
+            data: null,
+            error: new Error(`Authentication cookie issue: ${error.message}. Please try again or clear your browser cookies.`),
+            success: false
+          }
+        }
+        
         return {
           data: null,
-          error: new Error(`Authentication cookie issue: ${error.message}. Please try again or clear your browser cookies.`),
+          error: error,
           success: false
         }
       }
       
       return {
         data,
-        error: error || null,
-        success: !error
+        error: null,
+        success: true
       }
     } catch (innerErr) {
       console.error('Inner auth error:', innerErr);

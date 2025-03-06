@@ -1,45 +1,46 @@
-import { Suspense } from 'react';
-import SearchParamsWrapper from './search-params-wrapper';
-import { Skeleton } from '@/app/components/ui/skeleton';
-import { ErrorBoundary } from '@/app/components/ui/error-boundary';
-
+// Static page component that doesn't use any client hooks
 export default function RequestsPage() {
   return (
     <div className="min-h-screen pt-16">
-      <Suspense fallback={
-        <div className="container p-8 space-y-6">
-          <Skeleton className="h-10 w-full max-w-sm" />
-          <div className="space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-[120px] w-full rounded-lg" />
-            ))}
-          </div>
+      <div className="container p-8 space-y-6">
+        <div className="h-10 w-full max-w-sm bg-muted animate-pulse rounded-md"></div>
+        <div className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-[120px] w-full bg-muted animate-pulse rounded-lg"></div>
+          ))}
         </div>
-      }>
-        <ErrorBoundary
-          fallback={
-            <div className="container p-8">
-              <div className="p-6 bg-destructive/10 rounded-lg flex flex-col items-center justify-center">
-                <p className="text-lg font-medium">Something went wrong loading requests</p>
-                <p className="text-muted-foreground mb-4">Please try refreshing the page</p>
-              </div>
-            </div>
-          }
-        >
-          <Suspense fallback={
-            <div className="container p-8 space-y-6">
-              <Skeleton className="h-10 w-full max-w-sm" />
-              <div className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-[120px] w-full rounded-lg" />
-                ))}
-              </div>
-            </div>
-          }>
-            <SearchParamsWrapper />
-          </Suspense>
-        </ErrorBoundary>
-      </Suspense>
+      </div>
+      
+      {/* Client-side only script to load requests component */}
+      <div id="requests-container">
+        {/* Loading state will be replaced by client script */}
+      </div>
+      
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                // Create and render the requests client component
+                const container = document.getElementById('requests-container');
+                if (container) {
+                  // Import the client component dynamically
+                  import('/requests-client-bundle.js')
+                    .then(() => {
+                      console.log('Requests client script loaded');
+                    })
+                    .catch(err => {
+                      console.error('Error loading requests client:', err);
+                      container.innerHTML = '<div class="container p-8"><div class="p-4 border border-red-300 bg-red-50 text-red-800 rounded-md"><h3 class="font-bold">Error Loading Requests</h3><p>Please refresh the page to try again.</p></div></div>';
+                    });
+                }
+              } catch (err) {
+                console.error('Error initializing requests client:', err);
+              }
+            })();
+          `
+        }}
+      />
       
       <noscript>
         <div className="p-8">

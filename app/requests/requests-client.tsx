@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, Plus, Menu } from 'lucide-react';
+// Make sure we're not importing useSearchParams anywhere
 
 interface RequestsClientProps {
   initialCategory?: string;

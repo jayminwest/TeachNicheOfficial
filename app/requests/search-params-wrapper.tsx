@@ -1,7 +1,6 @@
 'use client';
 
-// Don't import useSearchParams directly in this component
-// Instead, use window.location in a useEffect hook
+// Don't import useSearchParams at all
 import { useState, useEffect } from 'react';
 import RequestsClient from './requests-client';
 

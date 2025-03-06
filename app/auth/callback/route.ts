@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get cookies in a way that works with Next.js
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     
     // Create a Supabase client for the Route Handler
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })

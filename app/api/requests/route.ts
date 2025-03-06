@@ -21,13 +21,13 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase
       .from('lesson_requests')
-      .insert([{ 
+      .insert({ 
         ...validatedData,
         user_id: session.user.id,
         status: 'open',
         vote_count: 0,
         created_at: new Date().toISOString()
-      }])
+      })
       .select()
       .single()
 

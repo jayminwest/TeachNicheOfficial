@@ -3,11 +3,11 @@ import LessonDetail from "./lesson-detail";
 import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 import { notFound } from "next/navigation";
 
+import type { PageProps } from 'next';
+
 export default async function Page({ 
   params 
-}: { 
-  params: { id: string } 
-}) {
+}: PageProps) {
   // Access the id directly from params
   const lessonId = params.id;
   

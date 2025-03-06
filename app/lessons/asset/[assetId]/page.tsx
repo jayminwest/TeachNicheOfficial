@@ -95,12 +95,11 @@ const checkAssetStatus = async (assetId: string): Promise<Status> => {
 
 export const dynamic = 'force-dynamic';
 
-type PageProps = {
-  params: { assetId: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({ 
+  params 
+}: { 
+  params: { assetId: string }
+}) {
   const assetId = params.assetId;
   const initialStatus = await checkAssetStatus(assetId);
   

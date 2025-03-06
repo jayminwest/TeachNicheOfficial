@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "./input";
 import { Textarea } from "./textarea";
 import { VideoUploader } from "./video-uploader";
-import { toast } from "@/app/components/ui/use-toast";
+import { useToast } from "@/app/components/ui/use-toast";
 import { Card } from "./card";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -57,6 +57,9 @@ export function LessonForm({
   className,
   isEditing = false
 }: LessonFormProps) {
+  // Get toast function from the hook
+  const { toast } = useToast();
+  
   // Add state for Stripe account
   const [hasStripeAccount, setHasStripeAccount] = useState<boolean | null>(null);
   const [isCheckingStripe, setIsCheckingStripe] = useState(true);

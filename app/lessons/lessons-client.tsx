@@ -35,6 +35,9 @@ export default function LessonsClient({}: LessonsClientProps) {
       if (isLoading) return;
       
       if (DEBUG) console.log('fetchLessons called');
+      
+      // Create a loading ref for this specific fetch operation
+      const isLoadingRef = { current: true };
       try {
         // Update UI loading state
         setIsLoading(true);

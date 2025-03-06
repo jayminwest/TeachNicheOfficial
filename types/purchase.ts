@@ -11,6 +11,8 @@ export interface PurchaseCreateData {
   userId: string;
   amount: number;
   stripeSessionId: string;
+  paymentIntentId?: string;
+  fromWebhook?: boolean;
 }
 
 export interface Purchase {
@@ -20,3 +22,6 @@ export interface Purchase {
   amount: number;
   createdAt: string;
 }
+
+// Re-export these types to make them available from the purchasesService
+export { LessonAccess, PurchaseStatus };

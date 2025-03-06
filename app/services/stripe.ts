@@ -83,7 +83,7 @@ export const stripeConfig: StripeConfig = {
   secretKey: process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_tests',
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_tests',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests',
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-01-27.acacia',
   connectType: 'express', // Changed from 'standard' to 'express'
   platformFeePercent: Number(process.env.STRIPE_PLATFORM_FEE_PERCENT || '15'),
   supportedCountries: (process.env.STRIPE_SUPPORTED_COUNTRIES || 'US,CA,GB,AU,NZ,SG,HK,JP,EU').split(','),
@@ -322,7 +322,12 @@ export const canCreatePaidLessons = async (
       .eq('id', userId)
       .single();
 
-    if (profileError || !profile?.stripe_account_id) {
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return false;
+    }
+    
+    if (!profile || !profile.stripe_account_id) {
       return false;
     }
 

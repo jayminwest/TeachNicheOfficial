@@ -35,7 +35,7 @@ export class PurchasesService extends DatabaseService {
   }>> {
     try {
       // Initialize Stripe
-      const stripe = this.getStripe();
+      const stripe = await this.getStripe();
       
       // For testing purposes, if we're in a test environment and there's a mock
       if (process.env.NODE_ENV === 'test' && typeof jest !== 'undefined') {
@@ -91,13 +91,15 @@ export class PurchasesService extends DatabaseService {
           lessonId,
           userId
         },
-        error: null
+        error: null,
+        success: true
       };
     } catch (error) {
       console.error('Error verifying Stripe session:', error);
       return {
         data: null,
-        error: new Error(`Error verifying Stripe session: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        error: new Error(`Error verifying Stripe session: ${error instanceof Error ? error.message : 'Unknown error'}`),
+        success: false
       };
     }
   }
@@ -300,7 +302,7 @@ export class PurchasesService extends DatabaseService {
    */
   async updatePurchaseStatus(
     stripeSessionId: string, 
-    status: PurchaseStatus
+    status: Exclude<PurchaseStatus, 'none'>
   ): Promise<DatabaseResponse<{ id: string }>> {
     return this.executeWithRetry(async () => {
       const supabase = this.getClient();

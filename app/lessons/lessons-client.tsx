@@ -31,120 +31,120 @@ export default function LessonsClient({}: LessonsClientProps) {
   
   // Define fetchLessons outside useEffect and memoize it
   const fetchLessons = useCallback(async () => {
-      // Don't proceed if already loading
-      if (isLoading) return;
-      
-      if (DEBUG) console.log('fetchLessons called');
-      
-      // Create a loading ref for this specific fetch operation
-      const isLoadingRef = { current: true };
-      try {
-        // Update UI loading state
-        setIsLoading(true);
-        // Update internal ref
-        isLoadingRef.current = true;
-        setError(null);
-        
-        console.log('Fetching lessons...');
-        
-        // Use AbortController to set a timeout for the fetch request
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-        
-        // Use a try-catch block specifically for the fetch operation
-        try {
-          const response = await fetch('/api/lessons', {
-            // Add cache control headers
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            },
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-        
-          if (!response.ok) {
-            let errorMessage = `Server error: ${response.status}`;
-            try {
-              const errorData = await response.json();
-              if (errorData?.error) {
-                errorMessage = errorData.error;
-              }
-            } catch (parseError) {
-              console.error('Error parsing error response:', parseError);
-            }
-            throw new Error(errorMessage);
-          }
-          
-          const data = await response.json();
-          console.log('Lessons fetched successfully:', Array.isArray(data) ? data.length : 'Not an array');
-          console.log('Response data type:', typeof data);
-          console.log('First lesson sample:', Array.isArray(data) && data.length > 0 ? JSON.stringify(data[0], null, 2) : 'No lessons');
-          
-          // Ensure we're working with an array of lessons
-          if (Array.isArray(data)) {
-            setLessons(data);
-          } else if (data && typeof data === 'object' && Array.isArray(data.lessons)) {
-            // Handle case where API returns { lessons: [...] }
-            setLessons(data.lessons);
-          } else if (data && typeof data === 'object' && data.error) {
-            // Handle error response from API
-            throw new Error(data.error);
-          } else {
-            console.error('Unexpected data format from API:', data);
-            // Try to convert to array if possible
-            const fallbackData = data && typeof data === 'object' ? Object.values(data) : [];
-            if (Array.isArray(fallbackData) && fallbackData.length > 0 && fallbackData[0].id) {
-              console.log('Converted object to array successfully');
-              setLessons(fallbackData);
-            } else {
-              setLessons([]);
-              throw new Error('Invalid data format received from server');
-            }
-          }
-        } catch (fetchError) {
-          // Handle network errors separately
-          clearTimeout(timeoutId);
-          console.error('Network error during fetch:', fetchError);
-          throw fetchError; // Re-throw to be caught by the outer catch block
-        }
-      } catch (err) {
-        console.error('Error fetching lessons:', err);
-        
-        // Handle different types of errors
-        if (err.name === 'AbortError') {
-          setError('Request timed out. Please try again.');
-        } else if (err.message === 'Failed to fetch') {
-          setError('Network error: Could not connect to the server. Please check your internet connection and try again.');
-        } else {
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-          setError(`Failed to load lessons: ${errorMessage}`);
-        }
-        
-        // Auto-retry logic
-        if (retryCount < maxRetries) {
-          const nextRetry = retryCount + 1;
-          setRetryCount(nextRetry);
-          console.log(`Retrying (${nextRetry}/${maxRetries}) in ${retryDelay * Math.pow(2, retryCount)}ms...`);
-          
-          // Only retry if component is still mounted
-          if (isMounted) {
-            setTimeout(() => {
-              if (isMounted) fetchLessons();
-            }, retryDelay * Math.pow(2, retryCount));
-          }
-        }
-      } finally {
-        // Update internal ref first
-        isLoadingRef.current = false;
-        // Then update UI state
-        setIsLoading(false);
-      }
-    }
+    // Don't proceed if already loading
+    if (isLoading) return;
     
-  }, []); // No dependencies for the useCallback
+    if (DEBUG) console.log('fetchLessons called');
+    
+    // Create a loading ref for this specific fetch operation
+    const isLoadingRef = { current: true };
+    try {
+      // Update UI loading state
+      setIsLoading(true);
+      // Update internal ref
+      isLoadingRef.current = true;
+      setError(null);
+      
+      console.log('Fetching lessons...');
+      
+      // Use AbortController to set a timeout for the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      // Use a try-catch block specifically for the fetch operation
+      try {
+        const response = await fetch('/api/lessons', {
+          // Add cache control headers
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+      
+        if (!response.ok) {
+          let errorMessage = `Server error: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData?.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (parseError) {
+            console.error('Error parsing error response:', parseError);
+          }
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        console.log('Lessons fetched successfully:', Array.isArray(data) ? data.length : 'Not an array');
+        console.log('Response data type:', typeof data);
+        console.log('First lesson sample:', Array.isArray(data) && data.length > 0 ? JSON.stringify(data[0], null, 2) : 'No lessons');
+        
+        // Ensure we're working with an array of lessons
+        if (Array.isArray(data)) {
+          setLessons(data);
+        } else if (data && typeof data === 'object' && Array.isArray(data.lessons)) {
+          // Handle case where API returns { lessons: [...] }
+          setLessons(data.lessons);
+        } else if (data && typeof data === 'object' && data.error) {
+          // Handle error response from API
+          throw new Error(data.error);
+        } else {
+          console.error('Unexpected data format from API:', data);
+          // Try to convert to array if possible
+          const fallbackData = data && typeof data === 'object' ? Object.values(data) : [];
+          if (Array.isArray(fallbackData) && fallbackData.length > 0 && fallbackData[0].id) {
+            console.log('Converted object to array successfully');
+            setLessons(fallbackData);
+          } else {
+            setLessons([]);
+            throw new Error('Invalid data format received from server');
+          }
+        }
+      } catch (fetchError) {
+        // Handle network errors separately
+        clearTimeout(timeoutId);
+        console.error('Network error during fetch:', fetchError);
+        throw fetchError; // Re-throw to be caught by the outer catch block
+      }
+    } catch (err) {
+      console.error('Error fetching lessons:', err);
+      
+      // Handle different types of errors
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please try again.');
+      } else if (err.message === 'Failed to fetch') {
+        setError('Network error: Could not connect to the server. Please check your internet connection and try again.');
+      } else {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+        setError(`Failed to load lessons: ${errorMessage}`);
+      }
+      
+      // Define constants for retry logic
+      const maxRetries = 3;
+      const retryDelay = 1000; // 1 second base delay
+      
+      // Auto-retry logic
+      if (retryCount < maxRetries) {
+        const nextRetry = retryCount + 1;
+        setRetryCount(nextRetry);
+        console.log(`Retrying (${nextRetry}/${maxRetries}) in ${retryDelay * Math.pow(2, retryCount)}ms...`);
+        
+        // Only retry if component is still mounted
+        setTimeout(() => {
+          fetchLessons();
+        }, retryDelay * Math.pow(2, retryCount));
+      }
+    } finally {
+      // Update internal ref first
+      isLoadingRef.current = false;
+      // Then update UI state
+      setIsLoading(false);
+    }
+  }, [isLoading, retryCount, setLessons, setIsLoading, setError, setRetryCount]); // Add proper dependencies
   
   // Separate useEffect for the initial fetch
   useEffect(() => {
@@ -156,31 +156,20 @@ export default function LessonsClient({}: LessonsClientProps) {
     // Mark that we've started the initial fetch
     hasInitialFetchRef.current = true;
     
-    // Track if the component is still mounted
-    let isMounted = true;
-    
-    // Use a ref to track loading state internally without triggering re-renders
-    const isLoadingRef = { current: false };
-    
     // Add safety timeout for loading state
     const loadingTimeout = setTimeout(() => {
-      if (isLoadingRef.current && isMounted) {
-        console.warn('Lessons loading timeout triggered');
-        setIsLoading(false);
-        setError('Loading timeout - please try again');
-      }
+      console.warn('Lessons loading timeout triggered');
+      setIsLoading(false);
+      setError('Loading timeout - please try again');
     }, 10000); // 10 second timeout
     
     // Delay the initial fetch slightly to ensure DOM is fully rendered
     const initialFetchDelay = setTimeout(() => {
-      if (isMounted && !isLoadingRef.current) {
-        fetchLessons();
-      }
+      fetchLessons();
     }, 100);
     
     // Clear both timeouts on cleanup
     return () => {
-      isMounted = false;
       clearTimeout(loadingTimeout);
       clearTimeout(initialFetchDelay);
     };

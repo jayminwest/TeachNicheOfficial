@@ -1,3 +1,5 @@
+'use client';
+export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
 import { Skeleton } from '@/app/components/ui/skeleton';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';

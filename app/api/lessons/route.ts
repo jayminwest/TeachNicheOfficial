@@ -10,6 +10,30 @@ export async function GET() {
     
     // Try direct query with service role key first
     console.log('Attempting direct query with service role key');
+    
+    // First try a count query to test permissions
+    const { count, error: countError } = await supabase
+      .from('lessons')
+      .select('*', { count: 'exact', head: true });
+    
+    if (countError) {
+      console.error('Error counting lessons:', countError);
+      console.log('Service role key may not be working correctly');
+      
+      // Return empty array instead of error for better UX
+      return NextResponse.json({ 
+        lessons: [],
+        debug: {
+          error: countError,
+          serviceRoleKeyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 5) + '...' || 'not set',
+          publicKeyPrefix: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 5) + '...' || 'not set'
+        }
+      });
+    }
+    
+    console.log(`Found ${count} lessons`);
+    
+    // Now fetch the actual lessons
     const { data: lessons, error } = await supabase
       .from('lessons')
       .select('*')
@@ -20,7 +44,10 @@ export async function GET() {
     if (error) {
       console.error('Error fetching lessons with direct query:', error);
       return NextResponse.json(
-        { error: { message: 'Failed to fetch lessons' } },
+        { 
+          error: { message: 'Failed to fetch lessons' },
+          debug: { error }
+        },
         { status: 500 }
       );
     }

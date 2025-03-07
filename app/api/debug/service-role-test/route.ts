@@ -5,9 +5,8 @@ export async function GET() {
   try {
     const supabase = createServerSupabaseClient();
     
-    // Try a simple query that doesn't require table access
-    // First try a direct SQL query that should always work
-    const { data, error } = await supabase.from('_prisma_migrations').select('*').limit(1);
+    // Try a simple query that should work with service role
+    const { data, error } = await supabase.from('lessons').select('count').limit(1);
     
     if (error) {
       return NextResponse.json({

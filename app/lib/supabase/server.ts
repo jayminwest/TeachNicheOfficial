@@ -18,6 +18,7 @@ export function createServerSupabaseClient() {
     // Log the first few characters of the key for debugging (never log the full key)
     const keyPrefix = serviceRoleKey.substring(0, 5) + '...';
     console.log(`Using service role key for Supabase client: ${keyPrefix}`);
+    console.log(`Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
     
     // Use service role key for admin access that bypasses RLS
     const client = createClient<Database>(

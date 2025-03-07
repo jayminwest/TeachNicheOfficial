@@ -88,7 +88,14 @@ jest.mock('lucide-react', () => ({
   X: (props) => <div data-testid="x-icon" className={props.className} />,
   Plus: (props) => <div data-testid="plus-icon" className={props.className} />,
   Filter: (props) => <div data-testid="filter-icon" className={props.className} />,
-  ArrowUpDown: (props) => <div data-testid="arrow-up-down-icon" className={props.className} />
+  ArrowUpDown: (props) => <div data-testid="arrow-up-down-icon" className={props.className} />,
+  // Add icons used in Features component
+  BookOpen: (props) => <div data-testid="book-open-icon" className={props.className} />,
+  DollarSign: (props) => <div data-testid="dollar-sign-icon" className={props.className} />,
+  Users: (props) => <div data-testid="users-icon" className={props.className} />,
+  Shield: (props) => <div data-testid="shield-icon" className={props.className} />,
+  Leaf: (props) => <div data-testid="leaf-icon" className={props.className} />,
+  GraduationCap: (props) => <div data-testid="graduation-cap-icon" className={props.className} />
 }))
 
 // Mock window.matchMedia

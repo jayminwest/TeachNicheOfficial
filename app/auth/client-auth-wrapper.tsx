@@ -1,5 +1,5 @@
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
@@ -27,7 +27,10 @@ export default function ClientAuthWrapper(props: ClientAuthWrapperProps) {
 }
 
 function ClientAuthWrapperContent(props: ClientAuthWrapperProps) {
-  const { redirect, errorParam } = props;
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect') || props.redirect;
+  const errorFromUrl = searchParams.get('error') || props.errorParam;
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,13 +38,13 @@ function ClientAuthWrapperContent(props: ClientAuthWrapperProps) {
   
   useEffect(() => {
     // Store redirect URL in session storage
-    if (redirect) {
-      sessionStorage.setItem('auth-redirect', redirect);
+    if (redirectParam) {
+      sessionStorage.setItem('auth-redirect', redirectParam);
     }
     
     // Set error from URL parameter if present
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+    if (errorFromUrl) {
+      setError(decodeURIComponent(errorFromUrl));
     }
     
     // Simulate loading to ensure client hydration
@@ -50,7 +53,7 @@ function ClientAuthWrapperContent(props: ClientAuthWrapperProps) {
     }, 500);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [redirectParam, errorFromUrl]);
   
   const handleGoogleSignIn = async () => {
     try {

@@ -31,8 +31,8 @@ SELECT
   ' AS ' || permissive || 
   ' FOR ' || cmd || 
   ' TO ' || roles || 
-  ' USING (' || qual::text || ')' || 
-  CASE WHEN with_check IS NOT NULL THEN ' WITH CHECK (' || with_check::text || ')' ELSE '' END || 
+  ' USING (' || regexp_replace(qual::text, '^\{(.*)\}$', '\1') || ')' || 
+  CASE WHEN with_check IS NOT NULL THEN ' WITH CHECK (' || regexp_replace(with_check::text, '^\{(.*)\}$', '\1') || ')' ELSE '' END || 
   ';' AS policy_statement
 FROM pg_policies
 WHERE schemaname = 'public';

@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/app/components/ui/accordion';
-import { axe } from 'jest-axe';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 describe('Accordion Component', () => {
   it('renders without crashing', () => {
@@ -27,16 +29,17 @@ describe('Accordion Component', () => {
       </Accordion>
     );
     
-    // Initially content should not be visible
-    expect(screen.queryByText('Content 1')).not.toBeVisible();
+    // Initially content should be hidden
+    const content = screen.getByRole('region', { hidden: true });
+    expect(content).not.toBeVisible();
     
     // Click to expand
     fireEvent.click(screen.getByText('Trigger 1'));
-    expect(screen.getByText('Content 1')).toBeVisible();
+    expect(content).toBeVisible();
     
     // Click again to collapse
     fireEvent.click(screen.getByText('Trigger 1'));
-    expect(screen.queryByText('Content 1')).not.toBeVisible();
+    expect(content).not.toBeVisible();
   });
 
   it('allows multiple items to be open when type is not "single"', () => {
@@ -65,7 +68,7 @@ describe('Accordion Component', () => {
 
   it('applies custom className to components', () => {
     render(
-      <Accordion>
+      <Accordion type="single">
         <AccordionItem className="custom-item-class" value="item-1">
           <AccordionTrigger className="custom-trigger-class">Trigger 1</AccordionTrigger>
           <AccordionContent className="custom-content-class">Content 1</AccordionContent>
@@ -73,12 +76,16 @@ describe('Accordion Component', () => {
       </Accordion>
     );
     
+    // First check the item and trigger classes
     const item = screen.getByText('Trigger 1').closest('[class*="custom-item-class"]');
     const trigger = screen.getByText('Trigger 1').closest('[class*="custom-trigger-class"]');
-    const content = screen.getByText('Content 1').closest('[class*="custom-content-class"]');
     
     expect(item).toHaveClass('custom-item-class');
     expect(trigger).toHaveClass('custom-trigger-class');
+    
+    // Open the accordion to check content class
+    fireEvent.click(screen.getByText('Trigger 1'));
+    const content = screen.getByText('Content 1').closest('[class*="custom-content-class"]');
     expect(content).toHaveClass('custom-content-class');
   });
 
@@ -115,7 +122,10 @@ describe('Accordion Component', () => {
     );
     
     // Item 2 should be open by default
-    expect(screen.queryByText('Content 1')).not.toBeVisible();
-    expect(screen.getByText('Content 2')).toBeVisible();
+    const content1 = screen.getByRole('region', { name: /trigger 1/i, hidden: true });
+    const content2 = screen.getByRole('region', { name: /trigger 2/i });
+    
+    expect(content1).not.toBeVisible();
+    expect(content2).toBeVisible();
   });
 });

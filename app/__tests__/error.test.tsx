@@ -59,9 +59,10 @@ describe('Error Component', () => {
 
   it('renders error with digest property', () => {
     const mockReset = jest.fn();
-    const mockError = new Error('Test error message');
-    // Add digest property to error
-    (mockError as any).digest = 'error-digest-123';
+    // Create an error object with digest property using Object.create
+    const mockError = Object.create(new Error('Test error message'), {
+      digest: { value: 'error-digest-123', configurable: true, enumerable: true, writable: true }
+    });
     
     render(<Error error={mockError} reset={mockReset} />);
     

@@ -30,7 +30,9 @@ USING ((auth.uid() = creator_id) OR (status = 'published'::lesson_status AND del
 -- These look good from your current setup, but included here for completeness
 
 -- Creators can update their own lessons
-CREATE POLICY IF NOT EXISTS "Users can update their own lessons" 
+-- First drop if exists, then create
+DROP POLICY IF EXISTS "Users can update their own lessons" ON public.lessons;
+CREATE POLICY "Users can update their own lessons" 
 ON public.lessons
 FOR UPDATE 
 TO authenticated
@@ -38,14 +40,16 @@ USING (auth.uid() = creator_id)
 WITH CHECK (auth.uid() = creator_id);
 
 -- Creators can delete their own lessons
-CREATE POLICY IF NOT EXISTS "Users can delete their own lessons" 
+DROP POLICY IF EXISTS "Users can delete their own lessons" ON public.lessons;
+CREATE POLICY "Users can delete their own lessons" 
 ON public.lessons
 FOR DELETE 
 TO authenticated
 USING (auth.uid() = creator_id);
 
 -- Creators can insert lessons with themselves as creator
-CREATE POLICY IF NOT EXISTS "Users can create their own lessons" 
+DROP POLICY IF EXISTS "Users can create their own lessons" ON public.lessons;
+CREATE POLICY "Users can create their own lessons" 
 ON public.lessons
 FOR INSERT 
 TO authenticated

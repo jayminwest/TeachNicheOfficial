@@ -10,9 +10,14 @@ import { cookies } from 'next/headers';
  * @returns The cookie value or null if not found
  */
 export async function getCookie(name: string): Promise<string | null> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(name);
-  return cookie?.value || null;
+  try {
+    const cookieStore = cookies();
+    const cookie = cookieStore.get(name);
+    return cookie?.value || null;
+  } catch (error) {
+    console.warn(`Error getting cookie ${name}:`, error);
+    return null;
+  }
 }
 
 /**
@@ -31,8 +36,12 @@ export async function setCookie(
     httpOnly?: boolean;
   } = {}
 ): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(name, value, options);
+  try {
+    const cookieStore = cookies();
+    cookieStore.set(name, value, options);
+  } catch (error) {
+    console.warn(`Error setting cookie ${name}:`, error);
+  }
 }
 
 /**
@@ -40,6 +49,10 @@ export async function setCookie(
  * @param name The name of the cookie to delete
  */
 export async function deleteCookie(name: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(name);
+  try {
+    const cookieStore = cookies();
+    cookieStore.delete(name);
+  } catch (error) {
+    console.warn(`Error deleting cookie ${name}:`, error);
+  }
 }

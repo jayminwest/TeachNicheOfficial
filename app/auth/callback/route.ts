@@ -43,12 +43,17 @@ export async function GET(request: NextRequest) {
     // Get redirect path from cookie or use default
     let redirectTo = '/profile'
     
-    // Check for redirect cookie
-    const redirectCookie = cookieStore.get('auth_redirect')
-    if (redirectCookie?.value) {
-      redirectTo = redirectCookie.value
-      // Clear the cookie after use
-      cookieStore.delete('auth_redirect')
+    try {
+      // Check for redirect cookie
+      const redirectCookie = cookieStore.get('auth_redirect')
+      if (redirectCookie?.value) {
+        redirectTo = redirectCookie.value
+        // Clear the cookie after use
+        cookieStore.delete('auth_redirect')
+      }
+    } catch (cookieError) {
+      console.warn('Error accessing redirect cookie:', cookieError)
+      // Continue with default redirect
     }
     
     console.log('Auth successful, redirecting to:', redirectTo)

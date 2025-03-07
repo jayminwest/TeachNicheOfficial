@@ -72,8 +72,8 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/components/ui/progress.tsx` (improved to 100%)
 - [x] `app/components/ui/switch.tsx` (improved to 100%)
 - [x] `app/components/ui/tabs.tsx` (improved to 100%)
-- [ ] `app/components/ui/toast.tsx` (currently 0%)
-- [ ] `app/components/ui/theme-toggle.tsx` (currently 0%)
+- [x] `app/components/ui/toast.tsx` (improved to 100%)
+- [x] `app/components/ui/theme-toggle.tsx` (improved to 100%)
 
 #### Utility Functions
 - [ ] `app/utils/format.ts` (currently 40%)
@@ -174,7 +174,7 @@ We'll track progress using the following metrics:
 
 | Phase | Starting Coverage | Target Coverage | Actual Coverage | Status |
 |-------|------------------|----------------|-----------------|--------|
-| Phase 1 | 17.24% | 32% | 20.5% | In Progress |
+| Phase 1 | 17.24% | 32% | 23.7% | In Progress |
 | Phase 2 | 32% | 47% | - | Not Started |
 | Phase 3 | 47% | 67% | - | Not Started |
 | Phase 4 | 67% | 82% | - | Not Started |

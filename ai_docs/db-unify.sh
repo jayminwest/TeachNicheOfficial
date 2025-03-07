@@ -54,8 +54,7 @@ echo "Step 1: Exporting production database schema..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
   -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
-  --schema public \
-  --no-data
+  --schema public
 
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
@@ -102,9 +101,8 @@ EOF
 
 # Step 7: Backup development database
 echo "Step 7: Creating backup of development database..."
-supabase db dump \
+PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$DEV_SUPABASE_URL" \
-  --db-key "$DEV_SUPABASE_SERVICE_KEY" \
   -f "$EXPORTS_DIR/dev_backup_$TIMESTAMP.sql" \
   --schema public
 

@@ -12,7 +12,8 @@ jest.mock('lucide-react', () => ({
   ChevronRight: () => <div data-testid="chevron-right-icon" />,
   ArrowUpDown: () => <div data-testid="arrow-up-down-icon" />,
   ThumbsUp: () => <div data-testid="thumbs-up-icon" />,
-  Plus: () => <div data-testid="plus-icon" />
+  Plus: () => <div data-testid="plus-icon" />,
+  Loader2: () => <div data-testid="loader-icon" className="animate-spin" />
 }))
 
 // Mock dependencies
@@ -23,6 +24,19 @@ jest.mock('@/app/hooks/useCategories')
 // Mock the RequestDialog component
 jest.mock('../components/request-dialog', () => ({
   RequestDialog: ({ children }) => <div data-testid="request-dialog">{children}</div>
+}))
+
+// Mock the RequestGrid component to avoid testing its internals here
+jest.mock('../components/request-grid', () => ({
+  RequestGrid: ({ requests, loading, error }) => (
+    <div data-testid="request-grid">
+      {loading && <div data-testid="grid-loading">Loading...</div>}
+      {error && <div data-testid="grid-error">{error}</div>}
+      {!loading && !error && requests.map(req => (
+        <div key={req.id} data-testid="request-item">{req.title}</div>
+      ))}
+    </div>
+  )
 }))
 
 describe('RequestsPage', () => {

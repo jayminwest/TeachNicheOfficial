@@ -98,11 +98,16 @@ describe('SignInPage', () => {
       value: false,
     });
 
-    render(<SignInPage onSignInSuccess={jest.fn()} />);
+    await act(async () => {
+      render(<SignInPage onSignInSuccess={jest.fn()} />);
+    });
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    // Simulate click without using user event
-    signInButton.click();
+    
+    // Simulate click with act to handle state updates
+    await act(async () => {
+      signInButton.click();
+    });
     
     expect(signInWithGoogle).toHaveBeenCalled();
     
@@ -118,10 +123,15 @@ describe('SignInPage', () => {
       setTimeout(resolve, 100);
     }));
 
-    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
+    await act(async () => {
+      render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
+    });
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await userEvent.click(signInButton);
+    
+    await act(async () => {
+      await userEvent.click(signInButton);
+    });
     
     // Check for spinner
     expect(screen.getByTestId('spinner-icon')).toHaveClass('animate-spin');
@@ -133,10 +143,15 @@ describe('SignInPage', () => {
     const errorMessage = 'Failed to authenticate with Google';
     (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-    render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
+    await act(async () => {
+      render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
+    });
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    await user.click(signInButton);
+    
+    await act(async () => {
+      await user.click(signInButton);
+    });
     
     // Wait for the error message to appear
     await waitFor(() => {
@@ -180,10 +195,15 @@ describe('SignInPage', () => {
       value: '',
     });
     
-    render(<SignInPage redirectPath="/dashboard" />);
+    await act(async () => {
+      render(<SignInPage redirectPath="/dashboard" />);
+    });
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    signInButton.click();
+    
+    await act(async () => {
+      signInButton.click();
+    });
     
     // Should set cookie with redirect path
     expect(document.cookie).toContain('auth_redirect=/dashboard');
@@ -198,11 +218,15 @@ describe('SignInPage', () => {
     const errorMessage = 'Failed to authenticate with Google';
     (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-    render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    await act(async () => {
+      render(<SignInPage onSwitchToSignUp={mockOnSwitchToSignUp} />);
+    });
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
-    // Simulate click directly
-    signInButton.click();
+    
+    await act(async () => {
+      signInButton.click();
+    });
     
     // Wait for the error message to appear and check it's accessible
     await waitFor(() => {

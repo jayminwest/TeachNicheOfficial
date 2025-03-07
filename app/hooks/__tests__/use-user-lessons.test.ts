@@ -110,7 +110,7 @@ describe('useUserLessons', () => {
     });
     expect(result.current.lessons[1].description).toBe('');
     expect(result.current.lessons[1].thumbnailUrl).toBe('/placeholder-thumbnail.jpg');
-    expect(result.current.lessons[1].published).toBe(false);
+    expect(result.current.lessons[1].status).toBe('draft');
   });
 
   it('should handle errors correctly', async () => {

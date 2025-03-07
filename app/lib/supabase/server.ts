@@ -13,6 +13,8 @@ export function createServerSupabaseClient() {
       );
     }
     
+    console.log('Using service role key for Supabase client');
+    
     // Use service role key for admin access that bypasses RLS
     return createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

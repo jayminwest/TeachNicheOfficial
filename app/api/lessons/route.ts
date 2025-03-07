@@ -3,15 +3,17 @@ import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 export async function GET() {
   try {
-    // Create the Supabase client using our direct approach
+    // Create the Supabase client using our service role approach
     const supabase = createServerSupabaseClient();
     
-    console.log('Using direct Supabase client for lessons API');
+    console.log('Using service role Supabase client for lessons API');
     
     // Fetch lessons with error handling
     const query = supabase
       .from('lessons')
-      .select('id, title, description, price, thumbnail_url, creator_id')
+      .select('id, title, description, price, thumbnail_url, creator_id, status, deleted_at')
+      .eq('status', 'published')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     
     const { data: lessons, error } = await query;

@@ -12,14 +12,16 @@ interface SignOutButtonProps {
 
 export function SignOutButton({ 
   className,
-  variant = 'outline'
+  variant = 'default'
 }: SignOutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
   const router = useRouter();
   
   const handleSignOut = async () => {
     try {
       setIsLoading(true);
+      setError(false);
       const { success, error } = await signOut();
       
       if (success) {
@@ -27,6 +29,7 @@ export function SignOutButton({
         router.push('/');
       } else if (error) {
         console.error('Error signing out:', error.message);
+        setError(true);
       }
     } finally {
       setIsLoading(false);
@@ -41,7 +44,7 @@ export function SignOutButton({
       disabled={isLoading}
       data-testid="sign-out-button"
     >
-      {isLoading ? 'Signing out...' : 'Sign out'}
+      {isLoading ? 'Signing out...' : error ? 'Error' : 'Sign out'}
     </Button>
   );
 }

@@ -9,6 +9,15 @@ jest.mock('@/app/auth/client-auth-wrapper', () => {
   };
 });
 
+// Mock React's Suspense to immediately render children instead of fallback
+jest.mock('react', () => {
+  const originalReact = jest.requireActual('react');
+  return {
+    ...originalReact,
+    Suspense: ({ children }) => children,
+  };
+});
+
 describe('AuthPage', () => {
   it('renders the auth page with suspense boundary', () => {
     render(<AuthPage />);

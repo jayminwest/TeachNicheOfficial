@@ -1,3 +1,0 @@
-./app/components/ui/manual-publish-button.tsx:interface ManualPublishButtonProps {
-./app/components/ui/manual-publish-button.tsx:export function ManualPublishButton({ 
-./app/components/ui/manual-publish-button.tsx:}: ManualPublishButtonProps) {

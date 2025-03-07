@@ -336,7 +336,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
-      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
+      ;(createServerSupabaseClient as jest.Mock).mockReturnValue(mockSupabase)
       
       const request = new Request('http://localhost/api/requests')
       

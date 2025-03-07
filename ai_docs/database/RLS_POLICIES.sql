@@ -1,6 +1,21 @@
 -- RLS Policies for Teach Niche Database
 -- Run these commands on your dev database to recreate the same RLS policies as production
 
+-- First, drop all existing policies to avoid conflicts
+DO $$ 
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (
+        SELECT policyname, tablename 
+        FROM pg_policies 
+        WHERE schemaname = 'public'
+    ) 
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
+    END LOOP;
+END $$;
+
 -- Categories policies
 CREATE POLICY "Allow public read access to categories" ON public.categories FOR SELECT TO public USING (true);
 

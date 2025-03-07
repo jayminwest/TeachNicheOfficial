@@ -46,18 +46,6 @@ export default defineConfig({
     
     /* Record video on failure */
     video: 'on-first-retry',
-    
-    /* Enable JavaScript localStorage access */
-    contextOptions: {
-      storageState: {
-        origins: [
-          {
-            origin: 'http://localhost:3000',
-            localStorage: []
-          }
-        ]
-      }
-    }
   },
 
   /* Configure projects for major browsers */

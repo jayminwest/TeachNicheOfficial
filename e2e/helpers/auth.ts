@@ -45,6 +45,9 @@ export async function login(
 ) {
   const userData = { ...mockUsers[role], ...options };
   
+  // First navigate to the app to ensure we're on the right domain
+  await page.goto('/');
+  
   // Set up localStorage with mock auth data
   await page.evaluate((data) => {
     // Mock Supabase auth session
@@ -62,22 +65,26 @@ export async function login(
       },
     };
     
-    // Store in localStorage
-    localStorage.setItem('supabase.auth.token', JSON.stringify({
-      currentSession: mockSession,
-      expiresAt: mockSession.expires_at,
-    }));
-    
-    // Store user profile data
-    localStorage.setItem('user-profile', JSON.stringify({
-      id: data.id,
-      full_name: data.name,
-      email: data.email,
-      avatar_url: 'https://example.com/avatar.png',
-      stripe_account_id: 'stripeAccountId' in data ? data.stripeAccountId : null,
-      stripe_account_status: 'stripeAccountStatus' in data ? data.stripeAccountStatus : null,
-      stripe_onboarding_complete: 'stripeAccountStatus' in data ? data.stripeAccountStatus === 'complete' : false,
-    }));
+    try {
+      // Store in localStorage
+      localStorage.setItem('supabase.auth.token', JSON.stringify({
+        currentSession: mockSession,
+        expiresAt: mockSession.expires_at,
+      }));
+      
+      // Store user profile data
+      localStorage.setItem('user-profile', JSON.stringify({
+        id: data.id,
+        full_name: data.name,
+        email: data.email,
+        avatar_url: 'https://example.com/avatar.png',
+        stripe_account_id: 'stripeAccountId' in data ? data.stripeAccountId : null,
+        stripe_account_status: 'stripeAccountStatus' in data ? data.stripeAccountStatus : null,
+        stripe_onboarding_complete: 'stripeAccountStatus' in data ? data.stripeAccountStatus === 'complete' : false,
+      }));
+    } catch (e) {
+      console.error('Failed to set localStorage:', e);
+    }
   }, userData);
   
   // Refresh the page to apply the auth state
@@ -90,10 +97,21 @@ export async function login(
  * @param page - Playwright page object
  */
 export async function logout(page: Page) {
-  await page.evaluate(() => {
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('user-profile');
-  });
+  // First navigate to the app to ensure we're on the right domain
+  await page.goto('/');
+  
+  try {
+    await page.evaluate(() => {
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('user-profile');
+      } catch (e) {
+        console.error('Failed to clear localStorage:', e);
+      }
+    });
+  } catch (e) {
+    console.error('Failed to execute logout script:', e);
+  }
   
   // Refresh the page to apply the logout
   await page.reload();

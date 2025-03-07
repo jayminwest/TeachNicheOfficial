@@ -22,8 +22,19 @@ ALTER TABLE public.lessons FORCE ROW LEVEL SECURITY;
 -- The correct syntax is to use ALTER POLICY to exempt the service role
 -- or to use the following to disable RLS enforcement for the service role
 ALTER TABLE public.lessons NO FORCE ROW LEVEL SECURITY;
--- Then grant the service role the ability to bypass RLS
-GRANT BYPASSRLS TO service_role;
+
+-- Check if the service_role exists before granting BYPASSRLS
+DO $$
+BEGIN
+    -- Check if the role exists
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+        -- Grant BYPASSRLS to the service_role
+        EXECUTE 'GRANT BYPASSRLS TO service_role';
+    ELSE
+        RAISE NOTICE 'Role "service_role" does not exist. Skipping BYPASSRLS grant.';
+    END IF;
+END
+$$;
 
 -- 5. Ensure the service role has all necessary privileges
 GRANT ALL PRIVILEGES ON TABLE public.lessons TO service_role;

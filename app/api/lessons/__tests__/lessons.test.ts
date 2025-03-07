@@ -251,8 +251,18 @@ describe('Lessons API', () => {
       const mockServerSupabase = createServerSupabaseClient();
       
       // Set up the mock to return an error
-      mockServerSupabase.error = { message: 'Database error' };
-      mockServerSupabase.data = null;
+      // We need to modify the implementation to actually return the error
+      jest.requireMock('../../../lib/supabase/server').createServerSupabaseClient.mockImplementationOnce(() => {
+        return {
+          from: jest.fn().mockReturnThis(),
+          select: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
+          then: jest.fn().mockImplementation(callback => {
+            callback({ data: null, error: { message: 'Database error' } });
+            return { catch: jest.fn() };
+          })
+        };
+      });
       
       // Create a mock request
       createMocks({

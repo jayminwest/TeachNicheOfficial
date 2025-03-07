@@ -94,7 +94,7 @@ describe('Update Purchase API', () => {
     };
     
     // Fix the mock implementation
-    jest.mocked(serverModule.createServerSupabaseClient).mockReturnValue(mockSupabaseClient);
+    (serverModule.createServerSupabaseClient as jest.Mock).mockImplementation(() => mockSupabaseClient);
   });
   
   it('should return 400 if required fields are missing', async () => {

@@ -74,6 +74,7 @@ echo "=== Database Unification Script ==="
 echo "This script will synchronize your development database with production."
 echo "Production database: $PROD_SUPABASE_URL"
 echo "Development database: $DEV_SUPABASE_URL"
+echo "Using PostgreSQL connection strings for Supabase CLI compatibility"
 echo ""
 echo "WARNING: This will overwrite your development database with production schema."
 read -p "Continue? (y/n): " -n 1 -r
@@ -86,14 +87,14 @@ fi
 # Step 1: Export production schema
 echo "Step 1: Exporting production database schema..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$PROD_SUPABASE_URL" \
+  --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
   --schema public
 
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$PROD_SUPABASE_URL" \
+  --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
   --schema public \
   --include "POLICY"
@@ -101,7 +102,7 @@ PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$PROD_SUPABASE_URL" \
+  --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
   --schema public \
   --include "FUNCTION TRIGGER"
@@ -109,7 +110,7 @@ PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
-  --db-url "$PROD_SUPABASE_URL" \
+  --db-url "$PROD_DB_URL" \
   > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 5: Create a consolidated migration file
@@ -136,7 +137,7 @@ EOF
 # Step 7: Backup development database
 echo "Step 7: Creating backup of development database..."
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$DEV_SUPABASE_URL" \
+  --db-url "$DEV_DB_URL" \
   -f "$EXPORTS_DIR/dev_backup_$TIMESTAMP.sql" \
   --schema public
 
@@ -172,30 +173,30 @@ EOF
 
 # Apply reset script
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_SUPABASE_URL" \
+  --db-url "$DEV_DB_URL" \
   -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql"
 
 # Apply consolidated schema
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_SUPABASE_URL" \
+  --db-url "$DEV_DB_URL" \
   -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql"
 
 # Apply migration tracking
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_SUPABASE_URL" \
+  --db-url "$DEV_DB_URL" \
   -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql"
 
 # Step 9: Import auth configuration
 echo "Step 9: Importing auth configuration..."
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase auth config import \
-  --db-url "$DEV_SUPABASE_URL" \
+  --db-url "$DEV_DB_URL" \
   "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 10: Verify synchronization
 echo "Step 10: Verifying database synchronization..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" PGPASSWORD_TARGET="$DEV_SUPABASE_SERVICE_KEY" supabase db diff \
-  --source-db "$PROD_SUPABASE_URL" \
-  --target-db "$DEV_SUPABASE_URL" \
+  --source-db "$PROD_DB_URL" \
+  --target-db "$DEV_DB_URL" \
   > "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt"
 
 if [ -s "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt" ]; then
@@ -250,7 +251,7 @@ EOF
 
 # Apply policy inspection function
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_SUPABASE_URL" \
+  --db-url "$DEV_DB_URL" \
   -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql"
 
 echo ""

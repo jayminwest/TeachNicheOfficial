@@ -11,10 +11,22 @@ import {
   ToastViewport,
 } from '@/app/components/ui/toast';
 
+// Create a wrapper component to provide ToastProvider context
+const ToastWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ToastProvider>
+    {children}
+    <ToastViewport />
+  </ToastProvider>
+);
+
 describe('Toast Components', () => {
   describe('Toast', () => {
     it('renders with default variant', () => {
-      render(<Toast>Test Toast</Toast>);
+      render(
+        <ToastWrapper>
+          <Toast>Test Toast</Toast>
+        </ToastWrapper>
+      );
       const toast = screen.getByText('Test Toast');
       expect(toast).toBeInTheDocument();
       expect(toast.className).toContain('border');
@@ -22,7 +34,11 @@ describe('Toast Components', () => {
     });
 
     it('renders with destructive variant', () => {
-      render(<Toast variant="destructive">Destructive Toast</Toast>);
+      render(
+        <ToastWrapper>
+          <Toast variant="destructive">Destructive Toast</Toast>
+        </ToastWrapper>
+      );
       const toast = screen.getByText('Destructive Toast');
       expect(toast).toBeInTheDocument();
       expect(toast.className).toContain('destructive');
@@ -30,7 +46,11 @@ describe('Toast Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<Toast className="custom-class">Custom Toast</Toast>);
+      render(
+        <ToastWrapper>
+          <Toast className="custom-class">Custom Toast</Toast>
+        </ToastWrapper>
+      );
       const toast = screen.getByText('Custom Toast');
       expect(toast).toBeInTheDocument();
       expect(toast.className).toContain('custom-class');
@@ -39,7 +59,13 @@ describe('Toast Components', () => {
 
   describe('ToastTitle', () => {
     it('renders with default styling', () => {
-      render(<ToastTitle>Toast Title</ToastTitle>);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastTitle>Toast Title</ToastTitle>
+          </Toast>
+        </ToastWrapper>
+      );
       const title = screen.getByText('Toast Title');
       expect(title).toBeInTheDocument();
       expect(title.className).toContain('text-sm');
@@ -47,7 +73,13 @@ describe('Toast Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<ToastTitle className="custom-title">Custom Title</ToastTitle>);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastTitle className="custom-title">Custom Title</ToastTitle>
+          </Toast>
+        </ToastWrapper>
+      );
       const title = screen.getByText('Custom Title');
       expect(title).toBeInTheDocument();
       expect(title.className).toContain('custom-title');
@@ -56,7 +88,13 @@ describe('Toast Components', () => {
 
   describe('ToastDescription', () => {
     it('renders with default styling', () => {
-      render(<ToastDescription>Toast Description</ToastDescription>);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastDescription>Toast Description</ToastDescription>
+          </Toast>
+        </ToastWrapper>
+      );
       const description = screen.getByText('Toast Description');
       expect(description).toBeInTheDocument();
       expect(description.className).toContain('text-sm');
@@ -64,7 +102,13 @@ describe('Toast Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<ToastDescription className="custom-desc">Custom Description</ToastDescription>);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastDescription className="custom-desc">Custom Description</ToastDescription>
+          </Toast>
+        </ToastWrapper>
+      );
       const description = screen.getByText('Custom Description');
       expect(description).toBeInTheDocument();
       expect(description.className).toContain('custom-desc');
@@ -73,7 +117,13 @@ describe('Toast Components', () => {
 
   describe('ToastAction', () => {
     it('renders with default styling', () => {
-      render(<ToastAction>Action</ToastAction>);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastAction>Action</ToastAction>
+          </Toast>
+        </ToastWrapper>
+      );
       const action = screen.getByText('Action');
       expect(action).toBeInTheDocument();
       expect(action.className).toContain('inline-flex');
@@ -81,7 +131,13 @@ describe('Toast Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<ToastAction className="custom-action">Custom Action</ToastAction>);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastAction className="custom-action">Custom Action</ToastAction>
+          </Toast>
+        </ToastWrapper>
+      );
       const action = screen.getByText('Custom Action');
       expect(action).toBeInTheDocument();
       expect(action.className).toContain('custom-action');
@@ -93,7 +149,13 @@ describe('Toast Components', () => {
       const user = userEvent.setup();
       const onClickMock = jest.fn();
       
-      render(<ToastClose onClick={onClickMock} />);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastClose onClick={onClickMock} />
+          </Toast>
+        </ToastWrapper>
+      );
       const closeButton = screen.getByRole('button');
       
       expect(closeButton).toBeInTheDocument();
@@ -104,7 +166,13 @@ describe('Toast Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<ToastClose className="custom-close" />);
+      render(
+        <ToastWrapper>
+          <Toast>
+            <ToastClose className="custom-close" />
+          </Toast>
+        </ToastWrapper>
+      );
       const closeButton = screen.getByRole('button');
       expect(closeButton).toBeInTheDocument();
       expect(closeButton.className).toContain('custom-close');
@@ -113,7 +181,11 @@ describe('Toast Components', () => {
 
   describe('ToastViewport', () => {
     it('renders with default styling', () => {
-      render(<ToastViewport />);
+      render(
+        <ToastProvider>
+          <ToastViewport />
+        </ToastProvider>
+      );
       const viewport = screen.getByRole('region');
       expect(viewport).toBeInTheDocument();
       expect(viewport.className).toContain('fixed');
@@ -122,7 +194,11 @@ describe('Toast Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<ToastViewport className="custom-viewport" />);
+      render(
+        <ToastProvider>
+          <ToastViewport className="custom-viewport" />
+        </ToastProvider>
+      );
       const viewport = screen.getByRole('region');
       expect(viewport).toBeInTheDocument();
       expect(viewport.className).toContain('custom-viewport');
@@ -145,12 +221,12 @@ describe('Toast Components', () => {
   describe('Toast Integration', () => {
     it('renders a complete toast with all components', () => {
       render(
-        <ToastProvider>
+        <ToastProvider swipeDirection="right">
           <Toast>
             <ToastTitle>Notification</ToastTitle>
             <ToastDescription>This is a toast notification</ToastDescription>
             <ToastClose />
-            <ToastAction>Undo</ToastAction>
+            <ToastAction altText="Undo action">Undo</ToastAction>
           </Toast>
           <ToastViewport />
         </ToastProvider>

@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import NewLessonClientWrapper from './client-wrapper';
 
 export default function NewLessonPage() {

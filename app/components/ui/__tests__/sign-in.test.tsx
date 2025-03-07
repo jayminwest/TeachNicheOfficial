@@ -102,6 +102,13 @@ describe('SignInPage', () => {
       get: jest.fn().mockReturnValue('/dashboard')
     });
 
+    // Set up window object for testing
+    global.window = Object.create(window);
+    Object.defineProperty(window, 'signInWithGoogleCalled', {
+      writable: true,
+      value: false,
+    });
+
     render(<SignInPage onSignInSuccess={jest.fn()} />);
     
     const signInButton = screen.getByRole('button', { name: /sign in with google/i });
@@ -109,6 +116,9 @@ describe('SignInPage', () => {
     signInButton.click();
     
     expect(signInWithGoogle).toHaveBeenCalled();
+    
+    // Check that the window flag was set for testing
+    expect((window as any).signInWithGoogleCalled).toBe(true);
     
     // We're not expecting router.push to be called directly anymore
     // The redirection happens in the auth state change handler
@@ -177,6 +187,28 @@ describe('SignInPage', () => {
     
     // Check that the button is in the document
     expect(googleButton).toBeInTheDocument();
+  });
+  
+  it('stores redirect path in cookie when provided', async () => {
+    // Mock document.cookie
+    const originalCookie = document.cookie;
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      value: '',
+    });
+    
+    render(<SignInPage redirectPath="/dashboard" />);
+    
+    const signInButton = screen.getByRole('button', { name: /sign in with google/i });
+    signInButton.click();
+    
+    // Should set cookie with redirect path
+    expect(document.cookie).toContain('auth_redirect=/dashboard');
+    
+    // Restore document.cookie
+    Object.defineProperty(document, 'cookie', {
+      value: originalCookie,
+    });
   });
 
   it('announces errors to screen readers', async () => {

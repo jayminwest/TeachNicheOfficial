@@ -47,3 +47,44 @@ test.describe('Authentication Redirect', () => {
     await expect(page.getByText('Test Learner')).toBeVisible();
   });
 });
+import { test, expect } from '@playwright/test';
+import { login } from '../helpers/auth';
+
+test.describe('Authentication Redirect', () => {
+  test('redirects unauthenticated users to sign-in', async ({ page }) => {
+    // Try to access a protected page without being logged in
+    await page.goto('/profile');
+    
+    // Verify we're redirected to the auth page
+    await expect(page).toHaveURL(/\/auth\?redirect=/);
+    
+    // Verify the redirect parameter contains the original URL
+    const url = page.url();
+    expect(url).toContain('redirect=%2Fprofile');
+  });
+  
+  test('redirects to requested page after authentication', async ({ page }) => {
+    // Go to a protected page, which should redirect to login
+    await page.goto('/profile');
+    
+    // Verify redirect to auth page
+    await expect(page).toHaveURL(/\/auth\?redirect=/);
+    
+    // Now login
+    await login(page, 'user@example.com');
+    
+    // Verify we're redirected back to the originally requested page
+    await expect(page).toHaveURL('/profile');
+  });
+  
+  test('respects custom redirect parameter', async ({ page }) => {
+    // Go directly to auth with custom redirect
+    await page.goto('/auth?redirect=%2Flessons');
+    
+    // Login
+    await login(page, 'user@example.com');
+    
+    // Verify we're redirected to the specified page
+    await expect(page).toHaveURL('/lessons');
+  });
+});

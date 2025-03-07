@@ -60,3 +60,45 @@ test.describe('Google Sign-In', () => {
     await expect(page).toHaveURL('/lessons');
   });
 });
+import { test, expect } from '@playwright/test';
+import { login } from '../helpers/auth';
+
+test.describe('Google Sign-In', () => {
+  test('displays sign-in page correctly', async ({ page }) => {
+    // Navigate to the auth page
+    await page.goto('/auth');
+    
+    // Verify the page title
+    await expect(page.locator('h1')).toContainText('Sign In');
+    
+    // Verify the Google sign-in button is visible
+    const googleButton = page.getByRole('button', { name: /Continue with Google/i });
+    await expect(googleButton).toBeVisible();
+  });
+  
+  test('handles successful sign-in', async ({ page }) => {
+    // Mock successful Google auth by using our helper
+    // This simulates what happens after Google auth completes
+    await login(page, 'user@example.com');
+    
+    // Navigate to a page that requires auth
+    await page.goto('/profile');
+    
+    // Verify we're logged in by checking for profile elements
+    // This assumes the profile page shows user info when logged in
+    await expect(page.locator('[data-testid="profile-container"]')).toBeVisible();
+  });
+  
+  test('handles authentication errors', async ({ page }) => {
+    // Navigate to auth page with error parameter
+    await page.goto('/auth?error=OAuthSignin');
+    
+    // Verify error message is displayed
+    await expect(page.locator('[data-testid="auth-error"]')).toBeVisible();
+    await expect(page.locator('[data-testid="auth-error"]')).toContainText('There was a problem signing in');
+    
+    // Verify sign-in button is still available
+    const googleButton = page.getByRole('button', { name: /Continue with Google/i });
+    await expect(googleButton).toBeVisible();
+  });
+});

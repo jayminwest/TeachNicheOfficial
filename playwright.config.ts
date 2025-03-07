@@ -79,6 +79,14 @@ export default defineConfig({
       },
       testMatch: /.*\.visual\.spec\.ts/,
     },
+    /* Project specifically for auth tests */
+    {
+      name: 'Auth Tests',
+      use: { 
+        ...devices['Desktop Chrome'],
+      },
+      testDir: './e2e/auth',
+    },
   ],
 
   /* Run your local dev server before starting the tests */

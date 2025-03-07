@@ -122,11 +122,14 @@ describe('Accordion Component', () => {
     );
     
     // Item 2 should be open by default
-    const content1 = screen.getByRole('region', { hidden: true });
-    const content2 = screen.getAllByRole('region').find(el => !el.hidden);
+    const trigger1 = screen.getByRole('button', { name: /trigger 1/i });
+    const trigger2 = screen.getByRole('button', { name: /trigger 2/i });
     
-    expect(content1).not.toBeVisible();
-    expect(content2).toBeVisible();
+    // Check that trigger 2 is expanded and trigger 1 is not
+    expect(trigger1).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger2).toHaveAttribute('aria-expanded', 'true');
+    
+    // Check content visibility
     expect(screen.getByText('Content 2')).toBeVisible();
     expect(screen.queryByText('Content 1')).not.toBeVisible();
   });

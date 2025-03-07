@@ -28,25 +28,13 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id;
 
     // First, check if there's a purchase record
-    let query = supabase
+    const { data: purchases, error: fetchError } = await supabase
       .from('purchases')
-      .select('id, status');
-      
-    // Add filters
-    query = query.eq('lesson_id', lessonId);
-      
-    // Add user ID filter
-    if (userId) {
-      query = query.eq('user_id', userId);
-    }
-
-    if (sessionId) {
-      query = query.eq('stripe_session_id', sessionId);
-    } else if (paymentIntentId) {
-      query = query.eq('payment_intent_id', paymentIntentId);
-    }
-
-    const { data: purchases, error: fetchError } = await query;
+      .select('id, status')
+      .eq('lesson_id', lessonId)
+      .eq('user_id', userId)
+      .eq(sessionId ? 'stripe_session_id' : 'payment_intent_id', 
+          sessionId || paymentIntentId);
 
     if (fetchError) {
       console.error('Error fetching purchase:', fetchError);
@@ -58,20 +46,21 @@ export async function POST(request: NextRequest) {
 
     // If no purchase found, create one
     if (!purchases || purchases.length === 0) {
-      // Get the lesson details
-      const { data: lesson, error: lessonError } = await supabase
-        .from('lessons')
-        .select('price, creator_id')
-        .eq('id', lessonId)
-        .single();
+      try {
+        // Get the lesson details
+        const { data: lesson, error: lessonError } = await supabase
+          .from('lessons')
+          .select('price, creator_id')
+          .eq('id', lessonId)
+          .single();
 
-      if (lessonError) {
-        console.error('Error fetching lesson:', lessonError);
-        return NextResponse.json(
-          { error: 'Failed to fetch lesson' },
-          { status: 500 }
-        );
-      }
+        if (lessonError) {
+          console.error('Error fetching lesson:', lessonError);
+          return NextResponse.json(
+            { error: 'Failed to fetch lesson' },
+            { status: 500 }
+          );
+        }
 
       // Ensure lesson is properly typed
       const typedLesson = lesson as {
@@ -105,14 +94,21 @@ export async function POST(request: NextRequest) {
         }
       };
       
-      const { data: newPurchase, error: createError } = await supabase
-        .from('purchases')
-        .insert(purchaseData)
-        .select('id')
-        .single();
+        const { data: newPurchase, error: createError } = await supabase
+          .from('purchases')
+          .insert(purchaseData)
+          .select('id')
+          .single();
 
-      if (createError) {
-        console.error('Error creating purchase:', createError);
+        if (createError) {
+          console.error('Error creating purchase:', createError);
+          return NextResponse.json(
+            { error: 'Failed to create purchase' },
+            { status: 500 }
+          );
+        }
+      } catch (error) {
+        console.error('Error creating purchase:', error);
         return NextResponse.json(
           { error: 'Failed to create purchase' },
           { status: 500 }
@@ -134,15 +130,23 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
       
-      const { data: updatedPurchase, error: updateError } = await supabase
-        .from('purchases')
-        .update(updateData)
-        .eq('id', purchase.id)
-        .select('id')
-        .single();
+      try {
+        const { data: updatedPurchase, error: updateError } = await supabase
+          .from('purchases')
+          .update(updateData)
+          .eq('id', purchase.id)
+          .select('id')
+          .single();
 
-      if (updateError) {
-        console.error('Error updating purchase:', updateError);
+        if (updateError) {
+          console.error('Error updating purchase:', updateError);
+          return NextResponse.json(
+            { error: 'Failed to update purchase' },
+            { status: 500 }
+          );
+        }
+      } catch (error) {
+        console.error('Error updating purchase:', error);
         return NextResponse.json(
           { error: 'Failed to update purchase' },
           { status: 500 }

@@ -17,7 +17,7 @@ export default function ClientAuthWrapper(props: ClientAuthWrapperProps) {
     <Suspense fallback={
       <div className="space-y-4">
         <div className="flex justify-center items-center py-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loading-spinner" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-icon" />
         </div>
       </div>
     }>
@@ -26,7 +26,8 @@ export default function ClientAuthWrapper(props: ClientAuthWrapperProps) {
   );
 }
 
-function ClientAuthWrapperContent({ redirect, errorParam }: ClientAuthWrapperProps) {
+function ClientAuthWrapperContent(props: ClientAuthWrapperProps) {
+  const { redirect, errorParam } = props;
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +50,7 @@ function ClientAuthWrapperContent({ redirect, errorParam }: ClientAuthWrapperPro
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [redirect, errorParam]);
+  }, []);
   
   const handleGoogleSignIn = async () => {
     try {
@@ -84,7 +85,7 @@ function ClientAuthWrapperContent({ redirect, errorParam }: ClientAuthWrapperPro
     return (
       <div className="space-y-4">
         <div className="flex justify-center items-center py-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loading-spinner" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-icon" />
         </div>
       </div>
     );

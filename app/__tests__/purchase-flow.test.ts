@@ -1,6 +1,7 @@
 // Import dependencies first
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { purchasesService } from '@/app/services/database/purchasesService';
+import { NextRequest } from 'next/server';
 
 // Create mock response factory
 const createMockResponse = (body: unknown, status = 200) => ({
@@ -29,28 +30,41 @@ jest.mock('next/server', () => {
   };
 });
 
-// Import the NextRequest after mocking
-import { NextRequest } from 'next/server';
-
 // Import the API routes
 import * as purchaseRoute from '@/app/api/lessons/purchase/route';
 import * as checkPurchaseRoute from '@/app/api/lessons/check-purchase/route';
 import * as webhookRoute from '@/app/api/webhooks/stripe/route';
 
-// Mock the API routes with factory functions that don't reference NextResponse directly
-jest.mock('@/app/api/lessons/purchase/route', () => ({
-  POST: jest.fn().mockReturnValue(createMockResponse({ sessionId: 'cs_test_123' }))
-}));
+// Mock the API routes with factory functions
+jest.mock('@/app/api/lessons/purchase/route', () => {
+  return {
+    POST: jest.fn().mockImplementation(() => ({
+      status: 200,
+      headers: new Headers(),
+      json: () => Promise.resolve({ sessionId: 'cs_test_123' })
+    }))
+  };
+});
 
-jest.mock('@/app/api/lessons/check-purchase/route', () => ({
-  POST: jest.fn().mockReturnValue(
-    createMockResponse({ hasAccess: true, purchaseStatus: 'completed' })
-  )
-}));
+jest.mock('@/app/api/lessons/check-purchase/route', () => {
+  return {
+    POST: jest.fn().mockImplementation(() => ({
+      status: 200,
+      headers: new Headers(),
+      json: () => Promise.resolve({ hasAccess: true, purchaseStatus: 'completed' })
+    }))
+  };
+});
 
-jest.mock('@/app/api/webhooks/stripe/route', () => ({
-  POST: jest.fn().mockReturnValue(createMockResponse({ success: true }))
-}));
+jest.mock('@/app/api/webhooks/stripe/route', () => {
+  return {
+    POST: jest.fn().mockImplementation(() => ({
+      status: 200,
+      headers: new Headers(),
+      json: () => Promise.resolve({ success: true })
+    }))
+  };
+});
 
 // Get the mocked functions
 const purchasePost = (purchaseRoute.POST as jest.Mock);

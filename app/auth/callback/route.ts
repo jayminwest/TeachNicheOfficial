@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
     }
     
     // Create a Supabase client for the Route Handler
-    const cookieStore = await cookies()
+    // Use a direct approach to avoid cookie issues in production
     const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
+      cookies
     })
     
     // Exchange the code for a session

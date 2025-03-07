@@ -2,6 +2,13 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { POST, GET } from '../requests/route'
 import { createMockSupabaseClient, resetSupabaseMocks } from '../../../__mocks__/services/supabase'
 
+// Mock createServerSupabaseClient
+jest.mock('@/app/lib/supabase/server', () => ({
+  createServerSupabaseClient: jest.fn().mockImplementation(() => {
+    return createMockSupabaseClient();
+  })
+}))
+
 // Mock dependencies
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createRouteHandlerClient: jest.fn()
@@ -73,7 +80,9 @@ describe('Requests API Routes', () => {
         })
       })
 
+      // Mock both the route handler client and the server client
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
 
       const request = new Request('http://localhost/api/requests', {
         method: 'POST',
@@ -111,6 +120,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
 
       // Missing description
       const request = new Request('http://localhost/api/requests', {
@@ -136,6 +146,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
 
       const request = new Request('http://localhost/api/requests', {
         method: 'POST',
@@ -169,6 +180,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
 
       const request = new Request('http://localhost/api/requests', {
         method: 'POST',
@@ -197,6 +209,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
 
       const request = new Request('http://localhost/api/requests', {
         method: 'POST',
@@ -233,6 +246,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
       
       const request = new Request('http://localhost/api/requests')
       
@@ -265,6 +279,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
       
       const request = new Request('http://localhost/api/requests?category=Beginner%20Basics')
       
@@ -294,6 +309,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
       
       const request = new Request('http://localhost/api/requests?status=open')
       
@@ -319,6 +335,7 @@ describe('Requests API Routes', () => {
       })
 
       ;(createRouteHandlerClient as jest.Mock).mockReturnValue(mockSupabase)
+      require('@/app/lib/supabase/server').createServerSupabaseClient.mockReturnValue(mockSupabase)
       
       const request = new Request('http://localhost/api/requests')
       

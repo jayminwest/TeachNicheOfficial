@@ -31,19 +31,30 @@ export async function setupApiInterceptors(page: Page) {
     if (url.includes('/api/auth')) {
       if (url.includes('/api/auth/session')) {
         if (userData) {
+          // Get redirect parameter from URL if present
+          const urlObj = new URL(url);
+          const redirectParam = urlObj.searchParams.get('redirect');
+          
           await route.fulfill({
             status: 200,
             body: JSON.stringify({ 
               user: userData, 
               session: { 
                 user: userData,
-                access_token: 'mock-access-token',
-                refresh_token: 'mock-refresh-token',
+                access_token: 'mock-access-token-' + Date.now(),
+                refresh_token: 'mock-refresh-token-' + Date.now(),
                 expires_at: Date.now() + 3600 * 1000
               },
-              redirect: new URL(url).searchParams.get('redirect') || null
+              redirect: redirectParam
             }),
           });
+          
+          // If there's a redirect, store it in localStorage for the login helper
+          if (redirectParam) {
+            await page.evaluate((redirect) => {
+              localStorage.setItem('auth-redirect', redirect);
+            }, redirectParam);
+          }
         } else {
           await route.fulfill({
             status: 401,

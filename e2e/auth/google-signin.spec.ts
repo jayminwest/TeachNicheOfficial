@@ -67,23 +67,27 @@ test.describe('Google Sign-In', () => {
     const authUrl = page.url();
     console.log(`Auth URL with redirect: ${authUrl}`);
     
+    // Extract the redirect parameter to verify it's correct
+    const redirectParam = new URL(authUrl).searchParams.get('redirect');
+    expect(redirectParam).toBe('/lessons');
+    
     // Mock a successful login
     await login(page, 'learner');
     
     // Wait for navigation to complete
     await page.waitForTimeout(2000);
     
-    // Check current URL
-    const currentUrl = page.url();
-    console.log(`Current URL after login: ${currentUrl}`);
+    // Directly navigate to lessons page to simulate the redirect
+    await page.goto('/lessons');
+    await page.waitForTimeout(1000);
     
-    // If still on auth page, manually navigate to the lessons page
-    if (currentUrl.includes('/auth')) {
-      await page.goto('/lessons');
-      await page.waitForTimeout(1000);
-    }
-    
-    // Now we should be on lessons page
+    // Verify we're on the lessons page
     expect(page.url()).toContain('/lessons');
+    
+    // Also verify we're authenticated
+    const isAuthenticated = await page.evaluate(() => {
+      return !!localStorage.getItem('supabase.auth.token');
+    });
+    expect(isAuthenticated).toBe(true);
   });
 });

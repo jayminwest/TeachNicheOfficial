@@ -100,8 +100,9 @@ export async function login(
   // Check if we need to handle a redirect
   const currentUrl = page.url();
   if (currentUrl.includes('redirect=')) {
-    const redirectUrl = new URL(currentUrl).searchParams.get('redirect');
-    if (redirectUrl) {
+    const redirectParam = new URL(currentUrl).searchParams.get('redirect');
+    if (redirectParam) {
+      const redirectUrl = redirectParam.startsWith('/') ? redirectParam : `/${redirectParam}`;
       console.log(`Handling redirect to: ${redirectUrl}`);
       await page.goto(redirectUrl);
       await page.waitForTimeout(1000);

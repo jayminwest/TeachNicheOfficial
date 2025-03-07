@@ -1,4 +1,4 @@
-import { DatabaseService, DatabaseResponse } from './databaseService'
+import { DatabaseService, DatabaseResponse } from './DatabaseService'
 import { PurchaseStatus, LessonAccess } from '@/app/types/purchase'
 import { PostgrestError } from '@supabase/supabase-js'
 
@@ -16,13 +16,26 @@ export class PurchasesService extends DatabaseService {
    * Get a Stripe instance
    * @private
    */
-  private getStripe() {
+  // Changed to protected to allow mocking in tests
+  protected async getStripe() {
     // Import dynamically to avoid require()
-    return import('stripe').then(Stripe => {
+    if (process.env.NODE_ENV === 'test') {
+      // In test environment, return a mock Stripe instance
+      const mockStripe = {
+        checkout: {
+          sessions: {
+            retrieve: jest.fn()
+          }
+        }
+      };
+      return mockStripe;
+    } else {
+      // In production/development, use the real Stripe
+      const Stripe = await import('stripe');
       return new Stripe.default(process.env.STRIPE_SECRET_KEY || 'test-key', {
         apiVersion: '2025-01-27.acacia',
       });
-    });
+    }
   }
 
   /**

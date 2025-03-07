@@ -63,7 +63,7 @@ Focus on stateless UI components that require minimal mocking:
 #### UI Components
 - [x] `app/components/ui/badge.tsx` (improved to 100%)
 - [x] `app/components/ui/accordion.tsx` (improved to 100%)
-- [ ] `app/components/ui/alert.tsx` (currently 0%)
+- [x] `app/components/ui/alert.tsx` (improved to 100%)
 - [ ] `app/components/ui/checkbox.tsx` (currently 0%)
 - [ ] `app/components/ui/dropdown-menu.tsx` (currently 0%)
 - [ ] `app/components/ui/features.tsx` (currently 0%)

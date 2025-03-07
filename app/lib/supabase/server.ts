@@ -3,9 +3,11 @@ import type { Database } from '@/app/types/database';
 
 export function createServerSupabaseClient() {
   try {
-    // Check for service role key
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.warn('SUPABASE_SERVICE_ROLE_KEY is not defined, falling back to anon key');
+    // Check for service role key (try both environment variable names)
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!serviceRoleKey) {
+      console.warn('No service role key found, falling back to anon key');
       // Fall back to anon key if service role key is not available
       return createClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,13 +16,13 @@ export function createServerSupabaseClient() {
     }
     
     // Log the first few characters of the key for debugging (never log the full key)
-    const keyPrefix = process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 5) + '...';
+    const keyPrefix = serviceRoleKey.substring(0, 5) + '...';
     console.log(`Using service role key for Supabase client: ${keyPrefix}`);
     
     // Use service role key for admin access that bypasses RLS
     const client = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceRoleKey,
       {
         auth: {
           persistSession: false,

@@ -6,7 +6,8 @@ export async function GET() {
     const supabase = createServerSupabaseClient();
     
     // Try a simple query that doesn't require table access
-    const { data, error } = await supabase.rpc('version');
+    // First try a direct SQL query that should always work
+    const { data, error } = await supabase.from('_prisma_migrations').select('*').limit(1);
     
     if (error) {
       return NextResponse.json({

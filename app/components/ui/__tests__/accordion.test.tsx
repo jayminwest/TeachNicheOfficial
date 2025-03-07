@@ -131,6 +131,6 @@ describe('Accordion Component', () => {
     
     // Check content visibility
     expect(screen.getByText('Content 2')).toBeVisible();
-    expect(screen.queryByText('Content 1')).not.toBeVisible();
+    expect(screen.queryByText('Content 1')).toBeNull();
   });
 });

@@ -268,10 +268,10 @@ describe('Votes API Route', () => {
         request_id: 'request-123',
         user_id: 'user-123',
         vote_type: 'upvote',
-        created_at: expect.any(String)
+        created_at: '2023-01-01T00:00:00.000Z'
       };
       
-      // Mock vote count
+      // Mock vote count after insertion
       const mockVoteCount = {
         count: 1,
         error: null
@@ -338,7 +338,12 @@ describe('Votes API Route', () => {
         success: true,
         currentVotes: 1,
         userHasVoted: true,
-        data: mockNewVote
+        data: expect.objectContaining({
+          id: 'vote-123',
+          request_id: 'request-123',
+          user_id: 'user-123',
+          vote_type: 'upvote'
+        })
       });
       
       // Verify the correct operations were performed

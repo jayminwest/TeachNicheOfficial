@@ -95,7 +95,10 @@ jest.mock('lucide-react', () => ({
   Users: (props) => <div data-testid="users-icon" className={props.className} />,
   Shield: (props) => <div data-testid="shield-icon" className={props.className} />,
   Leaf: (props) => <div data-testid="leaf-icon" className={props.className} />,
-  GraduationCap: (props) => <div data-testid="graduation-cap-icon" className={props.className} />
+  GraduationCap: (props) => <div data-testid="graduation-cap-icon" className={props.className} />,
+  // Add icons used in ThemeToggle component
+  Sun: (props) => <div data-testid="sun-icon" className={props.className} />,
+  Moon: (props) => <div data-testid="moon-icon" className={props.className} />
 }))
 
 // Mock window.matchMedia

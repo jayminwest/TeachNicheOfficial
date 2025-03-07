@@ -4,9 +4,7 @@ import { POST } from '../update-purchase/route';
 import * as serverModule from '@/app/lib/supabase/server';
 
 // Mock dependencies
-jest.mock('@/app/lib/supabase/server', () => ({
-  createServerSupabaseClient: jest.fn()
-}));
+jest.mock('@/app/lib/supabase/server');
 
 jest.mock('next/server', () => ({
   NextResponse: {
@@ -96,7 +94,7 @@ describe('Update Purchase API', () => {
     };
     
     // Fix the mock implementation
-    (serverModule.createServerSupabaseClient as jest.Mock).mockReturnValue(mockSupabaseClient);
+    jest.mocked(serverModule.createServerSupabaseClient).mockReturnValue(mockSupabaseClient);
   });
   
   it('should return 400 if required fields are missing', async () => {

@@ -21,7 +21,7 @@ export function RequestsPage() {
   
   // Handle category selection
   const handleCategorySelect = (category?: string) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     
     if (category) {
       params.set('category', category);
@@ -34,7 +34,7 @@ export function RequestsPage() {
   
   // Handle sort change
   const handleSortChange = (sort: 'popular' | 'newest') => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.set('sort', sort);
     router.push(`/requests?${params.toString()}`);
   };

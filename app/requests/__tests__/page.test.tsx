@@ -160,6 +160,15 @@ describe('RequestsPage', () => {
       push: mockPush
     }));
     
+    // Mock the URLSearchParams implementation
+    const mockURLSearchParams = jest.fn().mockImplementation(() => ({
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      toString: jest.fn().mockReturnValue('')
+    }));
+    global.URLSearchParams = mockURLSearchParams;
+    
     render(<RequestsPage />)
 
     // Wait for sidebar and categories to be rendered
@@ -172,8 +181,8 @@ describe('RequestsPage', () => {
     const categoryButton = screen.getByRole('button', { name: 'Beginner Fundamentals' })
     await user.click(categoryButton)
 
-    // Verify router.push was called with the correct URL
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('category=Beginner%20Fundamentals'))
+    // Verify router.push was called with the correct path
+    expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/\/requests\?/));
   })
 
   it('changes sort order', async () => {

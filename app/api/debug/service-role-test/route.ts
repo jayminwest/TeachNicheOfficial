@@ -5,8 +5,8 @@ export async function GET() {
   try {
     const supabase = createServerSupabaseClient();
     
-    // Try a simple query that should work with service role
-    const { data, error } = await supabase.from('lessons').select('count').limit(1);
+    // Try a simple raw SQL query that should always work with service role
+    const { data, error } = await supabase.rpc('current_database');
     
     if (error) {
       return NextResponse.json({

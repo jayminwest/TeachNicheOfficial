@@ -1,55 +1,49 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/app/types/database';
 
 export async function GET() {
   try {
-    // Create the Supabase client using our service role approach
-    const supabase = createServerSupabaseClient();
+    console.log('Attempting to fetch lessons with direct service role client');
     
-    console.log('Using service role Supabase client for lessons API with direct SQL');
+    // Create a direct client with service role key
+    // This is a more direct approach than using the helper
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
     
-    // Try direct query with service role key first
-    console.log('Attempting direct query with service role key');
-    
-    // First try a count query to test permissions
-    const { count, error: countError } = await supabase
-      .from('lessons')
-      .select('*', { count: 'exact', head: true });
-    
-    if (countError) {
-      console.error('Error counting lessons:', countError);
-      console.log('Service role key may not be working correctly');
-      
-      // Return empty array instead of error for better UX
+    if (!serviceRoleKey) {
+      console.error('No service role key found');
       return NextResponse.json({ 
         lessons: [],
-        debug: {
-          error: countError,
-          serviceRoleKeyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 5) + '...' || 'not set',
-          publicKeyPrefix: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 5) + '...' || 'not set'
-        }
+        error: 'Service role key not configured'
       });
     }
     
-    console.log(`Found ${count} lessons`);
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      serviceRoleKey
+    );
     
-    // Now fetch the actual lessons
-    const { data: lessons, error } = await supabase
-      .from('lessons')
-      .select('*')
-      .eq('status', 'published')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+    // Use a simple raw SQL query to bypass RLS completely
+    const { data: lessons, error } = await supabase.rpc('get_all_published_lessons');
     
     if (error) {
-      console.error('Error fetching lessons with direct query:', error);
-      return NextResponse.json(
-        { 
-          error: { message: 'Failed to fetch lessons' },
-          debug: { error }
-        },
-        { status: 500 }
-      );
+      console.error('Error fetching lessons with RPC:', error);
+      
+      // Try a direct SQL query as fallback
+      console.log('Attempting fallback with direct SQL query');
+      const { data: directData, error: directError } = await supabase.from('lessons')
+        .select('*')
+        .eq('status', 'published')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+      
+      if (directError) {
+        console.error('Fallback query also failed:', directError);
+        return NextResponse.json({ lessons: [] });
+      }
+      
+      lessons = directData;
     }
     
     // Only log in development environment
@@ -59,16 +53,13 @@ export async function GET() {
     
     // Transform the data to match the client-side expected format
     const transformedLessons = (lessons || []).map(lesson => {
-      // Handle both RPC JSON result and direct query result
-      const lessonData = typeof lesson === 'string' ? JSON.parse(lesson) : lesson;
-      
       return {
-        id: lessonData.id || '',
-        title: lessonData.title || 'Untitled Lesson',
-        description: lessonData.description || 'No description available',
-        price: typeof lessonData.price === 'number' ? lessonData.price : 0,
-        thumbnailUrl: lessonData.thumbnail_url || '', // Map snake_case to camelCase
-        creatorId: lessonData.creator_id || '',
+        id: lesson.id || '',
+        title: lesson.title || 'Untitled Lesson',
+        description: lesson.description || 'No description available',
+        price: typeof lesson.price === 'number' ? lesson.price : 0,
+        thumbnailUrl: lesson.thumbnail_url || '', // Map snake_case to camelCase
+        creatorId: lesson.creator_id || '',
         // Provide default values for missing fields
         averageRating: 0,
         totalRatings: 0

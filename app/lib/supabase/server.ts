@@ -20,19 +20,12 @@ export function createServerSupabaseClient() {
     console.log(`Using service role key for Supabase client: ${keyPrefix}`);
     console.log(`Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
     
-    // Use service role key for admin access that bypasses RLS
-    const client = createClient<Database>(
+    // Create a direct client with service role key
+    // This bypasses auth helpers completely
+    return createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      serviceRoleKey,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        }
-      }
+      serviceRoleKey
     );
-    
-    return client;
   } catch (error) {
     console.error('Error creating Supabase client:', error);
     throw error;

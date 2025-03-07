@@ -66,40 +66,68 @@ export async function POST(request: Request) {
       .eq('user_id', session.user.id)
       .single()
 
+    let voteResult;
+    let userHasVoted = false;
+
+    // Transaction to handle vote and update vote count
     if (existingVote) {
-      // Update existing vote
+      // Remove the vote (toggle behavior)
+      const { error: deleteError } = await supabase
+        .from('lesson_request_votes')
+        .delete()
+        .eq('id', existingVote.id)
+
+      if (deleteError) throw deleteError
+      userHasVoted = false;
+    } else {
+      // Create new vote
       const { data, error } = await supabase
         .from('lesson_request_votes')
-        .update({ 
+        .insert([{
+          request_id: validatedData.requestId,
+          user_id: session.user.id,
           vote_type: validatedData.voteType,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingVote.id)
+          created_at: new Date().toISOString()
+        }])
         .select()
         .single()
 
       if (error) throw error
-      return NextResponse.json(data)
+      voteResult = data;
+      userHasVoted = true;
     }
 
-    // Create new vote
-    const { data, error } = await supabase
+    // Get updated vote count
+    const { count, error: countError } = await supabase
       .from('lesson_request_votes')
-      .insert([{
-        request_id: validatedData.requestId,
-        user_id: session.user.id,
-        vote_type: validatedData.voteType,
-        created_at: new Date().toISOString()
-      }])
-      .select()
-      .single()
+      .select('*', { count: 'exact', head: true })
+      .eq('request_id', validatedData.requestId)
 
-    if (error) throw error
-    return NextResponse.json(data)
+    if (countError) throw countError
+
+    // Update the lesson_requests table with the new vote count
+    const { error: updateError } = await supabase
+      .from('lesson_requests')
+      .update({ vote_count: count || 0 })
+      .eq('id', validatedData.requestId)
+
+    if (updateError) throw updateError
+
+    return NextResponse.json({
+      success: true,
+      currentVotes: count || 0,
+      userHasVoted,
+      data: voteResult || null
+    })
   } catch (error) {
     console.error('Error in votes endpoint:', error)
     return NextResponse.json(
-      { error: 'Failed to process vote' },
+      { 
+        error: 'Failed to process vote',
+        success: false,
+        currentVotes: 0,
+        userHasVoted: false
+      },
       { status: 500 }
     )
   }

@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     }
     
     // Create a Supabase client for the Route Handler
-    // In Next.js 15, we need to pass cookies directly
-    const cookieStore = cookies()
+    // In Next.js 15, we need to await cookies() before using it
+    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Exchange the code for a session
@@ -43,11 +43,11 @@ export async function GET(request: NextRequest) {
     let redirectTo = '/profile'
     
     // Check for redirect cookie
-    const redirectCookie = cookieStore.get('auth_redirect')
+    const redirectCookie = await cookieStore.get('auth_redirect')
     if (redirectCookie?.value) {
       redirectTo = redirectCookie.value
       // Clear the cookie after use
-      cookieStore.delete('auth_redirect')
+      await cookieStore.delete('auth_redirect')
     }
     
     console.log('Auth successful, redirecting to:', redirectTo)

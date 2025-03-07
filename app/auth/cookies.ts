@@ -9,9 +9,9 @@ import { cookies } from 'next/headers';
  * @param name The name of the cookie to retrieve
  * @returns The cookie value or null if not found
  */
-export function getCookie(name: string): string | null {
-  const cookieStore = cookies();
-  const cookie = cookieStore.get(name);
+export async function getCookie(name: string): Promise<string | null> {
+  const cookieStore = await cookies();
+  const cookie = await cookieStore.get(name);
   return cookie?.value || null;
 }
 
@@ -21,7 +21,7 @@ export function getCookie(name: string): string | null {
  * @param value The value to store
  * @param options Optional cookie options
  */
-export function setCookie(
+export async function setCookie(
   name: string, 
   value: string, 
   options: { 
@@ -30,16 +30,16 @@ export function setCookie(
     secure?: boolean; 
     httpOnly?: boolean;
   } = {}
-): void {
-  const cookieStore = cookies();
-  cookieStore.set(name, value, options);
+): Promise<void> {
+  const cookieStore = await cookies();
+  await cookieStore.set(name, value, options);
 }
 
 /**
  * Delete a cookie by name
  * @param name The name of the cookie to delete
  */
-export function deleteCookie(name: string): void {
-  const cookieStore = cookies();
-  cookieStore.delete(name);
+export async function deleteCookie(name: string): Promise<void> {
+  const cookieStore = await cookies();
+  await cookieStore.delete(name);
 }

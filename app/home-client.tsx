@@ -22,6 +22,11 @@ export default function HomeClient() {
     }
   }, [])
   
+  // Helper method that can be mocked in tests
+  redirectTo(url: string) {
+    window.location.href = url
+  }
+  
   return (
     <>
       {/* Auth dialog that will open automatically when auth=signin */}
@@ -30,7 +35,7 @@ export default function HomeClient() {
         onOpenChange={setAuthDialogOpen}
         onSuccess={() => {
           // Navigate to the redirect URL after successful auth
-          window.location.href = redirectUrl
+          this.redirectTo(redirectUrl)
         }}
       />
     </>

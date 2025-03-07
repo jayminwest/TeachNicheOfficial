@@ -1,12 +1,29 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/app/types/database';
 
 export async function GET() {
   try {
-    const supabase = createServerSupabaseClient();
+    // Create a direct client with service role key
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
     
-    // Try a simple raw SQL query that should always work with service role
-    const { data, error } = await supabase.rpc('current_database');
+    if (!serviceRoleKey) {
+      return NextResponse.json({
+        status: 'error',
+        message: 'Service role key not found in environment variables',
+        hint: 'Set SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY'
+      }, { status: 500 });
+    }
+    
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      serviceRoleKey
+    );
+    
+    // Try a simple query to check if the service role key works
+    // This should work even with an empty database
+    const { data, error } = await supabase.from('lessons').select('count');
     
     if (error) {
       return NextResponse.json({
@@ -20,7 +37,8 @@ export async function GET() {
     return NextResponse.json({
       status: 'success',
       message: 'Service role key is working',
-      version: data
+      keyPrefix: serviceRoleKey.substring(0, 5) + '...',
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL
     });
   } catch (error) {
     return NextResponse.json({

@@ -24,26 +24,26 @@ export async function GET() {
       serviceRoleKey
     );
     
-    // Use a simple raw SQL query to bypass RLS completely
-    const { data: lessons, error } = await supabase.rpc('get_all_published_lessons');
+    // Try a direct query first - this should work with service role key
+    console.log('Attempting direct query with service role key');
+    const { data: lessons, error } = await supabase.from('lessons')
+      .select('*')
+      .eq('status', 'published')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching lessons with RPC:', error);
-      
-      // Try a direct SQL query as fallback
-      console.log('Attempting fallback with direct SQL query');
-      const { data: directData, error: directError } = await supabase.from('lessons')
-        .select('*')
-        .eq('status', 'published')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-      
-      if (directError) {
-        console.error('Fallback query also failed:', directError);
-        return NextResponse.json({ lessons: [] });
-      }
-      
-      lessons = directData;
+      console.error('Error fetching lessons:', error);
+      // Return empty array instead of error for better UX
+      return NextResponse.json({ 
+        lessons: [],
+        debug: {
+          error: error.message,
+          code: error.code,
+          hint: error.hint,
+          details: error.details
+        }
+      });
     }
     
     // Only log in development environment

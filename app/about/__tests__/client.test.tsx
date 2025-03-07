@@ -13,8 +13,9 @@ describe('AboutAccordion', () => {
   it('expands and collapses when clicked', () => {
     render(<AboutAccordion />)
     
-    // Initially content should not be visible
-    expect(screen.queryByText('Community Collaboration')).not.toBeVisible()
+    // Initially content should not be in the document or hidden
+    const initialContent = screen.queryByText('Community Collaboration')
+    expect(initialContent).not.toBeInTheDocument()
     
     // Click to expand
     const valuesTrigger = screen.getByText('Values')
@@ -29,8 +30,10 @@ describe('AboutAccordion', () => {
     // Click again to collapse
     fireEvent.click(valuesTrigger)
     
-    // Content should not be visible again
-    expect(screen.queryByText('Community Collaboration')).not.toBeVisible()
+    // Content should be hidden after collapsing
+    // We need to use queryByText since the element might be in the DOM but hidden
+    const collapsedContent = screen.queryByText('Community Collaboration')
+    expect(collapsedContent).not.toBeVisible()
   })
 
   it('renders all value items with correct content', () => {

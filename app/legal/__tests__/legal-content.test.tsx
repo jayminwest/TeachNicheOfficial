@@ -59,7 +59,7 @@ describe('LegalContent', () => {
     const emailLink = screen.getByText('info@teach-niche.com')
     expect(emailLink).toBeInTheDocument()
     expect(emailLink).toHaveAttribute('href', 'mailto:info@teach-niche.com')
-    expect(emailLink).toHaveClass('text-primary')
+    expect(emailLink).toHaveClass('text-primary hover:underline')
   })
 
   it('renders all three main sections', () => {

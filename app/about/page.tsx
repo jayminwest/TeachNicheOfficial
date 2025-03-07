@@ -86,17 +86,10 @@ export default function AboutPage() {
 
           <section className="my-12">
             <h2 className="text-2xl font-semibold mb-6">Learn More About Teach Niche</h2>
-            <div className="space-y-4">
-              <div className="border rounded-lg">
-                <button 
-                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
-                  aria-expanded="false"
-                  aria-controls="values-content"
-                >
-                  <h3 className="text-lg font-medium">Values</h3>
-                  <span aria-hidden="true">+</span>
-                </button>
-                <div id="values-content" className="p-4 border-t">
+            <Accordion items={[
+              {
+                title: "Values",
+                content: (
                   <div className="space-y-4 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">Community Collaboration</h4>
@@ -115,19 +108,11 @@ export default function AboutPage() {
                       <p>The platform supports long-term growth for kendama enthusiasts and professionals alike.</p>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="border rounded-lg">
-                <button 
-                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
-                  aria-expanded="false"
-                  aria-controls="why-content"
-                >
-                  <h3 className="text-lg font-medium">Why Teach Niche?</h3>
-                  <span aria-hidden="true">+</span>
-                </button>
-                <div id="why-content" className="p-4 border-t">
+                )
+              },
+              {
+                title: "Why Teach Niche?",
+                content: (
                   <div className="grid sm:grid-cols-2 gap-6 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">💪 Empowerment</h4>
@@ -146,19 +131,11 @@ export default function AboutPage() {
                       <p>Teach Niche is built to grow and evolve according to the needs and feedback of the community.</p>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="border rounded-lg">
-                <button 
-                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
-                  aria-expanded="false"
-                  aria-controls="commission-content"
-                >
-                  <h3 className="text-lg font-medium">Commission Structure</h3>
-                  <span aria-hidden="true">+</span>
-                </button>
-                <div id="commission-content" className="p-4 border-t">
+                )
+              },
+              {
+                title: "Commission Structure",
+                content: (
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is committed to transparency and fairness in its operations. To sustain the platform and continue providing value to the community, Teach Niche charges a 15% commission on each transaction.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -167,19 +144,11 @@ export default function AboutPage() {
                       <li><span className="font-semibold">Community Investment:</span> By supporting the platform, users contribute to a sustainable ecosystem that benefits all members of the kendama community.</li>
                     </ul>
                   </div>
-                </div>
-              </div>
-
-              <div className="border rounded-lg">
-                <button 
-                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
-                  aria-expanded="false"
-                  aria-controls="opensource-content"
-                >
-                  <h3 className="text-lg font-medium">Open Source Philosophy</h3>
-                  <span aria-hidden="true">+</span>
-                </button>
-                <div id="opensource-content" className="p-4 border-t">
+                )
+              },
+              {
+                title: "Open Source Philosophy",
+                content: (
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -189,19 +158,11 @@ export default function AboutPage() {
                     </ul>
                     <p>You can check out the repository on GitHub and take a look under the hood!</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="border rounded-lg">
-                <button 
-                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
-                  aria-expanded="false"
-                  aria-controls="growth-content"
-                >
-                  <h3 className="text-lg font-medium">Built to Grow with the Community</h3>
-                  <span aria-hidden="true">+</span>
-                </button>
-                <div id="growth-content" className="p-4 border-t">
+                )
+              },
+              {
+                title: "Built to Grow with the Community",
+                content: (
                   <div className="space-y-4 pt-2">
                     <p>The best way to serve the kendama community is by listening and adapting to its needs.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -211,9 +172,9 @@ export default function AboutPage() {
                     </ul>
                     <p>By keeping the platform intentionally adaptable, Teach Niche ensures that it evolves in step with the community it serves.</p>
                   </div>
-                </div>
-              </div>
-            </div>
+                )
+              }
+            ]} />
           </section>
 
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">

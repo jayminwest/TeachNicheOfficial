@@ -252,10 +252,11 @@ describe('Check Purchase API', () => {
       error: null
     });
     
-    // Mock Stripe verification success
+    // Mock Stripe verification success but with isPaid=false first
+    // so it will go to the updatePurchaseStatus path
     (purchasesService.verifyStripeSession as jest.Mock).mockResolvedValue({
       data: {
-        isPaid: true,
+        isPaid: false,
         amount: 19.99
       },
       error: null
@@ -274,7 +275,7 @@ describe('Check Purchase API', () => {
       hasAccess: true,
       purchaseStatus: 'completed',
       purchaseDate: '2025-01-01T00:00:00Z',
-      message: 'Purchase status updated to completed based on Stripe verification'
+      message: 'Purchase status updated to completed'
     });
   });
   

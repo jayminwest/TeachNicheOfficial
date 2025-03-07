@@ -40,7 +40,8 @@ export async function setupApiInterceptors(page: Page) {
                 access_token: 'mock-access-token',
                 refresh_token: 'mock-refresh-token',
                 expires_at: Date.now() + 3600 * 1000
-              } 
+              },
+              redirect: new URL(url).searchParams.get('redirect') || null
             }),
           });
         } else {

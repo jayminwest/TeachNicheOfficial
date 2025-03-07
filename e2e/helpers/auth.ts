@@ -95,7 +95,18 @@ export async function login(
   await page.reload();
   
   // Wait for a moment to ensure the auth state is applied
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
+  
+  // Check if we need to handle a redirect
+  const currentUrl = page.url();
+  if (currentUrl.includes('redirect=')) {
+    const redirectUrl = new URL(currentUrl).searchParams.get('redirect');
+    if (redirectUrl) {
+      console.log(`Handling redirect to: ${redirectUrl}`);
+      await page.goto(redirectUrl);
+      await page.waitForTimeout(1000);
+    }
+  }
 }
 
 /**

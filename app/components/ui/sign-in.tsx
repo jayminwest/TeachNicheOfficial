@@ -150,4 +150,5 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
   );
 }
 
-export { SignInPage };
+// Export both components
+export { SignInPage, SignInPageContent as SignIn };

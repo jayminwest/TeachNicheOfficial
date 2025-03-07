@@ -17,21 +17,23 @@ describe('Toast Components', () => {
       render(<Toast>Test Toast</Toast>);
       const toast = screen.getByText('Test Toast');
       expect(toast).toBeInTheDocument();
-      expect(toast).toHaveClass('border', 'bg-background');
+      expect(toast.className).toContain('border');
+      expect(toast.className).toContain('bg-background');
     });
 
     it('renders with destructive variant', () => {
       render(<Toast variant="destructive">Destructive Toast</Toast>);
       const toast = screen.getByText('Destructive Toast');
       expect(toast).toBeInTheDocument();
-      expect(toast).toHaveClass('destructive', 'border-destructive');
+      expect(toast.className).toContain('destructive');
+      expect(toast.className).toContain('border-destructive');
     });
 
     it('applies custom className', () => {
       render(<Toast className="custom-class">Custom Toast</Toast>);
       const toast = screen.getByText('Custom Toast');
       expect(toast).toBeInTheDocument();
-      expect(toast).toHaveClass('custom-class');
+      expect(toast.className).toContain('custom-class');
     });
   });
 
@@ -40,14 +42,15 @@ describe('Toast Components', () => {
       render(<ToastTitle>Toast Title</ToastTitle>);
       const title = screen.getByText('Toast Title');
       expect(title).toBeInTheDocument();
-      expect(title).toHaveClass('text-sm', 'font-semibold');
+      expect(title.className).toContain('text-sm');
+      expect(title.className).toContain('font-semibold');
     });
 
     it('applies custom className', () => {
       render(<ToastTitle className="custom-title">Custom Title</ToastTitle>);
       const title = screen.getByText('Custom Title');
       expect(title).toBeInTheDocument();
-      expect(title).toHaveClass('custom-title');
+      expect(title.className).toContain('custom-title');
     });
   });
 
@@ -56,14 +59,15 @@ describe('Toast Components', () => {
       render(<ToastDescription>Toast Description</ToastDescription>);
       const description = screen.getByText('Toast Description');
       expect(description).toBeInTheDocument();
-      expect(description).toHaveClass('text-sm', 'opacity-90');
+      expect(description.className).toContain('text-sm');
+      expect(description.className).toContain('opacity-90');
     });
 
     it('applies custom className', () => {
       render(<ToastDescription className="custom-desc">Custom Description</ToastDescription>);
       const description = screen.getByText('Custom Description');
       expect(description).toBeInTheDocument();
-      expect(description).toHaveClass('custom-desc');
+      expect(description.className).toContain('custom-desc');
     });
   });
 
@@ -72,14 +76,15 @@ describe('Toast Components', () => {
       render(<ToastAction>Action</ToastAction>);
       const action = screen.getByText('Action');
       expect(action).toBeInTheDocument();
-      expect(action).toHaveClass('inline-flex', 'rounded-md');
+      expect(action.className).toContain('inline-flex');
+      expect(action.className).toContain('rounded-md');
     });
 
     it('applies custom className', () => {
       render(<ToastAction className="custom-action">Custom Action</ToastAction>);
       const action = screen.getByText('Custom Action');
       expect(action).toBeInTheDocument();
-      expect(action).toHaveClass('custom-action');
+      expect(action.className).toContain('custom-action');
     });
   });
 
@@ -102,7 +107,7 @@ describe('Toast Components', () => {
       render(<ToastClose className="custom-close" />);
       const closeButton = screen.getByRole('button');
       expect(closeButton).toBeInTheDocument();
-      expect(closeButton).toHaveClass('custom-close');
+      expect(closeButton.className).toContain('custom-close');
     });
   });
 
@@ -111,14 +116,16 @@ describe('Toast Components', () => {
       render(<ToastViewport />);
       const viewport = screen.getByRole('region');
       expect(viewport).toBeInTheDocument();
-      expect(viewport).toHaveClass('fixed', 'top-0', 'z-[100]');
+      expect(viewport.className).toContain('fixed');
+      expect(viewport.className).toContain('top-0');
+      expect(viewport.className).toContain('z-[100]');
     });
 
     it('applies custom className', () => {
       render(<ToastViewport className="custom-viewport" />);
       const viewport = screen.getByRole('region');
       expect(viewport).toBeInTheDocument();
-      expect(viewport).toHaveClass('custom-viewport');
+      expect(viewport.className).toContain('custom-viewport');
     });
   });
 

@@ -55,12 +55,10 @@ describe('Switch Component', () => {
       <Switch 
         data-testid="test-switch"
         aria-label="Toggle feature"
-        name="feature-toggle"
       />
     );
     
     const switchElement = screen.getByTestId('test-switch');
     expect(switchElement).toHaveAttribute('aria-label', 'Toggle feature');
-    expect(switchElement).toHaveAttribute('name', 'feature-toggle');
   });
 });

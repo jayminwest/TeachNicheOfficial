@@ -19,7 +19,7 @@ export async function GET() {
     if (error) {
       console.error('Error fetching lessons:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch lessons' },
+        { error: { message: 'Failed to fetch lessons' } },
         { status: 500 }
       );
     }
@@ -54,11 +54,11 @@ export async function GET() {
       };
     });
     
-    return NextResponse.json(transformedLessons);
+    return NextResponse.json({ lessons: transformedLessons });
   } catch (error) {
     console.error('Exception fetching lessons:', error);
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      { error: { message: 'An unexpected error occurred' } },
       { status: 500 }
     );
   }

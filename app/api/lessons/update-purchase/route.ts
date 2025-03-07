@@ -33,8 +33,7 @@ export async function POST(request: NextRequest) {
       .select('id, status')
       .eq('lesson_id', lessonId)
       .eq('user_id', userId)
-      .eq(sessionId ? 'stripe_session_id' : 'payment_intent_id', 
-          sessionId || paymentIntentId);
+      .eq(sessionId ? 'stripe_session_id' : 'payment_intent_id', sessionId || paymentIntentId);
 
     if (fetchError) {
       console.error('Error fetching purchase:', fetchError);

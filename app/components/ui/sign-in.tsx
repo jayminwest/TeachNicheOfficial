@@ -39,7 +39,7 @@ function SignInPage(props: SignInPageProps) {
   );
 }
 
-function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
+function SignInPageContent({ onSignInSuccess, redirectPath, className }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -121,7 +121,7 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
 
   // Show sign-in UI
   return (
-    <div data-testid="sign-in-container" className={cn("flex min-h-[inherit] items-center justify-center p-6")}>
+    <div data-testid="sign-in-container" className={cn("flex min-h-[inherit] items-center justify-center p-6", props.className)}>
       <Card className="w-full max-w-[400px] mx-auto">
         <CardHeader className="space-y-1">
           <CardTitle>Sign in to Teach Niche</CardTitle>

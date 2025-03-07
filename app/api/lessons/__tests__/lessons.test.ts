@@ -246,61 +246,33 @@ describe('Lessons API', () => {
     });
 
     it('handles database errors gracefully', async () => {
-      // Get the mock Supabase client
-      const { createServerSupabaseClient } = jest.requireMock('../../../lib/supabase/server');
-      const mockServerSupabase = createServerSupabaseClient();
-      
-      // Set up the mock to return an error
-      // We need to modify the implementation to actually return the error
+      // Mock the server Supabase client to return an error
       jest.requireMock('../../../lib/supabase/server').createServerSupabaseClient.mockImplementationOnce(() => {
         return {
           from: jest.fn().mockReturnThis(),
           select: jest.fn().mockReturnThis(),
           order: jest.fn().mockReturnThis(),
-          then: jest.fn().mockImplementation(callback => {
-            callback({ data: null, error: { message: 'Database error' } });
-            return { catch: jest.fn() };
-          })
+          then: jest.fn(),
+          // This is the key part - return an error from the query
+          async select() {
+            return this;
+          },
+          async order() {
+            return {
+              data: null,
+              error: { message: 'Database error' }
+            };
+          }
         };
-      });
-      
-      // Create a mock request
-      createMocks({
-        method: 'GET',
-        url: '/api/lessons',
       });
       
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
       NextResponse.json.mockImplementationOnce((data, init) => ({
-        status: init?.status || 500,
+        status: init?.status || 200,
         body: data,
         json: () => data
       }));
-
-      // Convert to NextRequest
-      const nextReq = {
-        url: 'http://localhost/api/lessons',
-        method: 'GET',
-        nextUrl: new URL('http://localhost/api/lessons'),
-        headers: new Headers(),
-        cookies: { get: () => null, getAll: () => [] },
-        formData: () => Promise.resolve({}),
-        json: () => Promise.resolve({}),
-        text: () => Promise.resolve(''),
-        blob: () => Promise.resolve(new Blob()),
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-        cache: 'default',
-        credentials: 'same-origin',
-        integrity: '',
-        keepalive: false,
-        mode: 'cors',
-        redirect: 'follow',
-        referrer: '',
-        referrerPolicy: '',
-        signal: new AbortController().signal,
-        clone: () => nextReq,
-      };
 
       const result = await GET();
 

@@ -23,7 +23,24 @@ CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO public;
 
--- Step 4: Create all tables
+-- Step 4: Create custom types first
+-- Create lesson_status type
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'lesson_status') THEN
+    CREATE TYPE lesson_status AS ENUM ('draft', 'published', 'archived');
+  END IF;
+END$$;
+
+-- Create purchase_status type
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'purchase_status') THEN
+    CREATE TYPE purchase_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+  END IF;
+END$$;
+
+-- Step 5: Create all tables
 CREATE TABLE IF NOT EXISTS public.categories (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -151,23 +168,6 @@ CREATE TABLE IF NOT EXISTS public.waitlist (
   signed_up_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   PRIMARY KEY (id)
 );
-
--- Step 5: Create custom types if they don't exist
--- Check if lesson_status type exists, if not create it
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'lesson_status') THEN
-    CREATE TYPE lesson_status AS ENUM ('draft', 'published', 'archived');
-  END IF;
-END$$;
-
--- Check if purchase_status type exists, if not create it
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'purchase_status') THEN
-    CREATE TYPE purchase_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
-  END IF;
-END$$;
 
 -- Step 6: Add foreign key constraints
 -- Note: Some constraints appear to be duplicates, but we'll include all for completeness

@@ -329,7 +329,22 @@ N/A
 4. Create a new query and paste the following SQL:
 
 ```sql
--- First, disable RLS temporarily to avoid permission issues
+-- First, create custom types
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'lesson_status') THEN
+    CREATE TYPE lesson_status AS ENUM ('draft', 'published', 'archived');
+  END IF;
+END$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'purchase_status') THEN
+    CREATE TYPE purchase_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+  END IF;
+END$$;
+
+-- Then, disable RLS temporarily to avoid permission issues
 DO $$ 
 DECLARE
     r RECORD;

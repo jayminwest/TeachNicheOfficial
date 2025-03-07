@@ -70,55 +70,16 @@ Build on the existing tests to implement a comprehensive testing strategy:
 
 All components using `useSearchParams()` are now properly wrapped in Suspense boundaries, which should resolve the build errors related to missing Suspense boundaries.
 
-### Phase 2: Complete Authentication Service Tests
+### Phase 2: Complete Authentication Service Tests ✅
 
-1. **Create comprehensive tests for `app/services/auth/supabaseAuth.ts`**:
-   - Create file: `app/services/auth/__tests__/supabaseAuth.test.ts`
-   - Test all exported functions: `signInWithGoogle`, `signOut`, `getSession`, `onAuthStateChange`
-   - Test error handling, especially for cookie-related errors
-   - Test edge cases and error scenarios
+1. **Create comprehensive tests for `app/services/auth/supabaseAuth.ts`**: ✅
+   - Created file: `app/services/auth/__tests__/supabaseAuth.test.ts`
+   - Tested all exported functions: `signInWithGoogle`, `signOut`, `getSession`, `onAuthStateChange`
+   - Tested error handling, including cookie-related errors
+   - Tested edge cases and error scenarios
+   - Fixed issue with function reference comparison in `onAuthStateChange` test
 
-   ```typescript
-   // Example test structure
-   import { signInWithGoogle, signOut, getSession, onAuthStateChange } from '../supabaseAuth';
-   import { createClientSupabaseClient } from '@/app/lib/supabase/client';
-
-   jest.mock('@/app/lib/supabase/client', () => ({
-     createClientSupabaseClient: jest.fn(),
-   }));
-
-   describe('supabaseAuth', () => {
-     const mockSupabaseClient = {
-       auth: {
-         signInWithOAuth: jest.fn(),
-         signOut: jest.fn(),
-         getSession: jest.fn(),
-         onAuthStateChange: jest.fn(),
-       },
-     };
-
-     beforeEach(() => {
-       jest.clearAllMocks();
-       (createClientSupabaseClient as jest.Mock).mockReturnValue(mockSupabaseClient);
-     });
-
-     describe('signInWithGoogle', () => {
-       it('returns success when sign in succeeds', async () => {
-         // Test implementation
-       });
-       
-       it('handles errors correctly', async () => {
-         // Test implementation
-       });
-       
-       it('handles cookie-related errors specially', async () => {
-         // Test implementation
-       });
-     });
-
-     // Tests for other functions...
-   });
-   ```
+   The implementation follows the example structure and includes tests for all exported functions with proper mocking of the Supabase client. All tests are now passing, including the previously failing test for `onAuthStateChange`.
 
 ### Phase 3: Complete AuthContext Tests
 
@@ -231,7 +192,7 @@ All components using `useSearchParams()` are now properly wrapped in Suspense bo
    - `app/auth/client.tsx` ✅
 
 2. **Test Files to Create**:
-   - `app/services/auth/__tests__/supabaseAuth.test.ts` 🔄
+   - `app/services/auth/__tests__/supabaseAuth.test.ts` ✅
    - `app/services/auth/__tests__/AuthContext.test.tsx` 🔄
    - `app/components/ui/__tests__/auth-dialog.test.tsx` 🔄
    - `app/components/ui/__tests__/sign-out-button.test.tsx` 🔄
@@ -264,7 +225,7 @@ Legend:
 1. Build process completes successfully without Suspense boundary errors ✅
 2. All components using `useSearchParams()` are properly wrapped in Suspense boundaries ✅
 3. Unit tests exist for all authentication components with >80% coverage 🔄
-4. Unit tests exist for all authentication services with >80% coverage 🔄
+4. Unit tests exist for all authentication services with >80% coverage ✅ (for supabaseAuth.ts)
 5. E2E tests verify complete authentication flows 🔄
 6. All tests pass consistently in CI environment 🔄
 
@@ -272,6 +233,7 @@ Progress:
 - ✅ Fixed Suspense boundary issues in all components using `useSearchParams()`
 - ✅ Implemented proper error handling and loading states
 - ✅ Added tests for `sign-in.tsx` component
+- ✅ Completed tests for `supabaseAuth.ts` service
 - 🔄 Working on remaining tests for authentication services and components
 
 ## Additional Context

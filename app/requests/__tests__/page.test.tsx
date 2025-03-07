@@ -5,6 +5,15 @@ import { getRequests } from '@/app/lib/supabase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 
+// Mock the Menu icon component
+jest.mock('lucide-react', () => ({
+  Menu: () => <div data-testid="menu-icon" />,
+  X: () => <div data-testid="x-icon" />,
+  ChevronRight: () => <div data-testid="chevron-right-icon" />,
+  ArrowUpDown: () => <div data-testid="arrow-up-down-icon" />,
+  ThumbsUp: () => <div data-testid="thumbs-up-icon" />
+}))
+
 // Mock dependencies
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@/app/services/auth/AuthContext')

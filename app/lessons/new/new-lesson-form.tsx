@@ -22,22 +22,47 @@ export default function NewLessonForm() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const response = await fetch('/api/auth/user');
-        if (!response.ok) {
-          throw new Error('Not authenticated');
+        // Import dynamically to avoid SSR issues
+        const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
+        const supabase = createClientSupabaseClient();
+        
+        // Get the current session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          throw new Error('Authentication error');
         }
         
-        await response.json();
+        if (!session) {
+          // No active session
+          console.log('No active session found');
+          router.push('/auth?redirect=/lessons/new');
+          return;
+        }
+        
+        // User is authenticated
         setIsLoading(false);
       } catch (error) {
         console.error('Authentication check failed:', error);
-        // Redirect to sign in page
-        router.push('/auth?redirect=/lessons/new');
+        // Show error in dev but don't redirect immediately in production
+        if (process.env.NODE_ENV === 'development') {
+          toast({
+            title: 'Authentication Error',
+            description: 'Could not verify authentication status. This might be a temporary issue.',
+            variant: 'destructive',
+          });
+        }
+        
+        // Set a timeout before redirecting to avoid immediate redirects on temporary issues
+        setTimeout(() => {
+          router.push('/auth?redirect=/lessons/new');
+        }, 1500);
       }
     }
     
     checkAuth();
-  }, [router]);
+  }, [router, toast]);
   
   // Handle file upload
   const handleFileUpload = async (file: File) => {

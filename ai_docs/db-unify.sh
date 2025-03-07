@@ -230,10 +230,10 @@ run_supabase_command() {
 }
 
 run_supabase_command "export production schema" \
-  run_with_timeout 60 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-    --db-url "$PROD_DB_URL" \
-    -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
-    --schema public
+  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 60 supabase db dump \
+    --db-url \"$PROD_DB_URL\" \
+    -f \"$EXPORTS_DIR/schema_$TIMESTAMP.sql\" \
+    --schema public"
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to export production schema."
@@ -246,11 +246,11 @@ fi
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
 run_supabase_command "export RLS policies" \
-  run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-    --db-url "$PROD_DB_URL" \
-    -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
+  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase db dump \
+    --db-url \"$PROD_DB_URL\" \
+    -f \"$EXPORTS_DIR/rls_$TIMESTAMP.sql\" \
     --schema public \
-    --include "POLICY"
+    --include \"POLICY\""
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to export RLS policies."
@@ -262,11 +262,11 @@ fi
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
 run_supabase_command "export functions and triggers" \
-  run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-    --db-url "$PROD_DB_URL" \
-    -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
+  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase db dump \
+    --db-url \"$PROD_DB_URL\" \
+    -f \"$EXPORTS_DIR/functions_$TIMESTAMP.sql\" \
     --schema public \
-    --include "FUNCTION TRIGGER"
+    --include \"FUNCTION TRIGGER\""
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to export functions and triggers."
@@ -278,9 +278,9 @@ fi
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
 run_supabase_command "export auth configuration" \
-  run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
-    --db-url "$PROD_DB_URL" \
-    > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
+  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase auth config export \
+    --db-url \"$PROD_DB_URL\" \
+    > \"$EXPORTS_DIR/auth_config_$TIMESTAMP.json\""
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to export auth configuration."
@@ -312,10 +312,10 @@ EOF
 
 # Step 7: Backup development database
 echo "Step 7: Creating backup of development database..."
-PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$DEV_DB_URL" \
-  -f "$EXPORTS_DIR/dev_backup_$TIMESTAMP.sql" \
-  --schema public
+bash -c "PGPASSWORD=\"$DEV_SUPABASE_SERVICE_KEY\" supabase db dump \
+  --db-url \"$DEV_DB_URL\" \
+  -f \"$EXPORTS_DIR/dev_backup_$TIMESTAMP.sql\" \
+  --schema public"
 
 echo "Development database backed up to $EXPORTS_DIR/dev_backup_$TIMESTAMP.sql"
 
@@ -349,36 +349,36 @@ EOF
 
 # Apply reset script
 run_supabase_command "apply reset script to development database" \
-  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-    --db-url "$DEV_DB_URL" \
-    -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql"
+  bash -c "PGPASSWORD=\"$DEV_SUPABASE_SERVICE_KEY\" supabase db push \
+    --db-url \"$DEV_DB_URL\" \
+    -f \"$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql\""
 
 # Apply consolidated schema
 run_supabase_command "apply schema to development database" \
-  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-    --db-url "$DEV_DB_URL" \
-    -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql"
+  bash -c "PGPASSWORD=\"$DEV_SUPABASE_SERVICE_KEY\" supabase db push \
+    --db-url \"$DEV_DB_URL\" \
+    -f \"$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql\""
 
 # Apply migration tracking
 run_supabase_command "apply migration tracking to development database" \
-  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-    --db-url "$DEV_DB_URL" \
-    -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql"
+  bash -c "PGPASSWORD=\"$DEV_SUPABASE_SERVICE_KEY\" supabase db push \
+    --db-url \"$DEV_DB_URL\" \
+    -f \"$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql\""
 
 # Step 9: Import auth configuration
 echo "Step 9: Importing auth configuration..."
 run_supabase_command "import auth configuration to development database" \
-  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase auth config import \
-    --db-url "$DEV_DB_URL" \
-    "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
+  bash -c "PGPASSWORD=\"$DEV_SUPABASE_SERVICE_KEY\" supabase auth config import \
+    --db-url \"$DEV_DB_URL\" \
+    \"$EXPORTS_DIR/auth_config_$TIMESTAMP.json\""
 
 # Step 10: Verify synchronization
 echo "Step 10: Verifying database synchronization..."
 run_supabase_command "verify database synchronization" \
-  PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" PGPASSWORD_TARGET="$DEV_SUPABASE_SERVICE_KEY" supabase db diff \
-    --source-db "$PROD_DB_URL" \
-    --target-db "$DEV_DB_URL" \
-    > "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt"
+  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" PGPASSWORD_TARGET=\"$DEV_SUPABASE_SERVICE_KEY\" supabase db diff \
+    --source-db \"$PROD_DB_URL\" \
+    --target-db \"$DEV_DB_URL\" \
+    > \"$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt\""
 
 if [ -s "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt" ]; then
   echo "⚠️ Differences still exist between environments."
@@ -432,9 +432,9 @@ EOF
 
 # Apply policy inspection function
 run_supabase_command "apply policy inspection function to development database" \
-  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-    --db-url "$DEV_DB_URL" \
-    -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql"
+  bash -c "PGPASSWORD=\"$DEV_SUPABASE_SERVICE_KEY\" supabase db push \
+    --db-url \"$DEV_DB_URL\" \
+    -f \"$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql\""
 
 echo ""
 echo "=== Database Unification Complete ==="

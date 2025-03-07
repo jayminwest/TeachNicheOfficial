@@ -5,7 +5,7 @@ import { getRequests } from '@/app/lib/supabase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 // Mock the Lucide React icons
 jest.mock('lucide-react', () => ({
@@ -47,7 +47,7 @@ jest.mock('../components/request-dialog', () => ({
 
 // Mock the RequestGrid component to avoid testing its internals here
 jest.mock('../components/request-grid', () => ({
-  RequestGrid: ({ initialRequests, category, sortBy, onError }) => {
+  RequestGrid: ({ category, sortBy }) => {
     // This mock implementation will render the requests passed via props
     // and also expose the props for testing
     const mockRequests = [
@@ -77,7 +77,7 @@ jest.mock('../components/request-grid', () => ({
 
     // When category or sortBy changes, call getRequests with the appropriate params
     if (category || sortBy) {
-      (getRequests as jest.Mock).mockImplementation((params) => {
+      (getRequests as jest.Mock).mockImplementation(() => {
         return Promise.resolve(mockRequests);
       });
     }

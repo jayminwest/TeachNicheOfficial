@@ -29,7 +29,31 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   
   // Create a Supabase client using the middleware helper
-  const supabase = createMiddlewareClient({ req, res })
+  const supabase = createMiddlewareClient({ 
+    req, 
+    res,
+    // Ensure consistent cookie handling
+    cookies: {
+      get: (name) => {
+        const cookies = req.cookies.getAll()
+        const cookie = cookies.find((cookie) => cookie.name === name)
+        return cookie?.value
+      },
+      set: (name, value, options) => {
+        res.cookies.set({
+          name,
+          value,
+          ...options,
+        })
+      },
+      remove: (name, options) => {
+        res.cookies.delete({
+          name,
+          ...options,
+        })
+      }
+    }
+  })
   
   // This is critical for cookie handling - explicitly refresh the session
   await supabase.auth.getSession()

@@ -22,10 +22,9 @@ export async function GET(request: NextRequest) {
     }
     
     // Create a Supabase client for the Route Handler
-    // In Next.js 15, cookies() returns a Promise
-    const cookieStore = await cookies()
+    const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 
-      cookies: () => Promise.resolve(cookieStore) 
+      cookies: () => cookieStore 
     })
     
     // Exchange the code for a session

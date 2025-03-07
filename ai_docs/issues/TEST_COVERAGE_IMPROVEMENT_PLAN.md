@@ -175,7 +175,7 @@ We'll track progress using the following metrics:
 | Phase | Starting Coverage | Target Coverage | Actual Coverage | Status |
 |-------|------------------|----------------|-----------------|--------|
 | Phase 1 | 17.24% | 32% | 27.3% | Completed |
-| Phase 2 | 27.3% | 47% | 28.1% | In Progress |
+| Phase 2 | 27.3% | 47% | 28.5% | In Progress |
 | Phase 3 | 47% | 67% | - | Not Started |
 | Phase 4 | 67% | 82% | - | Not Started |
 

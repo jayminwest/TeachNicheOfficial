@@ -61,3 +61,24 @@ WHERE tablename = 'lessons';
 -- 2. Check that you're creating the Supabase client with the service role key
 -- 3. Make sure you're not mixing anon and service role clients
 -- 4. Ensure your API routes are using the server-side Supabase client
+
+-- 9. As a last resort, you can completely disable RLS for testing purposes
+-- WARNING: Only use this temporarily in development, never in production!
+-- ALTER TABLE public.lessons DISABLE ROW LEVEL SECURITY;
+
+-- 10. Check for any conflicting policies that might be causing issues
+SELECT 
+    schemaname, 
+    tablename, 
+    policyname, 
+    roles, 
+    cmd, 
+    qual, 
+    with_check,
+    (SELECT COUNT(*) FROM pg_policies WHERE tablename = 'lessons' AND cmd = p.cmd AND roles && p.roles) as similar_policies
+FROM 
+    pg_policies p
+WHERE 
+    tablename = 'lessons'
+ORDER BY 
+    cmd, roles;

@@ -21,6 +21,7 @@ TO public
 USING (status = 'published'::lesson_status AND deleted_at IS NULL);
 
 -- Authenticated users can see their own lessons (any status) plus all published lessons
+DROP POLICY IF EXISTS "Authenticated users can view their own and published lessons" ON public.lessons;
 CREATE POLICY "Authenticated users can view their own and published lessons" 
 ON public.lessons
 FOR SELECT 

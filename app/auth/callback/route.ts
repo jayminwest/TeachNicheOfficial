@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get('code')
     const error = requestUrl.searchParams.get('error')
-    const redirectTo = requestUrl.searchParams.get('redirect_to') || '/profile'
     
     if (error) {
       console.error('OAuth error from provider:', error)
@@ -22,14 +21,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?auth=signin&error=no_code', request.url))
     }
     
-    // Get cookies in a way that works with Next.js
-    const cookieStore = await cookies()
-    
     // Create a Supabase client for the Route Handler
-    // In Next.js 15, cookies() returns a Promise, so we need to use an async function
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => Promise.resolve(cookieStore) 
-    })
+    // In Next.js 15, we need to pass cookies directly
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Exchange the code for a session
     const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
@@ -42,6 +37,17 @@ export async function GET(request: NextRequest) {
     if (!data.session) {
       console.error('No session returned from exchangeCodeForSession')
       return NextResponse.redirect(new URL('/?auth=signin&error=no_session', request.url))
+    }
+    
+    // Get redirect path from cookie or use default
+    let redirectTo = '/profile'
+    
+    // Check for redirect cookie
+    const redirectCookie = cookieStore.get('auth_redirect')
+    if (redirectCookie?.value) {
+      redirectTo = redirectCookie.value
+      // Clear the cookie after use
+      cookieStore.delete('auth_redirect')
     }
     
     console.log('Auth successful, redirecting to:', redirectTo)

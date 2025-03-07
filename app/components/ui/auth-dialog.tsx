@@ -23,6 +23,7 @@ export function AuthDialog({
   const [error, setError] = useState<string | null>(null)
   const [view] = useState(defaultView)
   const searchParams = useSearchParams()
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
   
   // Handle authentication state changes
   useEffect(() => {
@@ -39,6 +40,13 @@ export function AuthDialog({
       if (errorParam && open) {
         setError(errorParam)
       }
+    }
+    
+    // Store current path for redirection after auth
+    if (open && typeof window !== 'undefined') {
+      setRedirectPath(window.location.pathname)
+      // Set cookie for server-side access
+      document.cookie = `auth_redirect=${window.location.pathname};path=/;max-age=300;SameSite=Lax`
     }
   }, [searchParams, open])
 
@@ -63,6 +71,7 @@ export function AuthDialog({
               onSuccess?.()
             }}
             initialView={view}
+            redirectPath={redirectPath}
           />
         )}
       </DialogContent>

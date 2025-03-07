@@ -17,9 +17,10 @@ interface SignInPageProps {
   onSignInSuccess?: () => void;
   initialView?: 'sign-in' | 'sign-up';
   onSwitchToSignUp?: () => void;
+  redirectPath?: string | null;
 }
 
-function SignInPage({ onSignInSuccess }: SignInPageProps) {
+function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -62,6 +63,11 @@ function SignInPage({ onSignInSuccess }: SignInPageProps) {
       if (typeof window !== 'undefined') {
         // Add property to window object for testing
         (window as Window & typeof globalThis & { signInWithGoogleCalled: boolean }).signInWithGoogleCalled = true;
+        
+        // Store redirect path in cookie if provided
+        if (redirectPath) {
+          document.cookie = `auth_redirect=${redirectPath};path=/;max-age=300;SameSite=Lax`;
+        }
       }
       
       const result = await signInWithGoogle()

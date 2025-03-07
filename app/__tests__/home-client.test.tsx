@@ -1,23 +1,23 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import HomeClient from '../home-client'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 
 // Mock the redirectTo function
 const mockRedirectTo = jest.fn();
+// Mock the entire HomeClient module
 jest.mock('../home-client', () => {
+  // Import the actual module
   const originalModule = jest.requireActual('../home-client');
-  const component = (props: any) => {
-    const result = originalModule.default(props);
-    // Replace the redirectTo implementation
-    const originalSuccess = result.props.children.props.onSuccess;
-    result.props.children.props.onSuccess = () => {
-      mockRedirectTo(result.props.children.props.onSuccess.toString().match(/redirectTo\(([^)]+)\)/)[1]);
-    };
-    return result;
-  };
+  
+  // Return a modified version
   return {
     __esModule: true,
-    default: component
+    default: (props: any) => {
+      // Mock the redirectTo function
+      originalModule.redirectTo = mockRedirectTo;
+      // Return the original component with the mocked function
+      return originalModule.default(props);
+    }
   };
 });
 

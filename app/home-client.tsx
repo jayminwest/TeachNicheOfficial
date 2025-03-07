@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react'
 import { AuthDialog } from "@/app/components/ui/auth-dialog";
 
+// Export the redirectTo function so it can be mocked in tests
+export const redirectTo = (url: string) => {
+  window.location.href = url
+}
+
 export default function HomeClient() {
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
   const [redirectUrl, setRedirectUrl] = useState('/profile')
@@ -21,11 +26,6 @@ export default function HomeClient() {
       setRedirectUrl(redirect)
     }
   }, [])
-  
-  // Helper function that can be mocked in tests
-  const redirectTo = (url: string) => {
-    window.location.href = url
-  }
   
   return (
     <>

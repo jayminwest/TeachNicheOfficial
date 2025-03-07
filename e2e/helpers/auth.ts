@@ -45,56 +45,77 @@ export async function login(
 ) {
   const userData = { ...mockUsers[role], ...options };
   
-  // First navigate to the app to ensure we're on the right domain
-  await page.goto('/');
+  // First navigate to the auth page
+  await page.goto('/auth');
   
-  // Set up localStorage with mock auth data
-  await page.evaluate((data) => {
-    // Clear any existing auth data first
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('user-profile');
-    // Mock Supabase auth session
-    const mockSession = {
-      access_token: 'mock-access-token',
-      refresh_token: 'mock-refresh-token',
-      expires_at: Date.now() + 3600 * 1000, // 1 hour from now
-      user: {
-        id: data.id,
-        email: data.email,
-        user_metadata: {
-          full_name: data.name,
-          avatar_url: 'https://example.com/avatar.png',
-        },
-      },
+  // Fill in the email and password fields
+  await page.getByPlaceholder(/email/i).fill(userData.email);
+  await page.getByPlaceholder(/password/i).fill('password123'); // Dummy password
+  
+  // Click the sign in button
+  await page.getByRole('button', { name: /sign in/i, exact: false }).click();
+  
+  // Wait for the auth state to be applied
+  await page.waitForTimeout(1000);
+  
+  // Verify localStorage was set correctly
+  const authData = await page.evaluate(() => {
+    return {
+      hasAuthToken: !!localStorage.getItem('supabase.auth.token'),
+      hasProfile: !!localStorage.getItem('user-profile')
     };
-    
-    try {
-      // Store in localStorage
-      localStorage.setItem('supabase.auth.token', JSON.stringify({
-        currentSession: mockSession,
-        expiresAt: mockSession.expires_at,
-      }));
-      
-      // Store user profile data
-      localStorage.setItem('user-profile', JSON.stringify({
-        id: data.id,
-        full_name: data.name,
-        email: data.email,
-        avatar_url: 'https://example.com/avatar.png',
-        stripe_account_id: 'stripeAccountId' in data ? data.stripeAccountId : null,
-        stripe_account_status: 'stripeAccountStatus' in data ? data.stripeAccountStatus : null,
-        stripe_onboarding_complete: 'stripeAccountStatus' in data ? data.stripeAccountStatus === 'complete' : false,
-      }));
-    } catch (e) {
-      console.error('Failed to set localStorage:', e);
-    }
-  }, userData);
+  });
   
-  // Refresh the page to apply the auth state
-  await page.reload();
+  // If localStorage wasn't set by the intercepted API call, set it manually
+  if (!authData.hasAuthToken || !authData.hasProfile) {
+    await page.evaluate((data) => {
+      // Clear any existing auth data first
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('user-profile');
+      
+      // Mock Supabase auth session
+      const mockSession = {
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+        expires_at: Date.now() + 3600 * 1000, // 1 hour from now
+        user: {
+          id: data.id,
+          email: data.email,
+          user_metadata: {
+            full_name: data.name,
+            avatar_url: 'https://example.com/avatar.png',
+          },
+        },
+      };
+      
+      try {
+        // Store in localStorage
+        localStorage.setItem('supabase.auth.token', JSON.stringify({
+          currentSession: mockSession,
+          expiresAt: mockSession.expires_at,
+        }));
+        
+        // Store user profile data
+        localStorage.setItem('user-profile', JSON.stringify({
+          id: data.id,
+          full_name: data.name,
+          email: data.email,
+          avatar_url: 'https://example.com/avatar.png',
+          stripe_account_id: 'stripeAccountId' in data ? data.stripeAccountId : null,
+          stripe_account_status: 'stripeAccountStatus' in data ? data.stripeAccountStatus : null,
+          stripe_onboarding_complete: 'stripeAccountStatus' in data ? data.stripeAccountStatus === 'complete' : false,
+        }));
+      } catch (e) {
+        console.error('Failed to set localStorage:', e);
+      }
+    }, userData);
+    
+    // Navigate to home page to apply the auth state
+    await page.goto('/');
+  }
   
   // Wait for a moment to ensure the auth state is applied
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
 }
 
 /**

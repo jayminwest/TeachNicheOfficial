@@ -23,6 +23,9 @@ export async function setupApiInterceptors(page: Page) {
         return null;
       }
     });
+
+    // Add a small delay to ensure localStorage is properly set
+    await page.waitForTimeout(100);
     
     // Handle auth endpoints
     if (url.includes('/api/auth')) {
@@ -30,7 +33,15 @@ export async function setupApiInterceptors(page: Page) {
         if (userData) {
           await route.fulfill({
             status: 200,
-            body: JSON.stringify({ user: userData, session: { user: userData } }),
+            body: JSON.stringify({ 
+              user: userData, 
+              session: { 
+                user: userData,
+                access_token: 'mock-access-token',
+                refresh_token: 'mock-refresh-token',
+                expires_at: Date.now() + 3600 * 1000
+              } 
+            }),
           });
         } else {
           await route.fulfill({
@@ -38,6 +49,55 @@ export async function setupApiInterceptors(page: Page) {
             body: JSON.stringify({ error: 'Not authenticated' }),
           });
         }
+      } else if (url.includes('/api/auth/signin')) {
+        // Mock successful sign-in response
+        const postData = route.request().postDataJSON();
+        const email = postData?.email || 'test@example.com';
+        
+        // Create mock user data
+        const mockUser = {
+          id: email === 'learner@example.com' ? 'test-learner-id' : 
+               email === 'creator@example.com' ? 'test-creator-id' : 'test-user-id',
+          email: email,
+          user_metadata: {
+            full_name: email === 'learner@example.com' ? 'Test Learner' : 
+                       email === 'creator@example.com' ? 'Test Creator' : 'Test User',
+          }
+        };
+        
+        // Store in localStorage for future requests
+        await page.evaluate((user) => {
+          localStorage.setItem('supabase.auth.token', JSON.stringify({
+            currentSession: {
+              access_token: 'mock-access-token',
+              refresh_token: 'mock-refresh-token',
+              expires_at: Date.now() + 3600 * 1000,
+              user: user
+            },
+            expiresAt: Date.now() + 3600 * 1000,
+          }));
+          
+          // Also set profile data
+          localStorage.setItem('user-profile', JSON.stringify({
+            id: user.id,
+            full_name: user.user_metadata.full_name,
+            email: user.email,
+            avatar_url: 'https://example.com/avatar.png',
+          }));
+        }, mockUser);
+        
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ 
+            user: mockUser, 
+            session: { 
+              user: mockUser,
+              access_token: 'mock-access-token',
+              refresh_token: 'mock-refresh-token',
+              expires_at: Date.now() + 3600 * 1000
+            } 
+          }),
+        });
       } else {
         // Continue with the request for other auth endpoints
         await route.continue();

@@ -87,7 +87,7 @@ export async function getRequests(filters?: {
   const supabase = createClientComponentClient()
   let query = supabase
     .from('lesson_requests')
-    .select('*, lesson_request_votes(count)')
+    .select('*, lesson_request_votes!request_votes_request_id_fkey(count)')
   
   if (filters?.category) {
     query = query.eq('category', filters.category)

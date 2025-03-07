@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jest } from '@jest/globals';
 import { POST } from '../update-purchase/route';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
@@ -36,6 +37,11 @@ describe('Update Purchase API', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
+    
+    // Reset NextResponse.json mock
+    if (NextResponse.json.mockReset) {
+      NextResponse.json.mockReset();
+    }
     
     // Mock crypto.randomUUID
     if (!global.crypto) {
@@ -136,7 +142,7 @@ describe('Update Purchase API', () => {
       error: null
     });
     
-    // Mock insert
+    // Mock insert with proper chaining
     mockSupabaseClient.from().insert.mockImplementation(() => {
       return {
         select: jest.fn().mockImplementation(() => {
@@ -148,6 +154,14 @@ describe('Update Purchase API', () => {
           };
         })
       };
+    });
+
+    // Mock the JSON response to ensure status 200
+    jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
+      return {
+        status: 200,
+        json: jest.fn().mockResolvedValue(data)
+      } as unknown as Response;
     });
     
     const response = await POST(mockRequest);
@@ -235,7 +249,7 @@ describe('Update Purchase API', () => {
       error: null
     });
     
-    // Mock update
+    // Mock update with proper chaining
     mockSupabaseClient.from().update.mockImplementation(() => {
       return {
         eq: jest.fn().mockImplementation(() => {
@@ -251,6 +265,14 @@ describe('Update Purchase API', () => {
           };
         })
       };
+    });
+
+    // Mock the JSON response to ensure status 200
+    jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
+      return {
+        status: 200,
+        json: jest.fn().mockResolvedValue(data)
+      } as unknown as Response;
     });
     
     const response = await POST(mockRequest);
@@ -321,6 +343,14 @@ describe('Update Purchase API', () => {
         data: { id: 'existing-purchase-id' },
         error: null
       })
+    });
+
+    // Mock the JSON response to ensure status 200
+    jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
+      return {
+        status: 200,
+        json: jest.fn().mockResolvedValue(data)
+      } as unknown as Response;
     });
     
     const response = await POST(mockRequest);

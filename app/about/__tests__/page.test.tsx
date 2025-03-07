@@ -51,23 +51,41 @@ describe('AboutPage', () => {
 
   describe('interactions', () => {
     it('handles accordion interactions correctly', async () => {
-      const { getByRole, getByText } = render(<AboutPage />)
+      const { getAllByRole, getByText, queryByText } = render(<AboutPage />)
 
-      // Test accordion functionality
-      const valuesTrigger = getByRole('button', { name: 'Values' })
+      // Get all accordion buttons
+      const accordionButtons = getAllByRole('button')
+      
+      // Find the Values button
+      const valuesTrigger = accordionButtons.find(button => 
+        button.textContent?.includes('Values')
+      )
       expect(valuesTrigger).toBeInTheDocument()
       
-      await userEvent.click(valuesTrigger)
+      // Initially, content should not be visible
+      expect(queryByText(/Community Collaboration/i)).not.toBeVisible()
+      
+      // Click to expand
+      if (valuesTrigger) {
+        await userEvent.click(valuesTrigger)
+      }
       
       // After clicking, content should be visible
       const valuesContent = getByText(/Community Collaboration/i)
       expect(valuesContent).toBeVisible()
 
-      // Test another accordion item
-      const whyTrigger = getByRole('button', { name: /why teach niche/i })
+      // Find the Why Teach Niche button
+      const whyTrigger = accordionButtons.find(button => 
+        button.textContent?.includes('Why Teach Niche')
+      )
       expect(whyTrigger).toBeInTheDocument()
       
-      await userEvent.click(whyTrigger)
+      // Click to expand
+      if (whyTrigger) {
+        await userEvent.click(whyTrigger)
+      }
+      
+      // Content should be visible
       const whyContent = getByText(/Empowerment/i)
       expect(whyContent).toBeVisible()
     })

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { Accordion } from './accordion';
 
 export const dynamic = 'force-static'
 
@@ -87,11 +88,15 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold mb-6">Learn More About Teach Niche</h2>
             <div className="space-y-4">
               <div className="border rounded-lg">
-                <div className="flex justify-between items-center p-4 cursor-pointer">
+                <button 
+                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
+                  aria-expanded="false"
+                  aria-controls="values-content"
+                >
                   <h3 className="text-lg font-medium">Values</h3>
-                  <span>+</span>
-                </div>
-                <div className="p-4 border-t">
+                  <span aria-hidden="true">+</span>
+                </button>
+                <div id="values-content" className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">Community Collaboration</h4>
@@ -114,11 +119,15 @@ export default function AboutPage() {
               </div>
 
               <div className="border rounded-lg">
-                <div className="flex justify-between items-center p-4 cursor-pointer">
+                <button 
+                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
+                  aria-expanded="false"
+                  aria-controls="why-content"
+                >
                   <h3 className="text-lg font-medium">Why Teach Niche?</h3>
-                  <span>+</span>
-                </div>
-                <div className="p-4 border-t">
+                  <span aria-hidden="true">+</span>
+                </button>
+                <div id="why-content" className="p-4 border-t">
                   <div className="grid sm:grid-cols-2 gap-6 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">💪 Empowerment</h4>
@@ -141,11 +150,15 @@ export default function AboutPage() {
               </div>
 
               <div className="border rounded-lg">
-                <div className="flex justify-between items-center p-4 cursor-pointer">
+                <button 
+                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
+                  aria-expanded="false"
+                  aria-controls="commission-content"
+                >
                   <h3 className="text-lg font-medium">Commission Structure</h3>
-                  <span>+</span>
-                </div>
-                <div className="p-4 border-t">
+                  <span aria-hidden="true">+</span>
+                </button>
+                <div id="commission-content" className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is committed to transparency and fairness in its operations. To sustain the platform and continue providing value to the community, Teach Niche charges a 15% commission on each transaction.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -158,11 +171,15 @@ export default function AboutPage() {
               </div>
 
               <div className="border rounded-lg">
-                <div className="flex justify-between items-center p-4 cursor-pointer">
+                <button 
+                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
+                  aria-expanded="false"
+                  aria-controls="opensource-content"
+                >
                   <h3 className="text-lg font-medium">Open Source Philosophy</h3>
-                  <span>+</span>
-                </div>
-                <div className="p-4 border-t">
+                  <span aria-hidden="true">+</span>
+                </button>
+                <div id="opensource-content" className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -176,11 +193,15 @@ export default function AboutPage() {
               </div>
 
               <div className="border rounded-lg">
-                <div className="flex justify-between items-center p-4 cursor-pointer">
+                <button 
+                  className="flex justify-between items-center p-4 cursor-pointer w-full text-left"
+                  aria-expanded="false"
+                  aria-controls="growth-content"
+                >
                   <h3 className="text-lg font-medium">Built to Grow with the Community</h3>
-                  <span>+</span>
-                </div>
-                <div className="p-4 border-t">
+                  <span aria-hidden="true">+</span>
+                </button>
+                <div id="growth-content" className="p-4 border-t">
                   <div className="space-y-4 pt-2">
                     <p>The best way to serve the kendama community is by listening and adapting to its needs.</p>
                     <ul className="list-disc pl-5 space-y-2">

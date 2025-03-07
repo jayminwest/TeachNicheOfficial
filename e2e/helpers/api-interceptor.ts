@@ -1,0 +1,230 @@
+import { Page } from '@playwright/test';
+
+/**
+ * Set up API route interception to mock responses
+ * 
+ * @param page - Playwright page object
+ */
+export async function setupApiInterceptors(page: Page) {
+  // Intercept auth API calls
+  await page.route('**/api/auth/**', async (route) => {
+    const url = route.request().url();
+    
+    // Get user data from localStorage
+    const userData = await page.evaluate(() => {
+      const sessionData = localStorage.getItem('supabase.auth.token');
+      if (!sessionData) return null;
+      
+      try {
+        const parsed = JSON.parse(sessionData);
+        return parsed.currentSession?.user || null;
+      } catch {
+        return null;
+      }
+    });
+    
+    if (url.includes('/api/auth/session')) {
+      if (userData) {
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ user: userData, session: { user: userData } }),
+        });
+      } else {
+        await route.fulfill({
+          status: 401,
+          body: JSON.stringify({ error: 'Not authenticated' }),
+        });
+      }
+    } else {
+      // Continue with the request for other auth endpoints
+      await route.continue();
+    }
+  });
+  
+  // Intercept lessons API calls
+  await page.route('**/api/lessons/**', async (route) => {
+    const url = route.request().url();
+    
+    // Get mock lessons from localStorage
+    const mockLessons = await page.evaluate(() => {
+      const lessonsData = localStorage.getItem('mock-lessons');
+      return lessonsData ? JSON.parse(lessonsData) : [];
+    });
+    
+    if (url.includes('/api/lessons/check-purchase')) {
+      const urlObj = new URL(url);
+      const lessonId = urlObj.searchParams.get('lessonId');
+      
+      const purchasedLessons = await page.evaluate(() => {
+        const data = localStorage.getItem('purchased-lessons');
+        return data ? JSON.parse(data) : [];
+      });
+      
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ 
+          hasAccess: purchasedLessons.includes(lessonId),
+          lessonId 
+        }),
+      });
+    } else if (url.match(/\/api\/lessons\/[^\/]+$/)) {
+      // Single lesson endpoint
+      const lessonId = url.split('/').pop();
+      const lesson = mockLessons.find((l: any) => l.id === lessonId);
+      
+      if (lesson) {
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify(lesson),
+        });
+      } else {
+        await route.fulfill({
+          status: 404,
+          body: JSON.stringify({ error: 'Lesson not found' }),
+        });
+      }
+    } else if (url.includes('/api/lessons')) {
+      // All lessons endpoint
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(mockLessons),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+  
+  // Intercept requests API calls
+  await page.route('**/api/requests/**', async (route) => {
+    const url = route.request().url();
+    
+    // Get mock requests from localStorage
+    const mockRequests = await page.evaluate(() => {
+      const requestsData = localStorage.getItem('mock-requests');
+      return requestsData ? JSON.parse(requestsData) : [];
+    });
+    
+    if (url.includes('/api/requests/vote')) {
+      // Handle vote request
+      const postData = route.request().postDataJSON();
+      
+      await page.evaluate((data) => {
+        mockRequestVote(window, data.requestId, data.userId, data.voteType);
+      }, postData);
+      
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true }),
+      });
+    } else if (url.match(/\/api\/requests\/[^\/]+$/)) {
+      // Single request endpoint
+      const requestId = url.split('/').pop();
+      const request = mockRequests.find((r: any) => r.id === requestId);
+      
+      if (request) {
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify(request),
+        });
+      } else {
+        await route.fulfill({
+          status: 404,
+          body: JSON.stringify({ error: 'Request not found' }),
+        });
+      }
+    } else if (url.includes('/api/requests')) {
+      // All requests endpoint
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(mockRequests),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+  
+  // Intercept Stripe API calls
+  await page.route('**/api/stripe/**', async (route) => {
+    const url = route.request().url();
+    
+    if (url.includes('/api/stripe/create-checkout-session')) {
+      const postData = route.request().postDataJSON();
+      const sessionId = `cs_test_${Date.now()}`;
+      
+      // Store checkout session
+      await page.evaluate((data) => {
+        const mockSessions = JSON.parse(localStorage.getItem('mock-stripe-sessions') || '{}');
+        mockSessions[data.sessionId] = {
+          id: data.sessionId,
+          lessonId: data.lessonId,
+          price: data.price,
+          created: Date.now(),
+        };
+        localStorage.setItem('mock-stripe-sessions', JSON.stringify(mockSessions));
+      }, { sessionId, ...postData });
+      
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ 
+          sessionId,
+          url: `http://localhost:3000/checkout/success?session_id=${sessionId}` 
+        }),
+      });
+    } else if (url.includes('/api/stripe/connect-account')) {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ 
+          accountId: 'acct_test123456',
+          url: 'http://localhost:3000/creator/onboarding?success=true' 
+        }),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+}
+
+/**
+ * Helper function to mock request vote - this is defined here to avoid circular imports
+ * but is called from the page.evaluate context
+ */
+function mockRequestVote(
+  window: any,
+  requestId: string, 
+  userId: string = 'test-learner-id',
+  voteType: 'up' | 'down' = 'up'
+) {
+  // Update the request vote count
+  const mockRequests = JSON.parse(window.localStorage.getItem('mock-requests') || '[]');
+  const requestIndex = mockRequests.findIndex((r: any) => r.id === requestId);
+  
+  if (requestIndex >= 0) {
+    // Check if user already voted
+    const votes = JSON.parse(window.localStorage.getItem('mock-votes') || '[]');
+    const existingVoteIndex = votes.findIndex(
+      (v: any) => v.requestId === requestId && v.userId === userId
+    );
+    
+    if (existingVoteIndex >= 0) {
+      const existingVote = votes[existingVoteIndex];
+      // If changing vote type, adjust count accordingly
+      if (existingVote.voteType !== voteType) {
+        mockRequests[requestIndex].voteCount += voteType === 'up' ? 2 : -2;
+        votes[existingVoteIndex].voteType = voteType;
+      }
+    } else {
+      // New vote
+      mockRequests[requestIndex].voteCount += voteType === 'up' ? 1 : -1;
+      votes.push({
+        id: `vote-${Date.now()}`,
+        requestId,
+        userId,
+        voteType,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    
+    window.localStorage.setItem('mock-requests', JSON.stringify(mockRequests));
+    window.localStorage.setItem('mock-votes', JSON.stringify(votes));
+  }
+}

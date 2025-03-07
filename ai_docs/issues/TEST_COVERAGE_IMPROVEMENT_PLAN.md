@@ -76,7 +76,7 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/components/ui/theme-toggle.tsx` (improved to 100%)
 
 #### Utility Functions
-- [ ] `app/utils/format.ts` (currently 40%)
+- [x] `app/utils/format.ts` (improved to 100%)
 - [ ] `app/utils/purchase-helpers.ts` (currently 0%)
 - [ ] `app/lib/auth-config.ts` (currently 0%)
 - [ ] `app/lib/auth-helpers.ts` (currently 0%)
@@ -174,7 +174,7 @@ We'll track progress using the following metrics:
 
 | Phase | Starting Coverage | Target Coverage | Actual Coverage | Status |
 |-------|------------------|----------------|-----------------|--------|
-| Phase 1 | 17.24% | 32% | 23.7% | In Progress |
+| Phase 1 | 17.24% | 32% | 24.5% | In Progress |
 | Phase 2 | 32% | 47% | - | Not Started |
 | Phase 3 | 47% | 67% | - | Not Started |
 | Phase 4 | 67% | 82% | - | Not Started |

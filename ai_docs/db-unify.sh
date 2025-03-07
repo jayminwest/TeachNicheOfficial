@@ -81,18 +81,10 @@ else
       return $?
     else
       # Fallback for macOS/BSD without timeout command
-      # Use perl to implement timeout
-      perl -e "
-        alarm $timeout_seconds;
-        system('pg_isready', '-h', '$host', '-p', '$port');
-        exit \$? >> 8;
-      " 2>/dev/null
-      
-      # If perl fails or isn't available, try without timeout
-      if [ $? -ne 0 ]; then
-        pg_isready -h $host -p $port
-        return $?
-      fi
+      # Try a simple connection test with a shorter timeout
+      # This avoids the perl alarm issues on some systems
+      pg_isready -h $host -p $port -t $timeout_seconds
+      return $?
     fi
   }
   
@@ -146,6 +138,18 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   exit 1
 fi
 
+# Define a function to check if a command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# Check if supabase CLI is installed
+if ! command_exists supabase; then
+  echo "Error: Supabase CLI is not installed."
+  echo "Please install it with: npm install -g supabase"
+  exit 1
+fi
+
 # Step 1: Export production schema
 echo "Step 1: Exporting production database schema..."
 echo "This may take a moment..."
@@ -165,27 +169,40 @@ run_with_timeout() {
     return $?
   else
     # Fallback for macOS/BSD without timeout command
+    # Use a more reliable approach with background process and trap
+    
+    # Create a temporary file to store the exit status
+    local tmp_file=$(mktemp)
+    echo "0" > "$tmp_file"
+    
     # Start the command in background
     "$@" &
     local cmd_pid=$!
     
-    # Wait for specified time
+    # Set up a background process to kill the command after timeout
     (
       sleep $timeout_seconds
-      kill -TERM $cmd_pid 2>/dev/null
-      sleep 1
-      kill -KILL $cmd_pid 2>/dev/null
+      if kill -0 $cmd_pid 2>/dev/null; then
+        # Command still running after timeout
+        kill -TERM $cmd_pid 2>/dev/null
+        sleep 1
+        kill -KILL $cmd_pid 2>/dev/null 
+        echo "124" > "$tmp_file"  # Standard timeout exit code
+      fi
     ) &
     local timer_pid=$!
     
-    # Wait for command to finish
-    wait $cmd_pid 2>/dev/null
-    local cmd_status=$?
+    # Wait for the command to finish
+    wait $cmd_pid 2>/dev/null || echo "$?" > "$tmp_file"
     
-    # Kill the timer
-    kill -KILL $timer_pid 2>/dev/null
+    # Kill the timer if it's still running
+    kill $timer_pid 2>/dev/null || true
     
-    return $cmd_status
+    # Get the exit status from the temp file
+    local exit_status=$(cat "$tmp_file")
+    rm -f "$tmp_file"
+    
+    return $exit_status
   fi
 }
 

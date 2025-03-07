@@ -58,8 +58,19 @@ export async function setupAuthCookies(page: Page, userId = 'test-user-id') {
     }
   ]);
   
-  // Navigate to a page first to be able to access localStorage
-  await page.goto('about:blank');
+  // Navigate to a page in the app domain to be able to access localStorage
+  // about:blank doesn't work reliably for localStorage access
+  try {
+    const currentUrl = page.url();
+    // Only navigate if we're not already on a page in our domain
+    if (!currentUrl.includes('localhost:3000') && !currentUrl.includes('127.0.0.1:3000')) {
+      await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded' });
+    }
+  } catch (error) {
+    console.warn('Error navigating to app domain:', error);
+    // Fall back to about:blank if navigation fails
+    await page.goto('about:blank');
+  }
   
   // Now set up localStorage for components that check there
   await page.evaluate((userId) => {

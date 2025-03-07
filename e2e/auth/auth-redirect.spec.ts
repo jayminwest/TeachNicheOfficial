@@ -37,6 +37,9 @@ test.describe('Authentication Redirect', () => {
     // Set up auth cookies to simulate successful authentication
     await setupAuthCookies(page, 'test-learner-id');
     
+    // Now that we're authenticated, navigate to the home page again to ensure we can use localStorage
+    await page.goto('/', { waitUntil: 'networkidle' });
+    
     // Store the redirect path in sessionStorage
     await page.evaluate(() => {
       sessionStorage.setItem('auth-redirect', '/profile');
@@ -59,6 +62,9 @@ test.describe('Authentication Redirect', () => {
     
     // Set up auth cookies
     await setupAuthCookies(page, 'test-learner-id');
+    
+    // Navigate to home page again to ensure we can use localStorage
+    await page.goto('/', { waitUntil: 'networkidle' });
     
     // Try to access a protected page
     await page.goto('/profile?test_auth=true', { waitUntil: 'networkidle' });

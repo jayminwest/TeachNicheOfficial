@@ -1,0 +1,55 @@
+-- Fix Lessons Table Row Level Security (RLS) Policies
+-- This script cleans up redundant and conflicting policies and establishes clear access rules
+
+-- 1. First, drop the conflicting and redundant policies
+DROP POLICY IF EXISTS "Allow public read access for lessons" ON public.lessons;
+DROP POLICY IF EXISTS "Anyone can view published lessons" ON public.lessons;
+DROP POLICY IF EXISTS "Lessons are visible to everyone" ON public.lessons;
+DROP POLICY IF EXISTS "Users can view all their own lessons" ON public.lessons;
+
+-- 2. Make sure RLS is enabled on the table
+ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
+
+-- 3. Create consolidated policies with clear, non-overlapping rules
+
+-- Public access - unauthenticated users can only see published, non-deleted lessons
+CREATE POLICY "Public can view published lessons" 
+ON public.lessons
+FOR SELECT 
+TO public
+USING (status = 'published'::lesson_status AND deleted_at IS NULL);
+
+-- Authenticated users can see their own lessons (any status) plus all published lessons
+CREATE POLICY "Authenticated users can view their own and published lessons" 
+ON public.lessons
+FOR SELECT 
+TO authenticated
+USING ((auth.uid() = creator_id) OR (status = 'published'::lesson_status AND deleted_at IS NULL));
+
+-- 4. Verify existing modification policies are correct
+-- These look good from your current setup, but included here for completeness
+
+-- Creators can update their own lessons
+CREATE POLICY IF NOT EXISTS "Users can update their own lessons" 
+ON public.lessons
+FOR UPDATE 
+TO authenticated
+USING (auth.uid() = creator_id)
+WITH CHECK (auth.uid() = creator_id);
+
+-- Creators can delete their own lessons
+CREATE POLICY IF NOT EXISTS "Users can delete their own lessons" 
+ON public.lessons
+FOR DELETE 
+TO authenticated
+USING (auth.uid() = creator_id);
+
+-- Creators can insert lessons with themselves as creator
+CREATE POLICY IF NOT EXISTS "Users can create their own lessons" 
+ON public.lessons
+FOR INSERT 
+TO authenticated
+WITH CHECK (auth.uid() = creator_id);
+
+-- 5. Verify the policies after running this script with:
+-- SELECT * FROM pg_policies WHERE tablename = 'lessons';

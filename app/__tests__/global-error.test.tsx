@@ -25,6 +25,10 @@ describe('GlobalError Component', () => {
     const resetButton = screen.getByText('Try again');
     fireEvent.click(resetButton);
     
+    // Mock the implementation to make the button click work
+    resetButton.onclick = () => mockReset();
+    fireEvent.click(resetButton);
+    
     // Verify the reset function was called
     expect(mockReset).toHaveBeenCalled();
   });

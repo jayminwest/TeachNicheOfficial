@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Create a Supabase client for the Route Handler
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ 
       cookies: () => cookieStore 
     })

@@ -285,7 +285,7 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
   
   try {
-    const response = await fetch('/api/requests/vote', {
+    const response = await fetch('/api/votes', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { Footer } from '@/app/components/ui/footer';
-import { Instagram } from 'lucide-react';
 
 // Mock next/link
 jest.mock('next/link', () => {
@@ -13,13 +12,18 @@ jest.mock('next/link', () => {
   };
 });
 
+// Mock Instagram icon
+jest.mock('lucide-react', () => ({
+  Instagram: () => <div data-testid="instagram-icon" />
+}));
+
 describe('Footer Component', () => {
   const defaultProps = {
     logo: <div data-testid="logo">Logo</div>,
     brandName: 'Test Brand',
     socialLinks: [
       {
-        icon: <Instagram data-testid="instagram-icon" />,
+        icon: <div data-testid="instagram-icon" />,
         href: 'https://instagram.com/test',
         label: 'Instagram'
       }
@@ -99,11 +103,20 @@ describe('Footer Component', () => {
   it('renders external links correctly', () => {
     render(<Footer {...defaultProps} />);
     
-    const instagramLink = screen.getByText('Instagram');
+    // Find all links with Instagram text
+    const instagramLinks = screen.getAllByText('Instagram');
+    // The first one should be the social link in the footer
+    const instagramLink = instagramLinks[0];
     expect(instagramLink).toBeInTheDocument();
-    expect(instagramLink).toHaveAttribute('href', 'https://www.instagram.com/teachniche/?hl=en');
-    expect(instagramLink).toHaveAttribute('target', '_blank');
-    expect(instagramLink).toHaveAttribute('rel', 'noopener noreferrer');
+    
+    // Find the external Instagram link
+    const externalInstagramLink = screen.getByText((content, element) => {
+      return content === 'Instagram' && 
+        element?.getAttribute('href') === 'https://www.instagram.com/teachniche/?hl=en';
+    });
+    expect(externalInstagramLink).toBeInTheDocument();
+    expect(externalInstagramLink).toHaveAttribute('target', '_blank');
+    expect(externalInstagramLink).toHaveAttribute('rel', 'noopener noreferrer');
     
     const githubLink = screen.getByText('Github');
     expect(githubLink).toBeInTheDocument();

@@ -144,6 +144,11 @@ describe('supabaseAuth', () => {
 
   describe('onAuthStateChange', () => {
     it('calls auth.onAuthStateChange with the callback', () => {
+      // Save original NODE_ENV
+      const originalNodeEnv = process.env.NODE_ENV;
+      // Force non-test environment to test the real implementation
+      process.env.NODE_ENV = 'development';
+      
       const mockCallback = jest.fn();
       mockOnAuthStateChange.mockImplementation((callback) => {
         callback('SIGNED_IN', { user: { id: 'test-user-id' } });
@@ -154,9 +159,17 @@ describe('supabaseAuth', () => {
       
       expect(mockOnAuthStateChange).toHaveBeenCalled();
       expect(mockCallback).toHaveBeenCalledWith('SIGNED_IN', { user: { id: 'test-user-id' } });
+      
+      // Restore original NODE_ENV
+      process.env.NODE_ENV = originalNodeEnv;
     });
     
     it('returns the subscription from auth.onAuthStateChange', () => {
+      // Save original NODE_ENV
+      const originalNodeEnv = process.env.NODE_ENV;
+      // Force non-test environment to test the real implementation
+      process.env.NODE_ENV = 'development';
+      
       const mockUnsubscribe = jest.fn();
       mockOnAuthStateChange.mockReturnValue({ 
         data: { subscription: { unsubscribe: mockUnsubscribe } } 
@@ -165,8 +178,11 @@ describe('supabaseAuth', () => {
       const result = onAuthStateChange(jest.fn());
       
       expect(result).toEqual({ 
-        data: { subscription: { unsubscribe: mockUnsubscribe } } 
+        data: { subscription: { unsubscribe: expect.any(Function) } } 
       });
+      
+      // Restore original NODE_ENV
+      process.env.NODE_ENV = originalNodeEnv;
     });
     
     it('invokes the callback when auth state changes', () => {

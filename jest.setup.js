@@ -42,16 +42,32 @@ jest.mock('@supabase/auth-helpers-nextjs', () => ({
 const mockRouter = {
   push: jest.fn(),
   replace: jest.fn(),
-  prefetch: jest.fn()
+  prefetch: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn()
 };
 
 require('whatwg-fetch')
 
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => ({
+    get: jest.fn(),
+    getAll: jest.fn(),
+    has: jest.fn(),
+    forEach: jest.fn()
+  }),
   usePathname: () => '',
   __esModule: true
+}))
+
+// Mock next/image
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img {...props} />
+  }
 }))
 
 // Mock Stripe
@@ -60,6 +76,35 @@ jest.mock('@stripe/stripe-js', () => ({
     redirectToCheckout: jest.fn(() => Promise.resolve({ error: null })),
   }),
 }))
+
+// Mock lucide-react icons
+jest.mock('lucide-react', () => ({
+  Loader2: (props) => <div data-testid="loader-icon" className={props.className} />,
+  CheckCircle: (props) => <div data-testid="check-icon" className={props.className} />,
+  AlertCircle: (props) => <div data-testid="alert-icon" className={props.className} />,
+  ChevronUp: (props) => <div data-testid="chevron-up-icon" className={props.className} />,
+  ChevronDown: (props) => <div data-testid="chevron-down-icon" className={props.className} />,
+  Check: (props) => <div data-testid="check-icon" className={props.className} />,
+  X: (props) => <div data-testid="x-icon" className={props.className} />,
+  Plus: (props) => <div data-testid="plus-icon" className={props.className} />,
+  Filter: (props) => <div data-testid="filter-icon" className={props.className} />,
+  ArrowUpDown: (props) => <div data-testid="arrow-up-down-icon" className={props.className} />
+}))
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+})
 
 // Reset all mocks between tests
 beforeEach(() => {

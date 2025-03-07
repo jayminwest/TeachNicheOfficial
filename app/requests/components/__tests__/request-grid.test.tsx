@@ -2,8 +2,19 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { RequestGrid } from '@/app/requests/components/request-grid'
 import { getRequests } from '@/app/lib/supabase/requests'
 
+// Mock the necessary dependencies
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@supabase/auth-helpers-nextjs')
+
+// Mock the request-card component
+jest.mock('@/app/requests/components/request-card', () => ({
+  RequestCard: ({ request }: any) => (
+    <div data-testid={`request-card-${request.id}`}>
+      <h3>{request.title}</h3>
+      <p>{request.description}</p>
+    </div>
+  )
+}))
 
 describe('RequestGrid', () => {
   const mockRequests = [
@@ -44,7 +55,7 @@ describe('RequestGrid', () => {
     
     expect(screen.getByText('Request 1')).toBeInTheDocument()
     expect(screen.getByText('Request 2')).toBeInTheDocument()
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
   })
 
   it('loads and displays requests when no initial data provided', async () => {

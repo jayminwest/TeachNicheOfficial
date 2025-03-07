@@ -18,7 +18,8 @@ const customJestConfig = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(lucide-react|@lucide|jose|@supabase|@auth)/)'
+    // Expand the list of packages that need to be transformed
+    'node_modules/(?!(lucide-react|@lucide|jose|@supabase|@auth|@radix-ui|@mux|next/dist/client|next/dist/shared)/)'
   ],
   // Updated to include API tests and different test types
   testMatch: [

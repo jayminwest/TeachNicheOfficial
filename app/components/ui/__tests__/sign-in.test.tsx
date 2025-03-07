@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SignInPage } from '../sign-in';
+import { SignInPage, SignIn } from '../sign-in';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';

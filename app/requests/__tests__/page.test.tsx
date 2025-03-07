@@ -5,19 +5,25 @@ import { getRequests } from '@/app/lib/supabase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 
-// Mock the Menu icon component
+// Mock the Lucide React icons
 jest.mock('lucide-react', () => ({
   Menu: () => <div data-testid="menu-icon" />,
   X: () => <div data-testid="x-icon" />,
   ChevronRight: () => <div data-testid="chevron-right-icon" />,
   ArrowUpDown: () => <div data-testid="arrow-up-down-icon" />,
-  ThumbsUp: () => <div data-testid="thumbs-up-icon" />
+  ThumbsUp: () => <div data-testid="thumbs-up-icon" />,
+  Plus: () => <div data-testid="plus-icon" />
 }))
 
 // Mock dependencies
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/hooks/useCategories')
+
+// Mock the RequestDialog component
+jest.mock('../components/request-dialog', () => ({
+  RequestDialog: ({ children }) => <div data-testid="request-dialog">{children}</div>
+}))
 
 describe('RequestsPage', () => {
   const mockRequests = [

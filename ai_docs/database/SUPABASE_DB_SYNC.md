@@ -45,18 +45,18 @@ SELECT
     E',\n'
   ) ||
   CASE 
-    WHEN (
-      SELECT count(*) 
+    WHEN EXISTS (
+      SELECT 1
       FROM information_schema.table_constraints tc
       JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
-      WHERE tc.table_schema = tables.table_schema AND tc.table_name = tables.table_name AND tc.constraint_type = 'PRIMARY KEY'
-    ) > 0 THEN
+      WHERE tc.table_schema = table_schema AND tc.table_name = table_name AND tc.constraint_type = 'PRIMARY KEY'
+    ) THEN
       E',\n  PRIMARY KEY (' || 
       (
         SELECT string_agg(quote_ident(ccu.column_name), ', ')
         FROM information_schema.table_constraints tc
         JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
-        WHERE tc.table_schema = tables.table_schema AND tc.table_name = tables.table_name AND tc.constraint_type = 'PRIMARY KEY'
+        WHERE tc.table_schema = table_schema AND tc.table_name = table_name AND tc.constraint_type = 'PRIMARY KEY'
       ) || ')'
     ELSE ''
   END ||

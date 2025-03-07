@@ -1,57 +1,46 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Log the error to an error reporting service
+    console.error('Global error:', error);
+  }, [error]);
+
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
-      padding: '1rem', 
-      textAlign: 'center' 
-    }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-        Something went wrong
-      </h1>
-      <p style={{ marginBottom: '2rem' }}>
-        Sorry, a critical error has occurred.
-      </p>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <button
-          onClick={reset}
-          style={{ 
-            padding: '0.5rem 1rem', 
-            backgroundColor: '#0070f3', 
-            color: 'white', 
-            borderRadius: '0.375rem',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          Try again
-        </button>
-        <Link 
-          href="/" 
-          style={{ 
-            padding: '0.5rem 1rem', 
-            backgroundColor: '#f5f5f5', 
-            color: '#333', 
-            borderRadius: '0.375rem',
-            textDecoration: 'none',
-            display: 'inline-block'
-          }}
-        >
-          Return to Home
-        </Link>
-      </div>
-    </div>
+    <html>
+      <body>
+        <div className="container flex flex-col items-center justify-center min-h-screen py-12 text-center">
+          <h1 className="text-4xl font-bold mb-4">Something went wrong</h1>
+          <p className="text-muted-foreground mb-8 max-w-md">
+            We apologize for the inconvenience. Our team has been notified.
+          </p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => reset()}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            >
+              Try again
+            </button>
+            <Link href="/" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+              Return Home
+            </Link>
+          </div>
+          {error.digest && (
+            <p className="mt-8 text-xs text-muted-foreground">
+              Error ID: {error.digest}
+            </p>
+          )}
+        </div>
+      </body>
+    </html>
   );
 }

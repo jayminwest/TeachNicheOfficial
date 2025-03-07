@@ -77,7 +77,7 @@ describe('Update Purchase API', () => {
       from: jest.fn().mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({
+        single: jest.fn().mockReturnThis().mockResolvedValue({
           data: {
             price: 19.99,
             creator_id: 'creator-id'

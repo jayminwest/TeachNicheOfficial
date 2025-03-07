@@ -11,7 +11,7 @@ import { cookies } from 'next/headers';
  */
 export async function getCookie(name: string): Promise<string | null> {
   const cookieStore = await cookies();
-  const cookie = await cookieStore.get(name);
+  const cookie = cookieStore.get(name);
   return cookie?.value || null;
 }
 
@@ -32,7 +32,7 @@ export async function setCookie(
   } = {}
 ): Promise<void> {
   const cookieStore = await cookies();
-  await cookieStore.set(name, value, options);
+  cookieStore.set(name, value, options);
 }
 
 /**
@@ -41,5 +41,5 @@ export async function setCookie(
  */
 export async function deleteCookie(name: string): Promise<void> {
   const cookieStore = await cookies();
-  await cookieStore.delete(name);
+  cookieStore.delete(name);
 }

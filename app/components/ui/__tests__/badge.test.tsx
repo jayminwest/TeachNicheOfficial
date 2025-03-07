@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Badge, badgeVariants } from '@/app/components/ui/badge';
-import { cn } from '@/app/lib/utils';
+// cn is used in badgeVariants internally, but not directly in tests
 
 describe('Badge Component', () => {
   it('renders with default variant', () => {

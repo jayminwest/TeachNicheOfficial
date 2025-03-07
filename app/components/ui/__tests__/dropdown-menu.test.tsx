@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,84 +16,120 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup
 } from '../dropdown-menu';
-import { Check, ChevronRight, Circle } from 'lucide-react';
+// These icons are used in the mocked components
 
 // Mock the Radix UI components
 jest.mock('@radix-ui/react-dropdown-menu', () => {
   const Original = jest.requireActual('@radix-ui/react-dropdown-menu');
   return {
     ...Original,
-    Root: ({ children }: { children: React.ReactNode }) => <div data-testid="dropdown-root">{children}</div>,
-    Trigger: ({ children, ...props }: { children: React.ReactNode }) => (
-      <button data-testid="dropdown-trigger" {...props}>
-        {children}
-      </button>
-    ),
-    Portal: ({ children }: { children: React.ReactNode }) => <div data-testid="dropdown-portal">{children}</div>,
-    Content: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref) => (
-      <div data-testid="dropdown-content" {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    Item: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref) => (
-      <div data-testid="dropdown-item" {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    CheckboxItem: React.forwardRef(({ children, checked, ...props }: { children: React.ReactNode, checked?: boolean }, ref) => (
-      <div data-testid="dropdown-checkbox-item" data-checked={checked} {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    RadioItem: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref) => (
-      <div data-testid="dropdown-radio-item" {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    Label: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref) => (
-      <div data-testid="dropdown-label" {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    Separator: React.forwardRef(({ ...props }, ref) => (
-      <hr data-testid="dropdown-separator" {...props} ref={ref} />
-    )),
-    Group: ({ children, ...props }: { children: React.ReactNode }) => (
-      <div data-testid="dropdown-group" {...props}>
-        {children}
-      </div>
-    ),
-    Sub: ({ children, ...props }: { children: React.ReactNode }) => (
-      <div data-testid="dropdown-sub" {...props}>
-        {children}
-      </div>
-    ),
-    SubContent: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref) => (
-      <div data-testid="dropdown-sub-content" {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    SubTrigger: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref) => (
-      <div data-testid="dropdown-sub-trigger" {...props} ref={ref}>
-        {children}
-      </div>
-    )),
-    RadioGroup: ({ children, ...props }: { children: React.ReactNode }) => (
-      <div data-testid="dropdown-radio-group" {...props}>
-        {children}
-      </div>
-    ),
-    ItemIndicator: ({ children }: { children: React.ReactNode }) => (
-      <span data-testid="dropdown-item-indicator">{children}</span>
-    ),
+    Root: function Root({ children }: { children: React.ReactNode }) {
+      return <div data-testid="dropdown-root">{children}</div>;
+    },
+    Trigger: function Trigger({ children, ...props }: { children: React.ReactNode }) {
+      return (
+        <button data-testid="dropdown-trigger" {...props}>
+          {children}
+        </button>
+      );
+    },
+    Portal: function Portal({ children }: { children: React.ReactNode }) {
+      return <div data-testid="dropdown-portal">{children}</div>;
+    },
+    Content: React.forwardRef(function Content({ children, ...props }: { children: React.ReactNode }, ref) {
+      return (
+        <div data-testid="dropdown-content" {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    Item: React.forwardRef(function Item({ children, ...props }: { children: React.ReactNode }, ref) {
+      return (
+        <div data-testid="dropdown-item" {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    CheckboxItem: React.forwardRef(function CheckboxItem({ children, checked, ...props }: { children: React.ReactNode, checked?: boolean }, ref) {
+      return (
+        <div data-testid="dropdown-checkbox-item" data-checked={checked} {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    RadioItem: React.forwardRef(function RadioItem({ children, ...props }: { children: React.ReactNode }, ref) {
+      return (
+        <div data-testid="dropdown-radio-item" {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    Label: React.forwardRef(function Label({ children, ...props }: { children: React.ReactNode }, ref) {
+      return (
+        <div data-testid="dropdown-label" {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    Separator: React.forwardRef(function Separator({ ...props }, ref) {
+      return (
+        <hr data-testid="dropdown-separator" {...props} ref={ref} />
+      );
+    }),
+    Group: function Group({ children, ...props }: { children: React.ReactNode }) {
+      return (
+        <div data-testid="dropdown-group" {...props}>
+          {children}
+        </div>
+      );
+    },
+    Sub: function Sub({ children, ...props }: { children: React.ReactNode }) {
+      return (
+        <div data-testid="dropdown-sub" {...props}>
+          {children}
+        </div>
+      );
+    },
+    SubContent: React.forwardRef(function SubContent({ children, ...props }: { children: React.ReactNode }, ref) {
+      return (
+        <div data-testid="dropdown-sub-content" {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    SubTrigger: React.forwardRef(function SubTrigger({ children, ...props }: { children: React.ReactNode }, ref) {
+      return (
+        <div data-testid="dropdown-sub-trigger" {...props} ref={ref}>
+          {children}
+        </div>
+      );
+    }),
+    RadioGroup: function RadioGroup({ children, ...props }: { children: React.ReactNode }) {
+      return (
+        <div data-testid="dropdown-radio-group" {...props}>
+          {children}
+        </div>
+      );
+    },
+    ItemIndicator: function ItemIndicator({ children }: { children: React.ReactNode }) {
+      return (
+        <span data-testid="dropdown-item-indicator">{children}</span>
+      );
+    },
   };
 });
 
 // Mock the lucide-react icons
 jest.mock('lucide-react', () => ({
-  Check: (props: any) => <div data-testid="check-icon" {...props} />,
-  ChevronRight: (props: any) => <div data-testid="chevron-right-icon" {...props} />,
-  Circle: (props: any) => <div data-testid="circle-icon" {...props} />,
+  Check: function Check(props: React.SVGProps<SVGSVGElement>) { 
+    return <div data-testid="check-icon" {...props} />; 
+  },
+  ChevronRight: function ChevronRight(props: React.SVGProps<SVGSVGElement>) { 
+    return <div data-testid="chevron-right-icon" {...props} />; 
+  },
+  Circle: function Circle(props: React.SVGProps<SVGSVGElement>) { 
+    return <div data-testid="circle-icon" {...props} />; 
+  },
 }));
 
 describe('DropdownMenu Components', () => {

@@ -3,7 +3,7 @@ import { Footer } from '@/app/components/ui/footer';
 
 // Mock next/link
 jest.mock('next/link', () => {
-  return ({ children, href, ...rest }: any) => {
+  return function Link({ children, href, ...rest }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
     return (
       <a href={href} {...rest}>
         {children}

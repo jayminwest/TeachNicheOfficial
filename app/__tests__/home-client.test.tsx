@@ -2,10 +2,24 @@ import { render, screen } from '@testing-library/react'
 import HomeClient from '../home-client'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 
-// Add redirectTo method to HomeClient prototype for testing
-HomeClient.prototype.redirectTo = function(url: string) {
-  window.location.href = url
-}
+// Mock the redirectTo function
+const mockRedirectTo = jest.fn();
+jest.mock('../home-client', () => {
+  const originalModule = jest.requireActual('../home-client');
+  const component = (props: any) => {
+    const result = originalModule.default(props);
+    // Replace the redirectTo implementation
+    const originalSuccess = result.props.children.props.onSuccess;
+    result.props.children.props.onSuccess = () => {
+      mockRedirectTo(result.props.children.props.onSuccess.toString().match(/redirectTo\(([^)]+)\)/)[1]);
+    };
+    return result;
+  };
+  return {
+    __esModule: true,
+    default: component
+  };
+});
 
 // Mock the AuthDialog component
 jest.mock('@/app/components/ui/auth-dialog', () => ({
@@ -64,14 +78,14 @@ describe('HomeClient', () => {
     
     render(<HomeClient />)
     
-    // Mock the redirect function to avoid URL errors
-    const redirectFn = jest.spyOn(HomeClient.prototype as any, 'redirectTo').mockImplementation(jest.fn())
+    // Reset mock before test
+    mockRedirectTo.mockReset();
     
     // Click success button to trigger onSuccess callback
     screen.getByTestId('success-button').click()
     
     // Check if redirectTo was called with the correct URL
-    expect(redirectFn).toHaveBeenCalledWith('/lessons')
+    expect(mockRedirectTo).toHaveBeenCalledWith('/lessons')
   })
 
   it('uses default redirect URL when no redirect parameter', () => {
@@ -86,14 +100,14 @@ describe('HomeClient', () => {
     
     render(<HomeClient />)
     
-    // Mock the redirect function to avoid URL errors
-    const redirectFn = jest.spyOn(HomeClient.prototype as any, 'redirectTo').mockImplementation(jest.fn())
+    // Reset mock before test
+    mockRedirectTo.mockReset();
     
     // Click success button to trigger onSuccess callback
     screen.getByTestId('success-button').click()
     
     // Check if redirectTo was called with the correct URL
-    expect(redirectFn).toHaveBeenCalledWith('/profile')
+    expect(mockRedirectTo).toHaveBeenCalledWith('/profile')
   })
 
   it('handles both auth and redirect parameters together', () => {
@@ -121,13 +135,13 @@ describe('HomeClient', () => {
     // Auth dialog should be open
     expect(screen.getByTestId('auth-dialog')).toHaveAttribute('data-open', 'true')
     
-    // Mock the redirect function to avoid URL errors
-    const redirectFn = jest.spyOn(HomeClient.prototype as any, 'redirectTo').mockImplementation(jest.fn())
+    // Reset mock before test
+    mockRedirectTo.mockReset();
     
     // Click success button to trigger onSuccess callback
     screen.getByTestId('success-button').click()
     
     // Check if redirectTo was called with the correct URL
-    expect(redirectFn).toHaveBeenCalledWith('/dashboard')
+    expect(mockRedirectTo).toHaveBeenCalledWith('/dashboard')
   })
 })

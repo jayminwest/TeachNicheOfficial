@@ -22,8 +22,8 @@ export default function HomeClient() {
     }
   }, [])
   
-  // Helper method that can be mocked in tests
-  redirectTo(url: string) {
+  // Helper function that can be mocked in tests
+  const redirectTo = (url: string) => {
     window.location.href = url
   }
   
@@ -35,7 +35,7 @@ export default function HomeClient() {
         onOpenChange={setAuthDialogOpen}
         onSuccess={() => {
           // Navigate to the redirect URL after successful auth
-          this.redirectTo(redirectUrl)
+          redirectTo(redirectUrl)
         }}
       />
     </>

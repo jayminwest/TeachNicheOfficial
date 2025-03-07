@@ -9,6 +9,15 @@ jest.mock('@/app/auth/client', () => {
   };
 });
 
+// Mock React's Suspense to immediately render children instead of fallback
+jest.mock('react', () => {
+  const originalReact = jest.requireActual('react');
+  return {
+    ...originalReact,
+    Suspense: ({ children }) => children
+  };
+});
+
 describe('AuthPage', () => {
   it('renders the auth page with suspense boundary', () => {
     render(<AuthPage />);
@@ -17,9 +26,8 @@ describe('AuthPage', () => {
     expect(screen.getByText('Sign in')).toBeInTheDocument();
     expect(screen.getByText('Sign in to access your account and lessons')).toBeInTheDocument();
     
-    // Instead of checking for the client wrapper (which is inside Suspense),
-    // check for the fallback content which is definitely rendered during the test
-    expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
+    // Check for the client component which should be rendered since we're mocking Suspense
+    expect(screen.getByTestId('client-auth-wrapper')).toBeInTheDocument();
   });
   
   it('renders noscript message for users without JavaScript', () => {

@@ -71,7 +71,7 @@ describe('SearchParamsWrapper', () => {
     );
     
     // Default fallback should be a div with animate-pulse class
-    const fallback = screen.getByRole('generic');
+    const fallback = screen.getByTestId('search-params-fallback');
     expect(fallback).toHaveClass('bg-muted');
     expect(fallback).toHaveClass('animate-pulse');
   });

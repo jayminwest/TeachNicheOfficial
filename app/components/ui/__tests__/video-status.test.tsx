@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { VideoStatus } from '../video-status';
 
+// Mock the Lucide icons
+jest.mock('lucide-react', () => ({
+  AlertCircle: () => <div data-testid="alert-icon" />,
+  CheckCircle2: () => <div data-testid="check-icon" />,
+  Loader2: () => <div data-testid="loader-icon" />
+}));
+
 describe('VideoStatus', () => {
   it('displays correct pending state', () => {
     render(<VideoStatus status="pending" />);

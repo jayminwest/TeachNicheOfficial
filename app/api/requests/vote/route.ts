@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     console.log('Vote request body:', body);
     const { requestId, voteType } = voteSchema.parse(body)
 
-    // Check for existing vote
+    // Check for existing vote - use maybeSingle() instead of single() to avoid errors when no vote exists
     const { data: existingVote, error: checkError } = await supabase
       .from('lesson_request_votes')
       .select()
@@ -39,11 +39,11 @@ export async function POST(request: Request) {
         request_id: requestId,
         user_id: session.user.id 
       })
-      .single()
+      .maybeSingle()
     
     console.log('Existing vote check:', existingVote);
     
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned" which is expected
+    if (checkError) {
       console.error('Error checking for existing vote:', checkError);
       return NextResponse.json<RequestVoteResponse>(
         { 
@@ -129,8 +129,10 @@ export async function POST(request: Request) {
     
     if (countError) {
       console.error('Error getting vote count:', countError);
+      // Continue with a default value of 0 for currentVotes
     } else {
       currentVotes = voteCount || 0;
+      console.log('Updated vote count:', currentVotes);
     }
     
     // Update the lesson_requests table vote_count

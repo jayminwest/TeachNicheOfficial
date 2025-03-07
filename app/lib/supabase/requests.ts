@@ -292,7 +292,7 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
         // Add CSRF protection
         'X-CSRF-Protection': '1',
       },
-      credentials: 'same-origin',
+      credentials: 'include', // Use 'include' to ensure cookies are sent
       body: JSON.stringify({ requestId, voteType }),
     })
 

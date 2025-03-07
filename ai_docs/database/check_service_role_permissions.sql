@@ -23,18 +23,19 @@ ALTER TABLE public.lessons FORCE ROW LEVEL SECURITY;
 -- or to use the following to disable RLS enforcement for the service role
 ALTER TABLE public.lessons NO FORCE ROW LEVEL SECURITY;
 
--- Check if the service_role exists before granting BYPASSRLS
-DO $$
-BEGIN
-    -- Check if the role exists
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
-        -- Grant BYPASSRLS to the service_role
-        EXECUTE 'GRANT BYPASSRLS TO service_role';
-    ELSE
-        RAISE NOTICE 'Role "service_role" does not exist. Skipping BYPASSRLS grant.';
-    END IF;
-END
-$$;
+-- Alternative approach: Instead of trying to grant BYPASSRLS, 
+-- we'll disable RLS for the lessons table completely if needed
+-- Uncomment the line below if you want to disable RLS entirely
+-- ALTER TABLE public.lessons DISABLE ROW LEVEL SECURITY;
+
+-- Or create a policy that allows the service role to access all rows
+DROP POLICY IF EXISTS "Service role has full access" ON public.lessons;
+CREATE POLICY "Service role has full access"
+ON public.lessons
+FOR ALL
+TO postgres
+USING (true)
+WITH CHECK (true);
 
 -- 5. Ensure the service role has all necessary privileges
 GRANT ALL PRIVILEGES ON TABLE public.lessons TO service_role;

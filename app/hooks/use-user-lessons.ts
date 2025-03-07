@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Lesson } from '@/app/types/lesson';
-import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 
 
 interface UseUserLessonsOptions {

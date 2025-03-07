@@ -6,9 +6,10 @@ import { Page } from '@playwright/test';
  * @param page - Playwright page object
  */
 export async function setupApiInterceptors(page: Page) {
-  // Intercept auth API calls
-  await page.route('**/api/auth/**', async (route) => {
+  // Add a global route handler for all API calls to ensure we catch everything
+  await page.route('**/api/**', async (route) => {
     const url = route.request().url();
+    console.log(`Intercepting API call to: ${url}`);
     
     // Get user data from localStorage
     const userData = await page.evaluate(() => {
@@ -23,164 +24,189 @@ export async function setupApiInterceptors(page: Page) {
       }
     });
     
-    if (url.includes('/api/auth/session')) {
-      if (userData) {
-        await route.fulfill({
-          status: 200,
-          body: JSON.stringify({ user: userData, session: { user: userData } }),
-        });
+    // Handle auth endpoints
+    if (url.includes('/api/auth')) {
+      if (url.includes('/api/auth/session')) {
+        if (userData) {
+          await route.fulfill({
+            status: 200,
+            body: JSON.stringify({ user: userData, session: { user: userData } }),
+          });
+        } else {
+          await route.fulfill({
+            status: 401,
+            body: JSON.stringify({ error: 'Not authenticated' }),
+          });
+        }
       } else {
-        await route.fulfill({
-          status: 401,
-          body: JSON.stringify({ error: 'Not authenticated' }),
-        });
+        // Continue with the request for other auth endpoints
+        await route.continue();
       }
-    } else {
-      // Continue with the request for other auth endpoints
-      await route.continue();
+      return;
     }
-  });
-  
-  // Intercept lessons API calls
-  await page.route('**/api/lessons/**', async (route) => {
-    const url = route.request().url();
     
-    // Get mock lessons from localStorage
-    const mockLessons = await page.evaluate(() => {
-      const lessonsData = localStorage.getItem('mock-lessons');
-      return lessonsData ? JSON.parse(lessonsData) : [];
-    });
-    
-    if (url.includes('/api/lessons/check-purchase')) {
-      const urlObj = new URL(url);
-      const lessonId = urlObj.searchParams.get('lessonId');
-      
-      const purchasedLessons = await page.evaluate(() => {
-        const data = localStorage.getItem('purchased-lessons');
-        return data ? JSON.parse(data) : [];
+    // Handle profile endpoints
+    if (url.includes('/api/profile')) {
+      const profile = await page.evaluate(() => {
+        const profileData = localStorage.getItem('user-profile');
+        return profileData ? JSON.parse(profileData) : null;
       });
       
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify({ 
-          hasAccess: purchasedLessons.includes(lessonId),
-          lessonId 
-        }),
-      });
-    } else if (url.match(/\/api\/lessons\/[^\/]+$/)) {
-      // Single lesson endpoint
-      const lessonId = url.split('/').pop();
-      const lesson = mockLessons.find((l: any) => l.id === lessonId);
-      
-      if (lesson) {
+      if (profile) {
         await route.fulfill({
           status: 200,
-          body: JSON.stringify(lesson),
+          body: JSON.stringify(profile),
         });
       } else {
         await route.fulfill({
           status: 404,
-          body: JSON.stringify({ error: 'Lesson not found' }),
+          body: JSON.stringify({ error: 'Profile not found' }),
         });
       }
-    } else if (url.includes('/api/lessons')) {
-      // All lessons endpoint
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify(mockLessons),
-      });
-    } else {
-      await route.continue();
+      return;
     }
-  });
-  
-  // Intercept requests API calls
-  await page.route('**/api/requests/**', async (route) => {
-    const url = route.request().url();
     
-    // Get mock requests from localStorage
-    const mockRequests = await page.evaluate(() => {
-      const requestsData = localStorage.getItem('mock-requests');
-      return requestsData ? JSON.parse(requestsData) : [];
-    });
-    
-    if (url.includes('/api/requests/vote')) {
-      // Handle vote request
-      const postData = route.request().postDataJSON();
-      
-      await page.evaluate((data) => {
-        mockRequestVote(window, data.requestId, data.userId, data.voteType);
-      }, postData);
-      
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify({ success: true }),
+    // Handle lessons endpoints
+    if (url.includes('/api/lessons')) {
+      // Get mock lessons from localStorage
+      const mockLessons = await page.evaluate(() => {
+        const lessonsData = localStorage.getItem('mock-lessons');
+        return lessonsData ? JSON.parse(lessonsData) : [];
       });
-    } else if (url.match(/\/api\/requests\/[^\/]+$/)) {
-      // Single request endpoint
-      const requestId = url.split('/').pop();
-      const request = mockRequests.find((r: any) => r.id === requestId);
       
-      if (request) {
+      if (url.includes('/api/lessons/check-purchase')) {
+        const urlObj = new URL(url);
+        const lessonId = urlObj.searchParams.get('lessonId');
+        
+        const purchasedLessons = await page.evaluate(() => {
+          const data = localStorage.getItem('purchased-lessons');
+          return data ? JSON.parse(data) : [];
+        });
+        
         await route.fulfill({
           status: 200,
-          body: JSON.stringify(request),
+          body: JSON.stringify({ 
+            hasAccess: purchasedLessons.includes(lessonId),
+            lessonId 
+          }),
+        });
+      } else if (url.match(/\/api\/lessons\/[^\/]+$/)) {
+        // Single lesson endpoint
+        const lessonId = url.split('/').pop();
+        const lesson = mockLessons.find((l: any) => l.id === lessonId);
+        
+        if (lesson) {
+          await route.fulfill({
+            status: 200,
+            body: JSON.stringify(lesson),
+          });
+        } else {
+          await route.fulfill({
+            status: 404,
+            body: JSON.stringify({ error: 'Lesson not found' }),
+          });
+        }
+      } else if (url.includes('/api/lessons')) {
+        // All lessons endpoint
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify(mockLessons),
+        });
+      }
+      return;
+    }
+    
+    // Handle requests endpoints
+    if (url.includes('/api/requests')) {
+      // Get mock requests from localStorage
+      const mockRequests = await page.evaluate(() => {
+        const requestsData = localStorage.getItem('mock-requests');
+        return requestsData ? JSON.parse(requestsData) : [];
+      });
+      
+      if (url.includes('/api/requests/vote')) {
+        // Handle vote request
+        const postData = route.request().postDataJSON();
+        
+        await page.evaluate((data) => {
+          mockRequestVote(window, data.requestId, data.userId, data.voteType);
+        }, postData);
+        
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ success: true }),
+        });
+      } else if (url.match(/\/api\/requests\/[^\/]+$/)) {
+        // Single request endpoint
+        const requestId = url.split('/').pop();
+        const request = mockRequests.find((r: any) => r.id === requestId);
+        
+        if (request) {
+          await route.fulfill({
+            status: 200,
+            body: JSON.stringify(request),
+          });
+        } else {
+          await route.fulfill({
+            status: 404,
+            body: JSON.stringify({ error: 'Request not found' }),
+          });
+        }
+      } else if (url.includes('/api/requests')) {
+        // All requests endpoint
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify(mockRequests),
+        });
+      }
+      return;
+    }
+    
+    // Handle Stripe endpoints
+    if (url.includes('/api/stripe')) {
+      if (url.includes('/api/stripe/create-checkout-session')) {
+        const postData = route.request().postDataJSON();
+        const sessionId = `cs_test_${Date.now()}`;
+        
+        // Store checkout session
+        await page.evaluate((data) => {
+          const mockSessions = JSON.parse(localStorage.getItem('mock-stripe-sessions') || '{}');
+          mockSessions[data.sessionId] = {
+            id: data.sessionId,
+            lessonId: data.lessonId,
+            price: data.price,
+            created: Date.now(),
+          };
+          localStorage.setItem('mock-stripe-sessions', JSON.stringify(mockSessions));
+        }, { sessionId, ...postData });
+        
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ 
+            sessionId,
+            url: `http://localhost:3000/checkout/success?session_id=${sessionId}` 
+          }),
+        });
+      } else if (url.includes('/api/stripe/connect-account')) {
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ 
+            accountId: 'acct_test123456',
+            url: 'http://localhost:3000/creator/onboarding?success=true' 
+          }),
         });
       } else {
         await route.fulfill({
-          status: 404,
-          body: JSON.stringify({ error: 'Request not found' }),
+          status: 200,
+          body: JSON.stringify({ success: true }),
         });
       }
-    } else if (url.includes('/api/requests')) {
-      // All requests endpoint
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify(mockRequests),
-      });
-    } else {
-      await route.continue();
+      return;
     }
-  });
-  
-  // Intercept Stripe API calls
-  await page.route('**/api/stripe/**', async (route) => {
-    const url = route.request().url();
     
-    if (url.includes('/api/stripe/create-checkout-session')) {
-      const postData = route.request().postDataJSON();
-      const sessionId = `cs_test_${Date.now()}`;
-      
-      // Store checkout session
-      await page.evaluate((data) => {
-        const mockSessions = JSON.parse(localStorage.getItem('mock-stripe-sessions') || '{}');
-        mockSessions[data.sessionId] = {
-          id: data.sessionId,
-          lessonId: data.lessonId,
-          price: data.price,
-          created: Date.now(),
-        };
-        localStorage.setItem('mock-stripe-sessions', JSON.stringify(mockSessions));
-      }, { sessionId, ...postData });
-      
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify({ 
-          sessionId,
-          url: `http://localhost:3000/checkout/success?session_id=${sessionId}` 
-        }),
-      });
-    } else if (url.includes('/api/stripe/connect-account')) {
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify({ 
-          accountId: 'acct_test123456',
-          url: 'http://localhost:3000/creator/onboarding?success=true' 
-        }),
-      });
-    } else {
-      await route.continue();
-    }
+    // Default handler for any other API routes
+    console.log(`No specific handler for ${url}, continuing with request`);
+    await route.continue();
   });
 }
 

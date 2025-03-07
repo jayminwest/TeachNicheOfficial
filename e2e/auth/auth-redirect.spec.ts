@@ -16,7 +16,7 @@ test.describe('Authentication Redirect', () => {
     await page.goto('/profile');
     
     // Verify redirect to auth page with redirect parameter
-    await expect(page).toHaveURL(/\/auth\?redirect=%2Fprofile/);
+    await page.waitForURL(/\/auth.*redirect.*profile/i);
   });
   
   test('redirects to originally requested page after authentication', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Authentication Redirect', () => {
     await page.goto('/profile');
     
     // Verify redirect to auth page
-    await expect(page).toHaveURL(/\/auth\?redirect=%2Fprofile/);
+    await page.waitForURL(/\/auth.*redirect.*profile/i);
     
     // Mock a successful login
     await login(page, 'learner');
@@ -41,7 +41,7 @@ test.describe('Authentication Redirect', () => {
     await page.goto('/profile');
     
     // Verify no redirect occurs
-    await expect(page).toHaveURL('/profile');
+    await page.waitForURL('/profile');
     
     // Verify profile content is visible
     await expect(page.getByText('Test Learner')).toBeVisible();

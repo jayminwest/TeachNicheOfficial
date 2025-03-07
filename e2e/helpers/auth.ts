@@ -50,6 +50,9 @@ export async function login(
   
   // Set up localStorage with mock auth data
   await page.evaluate((data) => {
+    // Clear any existing auth data first
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('user-profile');
     // Mock Supabase auth session
     const mockSession = {
       access_token: 'mock-access-token',
@@ -89,6 +92,9 @@ export async function login(
   
   // Refresh the page to apply the auth state
   await page.reload();
+  
+  // Wait for a moment to ensure the auth state is applied
+  await page.waitForTimeout(500);
 }
 
 /**

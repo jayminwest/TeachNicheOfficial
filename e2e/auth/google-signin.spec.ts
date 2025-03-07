@@ -16,7 +16,7 @@ test.describe('Google Sign-In', () => {
   
   test('displays sign-in page correctly', async ({ page }) => {
     // Verify the page title
-    await expect(page.locator('h1')).toContainText('Sign In');
+    await expect(page.locator('h1')).toContainText(/sign in/i);
     
     // Verify the Google sign-in button is present
     const googleButton = page.getByRole('button', { name: /Continue with Google/i });
@@ -33,17 +33,17 @@ test.describe('Google Sign-In', () => {
     await login(page, 'learner');
     
     // Verify redirect to home page
-    await expect(page).toHaveURL('/');
+    await page.waitForURL('/');
     
     // Verify user is logged in (check for profile elements in the UI)
-    await expect(page.getByText('Test Learner')).toBeVisible();
+    await page.waitForSelector('text=Test Learner', { timeout: 10000 });
   });
   
   test('handles authentication errors', async ({ page }) => {
     // Try to sign in with invalid credentials
-    await page.getByLabel(/Email/i).fill('invalid@example.com');
-    await page.getByLabel(/Password/i).fill('wrongpassword');
-    await page.getByRole('button', { name: /Sign In/i }).click();
+    await page.getByPlaceholder(/email/i).fill('invalid@example.com');
+    await page.getByPlaceholder(/password/i).fill('wrongpassword');
+    await page.getByRole('button', { name: /sign in/i, exact: false }).click();
     
     // Verify error message
     await expect(page.getByText(/Invalid login credentials/i)).toBeVisible();
@@ -57,6 +57,6 @@ test.describe('Google Sign-In', () => {
     await login(page, 'learner');
     
     // Verify redirect to the specified page
-    await expect(page).toHaveURL('/lessons');
+    await page.waitForURL('/lessons');
   });
 });

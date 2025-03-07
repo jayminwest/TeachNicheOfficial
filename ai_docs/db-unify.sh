@@ -65,15 +65,46 @@ else
   PROD_HOST=$(echo $PROD_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
   DEV_HOST=$(echo $DEV_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
   
+  # Function to test connection with timeout support for different platforms
+  test_connection() {
+    local host=$1
+    local port=$2
+    local timeout_seconds=$3
+    
+    # Check if GNU timeout is available
+    if command -v timeout &> /dev/null; then
+      timeout $timeout_seconds pg_isready -h $host -p $port
+      return $?
+    # Check if gtimeout is available (common on macOS with homebrew)
+    elif command -v gtimeout &> /dev/null; then
+      gtimeout $timeout_seconds pg_isready -h $host -p $port
+      return $?
+    else
+      # Fallback for macOS/BSD without timeout command
+      # Use perl to implement timeout
+      perl -e "
+        alarm $timeout_seconds;
+        system('pg_isready', '-h', '$host', '-p', '$port');
+        exit \$? >> 8;
+      " 2>/dev/null
+      
+      # If perl fails or isn't available, try without timeout
+      if [ $? -ne 0 ]; then
+        pg_isready -h $host -p $port
+        return $?
+      fi
+    fi
+  }
+  
   echo "Testing connection to production database..."
-  if ! timeout 5 pg_isready -h $PROD_HOST -p 5432; then
+  if ! test_connection $PROD_HOST 5432 5; then
     echo "Warning: Could not connect to production database. Check your connection string."
     echo "Connection string format should be: postgresql://postgres:password@host:5432/postgres"
     echo "Continuing anyway, but commands may fail."
   fi
   
   echo "Testing connection to development database..."
-  if ! timeout 5 pg_isready -h $DEV_HOST -p 5432; then
+  if ! test_connection $DEV_HOST 5432 5; then
     echo "Warning: Could not connect to development database. Check your connection string."
     echo "Continuing anyway, but commands may fail."
   fi
@@ -118,51 +149,91 @@ fi
 # Step 1: Export production schema
 echo "Step 1: Exporting production database schema..."
 echo "This may take a moment..."
-timeout 60 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+
+# Function to run command with timeout support for different platforms
+run_with_timeout() {
+  local timeout_seconds=$1
+  shift
+  
+  # Check if GNU timeout is available
+  if command -v timeout &> /dev/null; then
+    timeout $timeout_seconds "$@"
+    return $?
+  # Check if gtimeout is available (common on macOS with homebrew)
+  elif command -v gtimeout &> /dev/null; then
+    gtimeout $timeout_seconds "$@"
+    return $?
+  else
+    # Fallback for macOS/BSD without timeout command
+    # Start the command in background
+    "$@" &
+    local cmd_pid=$!
+    
+    # Wait for specified time
+    (
+      sleep $timeout_seconds
+      kill -TERM $cmd_pid 2>/dev/null
+      sleep 1
+      kill -KILL $cmd_pid 2>/dev/null
+    ) &
+    local timer_pid=$!
+    
+    # Wait for command to finish
+    wait $cmd_pid 2>/dev/null
+    local cmd_status=$?
+    
+    # Kill the timer
+    kill -KILL $timer_pid 2>/dev/null
+    
+    return $cmd_status
+  fi
+}
+
+run_with_timeout 60 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
   --schema public
 
-if [ $? -eq 124 ]; then
-  echo "Error: Command timed out after 60 seconds. The database connection may be incorrect."
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to export production schema. The database connection may be incorrect."
   echo "PROD_DB_URL: ${PROD_DB_URL//:*/:*****@*****}"
   exit 1
 fi
 
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
-timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
   --schema public \
   --include "POLICY"
 
-if [ $? -eq 124 ]; then
-  echo "Error: Command timed out after 30 seconds. The database connection may be incorrect."
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to export RLS policies. The database connection may be incorrect."
   exit 1
 fi
 
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
-timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
   --schema public \
   --include "FUNCTION TRIGGER"
 
-if [ $? -eq 124 ]; then
-  echo "Error: Command timed out after 30 seconds. The database connection may be incorrect."
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to export functions and triggers. The database connection may be incorrect."
   exit 1
 fi
 
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
-timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
+run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
   --db-url "$PROD_DB_URL" \
   > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
-if [ $? -eq 124 ]; then
-  echo "Error: Command timed out after 30 seconds. The database connection may be incorrect."
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to export auth configuration. The database connection may be incorrect."
   exit 1
 fi
 

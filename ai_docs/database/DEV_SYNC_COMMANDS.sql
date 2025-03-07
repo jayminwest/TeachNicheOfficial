@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS public.lessons (
   content_url text,
   thumbnail_url text,
   is_featured boolean NOT NULL DEFAULT false,
-  status USER-DEFINED NOT NULL DEFAULT 'draft'::lesson_status,
+  status lesson_status NOT NULL DEFAULT 'draft'::lesson_status,
   deleted_at timestamp with time zone,
   version integer NOT NULL DEFAULT 1,
   mux_asset_id text,
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 CREATE TABLE IF NOT EXISTS public.purchases (
-  status USER-DEFINED NOT NULL DEFAULT 'pending'::purchase_status,
+  status purchase_status NOT NULL DEFAULT 'pending'::purchase_status,
   payment_intent_id text NOT NULL,
   creator_earnings numeric(19,4) NOT NULL,
   platform_fee numeric(19,4) NOT NULL,

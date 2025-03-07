@@ -1,4 +1,5 @@
-import { render } from '@testing-library/react';
+// We don't need render for these tests
+import '@testing-library/react';
 import * as UIComponents from '../index';
 
 describe('UI Components exports', () => {

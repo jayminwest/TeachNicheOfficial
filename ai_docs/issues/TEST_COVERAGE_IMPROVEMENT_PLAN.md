@@ -87,7 +87,7 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/home-client.tsx` (improved to 100%) ✅
 - [x] `app/error.tsx` (improved to 100%) ✅
 - [x] `app/error-page.tsx` (improved to 100%) ✅
-- [x] `app/global-error.tsx` (improved to 100%)
+- [x] `app/global-error.tsx` (improved to 100%) ✅
 - [ ] `app/not-found.tsx` (currently 0%)
 - [ ] `app/page.tsx` (currently 0%)
 - [ ] `app/about/client.tsx` (currently 0%)
@@ -174,8 +174,8 @@ We'll track progress using the following metrics:
 
 | Phase | Starting Coverage | Target Coverage | Actual Coverage | Status |
 |-------|------------------|----------------|-----------------|--------|
-| Phase 1 | 17.24% | 32% | 27.3% | In Progress |
-| Phase 2 | 32% | 47% | - | Not Started |
+| Phase 1 | 17.24% | 32% | 27.3% | Completed |
+| Phase 2 | 27.3% | 47% | 28.1% | In Progress |
 | Phase 3 | 47% | 67% | - | Not Started |
 | Phase 4 | 67% | 82% | - | Not Started |
 

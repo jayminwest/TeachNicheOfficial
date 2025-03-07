@@ -139,10 +139,13 @@ describe('Update Purchase API', () => {
     // Mock insert
     mockSupabaseClient.from().insert.mockImplementation(() => {
       return {
-        select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({
-          data: { id: 'new-purchase-id' },
-          error: null
+        select: jest.fn().mockImplementation(() => {
+          return {
+            single: jest.fn().mockResolvedValue({
+              data: { id: 'new-purchase-id' },
+              error: null
+            })
+          };
         })
       };
     });
@@ -235,11 +238,17 @@ describe('Update Purchase API', () => {
     // Mock update
     mockSupabaseClient.from().update.mockImplementation(() => {
       return {
-        eq: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({
-          data: { id: 'existing-purchase-id' },
-          error: null
+        eq: jest.fn().mockImplementation(() => {
+          return {
+            select: jest.fn().mockImplementation(() => {
+              return {
+                single: jest.fn().mockResolvedValue({
+                  data: { id: 'existing-purchase-id' },
+                  error: null
+                })
+              };
+            })
+          };
         })
       };
     });
@@ -309,7 +318,7 @@ describe('Update Purchase API', () => {
       eq: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({
-        data: null,
+        data: { id: 'existing-purchase-id' },
         error: null
       })
     });

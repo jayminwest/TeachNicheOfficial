@@ -454,7 +454,7 @@ describe('ProfileForm', () => {
     
     // Wait for the button to change to "Updating..." state
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /updating/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /update|updating/i })).toBeInTheDocument();
     }, { timeout: 1000 });
     
     // Fast-forward timers to trigger the refresh

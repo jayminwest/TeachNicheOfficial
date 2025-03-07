@@ -83,10 +83,8 @@ export async function middleware(req: NextRequest) {
     }
     
     // Check cookies for test environment flag
-    const cookies = req.cookies;
-    const isTestEnvironment = cookies.get('test-environment')?.value === 'true';
-    
-    if (isTestEnvironment) {
+    const testEnvCookie = req.cookies.get('test-environment');
+    if (testEnvCookie?.value === 'true') {
       console.log('Test environment cookie detected, bypassing auth check');
       return NextResponse.next();
     }

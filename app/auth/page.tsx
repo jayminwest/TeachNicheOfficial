@@ -1,7 +1,7 @@
 // Server component
 export const dynamic = 'force-dynamic';
 import { Suspense } from 'react';
-import { AuthClient } from './client';
+import AuthClient from './client';
 import { Loader2 } from 'lucide-react';
 
 export default function AuthPage() {

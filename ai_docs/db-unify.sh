@@ -51,36 +51,32 @@ fi
 
 # Step 1: Export production schema
 echo "Step 1: Exporting production database schema..."
-supabase db dump \
+PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
-  --db-key "$PROD_SUPABASE_SERVICE_KEY" \
   -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
   --schema public \
   --no-data
 
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
-supabase db dump \
+PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
-  --db-key "$PROD_SUPABASE_SERVICE_KEY" \
   -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
   --schema public \
   --include "POLICY"
 
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
-supabase db dump \
+PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
-  --db-key "$PROD_SUPABASE_SERVICE_KEY" \
   -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
   --schema public \
   --include "FUNCTION TRIGGER"
 
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
-supabase auth config export \
+PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
   --db-url "$PROD_SUPABASE_URL" \
-  --db-key "$PROD_SUPABASE_SERVICE_KEY" \
   > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 5: Create a consolidated migration file
@@ -143,37 +139,31 @@ END \$\$;
 EOF
 
 # Apply reset script
-supabase db push \
+PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  --db-key "$DEV_SUPABASE_SERVICE_KEY" \
   -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql"
 
 # Apply consolidated schema
-supabase db push \
+PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  --db-key "$DEV_SUPABASE_SERVICE_KEY" \
   -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql"
 
 # Apply migration tracking
-supabase db push \
+PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  --db-key "$DEV_SUPABASE_SERVICE_KEY" \
   -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql"
 
 # Step 9: Import auth configuration
 echo "Step 9: Importing auth configuration..."
-supabase auth config import \
+PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase auth config import \
   --db-url "$DEV_SUPABASE_URL" \
-  --db-key "$DEV_SUPABASE_SERVICE_KEY" \
   "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 10: Verify synchronization
 echo "Step 10: Verifying database synchronization..."
-supabase db diff \
+PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" PGPASSWORD_TARGET="$DEV_SUPABASE_SERVICE_KEY" supabase db diff \
   --source-db "$PROD_SUPABASE_URL" \
-  --source-key "$PROD_SUPABASE_SERVICE_KEY" \
   --target-db "$DEV_SUPABASE_URL" \
-  --target-key "$DEV_SUPABASE_SERVICE_KEY" \
   > "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt"
 
 if [ -s "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt" ]; then
@@ -227,9 +217,8 @@ RETURNS TABLE (
 EOF
 
 # Apply policy inspection function
-supabase db push \
+PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  --db-key "$DEV_SUPABASE_SERVICE_KEY" \
   -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql"
 
 echo ""

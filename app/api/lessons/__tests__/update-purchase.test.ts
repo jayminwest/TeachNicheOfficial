@@ -7,6 +7,23 @@ jest.mock('@/app/lib/supabase/server', () => ({
   createServerSupabaseClient: jest.fn()
 }));
 
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn().mockImplementation((data: unknown, init?: ResponseInit) => {
+      const response = new Response(JSON.stringify(data), init);
+      Object.defineProperty(response, 'status', {
+        get() {
+          return init?.status || 200;
+        }
+      });
+      Object.defineProperty(response, 'json', {
+        value: jest.fn().mockResolvedValue(data)
+      });
+      return response;
+    })
+  }
+}));
+
 describe('Update Purchase API', () => {
   const mockLessonId = 'test-lesson-id';
   const mockSessionId = 'test-session-id';
@@ -21,10 +38,10 @@ describe('Update Purchase API', () => {
     jest.clearAllMocks();
     
     // Mock crypto.randomUUID
-    global.crypto = {
-      ...global.crypto,
-      randomUUID: jest.fn().mockReturnValue('generated-uuid')
-    };
+    if (!global.crypto) {
+      global.crypto = {} as Crypto;
+    }
+    global.crypto.randomUUID = jest.fn().mockReturnValue('generated-uuid');
     
     // Create a mock request
     mockRequest = new Request(

@@ -8,6 +8,23 @@ jest.mock('@/app/lib/supabase/server', () => ({
   createServerSupabaseClient: jest.fn()
 }));
 
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn().mockImplementation((data: unknown, init?: ResponseInit) => {
+      const response = new Response(JSON.stringify(data), init);
+      Object.defineProperty(response, 'status', {
+        get() {
+          return init?.status || 200;
+        }
+      });
+      Object.defineProperty(response, 'json', {
+        value: jest.fn().mockResolvedValue(data)
+      });
+      return response;
+    })
+  }
+}));
+
 jest.mock('@/app/services/database/purchasesService', () => ({
   purchasesService: {
     checkLessonAccess: jest.fn(),

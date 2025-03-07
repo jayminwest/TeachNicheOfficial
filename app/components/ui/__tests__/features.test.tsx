@@ -62,4 +62,38 @@ describe('Features Component', () => {
       expect(icon).toHaveClass('text-primary')
     })
   })
+
+  it('renders with the correct container and background styling', () => {
+    render(<Features />)
+    
+    // Check the main container has the correct background class
+    const container = screen.getByText('Why Choose Teach Niche?').closest('div')?.parentElement
+    expect(container).toHaveClass('py-24')
+    expect(container).toHaveClass('bg-muted/50')
+  })
+
+  it('renders the correct number of feature items', () => {
+    render(<Features />)
+    
+    // Check we have exactly 6 feature items
+    const featureItems = screen.getAllByText(/Expert Tutorials|Monetize Your Skills|Community Support|Integrity and Fairness|Sustainable Growth|Growth and Learning/)
+    expect(featureItems).toHaveLength(6)
+    
+    // Check each feature item has a description
+    featureItems.forEach(item => {
+      const parent = item.closest('div')
+      expect(parent?.querySelector('p')).toBeInTheDocument()
+    })
+  })
+
+  it('renders with responsive grid layout classes', () => {
+    render(<Features />)
+    
+    // Check the grid container has the correct responsive classes
+    const gridContainer = screen.getAllByRole('heading', { level: 3 })[0].closest('div')?.parentElement
+    expect(gridContainer).toHaveClass('grid')
+    expect(gridContainer).toHaveClass('grid-cols-1')
+    expect(gridContainer).toHaveClass('md:grid-cols-2')
+    expect(gridContainer).toHaveClass('lg:grid-cols-3')
+  })
 })

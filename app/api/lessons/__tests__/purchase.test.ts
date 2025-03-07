@@ -50,8 +50,8 @@ describe('Purchase API', () => {
     process.env.STRIPE_SECRET_KEY = 'test-stripe-key';
     process.env.NEXT_PUBLIC_BASE_URL = 'https://example.com';
     
-    // Create a mock request directly
-    mockRequest = new NextRequest(
+    // Create a mock request using Request.from()
+    const request = new Request(
       'http://localhost:3000/api/lessons/purchase',
       {
         method: 'POST',
@@ -60,6 +60,7 @@ describe('Purchase API', () => {
         }
       }
     );
+    mockRequest = NextRequest.from(request);
     
     // Mock request.json
     jest.spyOn(mockRequest, 'json').mockResolvedValue({

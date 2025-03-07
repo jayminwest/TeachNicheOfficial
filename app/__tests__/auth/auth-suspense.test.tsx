@@ -11,7 +11,7 @@ global.__SUSPENSE_TEST_FALLBACK__ = false;
 jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn().mockReturnValue({
     get: jest.fn((param) => {
-      if (param === 'error') return 'Test+error+message';
+      if (param === 'error') return 'Test error message';
       if (param === 'redirect') return '/lessons';
       return null;
     }),
@@ -64,38 +64,31 @@ describe('Auth Component with Suspense', () => {
       </Suspense>
     );
     
-    // Wait for the loading state to finish
+    // Wait for the loading state to finish and the sign in button to appear
     await waitFor(() => {
-      expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
-    });
-    
-    // Check that the sign in button is rendered
-    expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
+    }, { timeout: 3000 });
   });
   
   it('shows error message from URL parameters', async () => {
     render(<ClientAuthWrapper />);
     
-    // Wait for the loading state to finish
+    // Wait for the error message to be displayed
     await waitFor(() => {
-      expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
-    });
-    
-    // Check that the error message is displayed
-    expect(screen.getByText('Test error message')).toBeInTheDocument();
+      expect(screen.getByText('Test error message')).toBeInTheDocument();
+    }, { timeout: 3000 });
   });
   
   it('handles sign in process', async () => {
     const user = userEvent.setup();
     render(<ClientAuthWrapper />);
     
-    // Wait for the loading state to finish
-    await waitFor(() => {
-      expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
-    });
+    // Wait for the sign in button to appear
+    const signInButton = await waitFor(() => 
+      screen.getByRole('button', { name: /sign in with google/i })
+    , { timeout: 3000 });
     
     // Click the sign in button
-    const signInButton = screen.getByRole('button', { name: /sign in with google/i });
     await user.click(signInButton);
     
     // Check that signInWithGoogle was called

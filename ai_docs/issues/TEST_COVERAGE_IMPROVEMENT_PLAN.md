@@ -79,7 +79,7 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/utils/format.ts` (improved to 100%)
 - [x] `app/utils/purchase-helpers.ts` (improved to 100%)
 - [x] `app/lib/auth-config.ts` (improved to 100%)
-- [ ] `app/lib/auth-helpers.ts` (currently 0%)
+- [x] `app/lib/auth-helpers.ts` (improved to 100%)
 
 ### Phase 2: Page Components and Forms
 

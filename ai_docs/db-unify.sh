@@ -8,11 +8,14 @@ set -e
 echo "Loading environment variables..."
 # Load production environment variables
 if [ -f .env.vercel.production ]; then
-  # Export all variables from the file
-  export $(grep -v '^#' .env.vercel.production | xargs)
+  # Export all variables from the file - handle potential quote issues
+  set -o allexport
+  source .env.vercel.production
+  set +o allexport
+  
   # Store the specific variables we need
   PROD_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-  PROD_SUPABASE_SERVICE_KEY=${NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY}
+  PROD_SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
   PROD_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
   PROD_JWT_SECRET=${JWT_SECRET}
 else
@@ -22,11 +25,14 @@ fi
 
 # Load development environment variables
 if [ -f .env.dev ]; then
-  # Export all variables from the file
-  export $(grep -v '^#' .env.dev | xargs)
+  # Export all variables from the file - handle potential quote issues
+  set -o allexport
+  source .env.dev
+  set +o allexport
+  
   # Store the specific variables we need
   DEV_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-  DEV_SUPABASE_SERVICE_KEY=${NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY}
+  DEV_SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
   DEV_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
   DEV_JWT_SECRET=${JWT_SECRET}
 else
@@ -37,13 +43,23 @@ fi
 # Verify environment variables are loaded
 if [ -z "$PROD_SUPABASE_URL" ] || [ -z "$PROD_SUPABASE_SERVICE_KEY" ] || [ -z "$PROD_SUPABASE_ANON_KEY" ] || [ -z "$PROD_JWT_SECRET" ]; then
   echo "Error: Production Supabase credentials not found in .env.vercel.production"
-  echo "Required variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY, JWT_SECRET"
+  echo "Required variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY, JWT_SECRET"
+  echo "Current values:"
+  echo "PROD_SUPABASE_URL: ${PROD_SUPABASE_URL:-not set}"
+  echo "PROD_SUPABASE_SERVICE_KEY: ${PROD_SUPABASE_SERVICE_KEY:0:10}... (${#PROD_SUPABASE_SERVICE_KEY} chars)"
+  echo "PROD_SUPABASE_ANON_KEY: ${PROD_SUPABASE_ANON_KEY:0:10}... (${#PROD_SUPABASE_ANON_KEY} chars)"
+  echo "PROD_JWT_SECRET: ${PROD_JWT_SECRET:0:10}... (${#PROD_JWT_SECRET} chars)"
   exit 1
 fi
 
 if [ -z "$DEV_SUPABASE_URL" ] || [ -z "$DEV_SUPABASE_SERVICE_KEY" ] || [ -z "$DEV_SUPABASE_ANON_KEY" ] || [ -z "$DEV_JWT_SECRET" ]; then
   echo "Error: Development Supabase credentials not found in .env.dev"
-  echo "Required variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY, JWT_SECRET"
+  echo "Required variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY, JWT_SECRET"
+  echo "Current values:"
+  echo "DEV_SUPABASE_URL: ${DEV_SUPABASE_URL:-not set}"
+  echo "DEV_SUPABASE_SERVICE_KEY: ${DEV_SUPABASE_SERVICE_KEY:0:10}... (${#DEV_SUPABASE_SERVICE_KEY} chars)"
+  echo "DEV_SUPABASE_ANON_KEY: ${DEV_SUPABASE_ANON_KEY:0:10}... (${#DEV_SUPABASE_ANON_KEY} chars)"
+  echo "DEV_JWT_SECRET: ${DEV_JWT_SECRET:0:10}... (${#DEV_JWT_SECRET} chars)"
   exit 1
 fi
 

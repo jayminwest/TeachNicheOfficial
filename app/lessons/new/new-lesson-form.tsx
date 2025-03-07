@@ -6,7 +6,11 @@ import { Button } from '@/app/components/ui/button';
 import { Loader2, AlertCircle, Upload, Check } from 'lucide-react';
 import { useToast } from '@/app/components/ui/use-toast';
 
-export default function NewLessonForm() {
+interface NewLessonFormProps {
+  redirectPath?: string;
+}
+
+export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -201,8 +205,8 @@ export default function NewLessonForm() {
         console.error('Failed to start background processing:', error);
       });
       
-      // Redirect to the lesson page
-      router.push(`/lessons/${lesson.id}`);
+      // Redirect to the lesson page or custom redirect path
+      router.push(redirectPath || `/lessons/${lesson.id}`);
     } catch (error) {
       console.error('Lesson creation error:', error);
       

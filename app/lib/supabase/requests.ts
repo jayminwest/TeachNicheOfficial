@@ -85,9 +85,10 @@ export async function getRequests(filters?: {
   sortBy?: 'popular' | 'newest'
 }) {
   const supabase = createClientComponentClient()
+  // Use a simpler query without the relationship hint
   let query = supabase
     .from('lesson_requests')
-    .select('*, lesson_request_votes!request_votes_request_id_fkey(count)')
+    .select('*')
   
   if (filters?.category) {
     query = query.eq('category', filters.category)

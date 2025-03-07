@@ -1,5 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Error from '../error';
+import React from 'react';
+
+// Mock React's useEffect hook
+jest.mock('react', () => ({
+  ...jest.requireActual('react'),
+  useEffect: jest.fn((cb) => cb())
+}));
 
 // Mock console.error to prevent test output pollution and to verify it's called
 const originalConsoleError = console.error;
@@ -16,6 +23,7 @@ describe('Error Component', () => {
 
   beforeEach(() => {
     mockConsoleError.mockClear();
+    jest.clearAllMocks();
   });
 
   it('renders error message and buttons', () => {

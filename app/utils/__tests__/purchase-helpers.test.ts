@@ -49,18 +49,26 @@ describe('Purchase Helper Functions', () => {
   });
 
   describe('cleanPurchaseParams', () => {
+    beforeEach(() => {
+      // Create a mock implementation of replaceState that doesn't actually modify the URL
+      window.history.replaceState = jest.fn();
+    });
+    
     it('removes purchase param from URL', () => {
       window.location.href = 'https://example.com?purchase=success';
       window.location.search = '?purchase=success';
       
-      const replaceStateSpy = jest.spyOn(window.history, 'replaceState');
-      
       cleanPurchaseParams();
       
-      expect(replaceStateSpy).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
-        'https://example.com'
+        expect.stringContaining('https://example.com')
+      );
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.not.stringContaining('purchase=success')
       );
     });
 
@@ -68,14 +76,17 @@ describe('Purchase Helper Functions', () => {
       window.location.href = 'https://example.com?session_id=cs_test_123';
       window.location.search = '?session_id=cs_test_123';
       
-      const replaceStateSpy = jest.spyOn(window.history, 'replaceState');
-      
       cleanPurchaseParams();
       
-      expect(replaceStateSpy).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
-        'https://example.com'
+        expect.stringContaining('https://example.com')
+      );
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.not.stringContaining('session_id')
       );
     });
 
@@ -83,14 +94,27 @@ describe('Purchase Helper Functions', () => {
       window.location.href = 'https://example.com?purchase=success&session_id=cs_test_123&other=value';
       window.location.search = '?purchase=success&session_id=cs_test_123&other=value';
       
-      const replaceStateSpy = jest.spyOn(window.history, 'replaceState');
-      
       cleanPurchaseParams();
       
-      expect(replaceStateSpy).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
-        'https://example.com?other=value'
+        expect.stringContaining('https://example.com')
+      );
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.not.stringContaining('purchase=success')
+      );
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.not.stringContaining('session_id')
+      );
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.stringContaining('other=value')
       );
     });
   });

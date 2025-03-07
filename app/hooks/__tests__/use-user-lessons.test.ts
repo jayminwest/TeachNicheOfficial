@@ -101,7 +101,7 @@ describe('useUserLessons', () => {
       updated_at: '2025-01-02T00:00:00Z',
       thumbnailUrl: '/test-thumbnail-1.jpg',
       mux_asset_id: 'asset-1',
-      mux_playback_id: 'playback-2',
+      mux_playback_id: 'playback-1',
       creator_id: 'user-123',
       status: 'published',
       isFeatured: true,

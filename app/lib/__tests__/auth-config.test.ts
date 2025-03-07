@@ -12,7 +12,7 @@ describe('Auth Config', () => {
     it('calls the signInWithGoogle function from supabaseAuth', async () => {
       // Setup
       const mockAuthResponse = { data: { user: { id: 'test-user' } }, error: null };
-      jest.mocked(supabaseAuth.signInWithGoogle).mockResolvedValue(mockAuthResponse);
+      (supabaseAuth.signInWithGoogle as jest.Mock).mockResolvedValue(mockAuthResponse);
       
       // Execute
       const result = await signInWithGoogle();

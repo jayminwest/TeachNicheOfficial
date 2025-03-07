@@ -74,7 +74,6 @@ export async function POST(request: NextRequest) {
 
       // Create a new purchase record
       const purchaseData = {
-        id: crypto.randomUUID(), // Add required id field
         lesson_id: lessonId,
         user_id: userId,
         creator_id: typedLesson.creator_id,
@@ -145,6 +144,12 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           );
         }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Purchase updated successfully',
+          purchaseId: updatedPurchase?.id || purchase.id
+        });
       } catch (error) {
         console.error('Error updating purchase:', error);
         return NextResponse.json(
@@ -153,11 +158,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({
-        success: true,
-        message: 'Purchase updated successfully',
-        purchaseId: updatedPurchase?.id || purchase.id
-      });
     }
 
     // Purchase already completed

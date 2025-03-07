@@ -12,10 +12,7 @@ jest.mock('next/link', () => {
   };
 });
 
-// Mock Instagram icon
-jest.mock('lucide-react', () => ({
-  Instagram: () => <div data-testid="instagram-icon" />
-}));
+// Note: Icons are already mocked in jest.setup.js
 
 describe('Footer Component', () => {
   const defaultProps = {

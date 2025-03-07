@@ -7,11 +7,13 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardTitle,
 } from './card'
 import { Icons } from './icons'
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { VisuallyHidden } from './visually-hidden'
+import { cn } from '@/app/lib/utils'
 
 interface SignInPageProps {
   onSignInSuccess?: () => void;
@@ -43,6 +45,7 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
   const router = useRouter()
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
+  const errorParam = searchParams?.get('error')
   
   // Handle redirection after sign-in
   useEffect(() => {
@@ -118,9 +121,10 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
 
   // Show sign-in UI
   return (
-    <div className="flex min-h-[inherit] items-center justify-center p-6">
+    <div data-testid="sign-in-container" className={cn("flex min-h-[inherit] items-center justify-center p-6")}>
       <Card className="w-full max-w-[400px] mx-auto">
         <CardHeader className="space-y-1">
+          <CardTitle>Sign in to Teach Niche</CardTitle>
           <CardDescription>Sign in with your Google account</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -140,8 +144,10 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
               )}
               Sign in with Google
             </Button>
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
+            {(error || errorParam) && (
+              <p className="text-sm text-red-500 text-center">
+                {error || "There was a problem signing you in"}
+              </p>
             )}
           </div>
         </CardContent>

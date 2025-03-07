@@ -288,7 +288,7 @@ describe('SignIn', () => {
     });
   });
   
-  it('renders correctly with default props', () => {
+  it('renders correctly with default props', async () => {
     render(
       <Suspense fallback={<div>Loading...</div>}>
         <SignIn />
@@ -296,7 +296,7 @@ describe('SignIn', () => {
     );
     
     // Wait for content to load
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
     
@@ -306,7 +306,13 @@ describe('SignIn', () => {
   });
   
   it('shows error message when error param is present', async () => {
-    mockSearchParams.set('error', mockError);
+    // Set up mock search params with error
+    (useSearchParams as jest.Mock).mockReturnValue({
+      get: jest.fn().mockImplementation(param => {
+        if (param === 'error') return mockError;
+        return null;
+      })
+    });
     
     render(
       <Suspense fallback={<div>Loading...</div>}>
@@ -320,7 +326,9 @@ describe('SignIn', () => {
     });
     
     // Should show error message
-    expect(screen.getByText(/There was a problem signing you in/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/There was a problem signing you in/i)).toBeInTheDocument();
+    });
   });
   
   it('captures redirect parameter for use after sign in', async () => {
@@ -370,10 +378,7 @@ describe('SignIn', () => {
   
   it('handles sign in errors', async () => {
     // Mock sign in failure
-    (signInWithGoogle as jest.Mock).mockResolvedValue({
-      success: false,
-      error: new Error('Sign in failed'),
-    });
+    (signInWithGoogle as jest.Mock).mockRejectedValue(new Error('Sign in failed'));
     
     render(
       <Suspense fallback={<div>Loading...</div>}>
@@ -396,13 +401,15 @@ describe('SignIn', () => {
     });
     
     // Should show error message
-    expect(screen.getByText(/There was a problem signing you in/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Sign in failed')).toBeInTheDocument();
+    });
     
     // Button should be enabled again
     expect(signInButton).not.toBeDisabled();
   });
   
-  it('can be customized with className', () => {
+  it('can be customized with className', async () => {
     render(
       <Suspense fallback={<div>Loading...</div>}>
         <SignIn className="custom-class" />
@@ -410,7 +417,7 @@ describe('SignIn', () => {
     );
     
     // Wait for content to load
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
     

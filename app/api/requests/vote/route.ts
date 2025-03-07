@@ -29,6 +29,23 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     console.log('Vote request body:', body);
+    
+    try {
+      const { requestId, voteType } = voteSchema.parse(body)
+      console.log('Validated vote data:', { requestId, voteType });
+    } catch (validationError) {
+      console.error('Vote schema validation error:', validationError);
+      return NextResponse.json<RequestVoteResponse>(
+        { 
+          success: false, 
+          currentVotes: 0,
+          userHasVoted: false,
+          error: 'invalid_input'
+        },
+        { status: 400 }
+      )
+    }
+    
     const { requestId, voteType } = voteSchema.parse(body)
 
     // Check for existing vote - use maybeSingle() instead of single() to avoid errors when no vote exists
@@ -84,12 +101,16 @@ export async function POST(request: Request) {
     } else {
       // Insert new vote
       console.log('Inserting new vote');
+      // Ensure vote_type is exactly 'upvote' or 'downvote' to match the check constraint
+      const validVoteType = voteType === 'upvote' ? 'upvote' : 'downvote';
+      console.log('Using vote type:', validVoteType);
+    
       const { error: voteError } = await supabase
         .from('lesson_request_votes')
         .insert([{
           request_id: requestId,
           user_id: session.user.id,
-          vote_type: voteType
+          vote_type: validVoteType
         }])
 
       if (voteError) {

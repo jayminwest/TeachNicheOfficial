@@ -15,6 +15,8 @@ if [ -f .env.vercel.production ]; then
   
   # Store the specific variables we need
   PROD_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+  # Convert HTTPS URL to PostgreSQL connection string for Supabase CLI
+  PROD_DB_URL="postgresql://postgres:${SUPABASE_SERVICE_ROLE_KEY}@$(echo ${NEXT_PUBLIC_SUPABASE_URL} | sed 's|https://||')"
   PROD_SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
   PROD_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
   PROD_JWT_SECRET=${JWT_SECRET}
@@ -32,6 +34,8 @@ if [ -f .env.dev ]; then
   
   # Store the specific variables we need
   DEV_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+  # Convert HTTPS URL to PostgreSQL connection string for Supabase CLI
+  DEV_DB_URL="postgresql://postgres:${SUPABASE_SERVICE_ROLE_KEY}@$(echo ${NEXT_PUBLIC_SUPABASE_URL} | sed 's|https://||')"
   DEV_SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
   DEV_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
   DEV_JWT_SECRET=${JWT_SECRET}

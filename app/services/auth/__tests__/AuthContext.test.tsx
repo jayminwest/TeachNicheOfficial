@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, act, waitFor, screen } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../AuthContext';
+import { AuthProvider, useAuth, AuthContext } from '../AuthContext';
 import { getSession, onAuthStateChange } from '../supabaseAuth';
 import { createOrUpdateProfile } from '../../profile/profileService';
 
+// Mock the dependencies
 jest.mock('../supabaseAuth', () => ({
   getSession: jest.fn(),
   onAuthStateChange: jest.fn(),
@@ -13,21 +14,10 @@ jest.mock('../../profile/profileService', () => ({
   createOrUpdateProfile: jest.fn(),
 }));
 
-// Mock the useAuth hook implementation
-jest.mock('../AuthContext', () => ({
-  useAuth: jest.fn(),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
-}));
-
 // Test component to access auth context
 function TestComponent() {
   const auth = useAuth();
-  const { user, isLoading, isAuthenticated, error } = auth || { 
-    user: null, 
-    isLoading: false, 
-    isAuthenticated: false, 
-    error: null 
-  };
+  const { user, isLoading, isAuthenticated, error } = auth;
   
   return (
     <div>
@@ -40,9 +30,13 @@ function TestComponent() {
 }
 
 describe('AuthProvider', () => {
+  let mockUnsubscribe: jest.Mock;
+  
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    
+    mockUnsubscribe = jest.fn();
     
     // Default mock implementations
     (getSession as jest.Mock).mockResolvedValue({
@@ -51,7 +45,8 @@ describe('AuthProvider', () => {
     });
     
     (onAuthStateChange as jest.Mock).mockReturnValue({
-      data: { subscription: { unsubscribe: jest.fn() } }
+      data: { subscription: { unsubscribe: mockUnsubscribe } },
+      error: null
     });
     
     (createOrUpdateProfile as jest.Mock).mockResolvedValue({
@@ -59,150 +54,186 @@ describe('AuthProvider', () => {
       error: null,
       success: true
     });
-    
-    // Set default mock for useAuth
-    (useAuth as jest.Mock).mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      error: null
-    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('initializes with loading state', () => {
-    // Set the mock return value for this test
-    (useAuth as jest.Mock).mockReturnValue({
-      user: null,
-      isLoading: true,
-      isAuthenticated: false,
-      error: null
-    });
+  it('initializes with loading state', async () => {
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
     
-    render(<TestComponent />);
-    
+    // Initially should be in loading state
     expect(screen.getByTestId('loading').textContent).toBe('true');
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
     expect(screen.getByTestId('user').textContent).toBe('no-user');
+    
+    // Wait for getSession to resolve
+    await waitFor(() => {
+      expect(getSession).toHaveBeenCalled();
+    });
   });
   
   it('sets user when session exists', async () => {
     const mockUser = { id: 'test-user-id', email: 'test@example.com' };
-    
-    // Set the mock return value for this test
-    (useAuth as jest.Mock).mockReturnValue({
-      user: mockUser,
-      isLoading: false,
-      isAuthenticated: true,
+    (getSession as jest.Mock).mockResolvedValue({
+      data: { session: { user: mockUser } },
       error: null
     });
     
-    render(<TestComponent />);
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+    
+    // Wait for user to be set
+    await waitFor(() => {
+      expect(screen.getByTestId('user').textContent).toContain('test-user-id');
+    });
     
     expect(screen.getByTestId('loading').textContent).toBe('false');
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
-    expect(screen.getByTestId('user').textContent).toContain('test-user-id');
+    expect(createOrUpdateProfile).toHaveBeenCalledWith(mockUser);
   });
   
   it('handles session errors', async () => {
     const mockError = new Error('Session error');
-    
-    // Set the mock return value for this test
-    (useAuth as jest.Mock).mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
+    (getSession as jest.Mock).mockResolvedValue({
+      data: { session: null },
       error: mockError
     });
     
-    render(<TestComponent />);
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+    
+    // Wait for error to be set
+    await waitFor(() => {
+      expect(screen.getByTestId('error').textContent).toBe('Session error');
+    });
     
     expect(screen.getByTestId('loading').textContent).toBe('false');
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
-    expect(screen.getByTestId('error').textContent).toBe('Session error');
   });
   
   it('handles safety timeout correctly', async () => {
-    // First show loading state
-    (useAuth as jest.Mock).mockReturnValue({
-      user: null,
-      isLoading: true,
-      isAuthenticated: false,
-      error: null
-    });
+    // Make getSession never resolve to trigger timeout
+    (getSession as jest.Mock).mockImplementation(() => new Promise(() => {}));
     
-    const { rerender } = render(<TestComponent />);
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
     
     // Initially loading
     expect(screen.getByTestId('loading').textContent).toBe('true');
     
-    // Then simulate timeout by changing the mock return value
-    (useAuth as jest.Mock).mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      error: null
+    // Fast-forward past the timeout
+    act(() => {
+      jest.advanceTimersByTime(10000); // 10 seconds
     });
     
-    // Rerender to apply the new mock value
-    rerender(<TestComponent />);
-    
     // Should no longer be loading after timeout
-    expect(screen.getByTestId('loading').textContent).toBe('false');
+    await waitFor(() => {
+      expect(screen.getByTestId('loading').textContent).toBe('false');
+    });
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
   });
   
   it('updates state on auth state changes', async () => {
-    // First show initial state
-    (useAuth as jest.Mock).mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      error: null
+    // Set up auth state change callback capture
+    let authStateCallback: Function;
+    (onAuthStateChange as jest.Mock).mockImplementation((callback) => {
+      authStateCallback = callback;
+      return {
+        data: { subscription: { unsubscribe: mockUnsubscribe } },
+        error: null
+      };
     });
     
-    const { rerender } = render(<TestComponent />);
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
     
-    // Then simulate auth state change by updating the mock
+    // Wait for initial setup
+    await waitFor(() => {
+      expect(onAuthStateChange).toHaveBeenCalled();
+    });
+    
+    // Simulate auth state change
     const newUser = { id: 'new-user-id', email: 'new@example.com' };
-    (useAuth as jest.Mock).mockReturnValue({
-      user: newUser,
-      isLoading: false,
-      isAuthenticated: true,
-      error: null
+    act(() => {
+      authStateCallback('SIGNED_IN', { user: newUser });
     });
-    
-    // Rerender to apply the new mock value
-    rerender(<TestComponent />);
     
     // Check the updated state
-    expect(screen.getByTestId('user').textContent).toContain('new-user-id');
+    await waitFor(() => {
+      expect(screen.getByTestId('user').textContent).toContain('new-user-id');
+    });
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
+    expect(createOrUpdateProfile).toHaveBeenCalledWith(newUser);
   });
   
   it('cleans up subscription on unmount', async () => {
-    const mockUnsubscribe = jest.fn();
-    
-    // Create a mock implementation for AuthProvider that we can test
-    const originalAuthProvider = jest.requireActual('../AuthContext').AuthProvider;
-    jest.spyOn(React, 'useEffect').mockImplementationOnce(callback => {
-      const cleanup = callback();
-      return () => cleanup && cleanup();
-    });
-    
-    // Render with the actual AuthProvider
     const { unmount } = render(
-      <div>Test component</div>
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
     );
+    
+    // Wait for subscription to be set up
+    await waitFor(() => {
+      expect(onAuthStateChange).toHaveBeenCalled();
+    });
     
     // Unmount the component
     unmount();
     
-    // We can't directly test the cleanup in this approach, so we'll just verify
-    // the test runs without errors
-    expect(true).toBe(true);
+    // Verify unsubscribe was called
+    expect(mockUnsubscribe).toHaveBeenCalled();
+  });
+  
+  it('handles errors during profile creation', async () => {
+    const mockUser = { id: 'test-user-id', email: 'test@example.com' };
+    (getSession as jest.Mock).mockResolvedValue({
+      data: { session: { user: mockUser } },
+      error: null
+    });
+    
+    const profileError = new Error('Profile creation failed');
+    (createOrUpdateProfile as jest.Mock).mockResolvedValue({
+      data: null,
+      error: profileError,
+      success: false
+    });
+    
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+    
+    // Wait for user to be set
+    await waitFor(() => {
+      expect(screen.getByTestId('user').textContent).toContain('test-user-id');
+    });
+    
+    // User should still be authenticated despite profile error
+    expect(screen.getByTestId('authenticated').textContent).toBe('true');
+    expect(createOrUpdateProfile).toHaveBeenCalledWith(mockUser);
+    
+    // Error should be logged but not affect authentication state
+    // In a real implementation, you might want to handle this differently
+    expect(screen.getByTestId('error').textContent).toBe('no-error');
   });
 });

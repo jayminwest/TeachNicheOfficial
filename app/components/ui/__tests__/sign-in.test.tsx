@@ -230,3 +230,177 @@ describe('SignInPage', () => {
     });
   });
 });
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { SignIn } from '../sign-in';
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+
+// Mock the auth functions
+jest.mock('@/app/services/auth/supabaseAuth', () => ({
+  signInWithGoogle: jest.fn(),
+}));
+
+// Mock the Next.js hooks
+jest.mock('next/navigation', () => ({
+  useSearchParams: jest.fn(),
+  useRouter: jest.fn(),
+}));
+
+describe('SignIn', () => {
+  const mockRedirect = '/dashboard';
+  const mockError = 'OAuthSignin';
+  let mockSearchParams: URLSearchParams;
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Set up mock search params
+    mockSearchParams = new URLSearchParams();
+    (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
+    
+    // Set up mock router
+    (useRouter as jest.Mock).mockReturnValue({
+      push: jest.fn(),
+      replace: jest.fn(),
+    });
+    
+    // Set up mock sign in function
+    (signInWithGoogle as jest.Mock).mockResolvedValue({
+      success: true,
+      error: null,
+    });
+  });
+  
+  it('renders correctly with default props', () => {
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn />
+      </Suspense>
+    );
+    
+    // Wait for content to load
+    waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+    
+    // Check basic elements
+    expect(screen.getByText('Sign in to Teach Niche')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sign in with Google/i })).toBeInTheDocument();
+  });
+  
+  it('shows error message when error param is present', async () => {
+    mockSearchParams.set('error', mockError);
+    
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn />
+      </Suspense>
+    );
+    
+    // Wait for content to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+    
+    // Should show error message
+    expect(screen.getByText(/There was a problem signing you in/i)).toBeInTheDocument();
+  });
+  
+  it('captures redirect parameter for use after sign in', async () => {
+    mockSearchParams.set('redirect', mockRedirect);
+    
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn />
+      </Suspense>
+    );
+    
+    // Wait for content to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+    
+    // Click sign in button
+    const signInButton = screen.getByRole('button', { name: /Sign in with Google/i });
+    fireEvent.click(signInButton);
+    
+    // Should call signInWithGoogle
+    expect(signInWithGoogle).toHaveBeenCalled();
+  });
+  
+  it('handles sign in button click', async () => {
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn />
+      </Suspense>
+    );
+    
+    // Wait for content to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+    
+    // Click sign in button
+    const signInButton = screen.getByRole('button', { name: /Sign in with Google/i });
+    fireEvent.click(signInButton);
+    
+    // Should show loading state
+    expect(signInButton).toBeDisabled();
+    
+    // Should call signInWithGoogle
+    expect(signInWithGoogle).toHaveBeenCalled();
+  });
+  
+  it('handles sign in errors', async () => {
+    // Mock sign in failure
+    (signInWithGoogle as jest.Mock).mockResolvedValue({
+      success: false,
+      error: new Error('Sign in failed'),
+    });
+    
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn />
+      </Suspense>
+    );
+    
+    // Wait for content to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+    
+    // Click sign in button
+    const signInButton = screen.getByRole('button', { name: /Sign in with Google/i });
+    fireEvent.click(signInButton);
+    
+    // Wait for sign in to complete
+    await waitFor(() => {
+      expect(signInWithGoogle).toHaveBeenCalled();
+    });
+    
+    // Should show error message
+    expect(screen.getByText(/There was a problem signing you in/i)).toBeInTheDocument();
+    
+    // Button should be enabled again
+    expect(signInButton).not.toBeDisabled();
+  });
+  
+  it('can be customized with className', () => {
+    render(
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn className="custom-class" />
+      </Suspense>
+    );
+    
+    // Wait for content to load
+    waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+    
+    // Container should have custom class
+    const container = screen.getByTestId('sign-in-container');
+    expect(container).toHaveClass('custom-class');
+  });
+});

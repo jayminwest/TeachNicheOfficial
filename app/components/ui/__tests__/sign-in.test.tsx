@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage, SignIn } from '../sign-in';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';

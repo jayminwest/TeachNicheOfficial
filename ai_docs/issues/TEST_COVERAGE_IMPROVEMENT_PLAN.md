@@ -112,7 +112,7 @@ Focus on stateless UI components that require minimal mocking:
 - [ ] `app/api/profile/get/route.ts` (currently 0%)
 - [ ] `app/api/profile/update/route.ts` (currently 0%)
 - [ ] `app/api/categories/route.ts` (currently 0%)
-- [ ] `app/api/votes/route.ts` (improve from 39.58%)
+- [x] `app/api/votes/route.ts` (improved from 39.58%)
 
 #### Service Classes
 - [ ] `app/services/database/LessonsService.ts` (currently 0%)

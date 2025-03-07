@@ -74,9 +74,9 @@ export async function login(
       full_name: data.name,
       email: data.email,
       avatar_url: 'https://example.com/avatar.png',
-      stripe_account_id: data.stripeAccountId || null,
-      stripe_account_status: data.stripeAccountStatus || null,
-      stripe_onboarding_complete: data.stripeAccountStatus === 'complete',
+      stripe_account_id: 'stripeAccountId' in data ? data.stripeAccountId : null,
+      stripe_account_status: 'stripeAccountStatus' in data ? data.stripeAccountStatus : null,
+      stripe_onboarding_complete: 'stripeAccountStatus' in data ? data.stripeAccountStatus === 'complete' : false,
     }));
   }, userData);
   

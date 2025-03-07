@@ -214,6 +214,164 @@ describe('SignInPage', () => {
     });
   });
 
+  it('redirects to profile when user is already authenticated', async () => {
+    // Mock authenticated user
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      loading: false,
+    });
+    
+    await act(async () => {
+      render(<SignInPage />);
+    });
+    
+    // Should redirect to profile
+    expect(mockRouter.push).toHaveBeenCalledWith('/profile');
+  });
+
+  it('redirects to custom path from searchParams when user is authenticated', async () => {
+    // Mock authenticated user
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      loading: false,
+    });
+    
+    // Mock search params with redirect
+    (useSearchParams as jest.Mock).mockReturnValue({
+      get: jest.fn().mockImplementation(param => {
+        if (param === 'redirect') return '/custom-path';
+        return null;
+      })
+    });
+    
+    // Mock window.location
+    const originalLocation = window.location;
+    delete window.location;
+    window.location = { href: '' } as Location;
+    
+    await act(async () => {
+      render(<SignInPage />);
+    });
+    
+    // Should redirect to custom path
+    expect(window.location.href).toBe('/custom-path');
+    
+    // Restore window.location
+    window.location = originalLocation;
+  });
+
+  it('handles URL-encoded redirect paths', async () => {
+    // Mock authenticated user
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      loading: false,
+    });
+    
+    // Mock search params with encoded redirect
+    (useSearchParams as jest.Mock).mockReturnValue({
+      get: jest.fn().mockImplementation(param => {
+        if (param === 'redirect') return encodeURIComponent('/path?query=value');
+        return null;
+      })
+    });
+    
+    // Mock window.location
+    const originalLocation = window.location;
+    delete window.location;
+    window.location = { href: '' } as Location;
+    
+    await act(async () => {
+      render(<SignInPage />);
+    });
+    
+    // Should redirect to decoded path
+    expect(window.location.href).toBe('/path?query=value');
+    
+    // Restore window.location
+    window.location = originalLocation;
+  });
+
+  it('calls onSignInSuccess callback when user is authenticated', async () => {
+    const mockOnSignInSuccess = jest.fn();
+    
+    // First render without user
+    (useAuth as jest.Mock).mockReturnValue({
+      user: null,
+      loading: false,
+    });
+    
+    const { rerender } = render(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
+    
+    // Then update to authenticated state
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      loading: false,
+    });
+    
+    // Trigger useEffect by re-rendering
+    rerender(<SignInPage onSignInSuccess={mockOnSignInSuccess} />);
+    
+    // Should call success callback
+    expect(mockOnSignInSuccess).toHaveBeenCalled();
+  });
+
+  it('handles successful Google sign-in with timeout', async () => {
+    // Mock successful sign-in
+    (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
+    
+    // Mock setTimeout
+    jest.useFakeTimers();
+    
+    await act(async () => {
+      render(<SignInPage />);
+    });
+    
+    const signInButton = screen.getByRole('button', { name: /sign in with google/i });
+    
+    await act(async () => {
+      signInButton.click();
+    });
+    
+    // Should call signInWithGoogle
+    expect(signInWithGoogle).toHaveBeenCalled();
+    
+    // Should be in loading state
+    expect(signInButton).toBeDisabled();
+    
+    // Fast-forward timers
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+    });
+    
+    // Should no longer be in loading state
+    expect(signInButton).not.toBeDisabled();
+    
+    // Restore timers
+    jest.useRealTimers();
+  });
+
+  it('handles sign-in with error from Google', async () => {
+    // Mock sign-in with error
+    (signInWithGoogle as jest.Mock).mockResolvedValue({ 
+      error: new Error('Google authentication failed') 
+    });
+    
+    await act(async () => {
+      render(<SignInPage />);
+    });
+    
+    const signInButton = screen.getByRole('button', { name: /sign in with google/i });
+    
+    await act(async () => {
+      signInButton.click();
+    });
+    
+    // Should show error message
+    await waitFor(() => {
+      expect(screen.getByText('Google authentication failed')).toBeInTheDocument();
+    });
+  });
+
   it('announces errors to screen readers', async () => {
     const errorMessage = 'Failed to authenticate with Google';
     (signInWithGoogle as jest.Mock).mockRejectedValue(new Error(errorMessage));
@@ -286,6 +444,17 @@ describe('SignIn', () => {
       success: true,
       error: null,
     });
+  });
+  
+  it('renders Suspense fallback when loading', async () => {
+    // Mock React.Suspense to actually show the fallback
+    jest.spyOn(React, 'Suspense').mockImplementation(({ fallback }) => fallback as React.ReactElement);
+    
+    render(<SignIn />);
+    
+    // Should show loading spinner
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByTestId('loading-spinner')).toHaveClass('animate-spin');
   });
   
   it('renders correctly with default props', async () => {

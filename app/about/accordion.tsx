@@ -43,8 +43,9 @@ export function Accordion({ items, className }: AccordionProps) {
               "overflow-hidden transition-all duration-300",
               openIndex === index ? "p-4 border-t" : "max-h-0 border-t-0"
             )}
+            style={{ display: openIndex === index ? 'block' : 'none' }}
           >
-            {openIndex === index && item.content}
+            {item.content}
           </div>
         </div>
       ))}

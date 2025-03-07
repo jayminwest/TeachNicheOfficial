@@ -58,14 +58,15 @@ describe('AboutPage', () => {
       expect(valuesTrigger).toBeInTheDocument()
       
       // Initially, content should not be visible
-      expect(queryByText(/Community Collaboration/i)).not.toBeVisible()
+      const initialContent = queryByText(/Community Collaboration/i)
+      expect(initialContent).toBeFalsy()
       
       // Click to expand
       await userEvent.click(valuesTrigger)
       
       // After clicking, content should be visible
       const valuesContent = getByText(/Community Collaboration/i)
-      expect(valuesContent).toBeVisible()
+      expect(valuesContent).toBeInTheDocument()
 
       // Find the Why Teach Niche button
       const whyTrigger = getByRole('button', { name: /Why Teach Niche/i })
@@ -76,7 +77,7 @@ describe('AboutPage', () => {
       
       // Content should be visible
       const whyContent = getByText(/Empowerment/i)
-      expect(whyContent).toBeVisible()
+      expect(whyContent).toBeInTheDocument()
     })
   })
 

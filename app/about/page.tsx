@@ -13,8 +13,8 @@ export default function AboutPage() {
             src="/303_group.png"
             alt="303 Kendama Group"
             className="object-cover w-full h-full filter grayscale pointer-events-none"
-            fill
-            priority
+            fill={true}
+            priority={true}
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>

@@ -30,23 +30,36 @@ describe('PurchasesService', () => {
     
     // Setup Supabase mock with proper chaining
     mockSupabase = {
-      from: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockReturnThis(),
-        update: jest.fn().mockReturnThis(),
-        delete: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: null }),
-        execute: jest.fn().mockResolvedValue({ data: [], error: null })
-      })
+      from: jest.fn().mockImplementation(() => ({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
+                limit: jest.fn().mockResolvedValue({ data: [], error: null })
+              }))
+            })),
+            order: jest.fn().mockImplementation(() => ({
+              limit: jest.fn().mockResolvedValue({ data: [], error: null })
+            })),
+            limit: jest.fn().mockResolvedValue({ data: [], error: null }),
+            single: jest.fn().mockResolvedValue({ data: null, error: null })
+          })),
+          single: jest.fn().mockResolvedValue({ data: null, error: null })
+        })),
+        insert: jest.fn().mockImplementation(() => ({
+          select: jest.fn().mockImplementation(() => ({
+            single: jest.fn().mockResolvedValue({ data: null, error: null })
+          }))
+        })),
+        update: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            select: jest.fn().mockImplementation(() => ({
+              single: jest.fn().mockResolvedValue({ data: null, error: null })
+            }))
+          }))
+        }))
+      }))
     };
-    
-    // Add mockResolvedValue methods to the select chain
-    const selectChain = mockSupabase.from().select();
-    selectChain.mockResolvedValue = jest.fn().mockResolvedValue({ data: [], error: null });
-    selectChain.mockResolvedValueOnce = jest.fn().mockResolvedValueOnce({ data: [], error: null });
     
     require('@/app/lib/supabase/client').createClientSupabaseClient.mockReturnValue(mockSupabase);
     
@@ -76,17 +89,10 @@ describe('PurchasesService', () => {
         }
       });
       
-      // Mock the Stripe import
-      jest.spyOn(global, 'import').mockImplementation((modulePath) => {
-        if (modulePath === 'stripe') {
-          return Promise.resolve({
-            default: function() {
-              return mockStripe;
-            }
-          });
-        }
-        return jest.requireActual(modulePath);
-      });
+      // Mock dynamic import directly
+      jest.mock('stripe', () => ({
+        default: jest.fn().mockImplementation(() => mockStripe)
+      }), { virtual: true });
       
       const result = await service.verifyStripeSession('session-123');
       
@@ -117,17 +123,10 @@ describe('PurchasesService', () => {
         }
       });
       
-      // Mock the Stripe import
-      jest.spyOn(global, 'import').mockImplementation((modulePath) => {
-        if (modulePath === 'stripe') {
-          return Promise.resolve({
-            default: function() {
-              return mockStripe;
-            }
-          });
-        }
-        return jest.requireActual(modulePath);
-      });
+      // Mock dynamic import directly
+      jest.mock('stripe', () => ({
+        default: jest.fn().mockImplementation(() => mockStripe)
+      }), { virtual: true });
       
       const result = await service.verifyStripeSession('session-123');
       
@@ -142,17 +141,10 @@ describe('PurchasesService', () => {
         metadata: {}
       });
       
-      // Mock the Stripe import
-      jest.spyOn(global, 'import').mockImplementation((modulePath) => {
-        if (modulePath === 'stripe') {
-          return Promise.resolve({
-            default: function() {
-              return mockStripe;
-            }
-          });
-        }
-        return jest.requireActual(modulePath);
-      });
+      // Mock dynamic import directly
+      jest.mock('stripe', () => ({
+        default: jest.fn().mockImplementation(() => mockStripe)
+      }), { virtual: true });
       
       const result = await service.verifyStripeSession('session-123');
       
@@ -253,24 +245,24 @@ describe('PurchasesService', () => {
       
       // First call to from() for lesson
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             single: mockLessonSingle
-          })
-        })
+          }))
+        }))
       }));
       
       // Second call to from() for purchases
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockReturnValue(mockPurchaseSelect)
-              })
-            })
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
+                limit: mockPurchaseSelect
+              }))
+            }))
+          }))
+        }))
       }));
       
       const result = await service.checkLessonAccess('user-123', 'lesson-123');
@@ -297,24 +289,24 @@ describe('PurchasesService', () => {
       
       // First call to from() for lesson
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             single: mockLessonSingle
-          })
-        })
+          }))
+        }))
       }));
       
       // Second call to from() for purchases
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockReturnValue(mockPurchaseSelect)
-              })
-            })
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
+                limit: mockPurchaseSelect
+              }))
+            }))
+          }))
+        }))
       }));
       
       const result = await service.checkLessonAccess('user-123', 'lesson-123');
@@ -453,35 +445,35 @@ describe('PurchasesService', () => {
       
       // First from() call for user/lesson purchase
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockReturnValue(mockUserLessonSelect)
-              })
-            })
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
+                limit: mockUserLessonSelect
+              }))
+            }))
+          }))
+        }))
       }));
       
       // Second from() call for session ID purchase
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue(mockSessionSelect)
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            limit: mockSessionSelect
+          }))
+        }))
       }));
       
       // Third from() call for update
       mockSupabase.from.mockImplementationOnce(() => ({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
+        update: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            select: jest.fn().mockImplementation(() => ({
               single: mockUpdateSingle
-            })
-          })
-        })
+            }))
+          }))
+        }))
       }));
       
       const result = await service.createPurchase({
@@ -525,42 +517,42 @@ describe('PurchasesService', () => {
       
       // First from() call for user/lesson purchase
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockReturnValue(mockUserLessonSelect)
-              })
-            })
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
+                limit: mockUserLessonSelect
+              }))
+            }))
+          }))
+        }))
       }));
       
       // Second from() call for session ID purchase
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue(mockSessionSelect)
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            limit: mockSessionSelect
+          }))
+        }))
       }));
       
       // Third from() call for lesson data
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             single: mockLessonSingle
-          })
-        })
+          }))
+        }))
       }));
       
       // Fourth from() call for insert
       mockSupabase.from.mockImplementationOnce(() => ({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
+        insert: jest.fn().mockImplementation(() => ({
+          select: jest.fn().mockImplementation(() => ({
             single: mockInsertSingle
-          })
-        })
+          }))
+        }))
       }));
       
       // Mock crypto.randomUUID
@@ -628,11 +620,11 @@ describe('PurchasesService', () => {
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue(mockSessionSelect)
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            limit: mockSessionSelect
+          }))
+        }))
       }));
       
       // Second from() call for update
@@ -643,11 +635,11 @@ describe('PurchasesService', () => {
             updated_at: expect.any(String)
           });
           return {
-            eq: jest.fn().mockReturnValue({
-              select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockImplementation(() => ({
+              select: jest.fn().mockImplementation(() => ({
                 single: mockUpdateSingle
-              })
-            })
+              }))
+            }))
           };
         })
       }));
@@ -682,35 +674,35 @@ describe('PurchasesService', () => {
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue(mockSessionSelect)
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            limit: mockSessionSelect
+          }))
+        }))
       }));
       
       // Second from() call for payment intent ID query
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
+        select: jest.fn().mockImplementation(() => ({
           eq: jest.fn().mockImplementation((field, value) => {
             expect(field).toBe('payment_intent_id');
             expect(value).toBe('payment-123');
             return {
-              limit: jest.fn().mockReturnValue(mockPaymentIntentSelect)
+              limit: mockPaymentIntentSelect
             };
           })
-        })
+        }))
       }));
       
       // Third from() call for update
       mockSupabase.from.mockImplementationOnce(() => ({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
+        update: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            select: jest.fn().mockImplementation(() => ({
               single: mockUpdateSingle
-            })
-          })
-        })
+            }))
+          }))
+        }))
       }));
       
       const result = await service.updatePurchaseStatus('payment-123', 'completed');
@@ -729,11 +721,11 @@ describe('PurchasesService', () => {
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue(mockSessionSelect)
-          })
-        }),
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            limit: mockSessionSelect
+          }))
+        })),
         update: mockUpdate
       }));
       
@@ -788,20 +780,17 @@ describe('PurchasesService', () => {
       });
       
       // Setup mock for purchases query
-      mockSupabase.from.mockImplementationOnce((table) => {
-        expect(table).toBe('purchases');
-        return {
-          select: jest.fn().mockReturnValue({
-            eq: jest.fn().mockImplementation((field, value) => {
-              expect(field).toBe('user_id');
-              expect(value).toBe('user-123');
-              return {
-                order: jest.fn().mockReturnValue(mockPurchasesSelect)
-              };
-            })
+      mockSupabase.from.mockImplementationOnce(() => ({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation((field, value) => {
+            expect(field).toBe('user_id');
+            expect(value).toBe('user-123');
+            return {
+              order: jest.fn().mockReturnValue(mockPurchasesSelect)
+            };
           })
-        };
-      });
+        }))
+      }));
       
       const result = await service.getPurchasesByUserId('user-123');
       

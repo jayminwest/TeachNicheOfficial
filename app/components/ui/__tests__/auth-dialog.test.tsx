@@ -105,8 +105,8 @@ describe('AuthDialog', () => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
     
-    // Should show sign-in view
-    expect(screen.getByText('Sign in to Teach Niche')).toBeInTheDocument();
+    // Should show sign-in view - use testId to be more specific
+    expect(screen.getByTestId('auth-dialog-title')).toHaveTextContent('Sign in to Teach Niche');
     expect(screen.getByText('Sign in with Google')).toBeInTheDocument();
   });
   
@@ -128,6 +128,6 @@ describe('AuthDialog', () => {
     });
     
     // Should show sign-in view (since we don't have a separate sign-up view in the actual implementation)
-    expect(screen.getByText('Sign in to Teach Niche')).toBeInTheDocument();
+    expect(screen.getByTestId('auth-dialog-title')).toHaveTextContent('Sign in to Teach Niche');
   });
 });

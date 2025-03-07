@@ -151,7 +151,7 @@ echo "Step 1: Exporting production database schema..."
 echo "This may take a moment..."
 
 # Function to run command with timeout support for different platforms
-run_with_timeout() {
+function run_with_timeout() {
   local timeout_seconds=$1
   shift
   
@@ -201,6 +201,7 @@ run_with_timeout() {
     return $exit_status
   fi
 }
+export -f run_with_timeout
 
 # Function to handle command failures with better error messages
 run_supabase_command() {
@@ -230,7 +231,7 @@ run_supabase_command() {
 }
 
 run_supabase_command "export production schema" \
-  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 60 supabase db dump \
+  bash -c "export -f run_with_timeout && PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 60 supabase db dump \
     --db-url \"$PROD_DB_URL\" \
     -f \"$EXPORTS_DIR/schema_$TIMESTAMP.sql\" \
     --schema public"
@@ -246,7 +247,7 @@ fi
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
 run_supabase_command "export RLS policies" \
-  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase db dump \
+  bash -c "export -f run_with_timeout && PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase db dump \
     --db-url \"$PROD_DB_URL\" \
     -f \"$EXPORTS_DIR/rls_$TIMESTAMP.sql\" \
     --schema public \
@@ -262,7 +263,7 @@ fi
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
 run_supabase_command "export functions and triggers" \
-  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase db dump \
+  bash -c "export -f run_with_timeout && PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase db dump \
     --db-url \"$PROD_DB_URL\" \
     -f \"$EXPORTS_DIR/functions_$TIMESTAMP.sql\" \
     --schema public \
@@ -278,7 +279,7 @@ fi
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
 run_supabase_command "export auth configuration" \
-  bash -c "PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase auth config export \
+  bash -c "export -f run_with_timeout && PGPASSWORD=\"$PROD_SUPABASE_SERVICE_KEY\" run_with_timeout 30 supabase auth config export \
     --db-url \"$PROD_DB_URL\" \
     > \"$EXPORTS_DIR/auth_config_$TIMESTAMP.json\""
 

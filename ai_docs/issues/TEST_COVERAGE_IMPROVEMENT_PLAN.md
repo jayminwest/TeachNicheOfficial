@@ -80,6 +80,7 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/utils/purchase-helpers.ts` (improved to 100%)
 - [x] `app/lib/auth-config.ts` (improved to 100%)
 - [x] `app/lib/auth-helpers.ts` (improved to 100%)
+- [ ] `app/lib/constants.ts` (currently 0%)
 
 ### Phase 2: Page Components and Forms
 
@@ -174,7 +175,7 @@ We'll track progress using the following metrics:
 
 | Phase | Starting Coverage | Target Coverage | Actual Coverage | Status |
 |-------|------------------|----------------|-----------------|--------|
-| Phase 1 | 17.24% | 32% | 26.8% | In Progress |
+| Phase 1 | 17.24% | 32% | 27.3% | In Progress |
 | Phase 2 | 32% | 47% | - | Not Started |
 | Phase 3 | 47% | 67% | - | Not Started |
 | Phase 4 | 67% | 82% | - | Not Started |

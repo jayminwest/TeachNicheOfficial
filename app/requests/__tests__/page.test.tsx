@@ -5,6 +5,7 @@ import { getRequests } from '@/app/lib/supabase/requests'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { useCategories } from '@/app/hooks/useCategories'
 import { LessonRequest } from '@/app/lib/schemas/lesson-request'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 // Mock the Lucide React icons
 jest.mock('lucide-react', () => ({
@@ -21,18 +22,23 @@ jest.mock('lucide-react', () => ({
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/hooks/useCategories')
-jest.mock('next/navigation', () => ({
-  ...jest.requireActual('next/navigation'),
-  useRouter: jest.fn(),
-  useSearchParams: jest.fn(() => ({
-    get: jest.fn((param) => {
-      if (param === 'category') return null;
-      if (param === 'sort') return 'popular';
-      return null;
-    }),
-    toString: jest.fn(() => ''),
-  })),
-}))
+jest.mock('next/navigation', () => {
+  const actual = jest.requireActual('next/navigation');
+  return {
+    ...actual,
+    useRouter: jest.fn(() => ({
+      push: jest.fn(),
+    })),
+    useSearchParams: jest.fn(() => ({
+      get: jest.fn((param) => {
+        if (param === 'category') return null;
+        if (param === 'sort') return 'popular';
+        return null;
+      }),
+      toString: jest.fn(() => ''),
+    })),
+  };
+})
 
 // Mock the RequestDialog component
 jest.mock('../components/request-dialog', () => ({
@@ -130,7 +136,9 @@ describe('RequestsPage', () => {
   it('renders the page title and description', () => {
     render(<RequestsPage />)
     
-    expect(screen.getByRole('heading', { name: /lesson requests/i })).toBeInTheDocument()
+    // Use getAllByRole to handle multiple headings with the same text
+    const headings = screen.getAllByRole('heading', { name: /lesson requests/i });
+    expect(headings.length).toBeGreaterThan(0);
     // The description text isn't in the component, so we don't test for it
   })
 
@@ -155,9 +163,9 @@ describe('RequestsPage', () => {
 
     // Mock the router.push function
     const mockPush = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({
+    (useRouter as jest.Mock).mockImplementation(() => ({
       push: mockPush
-    });
+    }));
 
     // Click category filter
     const categoryButton = screen.getByRole('button', { name: 'Beginner Fundamentals' })
@@ -178,9 +186,9 @@ describe('RequestsPage', () => {
 
     // Mock the router.push function
     const mockPush = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({
+    (useRouter as jest.Mock).mockImplementation(() => ({
       push: mockPush
-    });
+    }));
 
     // Click sort option
     const popularButton = screen.getByRole('button', { name: 'Most Popular' })

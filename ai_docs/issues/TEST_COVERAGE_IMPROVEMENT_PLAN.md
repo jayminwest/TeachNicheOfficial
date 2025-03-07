@@ -92,7 +92,6 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/page.tsx` (improved to 100%)
 - [x] `app/about/client.tsx` (improved to 100%)
 - [x] `app/legal/legal-content.tsx` (improved to 100%)
-- [ ] `app/legal/content-wrapper.tsx` (currently 0%)
 
 #### Form Components
 - [x] `app/components/ui/lesson-form.tsx` (improved to 100%)

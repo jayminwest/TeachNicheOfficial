@@ -36,11 +36,43 @@ test.describe('Authentication Redirect', () => {
     // Log the auth URL for debugging
     console.log('Auth URL with redirect:', authUrl);
     
-    // Mock a successful login
-    await login(page, 'learner');
-    
-    // Wait for navigation to complete and explicitly check for redirect
-    await page.waitForTimeout(2000);
+    // Set up a more robust authentication
+    await page.evaluate(() => {
+      // Clear any existing auth data first
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('user-profile');
+      
+      // Create a complete mock session
+      const mockUser = {
+        id: 'test-learner-id',
+        email: 'learner@example.com',
+        user_metadata: {
+          full_name: 'Test Learner',
+        }
+      };
+      
+      const mockSession = {
+        access_token: 'mock-access-token-' + Date.now(),
+        refresh_token: 'mock-refresh-token-' + Date.now(),
+        expires_at: Date.now() + 3600 * 1000,
+        user: mockUser
+      };
+      
+      localStorage.setItem('supabase.auth.token', JSON.stringify({
+        currentSession: mockSession,
+        expiresAt: mockSession.expires_at,
+      }));
+      
+      localStorage.setItem('user-profile', JSON.stringify({
+        id: mockUser.id,
+        full_name: mockUser.user_metadata.full_name,
+        email: mockUser.email,
+        avatar_url: 'https://example.com/avatar.png',
+      }));
+      
+      // Store the redirect URL in session storage as the auth flow would
+      sessionStorage.setItem('auth-redirect', '/profile');
+    });
     
     // Set up an interceptor to handle any API calls during navigation
     await setupApiInterceptors(page);

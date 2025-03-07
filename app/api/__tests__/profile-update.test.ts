@@ -46,14 +46,19 @@ describe('Profile Update API Route', () => {
       social_media_tag: '@testuser',
     };
 
-    // Mock Supabase client
+    // Mock Supabase client with proper chaining
     mockSupabase = {
       from: jest.fn().mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         maybeSingle: jest.fn().mockResolvedValue({ data: { id: 'test-user-id' }, error: null }),
-        update: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnThis(),
+          error: null
+        }),
+        insert: jest.fn().mockReturnValue({
+          error: null
+        }),
       }),
     };
 
@@ -153,7 +158,8 @@ describe('Profile Update API Route', () => {
   it('should return 500 when there is a database error during update', async () => {
     // Setup
     mockSupabase.from().update.mockReturnValue({
-      error: { message: 'Database error' },
+      eq: jest.fn().mockReturnThis(),
+      error: { message: 'Database error' }
     });
 
     // Execute

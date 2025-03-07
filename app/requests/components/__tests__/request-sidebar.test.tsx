@@ -7,7 +7,7 @@ jest.mock('@/app/hooks/useCategories')
 
 // Mock the request-dialog component
 jest.mock('../request-dialog', () => ({
-  RequestDialog: () => <div data-testid="request-dialog">Request Dialog</div>
+  RequestDialog: ({ children }) => <div data-testid="request-dialog">{children}</div>
 }))
 
 describe('RequestSidebar', () => {
@@ -48,7 +48,7 @@ describe('RequestSidebar', () => {
     
     // Find by text content instead of role
     const popularButton = screen.getByText('Most Popular')
-    expect(popularButton.parentElement).toHaveClass('bg-secondary')
+    expect(popularButton).toHaveClass('bg-secondary')
   })
 
   it('shows selected category', () => {
@@ -56,6 +56,6 @@ describe('RequestSidebar', () => {
     
     // Find by text content instead of role
     const categoryButton = screen.getByText('Beginner Fundamentals')
-    expect(categoryButton.parentElement).toHaveClass('bg-secondary')
+    expect(categoryButton).toHaveClass('bg-secondary')
   })
 })

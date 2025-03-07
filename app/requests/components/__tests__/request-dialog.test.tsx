@@ -9,6 +9,10 @@ import { useCategories } from '@/app/hooks/useCategories'
 jest.mock('@/app/services/auth/AuthContext')
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@/app/hooks/useCategories')
+jest.mock('@/app/components/ui/auth-dialog', () => ({
+  AuthDialog: ({ open }: { open: boolean }) => 
+    open ? <div>Sign in to Teach Niche</div> : null
+}))
 
 const mockChildren = <div>Trigger Content</div>
 const mockRequest = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { verifyGoogleAuthConfig } from '../auth-config';
+import { verifyGoogleAuthConfig, signInWithGoogle } from '../auth-config';
 import * as supabaseAuth from '@/app/services/auth/supabaseAuth';
 
 // Mock the supabaseAuth module
@@ -10,11 +10,8 @@ jest.mock('@/app/services/auth/supabaseAuth', () => ({
 describe('Auth Config', () => {
   describe('signInWithGoogle', () => {
     it('is exported from supabaseAuth', async () => {
-      // Import both modules to verify the export
-      const authConfig = require('../auth-config');
-      
       // Verify that signInWithGoogle is the same reference
-      expect(authConfig.signInWithGoogle).toBe(supabaseAuth.signInWithGoogle);
+      expect(signInWithGoogle).toBe(supabaseAuth.signInWithGoogle);
     });
   });
 

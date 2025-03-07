@@ -29,7 +29,9 @@ describe('auth-helpers', () => {
     
     // Verify each function is the same reference
     authHelperKeys.forEach(key => {
-      expect((authHelpers as any)[key]).toBe((supabaseAuth as any)[key]);
+      // Use type assertion with specific types instead of 'any'
+      expect((authHelpers as Record<string, unknown>)[key])
+        .toBe((supabaseAuth as Record<string, unknown>)[key]);
     });
   });
 

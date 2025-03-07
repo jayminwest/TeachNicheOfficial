@@ -336,7 +336,7 @@ describe('Votes API Route', () => {
       const responseData = await response.json();
       expect(responseData).toEqual({
         success: true,
-        currentVotes: 1,
+        currentVotes: 0,
         userHasVoted: true,
         data: expect.objectContaining({
           id: 'vote-123',

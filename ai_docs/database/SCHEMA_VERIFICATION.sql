@@ -24,32 +24,32 @@ WHERE tc.constraint_type = 'FOREIGN KEY';
 -- 3. Export RLS Policies
 -- If your tables had RLS policies in production, you'll need to recreate them in dev
 SELECT 
-  'CREATE POLICY ' || 
-  quote_ident(policyname) || 
-  ' ON ' || 
-  quote_ident(schemaname) || '.' || quote_ident(tablename) || 
-  ' AS ' || permissive || 
-  ' FOR ' || cmd || 
-  ' TO ' || roles || 
-  CASE 
-    WHEN qual IS NOT NULL THEN 
-      ' USING (' || 
-      CASE 
-        WHEN qual::text LIKE '{%}' THEN regexp_replace(qual::text, '^\{(.*)\}$', '\1')
-        ELSE qual::text
-      END || ')'
-    ELSE ''
-  END ||
-  CASE 
-    WHEN with_check IS NOT NULL THEN 
-      ' WITH CHECK (' || 
-      CASE 
-        WHEN with_check::text LIKE '{%}' THEN regexp_replace(with_check::text, '^\{(.*)\}$', '\1')
-        ELSE with_check::text
-      END || ')'
-    ELSE ''
-  END || 
-  ';' AS policy_statement
+  format('CREATE POLICY %I ON %I.%I AS %s FOR %s TO %s%s%s;',
+    policyname,
+    schemaname,
+    tablename,
+    permissive,
+    cmd,
+    roles,
+    CASE 
+      WHEN qual IS NOT NULL THEN 
+        ' USING (' || 
+        CASE 
+          WHEN qual::text LIKE '{%}' THEN trim(both '{}' from qual::text)
+          ELSE qual::text
+        END || ')'
+      ELSE ''
+    END,
+    CASE 
+      WHEN with_check IS NOT NULL THEN 
+        ' WITH CHECK (' || 
+        CASE 
+          WHEN with_check::text LIKE '{%}' THEN trim(both '{}' from with_check::text)
+          ELSE with_check::text
+        END || ')'
+      ELSE ''
+    END
+  ) AS policy_statement
 FROM pg_policies
 WHERE schemaname = 'public';
 

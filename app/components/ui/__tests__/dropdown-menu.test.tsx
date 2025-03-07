@@ -360,7 +360,7 @@ describe('DropdownMenu Components', () => {
       expect(screen.getAllByTestId('dropdown-label').length).toBe(2);
       expect(screen.getAllByTestId('dropdown-separator').length).toBe(5);
       expect(screen.getByTestId('dropdown-group')).toBeInTheDocument();
-      expect(screen.getAllByTestId('dropdown-item').length).toBe(4);
+      expect(screen.getAllByTestId('dropdown-item').length).toBe(5);
       expect(screen.getByTestId('dropdown-checkbox-item')).toBeInTheDocument();
       expect(screen.getByTestId('dropdown-radio-group')).toBeInTheDocument();
       expect(screen.getAllByTestId('dropdown-radio-item').length).toBe(3);

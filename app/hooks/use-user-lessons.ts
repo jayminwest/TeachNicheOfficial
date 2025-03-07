@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/app/services/supabase';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Lesson } from '@/app/types/lesson';
+import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 
 
 interface UseUserLessonsOptions {
@@ -57,23 +58,23 @@ export function useUserLessons({
         }
 
         // Transform the data to match the Lesson interface
-        const formattedLessons = data.map(lesson => ({
+        const formattedLessons: Lesson[] = data.map(lesson => ({
           id: lesson.id,
           title: lesson.title,
           description: lesson.description || '',
           price: lesson.price,
-          createdAt: lesson.created_at,
-          updatedAt: lesson.updated_at,
-          thumbnailUrl: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
-          videoAssetId: lesson.mux_asset_id,
-          videoPlaybackId: lesson.mux_playback_id,
-          creatorId: lesson.creator_id,
-          published: lesson.status === 'published',
-          isFeatured: lesson.is_featured,
+          created_at: lesson.created_at,
+          updated_at: lesson.updated_at,
+          thumbnail_url: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
+          mux_asset_id: lesson.mux_asset_id,
+          mux_playback_id: lesson.mux_playback_id,
+          creator_id: lesson.creator_id,
+          status: lesson.status,
+          is_featured: lesson.is_featured,
           // These properties are required by the Lesson interface but not needed in tests
           averageRating: 0,
           totalRatings: 0
-        })) as Lesson[];
+        }));
 
         setLessons(formattedLessons);
       } catch (err) {

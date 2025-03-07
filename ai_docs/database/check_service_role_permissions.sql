@@ -19,7 +19,11 @@ WHERE relname = 'lessons';
 -- 4. If needed, disable RLS enforcement for the service role
 -- This allows the service role to bypass RLS policies
 ALTER TABLE public.lessons FORCE ROW LEVEL SECURITY;
-ALTER TABLE public.lessons NO FORCE ROW LEVEL SECURITY FOR service_role;
+-- The correct syntax is to use ALTER POLICY to exempt the service role
+-- or to use the following to disable RLS enforcement for the service role
+ALTER TABLE public.lessons NO FORCE ROW LEVEL SECURITY;
+-- Then grant the service role the ability to bypass RLS
+GRANT BYPASSRLS TO service_role;
 
 -- 5. Ensure the service role has all necessary privileges
 GRANT ALL PRIVILEGES ON TABLE public.lessons TO service_role;

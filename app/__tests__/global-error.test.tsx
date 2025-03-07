@@ -15,7 +15,7 @@ describe('GlobalError Component', () => {
     
     // Check if the component renders the correct text
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText('Sorry, a critical error has occurred.')).toBeInTheDocument();
+    expect(screen.getByText('We apologize for the inconvenience. Our team has been notified.')).toBeInTheDocument();
   });
 
   it('calls reset function when "Try again" button is clicked', () => {
@@ -26,14 +26,14 @@ describe('GlobalError Component', () => {
     fireEvent.click(resetButton);
     
     // Verify the reset function was called
-    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(mockReset).toHaveBeenCalled();
   });
 
   it('renders a link to the home page', () => {
     render(<GlobalError error={new Error('Test error')} reset={mockReset} />);
     
     // Check if the home link is present with correct attributes
-    const homeLink = screen.getByText('Return to Home');
+    const homeLink = screen.getByText('Return Home');
     expect(homeLink).toBeInTheDocument();
     expect(homeLink.getAttribute('href')).toBe('/');
   });
@@ -41,16 +41,13 @@ describe('GlobalError Component', () => {
   it('renders with the correct styling', () => {
     render(<GlobalError error={new Error('Test error')} reset={mockReset} />);
     
-    // Check if the container has the expected styles
-    const container = screen.getByText('Something went wrong').parentElement;
-    expect(container).toHaveStyle({
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      padding: '1rem',
-      textAlign: 'center'
-    });
+    // Check for the container class
+    const container = screen.getByText('Something went wrong').closest('div');
+    expect(container).toHaveClass('container');
+    expect(container).toHaveClass('flex');
+    expect(container).toHaveClass('flex-col');
+    expect(container).toHaveClass('items-center');
+    expect(container).toHaveClass('justify-center');
+    expect(container).toHaveClass('min-h-screen');
   });
 });

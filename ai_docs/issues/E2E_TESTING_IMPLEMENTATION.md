@@ -4,6 +4,19 @@
 
 We need to implement comprehensive end-to-end (E2E) tests for all critical user flows in the Teach Niche platform. While we have a basic test for the Stripe Connect flow, we lack automated testing for many key user journeys, which increases the risk of regressions and makes it difficult to ensure consistent functionality across the application.
 
+### Current Status
+
+**Progress:** In Progress  
+**Status:** Blocked by test failures
+
+We've started implementing the E2E tests according to the plan below, but we're encountering issues with the test execution. All tests are currently failing with the following error:
+
+```
+SyntaxError: Identifier 'login' has already been declared. (83:22)
+```
+
+This issue was caused by duplicate `login` function declarations in the `e2e/helpers/auth.ts` file. We've fixed this issue by removing the duplicate function (commit 13fcd5b), but we need to verify that all tests are now working correctly and continue with the implementation.
+
 ### Technical Analysis
 
 Our current E2E testing setup uses Playwright with Chromium and is configured to run tests from the `./e2e` directory. We have a helper for authentication that mocks the login state via localStorage, and we've implemented a test for the Stripe Connect flow. We need to expand this approach to cover all critical user journeys.

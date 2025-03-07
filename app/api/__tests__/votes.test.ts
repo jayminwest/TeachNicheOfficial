@@ -300,6 +300,12 @@ describe('Votes API Route', () => {
       const mockEqUpdate = jest.fn().mockResolvedValue({ error: null });
       const mockUpdate = jest.fn().mockReturnValue({ eq: mockEqUpdate });
       
+      // Mock the schema validation to avoid validation errors
+      (voteSchema.parse as jest.Mock).mockReturnValue({
+        requestId: 'request-123',
+        voteType: 'upvote'
+      });
+      
       // Setup the from method to return different chains based on call count
       let fromCallCount = 0;
       mockSupabase.from = jest.fn().mockImplementation(() => {
@@ -395,6 +401,12 @@ describe('Votes API Route', () => {
       const mockEqUpdate = jest.fn().mockResolvedValue({ error: null });
       const mockUpdate = jest.fn().mockReturnValue({ eq: mockEqUpdate });
       
+      // Mock the schema validation to avoid validation errors
+      (voteSchema.parse as jest.Mock).mockReturnValue({
+        requestId: 'request-123',
+        voteType: 'upvote'
+      });
+      
       // Setup the from method to return different chains based on call count
       let fromCallCount = 0;
       mockSupabase.from = jest.fn().mockImplementation(() => {
@@ -467,6 +479,12 @@ describe('Votes API Route', () => {
       });
       const mockSelectInsert = jest.fn().mockReturnValue({ single: mockSingleInsert });
       const mockInsert = jest.fn().mockReturnValue({ select: mockSelectInsert });
+      
+      // Mock the schema validation to avoid validation errors
+      (voteSchema.parse as jest.Mock).mockReturnValue({
+        requestId: 'request-123',
+        voteType: 'upvote'
+      });
       
       // Setup the from method to return different chains based on call count
       let fromCallCount = 0;
@@ -547,6 +565,12 @@ describe('Votes API Route', () => {
       });
       const mockEqCount = jest.fn().mockReturnValue({ head: mockHeadCount });
       const mockSelectCount = jest.fn().mockReturnValue({ eq: mockEqCount });
+      
+      // Mock the schema validation to avoid validation errors
+      (voteSchema.parse as jest.Mock).mockReturnValue({
+        requestId: 'request-123',
+        voteType: 'upvote'
+      });
       
       // Setup the from method to return different chains based on call count
       let fromCallCount = 0;

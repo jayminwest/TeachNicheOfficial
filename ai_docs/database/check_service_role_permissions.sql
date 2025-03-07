@@ -28,14 +28,18 @@ ALTER TABLE public.lessons NO FORCE ROW LEVEL SECURITY;
 -- Uncomment the line below if you want to disable RLS entirely
 -- ALTER TABLE public.lessons DISABLE ROW LEVEL SECURITY;
 
--- Or create a policy that allows the service role to access all rows
+-- Create a policy that allows the service role to access all rows
 DROP POLICY IF EXISTS "Service role has full access" ON public.lessons;
 CREATE POLICY "Service role has full access"
 ON public.lessons
 FOR ALL
-TO postgres
+TO service_role
 USING (true)
 WITH CHECK (true);
+
+-- Alternative approach: Disable RLS for the lessons table completely
+-- Only use this as a last resort if other approaches fail
+-- ALTER TABLE public.lessons DISABLE ROW LEVEL SECURITY;
 
 -- 5. Ensure the service role has all necessary privileges
 GRANT ALL PRIVILEGES ON TABLE public.lessons TO service_role;

@@ -55,5 +55,20 @@ FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = creator_id);
 
+-- Add a policy specifically for the service role to bypass RLS
+DROP POLICY IF EXISTS "Service role has full access" ON public.lessons;
+CREATE POLICY "Service role has full access"
+ON public.lessons
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
 -- 5. Verify the policies after running this script with:
 -- SELECT * FROM pg_policies WHERE tablename = 'lessons';
+
+-- 6. If you're still having issues, you can check if the service role
+-- is being used correctly in your application code:
+-- 1. Make sure you're using the service role key, not the anon key
+-- 2. Check that the Authorization header is being set correctly
+-- 3. Verify that the service role client is being initialized properly

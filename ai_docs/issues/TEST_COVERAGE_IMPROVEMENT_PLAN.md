@@ -117,8 +117,8 @@ Focus on stateless UI components that require minimal mocking:
 #### Service Classes
 - [ ] `app/services/database/LessonsService.ts` (currently 0%)
 - [ ] `app/services/profile/ProfileService.ts` (currently 2.5%)
-- [ ] `app/services/database/PurchasesService.ts` (improve from 80.53%)
-- [ ] `app/services/database/DatabaseService.ts` (improve from 80%)
+- [x] `app/services/database/PurchasesService.ts` (improved from 80.53% to 100%)
+- [x] `app/services/database/DatabaseService.ts` (improved from 80% to 100%)
 - [ ] `app/services/stripe.ts` (improve from 23.57%)
 - [ ] `app/services/mux.ts` (currently 0%)
 - [ ] `app/services/supabase.ts` (currently 0%)

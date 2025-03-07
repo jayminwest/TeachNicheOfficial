@@ -2,7 +2,6 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { GET } from '../votes/route';
 import { createMockSupabaseClient, resetSupabaseMocks } from '../../../__mocks__/services/supabase';
-import { createMockError } from '../../../__mocks__/utils/mock-helpers';
 
 // Mock next/server
 jest.mock('next/server', () => ({

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, act, waitFor, screen } from '@testing-library/react';
-import { AuthProvider, useAuth, AuthContext } from '../AuthContext';
+import { AuthProvider, useAuth } from '../AuthContext';
 import { getSession, onAuthStateChange } from '../supabaseAuth';
 import { createOrUpdateProfile } from '../../profile/profileService';
 
@@ -150,7 +150,7 @@ describe('AuthProvider', () => {
   
   it('updates state on auth state changes', async () => {
     // Set up auth state change callback capture
-    let authStateCallback: Function;
+    let authStateCallback: (event: string, session: any) => void;
     (onAuthStateChange as jest.Mock).mockImplementation((callback) => {
       authStateCallback = callback;
       return {

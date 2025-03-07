@@ -158,8 +158,20 @@ jest.mock('@/app/lib/supabase', () => ({
 }));
 
 describe('supabaseAuth', () => {
-  let mockSupabaseClient: any;
-  let mockAuthClient: any;
+  let mockSupabaseClient: {
+    auth: {
+      signInWithOAuth: jest.Mock;
+      signOut: jest.Mock;
+      getSession: jest.Mock;
+      onAuthStateChange: jest.Mock;
+    };
+  };
+  let mockAuthClient: {
+    signInWithOAuth: jest.Mock;
+    signOut: jest.Mock;
+    getSession: jest.Mock;
+    onAuthStateChange: jest.Mock;
+  };
   
   beforeEach(() => {
     // Reset mocks
@@ -320,7 +332,7 @@ describe('supabaseAuth', () => {
     
     it('invokes the callback when auth state changes', () => {
       const mockCallback = jest.fn();
-      let capturedCallback: Function;
+      let capturedCallback: (event: string, session: any) => void;
       
       mockAuthClient.onAuthStateChange.mockImplementation((callback) => {
         capturedCallback = callback;

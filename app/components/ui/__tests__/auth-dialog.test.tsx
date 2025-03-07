@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { AuthDialog } from '../auth-dialog';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Suspense } from 'react';

@@ -1,4 +1,4 @@
-import { screen, render as testingLibraryRender } from '@testing-library/react'
+import { render as testingLibraryRender } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import ProfilePage from '../page'

@@ -8,7 +8,7 @@ jest.mock('@supabase/auth-helpers-nextjs')
 
 // Mock the request-card component
 jest.mock('@/app/requests/components/request-card', () => ({
-  RequestCard: ({ request }: any) => (
+  RequestCard: ({ request }: { request: { id: string; title: string; description: string } }) => (
     <div data-testid={`request-card-${request.id}`}>
       <h3>{request.title}</h3>
       <p>{request.description}</p>

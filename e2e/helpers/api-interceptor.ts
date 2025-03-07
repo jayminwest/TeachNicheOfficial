@@ -27,6 +27,27 @@ export async function setupApiInterceptors(page: Page) {
     // Add a small delay to ensure localStorage is properly set
     await page.waitForTimeout(100);
     
+    // Mock lessons API to avoid database permission errors
+    if (url.includes('/api/lessons')) {
+      return route.fulfill({
+        status: 200,
+        body: JSON.stringify({ 
+          lessons: [
+            {
+              id: 'mock-lesson-1',
+              title: 'Mock Lesson 1',
+              description: 'This is a mock lesson for testing',
+              price: 9.99,
+              thumbnailUrl: 'https://example.com/thumbnail.jpg',
+              creatorId: 'test-creator-id',
+              status: 'published'
+            }
+          ],
+          totalCount: 1
+        }),
+      });
+    }
+    
     // Handle auth endpoints
     if (url.includes('/api/auth')) {
       if (url.includes('/api/auth/session')) {

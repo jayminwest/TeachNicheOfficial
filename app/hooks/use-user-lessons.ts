@@ -63,13 +63,12 @@ export function useUserLessons({
           description: lesson.description || '',
           price: lesson.price,
           created_at: lesson.created_at,
-          updated_at: lesson.updated_at,
-          thumbnail_url: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
+          thumbnailUrl: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
           mux_asset_id: lesson.mux_asset_id,
           mux_playback_id: lesson.mux_playback_id,
           creator_id: lesson.creator_id,
           status: lesson.status,
-          is_featured: lesson.is_featured,
+          isFeatured: lesson.is_featured,
           // These properties are required by the Lesson interface but not needed in tests
           averageRating: 0,
           totalRatings: 0

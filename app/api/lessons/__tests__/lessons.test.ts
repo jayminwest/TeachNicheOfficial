@@ -269,7 +269,7 @@ describe('Lessons API', () => {
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
       NextResponse.json.mockImplementationOnce((data, init) => ({
-        status: init?.status || 200,
+        status: init?.status || 500,
         body: data,
         json: () => data
       }));

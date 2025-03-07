@@ -49,7 +49,7 @@ describe('AuthDialog', () => {
   
   it('renders correctly when open', () => {
     render(
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Loading auth dialog...</div>}>
         <AuthDialog 
           open={true} 
           onOpenChange={mockOnOpenChange} 
@@ -59,7 +59,7 @@ describe('AuthDialog', () => {
     );
     
     // Dialog should be visible with fallback content
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Loading auth dialog...')).toBeInTheDocument();
   });
   
   it('closes when authenticated user is detected', async () => {

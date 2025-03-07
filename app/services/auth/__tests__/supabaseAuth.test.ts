@@ -181,7 +181,7 @@ describe('supabaseAuth', () => {
     
     it('invokes the callback when auth state changes', () => {
       const mockCallback = jest.fn();
-      let capturedCallback: (event: string, session: any) => void;
+      let capturedCallback: (event: string, session: unknown) => void;
       
       mockAuthClient.onAuthStateChange.mockImplementation((callback) => {
         capturedCallback = callback;

@@ -96,7 +96,7 @@ describe('SignInPage', () => {
     Object.defineProperty(window, 'signInWithGoogleCalled', {
       writable: true,
       value: false,
-    });
+    } as PropertyDescriptor);
 
     await act(async () => {
       render(<SignInPage onSignInSuccess={jest.fn()} />);

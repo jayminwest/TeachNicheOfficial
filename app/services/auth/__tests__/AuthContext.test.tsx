@@ -150,7 +150,7 @@ describe('AuthProvider', () => {
   
   it('updates state on auth state changes', async () => {
     // Set up auth state change callback capture
-    let authStateCallback: (event: string, session: any) => void;
+    let authStateCallback: (event: string, session: unknown) => void;
     (onAuthStateChange as jest.Mock).mockImplementation((callback) => {
       authStateCallback = callback;
       return {

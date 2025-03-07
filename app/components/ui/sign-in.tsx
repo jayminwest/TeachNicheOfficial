@@ -39,7 +39,7 @@ function SignInPage(props: SignInPageProps) {
   );
 }
 
-function SignInPageContent({ onSignInSuccess, redirectPath, className, props }: SignInPageProps) {
+function SignInPageContent({ onSignInSuccess, redirectPath, className }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()

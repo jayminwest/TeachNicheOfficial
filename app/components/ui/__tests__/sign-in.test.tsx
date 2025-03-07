@@ -112,7 +112,7 @@ describe('SignInPage', () => {
     expect(signInWithGoogle).toHaveBeenCalled();
     
     // Check that the window flag was set for testing
-    expect((window as any).signInWithGoogleCalled).toBe(true);
+    expect((window as Window & typeof globalThis & { signInWithGoogleCalled: boolean }).signInWithGoogleCalled).toBe(true);
   });
 
   it('shows loading state during Google sign-in', async () => {

@@ -12,9 +12,7 @@ jest.mock('stripe', () => {
     }
   };
   
-  return {
-    default: jest.fn().mockImplementation(() => mockStripeInstance)
-  };
+  return jest.fn(() => mockStripeInstance);
 });
 
 // Mock Supabase client
@@ -83,7 +81,7 @@ describe('PurchasesService', () => {
     };
     
     // Get the mock constructor from the jest.mock above
-    const mockStripeConstructor = require('stripe').default;
+    const mockStripeConstructor = require('stripe');
     mockStripeConstructor.mockReturnValue(mockStripe);
     
     service = new PurchasesService();
@@ -187,7 +185,7 @@ describe('PurchasesService', () => {
         error: null
       });
       
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.from = jest.fn().mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: mockSingle
@@ -214,7 +212,7 @@ describe('PurchasesService', () => {
         error: null
       });
       
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.from = jest.fn().mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: mockSingle
@@ -394,12 +392,12 @@ describe('PurchasesService', () => {
       
       const mockInsert = jest.fn();
       
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.from = jest.fn().mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
               order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockReturnValue(mockPurchaseSelect)
+                limit: mockPurchaseSelect
               })
             })
           })
@@ -671,7 +669,7 @@ describe('PurchasesService', () => {
       });
       
       // First from() call for session ID query
-      mockSupabase.from.mockImplementationOnce(() => ({
+      mockSupabase.from = jest.fn().mockImplementationOnce(() => ({
         select: jest.fn().mockImplementation(() => ({
           eq: jest.fn().mockImplementation(() => ({
             limit: mockSessionSelect
@@ -772,7 +770,7 @@ describe('PurchasesService', () => {
       const mockUpdate = jest.fn();
       
       // First from() call for session ID query
-      mockSupabase.from.mockImplementationOnce(() => ({
+      mockSupabase.from = jest.fn().mockImplementationOnce(() => ({
         select: jest.fn().mockImplementation(() => ({
           eq: jest.fn().mockImplementation(() => ({
             limit: mockSessionSelect
@@ -858,7 +856,7 @@ describe('PurchasesService', () => {
       });
       
       // Setup mock for purchases query
-      mockSupabase.from.mockImplementationOnce(() => ({
+      mockSupabase.from = jest.fn().mockImplementationOnce(() => ({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             order: mockPurchasesSelect

@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS public.lesson_requests (
   title text NOT NULL,
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   instagram_handle text,
-  tags ARRAY,
+  tags text[],
   PRIMARY KEY (id)
 );
 

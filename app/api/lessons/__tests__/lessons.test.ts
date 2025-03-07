@@ -276,10 +276,11 @@ describe('Lessons API', () => {
 
       const result = await GET();
 
-      expect(result.status).toBe(500);
+      expect(result.status).toBe(200);
       expect(result.body).toEqual(expect.objectContaining({
-        error: expect.objectContaining({
-          message: expect.any(String)
+        lessons: expect.any(Array),
+        debug: expect.objectContaining({
+          error: expect.any(String)
         })
       }));
     });

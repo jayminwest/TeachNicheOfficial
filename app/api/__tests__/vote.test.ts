@@ -241,6 +241,9 @@ describe('Vote API Route', () => {
     })
     
     // Mock successful vote creation and count update
+    const updateMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockResolvedValue({ error: null });
+    
     mockSupabase.from = jest.fn().mockImplementation((table) => {
       if (table === 'lesson_request_votes') {
         return {
@@ -254,8 +257,8 @@ describe('Vote API Route', () => {
         }
       } else if (table === 'lesson_requests') {
         return {
-          update: jest.fn().mockReturnThis(),
-          eq: jest.fn().mockResolvedValue({ error: null })
+          update: updateMock,
+          eq: eqMock
         }
       }
       return {}
@@ -281,6 +284,6 @@ describe('Vote API Route', () => {
     
     // Verify vote count was updated in lesson_requests table
     expect(mockSupabase.from).toHaveBeenCalledWith('lesson_requests')
-    expect(mockSupabase.from().update).toHaveBeenCalledWith({ vote_count: 6 })
+    expect(updateMock).toHaveBeenCalledWith({ vote_count: 6 })
   })
 })

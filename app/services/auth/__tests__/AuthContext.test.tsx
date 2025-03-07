@@ -17,11 +17,11 @@ jest.mock('../../profile/profileService', () => ({
 // Test component to access auth context
 function TestComponent() {
   const auth = useAuth();
-  const { user, isLoading, isAuthenticated, error } = auth;
+  const { user, loading, isAuthenticated, error } = auth;
   
   return (
     <div>
-      <div data-testid="loading">{String(isLoading)}</div>
+      <div data-testid="loading">{String(loading)}</div>
       <div data-testid="authenticated">{String(isAuthenticated)}</div>
       <div data-testid="user">{user ? JSON.stringify(user) : 'no-user'}</div>
       <div data-testid="error">{error ? error.message : 'no-error'}</div>

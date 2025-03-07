@@ -1,10 +1,10 @@
-import { Suspense } from 'react';
+import { SearchParamsWrapper } from '../components/ui/search-params-wrapper';
 import ProfilePageClient from './profile-page-client';
 import { Loader2 } from 'lucide-react';
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={
+    <SearchParamsWrapper fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -13,6 +13,6 @@ export default function ProfilePage() {
       </div>
     }>
       <ProfilePageClient />
-    </Suspense>
+    </SearchParamsWrapper>
   );
 }

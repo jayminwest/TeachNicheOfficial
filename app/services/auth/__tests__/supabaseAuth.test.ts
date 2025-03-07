@@ -131,7 +131,7 @@ describe('supabaseAuth', () => {
       const mockUnsubscribe = jest.fn();
       
       // Set up the mock to return the subscription
-      mockSupabaseClient.auth.onAuthStateChange.mockImplementation((event, callback) => {
+      mockSupabaseClient.auth.onAuthStateChange.mockImplementation((callback) => {
         // Immediately call the callback to simulate an auth state change
         callback('SIGNED_IN', { user: { id: 'test-user-id' } });
         

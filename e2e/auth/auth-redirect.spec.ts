@@ -31,6 +31,9 @@ test.describe('Authentication Redirect', () => {
     const authUrl = page.url();
     console.log('Auth URL with redirect:', authUrl);
     
+    // Navigate to home page first to ensure we're in the app domain
+    await page.goto('/', { waitUntil: 'networkidle' });
+    
     // Set up auth cookies to simulate successful authentication
     await setupAuthCookies(page, 'test-learner-id');
     
@@ -51,6 +54,9 @@ test.describe('Authentication Redirect', () => {
   });
   
   test('allows access to protected pages for authenticated users', async ({ page }) => {
+    // First navigate to a page in the app domain
+    await page.goto('/', { waitUntil: 'networkidle' });
+    
     // Set up auth cookies
     await setupAuthCookies(page, 'test-learner-id');
     

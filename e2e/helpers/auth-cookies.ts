@@ -58,7 +58,10 @@ export async function setupAuthCookies(page: Page, userId = 'test-user-id') {
     }
   ]);
   
-  // Also set up localStorage for components that check there
+  // Navigate to a page first to be able to access localStorage
+  await page.goto('about:blank');
+  
+  // Now set up localStorage for components that check there
   await page.evaluate((userId) => {
     const mockUser = {
       id: userId,

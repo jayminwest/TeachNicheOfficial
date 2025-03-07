@@ -161,6 +161,7 @@ export function LessonForm({
   return (
     <Form {...form}>
       <form 
+        data-testid="lesson-form"
         onSubmit={form.handleSubmit((data) => {
           // Validate paid lessons require a Stripe account
           if (data.price > 0) {

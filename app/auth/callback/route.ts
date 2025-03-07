@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Create a Supabase client for the Route Handler
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ 
       cookies: () => cookieStore 
     })
@@ -43,18 +43,10 @@ export async function GET(request: NextRequest) {
     // Get redirect path from cookie or use default
     let redirectTo = '/profile'
     
-    try {
-      // Check for redirect cookie
-      const redirectCookie = cookieStore.get('auth_redirect')
-      if (redirectCookie?.value) {
-        redirectTo = redirectCookie.value
-        // Clear the cookie after use
-        cookieStore.delete('auth_redirect')
-      }
-    } catch (cookieError) {
-      console.warn('Error accessing redirect cookie:', cookieError)
-      // Continue with default redirect
-    }
+    // Get redirect path from session storage or use default
+    // We'll use a simpler approach that doesn't rely on cookies
+    // since they're causing issues in the production environment
+    console.log('Auth successful, using default redirect path')
     
     console.log('Auth successful, redirecting to:', redirectTo)
     

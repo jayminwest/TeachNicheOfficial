@@ -88,8 +88,7 @@ echo "Step 1: Exporting production database schema..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
   -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
-  --schema public \
-  --use-jwt-secret "$PROD_JWT_SECRET"
+  --schema public
 
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
@@ -97,8 +96,7 @@ PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
   -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
   --schema public \
-  --include "POLICY" \
-  --use-jwt-secret "$PROD_JWT_SECRET"
+  --include "POLICY"
 
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
@@ -106,16 +104,12 @@ PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_SUPABASE_URL" \
   -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
   --schema public \
-  --include "FUNCTION TRIGGER" \
-  --use-jwt-secret "$PROD_JWT_SECRET"
+  --include "FUNCTION TRIGGER"
 
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
   --db-url "$PROD_SUPABASE_URL" \
-  --anon-key "$PROD_SUPABASE_ANON_KEY" \
-  --service-role-key "$PROD_SUPABASE_SERVICE_KEY" \
-  --jwt-secret "$PROD_JWT_SECRET" \
   > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 5: Create a consolidated migration file
@@ -144,8 +138,7 @@ echo "Step 7: Creating backup of development database..."
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$DEV_SUPABASE_URL" \
   -f "$EXPORTS_DIR/dev_backup_$TIMESTAMP.sql" \
-  --schema public \
-  --use-jwt-secret "$DEV_JWT_SECRET"
+  --schema public
 
 echo "Development database backed up to $EXPORTS_DIR/dev_backup_$TIMESTAMP.sql"
 
@@ -180,28 +173,22 @@ EOF
 # Apply reset script
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql" \
-  --use-jwt-secret "$DEV_JWT_SECRET"
+  -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql"
 
 # Apply consolidated schema
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql" \
-  --use-jwt-secret "$DEV_JWT_SECRET"
+  -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql"
 
 # Apply migration tracking
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql" \
-  --use-jwt-secret "$DEV_JWT_SECRET"
+  -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql"
 
 # Step 9: Import auth configuration
 echo "Step 9: Importing auth configuration..."
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase auth config import \
   --db-url "$DEV_SUPABASE_URL" \
-  --anon-key "$DEV_SUPABASE_ANON_KEY" \
-  --service-role-key "$DEV_SUPABASE_SERVICE_KEY" \
-  --jwt-secret "$DEV_JWT_SECRET" \
   "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 10: Verify synchronization
@@ -209,8 +196,6 @@ echo "Step 10: Verifying database synchronization..."
 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" PGPASSWORD_TARGET="$DEV_SUPABASE_SERVICE_KEY" supabase db diff \
   --source-db "$PROD_SUPABASE_URL" \
   --target-db "$DEV_SUPABASE_URL" \
-  --source-jwt-secret "$PROD_JWT_SECRET" \
-  --target-jwt-secret "$DEV_JWT_SECRET" \
   > "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt"
 
 if [ -s "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt" ]; then
@@ -266,8 +251,7 @@ EOF
 # Apply policy inspection function
 PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
   --db-url "$DEV_SUPABASE_URL" \
-  -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql" \
-  --use-jwt-secret "$DEV_JWT_SECRET"
+  -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql"
 
 echo ""
 echo "=== Database Unification Complete ==="

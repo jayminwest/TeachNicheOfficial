@@ -1,0 +1,285 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ImageUploader } from '../image-uploader';
+import { useImageUpload } from '@/app/hooks/use-image-upload';
+
+// Mock the useImageUpload hook
+jest.mock('@/app/hooks/use-image-upload', () => ({
+  useImageUpload: jest.fn()
+}));
+
+describe('ImageUploader', () => {
+  const mockOnUploadComplete = jest.fn();
+  const mockOnError = jest.fn();
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Default mock implementation
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: jest.fn().mockResolvedValue('https://example.com/image.jpg'),
+      isUploading: false,
+      progress: 0,
+      error: null
+    });
+  });
+  
+  it('renders the uploader in initial state', () => {
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    expect(screen.getByText(/Click to upload or drag and drop/i)).toBeInTheDocument();
+    expect(screen.getByText(/JPG, PNG, WebP/i)).toBeInTheDocument();
+  });
+  
+  it('renders with initial image', () => {
+    render(
+      <ImageUploader 
+        initialImage="https://example.com/initial.jpg"
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    const image = screen.getByAltText('Thumbnail preview');
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute('src', 'https://example.com/initial.jpg');
+  });
+  
+  it('applies custom className', () => {
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError}
+        className="custom-class"
+      />
+    );
+    
+    const container = screen.getByText(/Click to upload or drag and drop/i).closest('div');
+    expect(container?.parentElement).toHaveClass('custom-class');
+  });
+  
+  it('handles file selection', async () => {
+    const mockUploadImage = jest.fn().mockResolvedValue('https://example.com/uploaded.jpg');
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: mockUploadImage,
+      isUploading: false,
+      progress: 0,
+      error: null
+    });
+    
+    // Mock URL.createObjectURL and URL.revokeObjectURL
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = jest.fn().mockReturnValue('blob:test-url');
+    URL.revokeObjectURL = jest.fn();
+    
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    // Create a file
+    const file = new File(['test image content'], 'test.jpg', { type: 'image/jpeg' });
+    
+    // Get the hidden file input
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    
+    // Simulate file selection
+    fireEvent.change(input, { target: { files: [file] } });
+    
+    // Check that URL.createObjectURL was called
+    expect(URL.createObjectURL).toHaveBeenCalledWith(file);
+    
+    // Wait for the upload to complete
+    await waitFor(() => {
+      expect(mockUploadImage).toHaveBeenCalledWith(file);
+      expect(mockOnUploadComplete).toHaveBeenCalledWith('https://example.com/uploaded.jpg');
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+    });
+    
+    // Restore original functions
+    URL.createObjectURL = originalCreateObjectURL;
+    URL.revokeObjectURL = originalRevokeObjectURL;
+  });
+  
+  it('shows upload progress', () => {
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: jest.fn().mockResolvedValue('https://example.com/image.jpg'),
+      isUploading: true,
+      progress: 45,
+      error: null
+    });
+    
+    render(
+      <ImageUploader 
+        initialImage="https://example.com/initial.jpg"
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    expect(screen.getByText('45%')).toBeInTheDocument();
+    expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
+  });
+  
+  it('displays error message when upload fails', () => {
+    const testError = new Error('Upload failed');
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: jest.fn().mockRejectedValue(testError),
+      isUploading: false,
+      progress: 0,
+      error: testError
+    });
+    
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    expect(screen.getByText('Upload failed')).toBeInTheDocument();
+  });
+  
+  it('allows removing an uploaded image', async () => {
+    render(
+      <ImageUploader 
+        initialImage="https://example.com/initial.jpg"
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    // Find and click the remove button
+    const removeButton = screen.getByRole('button');
+    fireEvent.click(removeButton);
+    
+    // Check that the image was removed
+    expect(screen.queryByAltText('Thumbnail preview')).not.toBeInTheDocument();
+    expect(mockOnUploadComplete).toHaveBeenCalledWith('');
+  });
+  
+  it('handles drag and drop', async () => {
+    const mockUploadImage = jest.fn().mockResolvedValue('https://example.com/dropped.jpg');
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: mockUploadImage,
+      isUploading: false,
+      progress: 0,
+      error: null
+    });
+    
+    // Mock URL functions
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = jest.fn().mockReturnValue('blob:dropped-url');
+    URL.revokeObjectURL = jest.fn();
+    
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    // Get the drop zone
+    const dropZone = screen.getByText(/Click to upload or drag and drop/i).closest('div');
+    expect(dropZone).not.toBeNull();
+    
+    // Create a file
+    const file = new File(['dropped image content'], 'dropped.jpg', { type: 'image/jpeg' });
+    
+    // Create a mock drop event
+    const dropEvent = {
+      preventDefault: jest.fn(),
+      dataTransfer: {
+        files: [file]
+      }
+    };
+    
+    // Simulate drop
+    fireEvent.drop(dropZone!, dropEvent);
+    
+    // Check that URL.createObjectURL was called
+    expect(URL.createObjectURL).toHaveBeenCalledWith(file);
+    
+    // Wait for the upload to complete
+    await waitFor(() => {
+      expect(mockUploadImage).toHaveBeenCalledWith(file);
+      expect(mockOnUploadComplete).toHaveBeenCalledWith('https://example.com/dropped.jpg');
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:dropped-url');
+    });
+    
+    // Restore original functions
+    URL.createObjectURL = originalCreateObjectURL;
+    URL.revokeObjectURL = originalRevokeObjectURL;
+  });
+  
+  it('handles upload error and clears preview', async () => {
+    const mockUploadImage = jest.fn().mockRejectedValue(new Error('Upload failed'));
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: mockUploadImage,
+      isUploading: false,
+      progress: 0,
+      error: new Error('Upload failed')
+    });
+    
+    // Mock URL functions
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = jest.fn().mockReturnValue('blob:test-url');
+    URL.revokeObjectURL = jest.fn();
+    
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    // Create a file
+    const file = new File(['test image content'], 'test.jpg', { type: 'image/jpeg' });
+    
+    // Get the hidden file input
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    
+    // Simulate file selection
+    fireEvent.change(input, { target: { files: [file] } });
+    
+    // Wait for the upload to fail
+    await waitFor(() => {
+      expect(mockUploadImage).toHaveBeenCalledWith(file);
+      expect(mockOnError).toHaveBeenCalled();
+    });
+    
+    // Restore original functions
+    URL.createObjectURL = originalCreateObjectURL;
+    URL.revokeObjectURL = originalRevokeObjectURL;
+  });
+  
+  it('disables file input during upload', () => {
+    (useImageUpload as jest.Mock).mockReturnValue({
+      uploadImage: jest.fn(),
+      isUploading: true,
+      progress: 30,
+      error: null
+    });
+    
+    render(
+      <ImageUploader 
+        onUploadComplete={mockOnUploadComplete} 
+        onError={mockOnError} 
+      />
+    );
+    
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input).toBeDisabled();
+  });
+});

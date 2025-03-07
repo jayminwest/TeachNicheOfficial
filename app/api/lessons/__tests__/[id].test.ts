@@ -39,14 +39,13 @@ describe('Lesson API - [id] route', () => {
     // Reset all mocks
     jest.clearAllMocks();
     
-    // Create a mock request using Request first, then NextRequest
-    const request = new Request(
+    // Create a mock request directly
+    mockRequest = new NextRequest(
       `http://localhost:3000/api/lessons/${mockLessonId}`,
       {
         method: 'PATCH'
       }
     );
-    mockRequest = NextRequest.from(request);
     
     // Mock Supabase client
     mockSupabaseClient = {

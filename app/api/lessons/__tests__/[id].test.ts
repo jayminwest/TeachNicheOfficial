@@ -39,14 +39,13 @@ describe('Lesson API - [id] route', () => {
     // Reset all mocks
     jest.clearAllMocks();
     
-    // Create a mock request using Request.from()
-    const request = new Request(
+    // Create a mock request directly
+    mockRequest = new NextRequest(
       `http://localhost:3000/api/lessons/${mockLessonId}`,
       {
         method: 'PATCH'
       }
     );
-    mockRequest = NextRequest.from(request);
     
     // Mock Supabase client
     mockSupabaseClient = {
@@ -308,13 +307,12 @@ describe('Lesson API - [id] route', () => {
   
   describe('DELETE method', () => {
     beforeEach(() => {
-      const request = new Request(
+      mockRequest = new NextRequest(
         `http://localhost:3000/api/lessons/${mockLessonId}`,
         {
           method: 'DELETE'
         }
       );
-      mockRequest = NextRequest.from(request);
     });
     
     it('should return 401 if user is not authenticated', async () => {

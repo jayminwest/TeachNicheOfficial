@@ -29,8 +29,8 @@ describe('Check Purchase API', () => {
     // Reset all mocks
     jest.clearAllMocks();
     
-    // Create a mock request using Request.from()
-    const request = new Request(
+    // Create a mock request directly
+    mockRequest = new NextRequest(
       'http://localhost:3000/api/lessons/check-purchase',
       {
         method: 'POST',
@@ -39,7 +39,6 @@ describe('Check Purchase API', () => {
         }
       }
     );
-    mockRequest = NextRequest.from(request);
     
     // Mock request.json
     jest.spyOn(mockRequest, 'json').mockResolvedValue({

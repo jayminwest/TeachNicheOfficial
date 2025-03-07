@@ -9,7 +9,7 @@ import {
   CardHeader,
 } from './card'
 import { Icons } from './icons'
-import { signInWithGoogle, onAuthStateChange } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { VisuallyHidden } from './visually-hidden'
 
@@ -44,33 +44,24 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
   
-  // Listen for auth state changes to handle redirection
+  // Handle redirection after sign-in
   useEffect(() => {
-    const { data: { subscription } } = onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          // Call the success callback to close the dialog
-          onSignInSuccess?.();
-          
-          // Check if there's a redirect URL in the query params
-          const redirectTo = searchParams?.get('redirect');
-          
-          if (redirectTo) {
-            // Decode the URL if it's encoded
-            const decodedRedirect = decodeURIComponent(redirectTo);
-            window.location.href = decodedRedirect;
-          } else {
-            router.push('/profile');
-          }
-          
-          // Reset loading state
-          setIsLoading(false);
-        }
+    if (user) {
+      // Call the success callback to close the dialog
+      onSignInSuccess?.();
+      
+      // Check if there's a redirect URL in the query params
+      const redirectTo = searchParams?.get('redirect');
+      
+      if (redirectTo) {
+        // Decode the URL if it's encoded
+        const decodedRedirect = decodeURIComponent(redirectTo);
+        window.location.href = decodedRedirect;
+      } else {
+        router.push('/profile');
       }
-    );
-    
-    return () => subscription.unsubscribe();
-  }, [router, onSignInSuccess, searchParams]);
+    }
+  }, [user, router, onSignInSuccess, searchParams]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -93,11 +84,11 @@ function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
         throw result.error;
       }
       
-      // We don't redirect here - the onAuthStateChange listener will handle it
-      // Keep loading state until auth state change or timeout
+      // We don't redirect here - the useEffect with user dependency will handle it
+      // Keep loading state for a short time to allow auth state to update
       setTimeout(() => {
         setIsLoading(false);
-      }, 5000); // Safety timeout in case auth state doesn't change
+      }, 2000); // Safety timeout in case auth state doesn't change
       
     } catch (err) {
       console.error('Google sign-in error:', err);

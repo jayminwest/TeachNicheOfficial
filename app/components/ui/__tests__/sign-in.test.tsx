@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInPage } from '../sign-in';
-import { signInWithGoogle, onAuthStateChange } from '@/app/services/auth/supabaseAuth';
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 
@@ -86,17 +86,6 @@ describe('SignInPage', () => {
     // Mock successful sign-in
     (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
     
-    // Mock auth state change event
-    const mockAuthStateChange = jest.fn((callback) => {
-      // Simulate auth state change after sign-in
-      setTimeout(() => {
-        callback('SIGNED_IN', { user: { id: 'test-user' } });
-      }, 100);
-      return { data: { subscription: { unsubscribe: jest.fn() } } };
-    });
-    
-    (onAuthStateChange as jest.Mock).mockImplementation(mockAuthStateChange);
-    
     // Mock searchParams.get to return a specific redirect value
     (useSearchParams as jest.Mock).mockReturnValue({
       get: jest.fn().mockReturnValue('/dashboard')
@@ -119,12 +108,6 @@ describe('SignInPage', () => {
     
     // Check that the window flag was set for testing
     expect((window as any).signInWithGoogleCalled).toBe(true);
-    
-    // We're not expecting router.push to be called directly anymore
-    // The redirection happens in the auth state change handler
-    await waitFor(() => {
-      expect(mockAuthStateChange).toHaveBeenCalled();
-    }, { timeout: 1000 });
   });
 
   it('shows loading state during Google sign-in', async () => {
@@ -246,6 +229,14 @@ jest.mock('@/app/services/auth/supabaseAuth', () => ({
 jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(),
   useRouter: jest.fn(),
+}));
+
+// Mock the auth context
+jest.mock('@/app/services/auth/AuthContext', () => ({
+  useAuth: jest.fn().mockReturnValue({
+    user: null,
+    loading: false
+  }),
 }));
 
 describe('SignIn', () => {

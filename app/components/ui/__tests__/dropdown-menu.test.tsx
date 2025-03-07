@@ -357,7 +357,7 @@ describe('DropdownMenu Components', () => {
       expect(screen.getByTestId('dropdown-root')).toBeInTheDocument();
       expect(screen.getByTestId('dropdown-trigger')).toBeInTheDocument();
       expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-label')).toBeInTheDocument();
+      expect(screen.getAllByTestId('dropdown-label').length).toBe(2);
       expect(screen.getAllByTestId('dropdown-separator').length).toBe(5);
       expect(screen.getByTestId('dropdown-group')).toBeInTheDocument();
       expect(screen.getAllByTestId('dropdown-item').length).toBe(4);

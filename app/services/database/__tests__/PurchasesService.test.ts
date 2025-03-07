@@ -4,15 +4,13 @@ import { PurchaseStatus } from '@/app/types/purchase';
 
 // Mock Stripe
 jest.mock('stripe', () => {
-  const mockStripeInstance = {
+  return jest.fn().mockImplementation(() => ({
     checkout: {
       sessions: {
         retrieve: jest.fn()
       }
     }
-  };
-  
-  return mockStripeInstance;
+  }));
 });
 
 // Mock Supabase client
@@ -71,6 +69,9 @@ describe('PurchasesService', () => {
     
     require('@/app/lib/supabase/client').createClientSupabaseClient.mockReturnValue(mockSupabase);
     
+    // Get the mock Stripe constructor
+    const mockStripeConstructor = require('stripe');
+    
     // Setup Stripe mock
     mockStripe = {
       checkout: {
@@ -80,9 +81,8 @@ describe('PurchasesService', () => {
       }
     };
     
-    // Get the mock constructor from the jest.mock above
-    const mockStripeConstructor = require('stripe');
-    mockStripeConstructor.mockReturnValue(mockStripe);
+    // Configure the mock to return our mockStripe instance
+    mockStripeConstructor.mockImplementation(() => mockStripe);
     
     service = new PurchasesService();
   });

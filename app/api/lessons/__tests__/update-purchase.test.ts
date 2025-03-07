@@ -119,8 +119,7 @@ describe('Update Purchase API', () => {
   
   it('should create a new purchase if none exists', async () => {
     // Mock no existing purchases
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select().mockResolvedValue({
       data: [],
       error: null
     });
@@ -170,7 +169,7 @@ describe('Update Purchase API', () => {
     });
     
     // Mock lesson fetch error
-    mockSupabaseClient.from().select().eq().single.mockResolvedValue({
+    mockSupabaseClient.from().select().single.mockResolvedValue({
       data: null,
       error: new Error('Database error')
     });
@@ -205,8 +204,7 @@ describe('Update Purchase API', () => {
   
   it('should update existing purchase if not completed', async () => {
     // Mock existing pending purchase
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select().mockResolvedValue({
       data: [{
         id: 'existing-purchase-id',
         status: 'pending'
@@ -269,8 +267,7 @@ describe('Update Purchase API', () => {
   
   it('should return success if purchase is already completed', async () => {
     // Mock existing completed purchase
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select().mockResolvedValue({
       data: [{
         id: 'existing-purchase-id',
         status: 'completed'
@@ -293,8 +290,7 @@ describe('Update Purchase API', () => {
   
   it('should return 500 if fetching purchases fails', async () => {
     // Mock fetch error
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select().mockResolvedValue({
       data: null,
       error: new Error('Database error')
     });

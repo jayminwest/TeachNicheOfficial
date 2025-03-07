@@ -30,8 +30,10 @@ export async function POST(request: NextRequest) {
     // First, check if there's a purchase record
     let query = supabase
       .from('purchases')
-      .select('id, status')
-      .eq('lesson_id', lessonId);
+      .select('id, status');
+      
+    // Add filters
+    query = query.eq('lesson_id', lessonId);
       
     // Add user ID filter
     if (userId) {

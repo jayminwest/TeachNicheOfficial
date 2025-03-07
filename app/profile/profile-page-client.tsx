@@ -4,7 +4,6 @@ import { useAuth } from '@/app/services/auth/AuthContext';
 import ProfileClient from './profile-client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
-import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
 import ProfileRedirect from './profile-redirect';
 
 export default function ProfilePageClient() {
@@ -42,9 +41,7 @@ export default function ProfilePageClient() {
             </TabsList>
             
             <TabsContent value="profile">
-              <SearchParamsWrapper>
-                <ProfileClient />
-              </SearchParamsWrapper>
+              <ProfileClient />
             </TabsContent>
             
             <TabsContent value="content">

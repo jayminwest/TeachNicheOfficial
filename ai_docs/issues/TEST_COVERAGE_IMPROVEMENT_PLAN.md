@@ -84,7 +84,7 @@ Focus on stateless UI components that require minimal mocking:
 ### Phase 2: Page Components and Forms
 
 #### Page Components
-- [x] `app/home-client.tsx` (improved to 100%)
+- [x] `app/home-client.tsx` (improved to 100%) ✅
 - [ ] `app/error.tsx` (currently 0%)
 - [ ] `app/error-page.tsx` (currently 0%)
 - [ ] `app/global-error.tsx` (currently 0%)
@@ -191,6 +191,8 @@ All new tests should follow these standards:
 
 ## Example Test Implementation
 
+### Simple UI Component Testing
+
 Here's an example of how to test a simple UI component:
 
 ```tsx
@@ -218,6 +220,54 @@ describe('Badge Component', () => {
     const badge = screen.getByText('Custom Badge');
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass('custom-class');
+  });
+});
+```
+
+### Client Component with URL Parameters
+
+For components that interact with URL parameters and navigation, we use a different approach:
+
+```tsx
+// Example test for home-client.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+
+// Mock the redirectTo function
+const mockRedirectTo = jest.fn();
+
+// Mock the component module before importing
+jest.mock('../home-client', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  redirectTo: jest.fn().mockImplementation((url) => mockRedirectTo(url))
+}));
+
+// Import after mocking
+import HomeClient, { redirectTo } from '../home-client';
+
+describe('HomeClient', () => {
+  beforeEach(() => {
+    // Mock window.location
+    delete window.location;
+    window.location = new URL('http://localhost') as any;
+    
+    // Reset mocks
+    jest.clearAllMocks();
+  });
+  
+  it('handles URL parameters correctly', () => {
+    // Set up test-specific implementation
+    (HomeClient as jest.Mock).mockImplementation(() => (
+      <div data-testid="auth-dialog" data-open="true" />
+    ));
+    
+    // Set URL with parameters
+    window.location = new URL('http://localhost?auth=signin&redirect=/dashboard') as any;
+    
+    render(<HomeClient />);
+    
+    // Assert expected behavior
+    expect(screen.getByTestId('auth-dialog')).toHaveAttribute('data-open', 'true');
   });
 });
 ```

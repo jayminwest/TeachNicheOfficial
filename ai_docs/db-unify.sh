@@ -56,6 +56,29 @@ if [ -z "$PROD_SUPABASE_URL" ] || [ -z "$PROD_SUPABASE_SERVICE_KEY" ] || [ -z "$
   exit 1
 fi
 
+# Test database connection before proceeding
+echo "Testing database connections..."
+if ! command -v pg_isready &> /dev/null; then
+  echo "Warning: pg_isready not found, skipping connection test"
+else
+  # Extract host and port from connection strings
+  PROD_HOST=$(echo $PROD_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
+  DEV_HOST=$(echo $DEV_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
+  
+  echo "Testing connection to production database..."
+  if ! timeout 5 pg_isready -h $PROD_HOST -p 5432; then
+    echo "Warning: Could not connect to production database. Check your connection string."
+    echo "Connection string format should be: postgresql://postgres:password@host:5432/postgres"
+    echo "Continuing anyway, but commands may fail."
+  fi
+  
+  echo "Testing connection to development database..."
+  if ! timeout 5 pg_isready -h $DEV_HOST -p 5432; then
+    echo "Warning: Could not connect to development database. Check your connection string."
+    echo "Continuing anyway, but commands may fail."
+  fi
+fi
+
 if [ -z "$DEV_SUPABASE_URL" ] || [ -z "$DEV_SUPABASE_SERVICE_KEY" ] || [ -z "$DEV_SUPABASE_ANON_KEY" ] || [ -z "$DEV_JWT_SECRET" ]; then
   echo "Error: Development Supabase credentials not found in .env.dev"
   echo "Required variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY, JWT_SECRET"
@@ -79,6 +102,10 @@ echo "This script will synchronize your development database with production."
 echo "Production database: $PROD_SUPABASE_URL"
 echo "Development database: $DEV_SUPABASE_URL"
 echo "Using PostgreSQL connection strings for Supabase CLI compatibility"
+
+# Debug connection strings (masked for security)
+echo "Production DB connection: ${PROD_DB_URL//:*/:*****@*****}"
+echo "Development DB connection: ${DEV_DB_URL//:*/:*****@*****}"
 echo ""
 echo "WARNING: This will overwrite your development database with production schema."
 read -p "Continue? (y/n): " -n 1 -r
@@ -90,32 +117,54 @@ fi
 
 # Step 1: Export production schema
 echo "Step 1: Exporting production database schema..."
-PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+echo "This may take a moment..."
+timeout 60 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
   --schema public
 
+if [ $? -eq 124 ]; then
+  echo "Error: Command timed out after 60 seconds. The database connection may be incorrect."
+  echo "PROD_DB_URL: ${PROD_DB_URL//:*/:*****@*****}"
+  exit 1
+fi
+
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
-PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
   --schema public \
   --include "POLICY"
 
+if [ $? -eq 124 ]; then
+  echo "Error: Command timed out after 30 seconds. The database connection may be incorrect."
+  exit 1
+fi
+
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
-PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
   --db-url "$PROD_DB_URL" \
   -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
   --schema public \
   --include "FUNCTION TRIGGER"
 
+if [ $? -eq 124 ]; then
+  echo "Error: Command timed out after 30 seconds. The database connection may be incorrect."
+  exit 1
+fi
+
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
-PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
+timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
   --db-url "$PROD_DB_URL" \
   > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
+
+if [ $? -eq 124 ]; then
+  echo "Error: Command timed out after 30 seconds. The database connection may be incorrect."
+  exit 1
+fi
 
 # Step 5: Create a consolidated migration file
 echo "Step 5: Creating consolidated migration file..."

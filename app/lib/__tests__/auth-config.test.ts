@@ -3,16 +3,14 @@ import { verifyGoogleAuthConfig } from '../auth-config';
 import * as supabaseAuth from '@/app/services/auth/supabaseAuth';
 
 // Mock the supabaseAuth module
-jest.mock('@/app/services/auth/supabaseAuth', () => ({
-  signInWithGoogle: jest.fn()
-}));
+jest.mock('@/app/services/auth/supabaseAuth');
 
 describe('Auth Config', () => {
   describe('signInWithGoogle', () => {
     it('calls the signInWithGoogle function from supabaseAuth', async () => {
       // Setup
       const mockAuthResponse = { data: { user: { id: 'test-user' } }, error: null };
-      (supabaseAuth.signInWithGoogle as jest.Mock).mockResolvedValue(mockAuthResponse);
+      jest.spyOn(supabaseAuth, 'signInWithGoogle').mockResolvedValue(mockAuthResponse);
       
       // Import the function after mocking
       const { signInWithGoogle } = require('../auth-config');

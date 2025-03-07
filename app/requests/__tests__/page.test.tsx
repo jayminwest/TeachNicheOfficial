@@ -28,7 +28,7 @@ jest.mock('../components/request-dialog', () => ({
 
 // Mock the RequestGrid component to avoid testing its internals here
 jest.mock('../components/request-grid', () => ({
-  RequestGrid: ({ requests, loading, error }) => (
+  RequestGrid: ({ requests = [], loading, error }) => (
     <div data-testid="request-grid">
       {loading && <div data-testid="grid-loading">Loading...</div>}
       {error && <div data-testid="grid-error">{error}</div>}

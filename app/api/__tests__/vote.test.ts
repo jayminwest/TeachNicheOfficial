@@ -206,7 +206,7 @@ describe('Vote API Route', () => {
     
     const responseData = await response.json()
     expect(responseData.success).toBe(false)
-    expect(responseData).toHaveProperty('error', 'Failed to process vote')
+    expect(responseData).toHaveProperty('error', 'database_error')
   })
 
   it('prevents voting with invalid request ID', async () => {

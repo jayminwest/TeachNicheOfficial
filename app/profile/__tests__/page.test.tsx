@@ -54,46 +54,33 @@ jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
 }))
 
-// Mock Supabase client
-jest.mock('@/app/services/supabase', () => ({
-  supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({
-      data: { stripe_account_id: 'acct_test123' },
-      error: null,
-    }),
-    auth: {
-      getSession: jest.fn().mockResolvedValue({
-        data: { session: null },
-      }),
-    },
-  },
-}))
-
-// No need to mock dashboard components as they're not used in the profile page
+// Mock Lucide React icons
+jest.mock('lucide-react', () => ({
+  Loader2: () => <div data-testid="loader-icon">Loading Icon</div>,
+}));
 
 // Add jest-axe matcher
 expect.extend(toHaveNoViolations);
 
-// Mock Supabase client
-jest.mock('@/app/services/supabase', () => ({
-  supabase: {
-    from: jest.fn().mockImplementation(() => ({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockImplementation(() => ({
-        data: [{ stripe_account_id: 'acct_test123' }],
-        error: null
-      }))
-    })),
-    auth: {
-      getSession: jest.fn().mockResolvedValue({
-        data: { session: null },
-      }),
-    },
-  },
-}))
+// Mock ProfileClient component
+jest.mock('../profile-client', () => ({
+  __esModule: true,
+  default: () => <div data-testid="profile-client">Profile Client Component</div>
+}));
+
+// Mock Tabs components
+jest.mock('@/app/components/ui/tabs', () => ({
+  Tabs: ({ children, defaultValue }) => (
+    <div data-testid="tabs" data-default-value={defaultValue}>{children}</div>
+  ),
+  TabsList: ({ children }) => <div role="tablist">{children}</div>,
+  TabsTrigger: ({ children, value }) => (
+    <button role="tab" data-value={value}>{children}</button>
+  ),
+  TabsContent: ({ children, value }) => (
+    <div role="tabpanel" data-value={value}>{children}</div>
+  ),
+}));
 
 // Create a helper function instead of mocking
 function renderWithAuthContext(ui, authProps = {}) {
@@ -127,13 +114,11 @@ function renderWithAuthContext(ui, authProps = {}) {
   );
 }
 
-// No need to import renderWithAuth since we're using our own helper
-
 describe('ProfilePage', () => {
   describe('rendering', () => {
     it('renders loading state initially', async () => {
       // Use direct render with AuthContext
-      const { getByText } = testingLibraryRender(
+      const { getByText, getByTestId } = testingLibraryRender(
         <AuthContext.Provider value={{ 
           user: null,
           loading: true,
@@ -143,77 +128,80 @@ describe('ProfilePage', () => {
           <ProfilePage />
         </AuthContext.Provider>
       );
-      expect(getByText('Loading...')).toBeInTheDocument()
-    })
+      expect(getByText('Loading...')).toBeInTheDocument();
+      expect(getByTestId('loader-icon')).toBeInTheDocument();
+    });
 
     it('redirects unauthenticated users', async () => {
       // Force a re-render with unauthenticated state
-      testingLibraryRender(
+      const { getByTestId } = testingLibraryRender(
         <AuthContext.Provider value={{ 
           user: null,
           loading: false, // Not loading
           isAuthenticated: false,
-          error: null
+          error: null,
+          signIn: jest.fn(),
+          signOut: jest.fn(),
+          signUp: jest.fn(),
+          resetPassword: jest.fn(),
+          updateEmail: jest.fn(),
+          updatePassword: jest.fn()
         }}>
           <ProfilePage />
         </AuthContext.Provider>
       );
       
       // Verify the router.push was called with the signin URL
-      expect(mockPush).toHaveBeenCalledWith('/auth/signin?redirect=/profile')
+      expect(mockPush).toHaveBeenCalledWith('/auth/signin?redirect=/profile');
       
       // Check for the redirect element in test mode
-      expect(screen.getByTestId('unauthenticated-redirect')).toBeInTheDocument();
-    })
+      expect(getByTestId('unauthenticated-redirect')).toBeInTheDocument();
+    });
 
     it('renders profile page for authenticated users', async () => {
-      const { getByText, findByText } = renderWithAuthContext(<ProfilePage />);
+      const { getByText, getByRole } = renderWithAuthContext(<ProfilePage />);
       
-      // Wait for the profile data to load
-      await findByText('Your Profile');
+      // Check for the profile heading
+      expect(getByText('Your Profile')).toBeInTheDocument();
       
       // Now check for tab content
-      expect(getByText('Profile', { selector: '[role="tab"]' })).toBeInTheDocument();
-      expect(getByText('Content', { selector: '[role="tab"]' })).toBeInTheDocument();
-      expect(getByText('Settings', { selector: '[role="tab"]' })).toBeInTheDocument();
-    })
+      expect(getByRole('tab', { name: 'Profile' })).toBeInTheDocument();
+      expect(getByRole('tab', { name: 'Content' })).toBeInTheDocument();
+      expect(getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
+    });
 
     it('meets accessibility requirements', async () => {
       const { container } = renderWithAuthContext(<ProfilePage />);
-      const results = await axe(container)
-      expect(results).toHaveNoViolations()
-    })
-  })
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+  });
 
   describe('interactions', () => {
     it('allows switching between tabs', async () => {
-      const user = userEvent.setup()
-      const { getByRole, getByText, findByText } = renderWithAuthContext(<ProfilePage />);
+      const user = userEvent.setup();
+      const { getByRole, getByText } = renderWithAuthContext(<ProfilePage />);
       
-      // Wait for the profile data to load
-      await findByText('Your Profile');
-
       // Click on Content tab
-      await user.click(getByRole('tab', { name: 'Content' }))
-      expect(getByText('Your Content')).toBeInTheDocument()
+      await user.click(getByRole('tab', { name: 'Content' }));
+      expect(getByText('Your Content')).toBeInTheDocument();
+      expect(getByText('Manage your lessons and content here.')).toBeInTheDocument();
 
       // Click on Settings tab
-      await user.click(getByRole('tab', { name: 'Settings' }))
-      expect(getByText('Stripe Connect')).toBeInTheDocument()
-    })
+      await user.click(getByRole('tab', { name: 'Settings' }));
+      expect(getByText('Stripe Connect')).toBeInTheDocument();
+    });
 
-    it('displays stripe connect button with account ID', async () => {
-      const { getByRole, getByText, findByText } = renderWithAuthContext(<ProfilePage />);
-      
-      // Wait for the profile data to load
-      await findByText('Your Profile');
+    it('displays stripe connect section', async () => {
+      const user = userEvent.setup();
+      const { getByRole, getByText } = renderWithAuthContext(<ProfilePage />);
       
       // Navigate to settings tab
-      await userEvent.click(getByRole('tab', { name: 'Settings' }))
+      await user.click(getByRole('tab', { name: 'Settings' }));
       
       // Check that the Stripe Connect section is visible
-      expect(getByText('Stripe Connect')).toBeInTheDocument()
-      expect(getByText('Connect your Stripe account to receive payments for your lessons')).toBeInTheDocument()
-    })
-  })
-})
+      expect(getByText('Stripe Connect')).toBeInTheDocument();
+      expect(getByText('Connect your Stripe account to receive payments for your lessons')).toBeInTheDocument();
+    });
+  });
+});

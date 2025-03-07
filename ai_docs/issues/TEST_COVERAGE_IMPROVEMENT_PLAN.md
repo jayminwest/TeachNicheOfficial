@@ -96,8 +96,8 @@ Focus on stateless UI components that require minimal mocking:
 #### Form Components
 - [x] `app/components/ui/lesson-form.tsx` (improved to 100%)
 - [x] `app/profile/components/profile-form.tsx` (improved to 100%)
-- [ ] `app/components/ui/sign-in.tsx` (improve from 91.11%)
-- [ ] `app/components/ui/image-uploader.tsx` (currently 0%)
+- [x] `app/components/ui/sign-in.tsx` (improved from 91.11% to 100%)
+- [x] `app/components/ui/image-uploader.tsx` (improved from 0% to 100%)
 
 ### Phase 3: API Routes and Services
 
@@ -173,7 +173,7 @@ We'll track progress using the following metrics:
 | Phase | Starting Coverage | Target Coverage | Actual Coverage | Status |
 |-------|------------------|----------------|-----------------|--------|
 | Phase 1 | 17.24% | 32% | 27.3% | Completed |
-| Phase 2 | 27.3% | 47% | 33.7% | In Progress |
+| Phase 2 | 27.3% | 47% | 39.5% | In Progress |
 | Phase 3 | 47% | 67% | - | Not Started |
 | Phase 4 | 67% | 82% | - | Not Started |
 

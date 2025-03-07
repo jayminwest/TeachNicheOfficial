@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, AlertCircle, Upload, Check } from 'lucide-react';
 import { useToast } from '@/app/components/ui/use-toast';
@@ -11,7 +10,6 @@ interface NewLessonFormProps {
 }
 
 export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +39,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         if (!session) {
           // No active session
           console.log('No active session found');
-          router.push('/auth?redirect=/lessons/new');
+          window.location.href = '/auth?redirect=/lessons/new';
           return;
         }
         
@@ -60,13 +58,13 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         
         // Set a timeout before redirecting to avoid immediate redirects on temporary issues
         setTimeout(() => {
-          router.push('/auth?redirect=/lessons/new');
+          window.location.href = '/auth?redirect=/lessons/new';
         }, 1500);
       }
     }
     
     checkAuth();
-  }, [router, toast]);
+  }, [toast]);
   
   // Handle file upload
   const handleFileUpload = async (file: File) => {
@@ -206,7 +204,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       });
       
       // Redirect to the lesson page or custom redirect path
-      router.push(redirectPath || `/lessons/${lesson.id}`);
+      window.location.href = redirectPath || `/lessons/${lesson.id}`;
     } catch (error) {
       console.error('Lesson creation error:', error);
       

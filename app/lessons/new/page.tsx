@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import NewLessonClientWrapper from './client-wrapper';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewLessonPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-16">

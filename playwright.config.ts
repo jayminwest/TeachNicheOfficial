@@ -47,28 +47,63 @@ export default defineConfig({
     /* Record video on failure */
     video: 'on-first-retry',
   },
+  
+  /* Configure browser context for all projects */
+  contextOptions: {
+    permissions: ['clipboard-read', 'clipboard-write'],
+  },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
+      },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { 
+        ...devices['Desktop Firefox'],
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
+      },
     },
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { 
+        ...devices['Desktop Safari'],
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
+      },
     },
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: { 
+        ...devices['Pixel 5'],
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
+      },
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      use: { 
+        ...devices['iPhone 12'],
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
+      },
     },
     /* Test against branded browsers. */
     {
@@ -76,6 +111,10 @@ export default defineConfig({
       use: { 
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
       },
       testMatch: /.*\.visual\.spec\.ts/,
     },
@@ -84,6 +123,10 @@ export default defineConfig({
       name: 'Auth Tests',
       use: { 
         ...devices['Desktop Chrome'],
+        // Enable localStorage access
+        contextOptions: {
+          permissions: ['clipboard-read', 'clipboard-write'],
+        },
       },
       testDir: './e2e/auth',
     },

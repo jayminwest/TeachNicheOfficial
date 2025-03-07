@@ -13,7 +13,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'teach-niche.vercel.app'],
+      allowedOrigins: ['localhost:3000', 'teach-niche.vercel.app', '127.0.0.1:*'],
     },
   },
   typescript: {
@@ -25,6 +25,20 @@ const nextConfig = {
   },
   // Use standalone output for better compatibility
   output: 'standalone',
+  // Add security headers for testing
+  headers: async () => {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+        ],
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

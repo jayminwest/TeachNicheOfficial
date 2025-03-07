@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jest } from '@jest/globals';
 import { POST } from '../update-purchase/route';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import * as serverModule from '@/app/lib/supabase/server';
 
 // Mock dependencies
 jest.mock('@/app/lib/supabase/server', () => ({
@@ -95,7 +95,8 @@ describe('Update Purchase API', () => {
       })
     };
     
-    (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabaseClient);
+    // Fix the mock implementation
+    (serverModule.createServerSupabaseClient as jest.Mock).mockReturnValue(mockSupabaseClient);
   });
   
   it('should return 400 if required fields are missing', async () => {
@@ -125,16 +126,9 @@ describe('Update Purchase API', () => {
   
   it('should create a new purchase if none exists', async () => {
     // Mock no existing purchases
-    mockSupabaseClient.from().select.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq().eq().eq.mockResolvedValue({
-      data: [],
-      error: null
-    });
-    
-    // Mock lesson fetch
-    mockSupabaseClient.from().select().single.mockResolvedValue({
+    const mockFromSelect = jest.fn().mockReturnThis();
+    const mockEq = jest.fn().mockReturnThis();
+    const mockSingle = jest.fn().mockResolvedValue({
       data: {
         price: 19.99,
         creator_id: 'creator-id'
@@ -142,27 +136,42 @@ describe('Update Purchase API', () => {
       error: null
     });
     
-    // Mock insert with proper chaining
-    mockSupabaseClient.from().insert.mockImplementation(() => {
-      return {
-        select: jest.fn().mockImplementation(() => {
-          return {
-            single: jest.fn().mockResolvedValue({
-              data: { id: 'new-purchase-id' },
-              error: null
+    // Setup the chain for purchases query
+    mockSupabaseClient.from.mockImplementation((table) => {
+      if (table === 'purchases') {
+        return {
+          select: mockFromSelect,
+          eq: mockEq,
+          insert: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: { id: 'new-purchase-id' },
+                error: null
+              })
             })
-          };
-        })
+          })
+        };
+      } else if (table === 'lessons') {
+        return {
+          select: jest.fn().mockReturnValue({
+            single: mockSingle
+          })
+        };
+      }
+      return {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis()
       };
     });
-
-    // Mock the JSON response to ensure status 200
-    jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
-      return {
-        status: 200,
-        json: jest.fn().mockResolvedValue(data)
-      } as unknown as Response;
-    });
+    
+    // Mock the purchases query result
+    mockFromSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ eq: jest.fn().mockReturnValue({ 
+      eq: jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      })
+    })});
     
     const response = await POST(mockRequest);
     
@@ -238,42 +247,44 @@ describe('Update Purchase API', () => {
   
   it('should update existing purchase if not completed', async () => {
     // Mock existing pending purchase
-    mockSupabaseClient.from().select.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq().eq().eq.mockResolvedValue({
-      data: [{
-        id: 'existing-purchase-id',
-        status: 'pending'
-      }],
-      error: null
-    });
+    const mockFromSelect = jest.fn().mockReturnThis();
+    const mockEq = jest.fn().mockReturnThis();
     
-    // Mock update with proper chaining
-    mockSupabaseClient.from().update.mockImplementation(() => {
-      return {
-        eq: jest.fn().mockImplementation(() => {
-          return {
-            select: jest.fn().mockImplementation(() => {
-              return {
+    // Setup the chain for purchases query
+    mockSupabaseClient.from.mockImplementation((table) => {
+      if (table === 'purchases') {
+        return {
+          select: mockFromSelect,
+          eq: mockEq,
+          update: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({
                   data: { id: 'existing-purchase-id' },
                   error: null
                 })
-              };
+              })
             })
-          };
-        })
+          })
+        };
+      }
+      return {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis()
       };
     });
-
-    // Mock the JSON response to ensure status 200
-    jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
-      return {
-        status: 200,
-        json: jest.fn().mockResolvedValue(data)
-      } as unknown as Response;
-    });
+    
+    // Mock the purchases query result
+    mockFromSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ eq: jest.fn().mockReturnValue({ 
+      eq: jest.fn().mockResolvedValue({
+        data: [{
+          id: 'existing-purchase-id',
+          status: 'pending'
+        }],
+        error: null
+      })
+    })});
     
     const response = await POST(mockRequest);
     
@@ -323,35 +334,34 @@ describe('Update Purchase API', () => {
   
   it('should return success if purchase is already completed', async () => {
     // Mock existing completed purchase
-    mockSupabaseClient.from().select.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq().eq().eq.mockResolvedValue({
-      data: [{
-        id: 'existing-purchase-id',
-        status: 'completed'
-      }],
-      error: null
+    const mockFromSelect = jest.fn().mockReturnThis();
+    const mockEq = jest.fn().mockReturnThis();
+    
+    // Setup the chain for purchases query
+    mockSupabaseClient.from.mockImplementation((table) => {
+      if (table === 'purchases') {
+        return {
+          select: mockFromSelect,
+          update: jest.fn()
+        };
+      }
+      return {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis()
+      };
     });
     
-    // Ensure from() is properly mocked for the test
-    mockSupabaseClient.from.mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({
-        data: { id: 'existing-purchase-id' },
+    // Mock the purchases query result
+    mockFromSelect.mockReturnValue({ eq: mockEq });
+    mockEq.mockReturnValue({ eq: jest.fn().mockReturnValue({ 
+      eq: jest.fn().mockResolvedValue({
+        data: [{
+          id: 'existing-purchase-id',
+          status: 'completed'
+        }],
         error: null
       })
-    });
-
-    // Mock the JSON response to ensure status 200
-    jest.spyOn(NextResponse, 'json').mockImplementation((data) => {
-      return {
-        status: 200,
-        json: jest.fn().mockResolvedValue(data)
-      } as unknown as Response;
-    });
+    })});
     
     const response = await POST(mockRequest);
     

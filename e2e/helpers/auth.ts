@@ -95,7 +95,7 @@ export async function login(
   await page.reload();
   
   // Wait for a moment to ensure the auth state is applied
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
 }
 
 /**

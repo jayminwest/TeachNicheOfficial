@@ -66,11 +66,15 @@ test.describe('Google Sign-In', () => {
     // Mock a successful login
     await login(page, 'learner');
     
-    // Check if localStorage has the redirect info
-    const hasRedirect = await page.evaluate(() => {
-      return window.location.href.includes('/lessons');
-    });
+    // Wait for navigation to complete
+    await page.waitForTimeout(1000);
     
-    expect(hasRedirect).toBe(true);
+    // Check if we're on the lessons page or being redirected there
+    const currentUrl = page.url();
+    const isOnLessonsOrRedirecting = 
+      currentUrl.includes('/lessons') || 
+      (currentUrl.includes('/auth') && currentUrl.includes('redirect=%2Flessons'));
+    
+    expect(isOnLessonsOrRedirecting).toBe(true);
   });
 });

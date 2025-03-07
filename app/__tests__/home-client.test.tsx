@@ -4,20 +4,16 @@ import { AuthDialog } from '@/app/components/ui/auth-dialog'
 
 // Mock the redirectTo function
 const mockRedirectTo = jest.fn();
-// Mock the entire HomeClient module
+
+// Mock the module before importing it
 jest.mock('../home-client', () => {
-  // Import the actual module
-  const originalModule = jest.requireActual('../home-client');
-  
-  // Return a modified version
+  // Return a modified version with mocked redirectTo
   return {
     __esModule: true,
-    default: (props: any) => {
-      // Mock the redirectTo function
-      originalModule.redirectTo = mockRedirectTo;
-      // Return the original component with the mocked function
-      return originalModule.default(props);
-    }
+    redirectTo: jest.fn().mockImplementation((url) => {
+      mockRedirectTo(url);
+    }),
+    default: jest.requireActual('../home-client').default
   };
 });
 

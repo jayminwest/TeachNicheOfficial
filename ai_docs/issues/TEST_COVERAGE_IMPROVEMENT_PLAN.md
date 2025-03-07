@@ -86,7 +86,7 @@ Focus on stateless UI components that require minimal mocking:
 #### Page Components
 - [x] `app/home-client.tsx` (improved to 100%) ✅
 - [x] `app/error.tsx` (improved to 100%) ✅
-- [ ] `app/error-page.tsx` (currently 0%)
+- [x] `app/error-page.tsx` (improved to 100%) ✅
 - [ ] `app/global-error.tsx` (currently 0%)
 - [ ] `app/not-found.tsx` (currently 0%)
 - [ ] `app/page.tsx` (currently 0%)

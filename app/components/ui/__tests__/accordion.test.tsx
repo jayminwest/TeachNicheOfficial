@@ -122,10 +122,12 @@ describe('Accordion Component', () => {
     );
     
     // Item 2 should be open by default
-    const content1 = screen.getByRole('region', { name: /trigger 1/i, hidden: true });
-    const content2 = screen.getByRole('region', { name: /trigger 2/i });
+    const content1 = screen.getByRole('region', { hidden: true });
+    const content2 = screen.getAllByRole('region').find(el => !el.hidden);
     
     expect(content1).not.toBeVisible();
     expect(content2).toBeVisible();
+    expect(screen.getByText('Content 2')).toBeVisible();
+    expect(screen.queryByText('Content 1')).not.toBeVisible();
   });
 });

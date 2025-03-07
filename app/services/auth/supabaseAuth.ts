@@ -57,9 +57,8 @@ export function onAuthStateChange(callback: (event: string, session: unknown) =>
   }
   
   try {
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      callback(event, session);
-    });
+    // The Supabase onAuthStateChange method takes the callback directly
+    const { data } = supabase.auth.onAuthStateChange(callback);
     return { data };
   } catch (error) {
     console.error('Error setting up auth state change listener:', error);

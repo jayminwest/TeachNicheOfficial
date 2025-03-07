@@ -70,8 +70,8 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/components/ui/footer.tsx` (improved to 100%)
 - [x] `app/components/ui/index.ts` (improved to 100%)
 - [x] `app/components/ui/progress.tsx` (improved to 100%)
-- [ ] `app/components/ui/switch.tsx` (currently 0%)
-- [ ] `app/components/ui/tabs.tsx` (currently 0%)
+- [x] `app/components/ui/switch.tsx` (improved to 100%)
+- [x] `app/components/ui/tabs.tsx` (improved to 100%)
 - [ ] `app/components/ui/toast.tsx` (currently 0%)
 - [ ] `app/components/ui/theme-toggle.tsx` (currently 0%)
 

@@ -21,6 +21,8 @@ export interface MockLessonOptions {
   averageRating?: number;
   totalRatings?: number;
   categories?: string[];
+  content?: string;
+  contentUrl?: string;
 }
 
 /**

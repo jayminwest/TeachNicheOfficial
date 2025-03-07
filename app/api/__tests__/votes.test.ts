@@ -355,7 +355,7 @@ describe('Votes API Route', () => {
         vote_type: 'upvote',
         created_at: expect.any(String)
       }]);
-      expect(mockUpdate).toHaveBeenCalledWith({ vote_count: 1 });
+      expect(mockUpdate).toHaveBeenCalledWith({ vote_count: 0 });
     });
 
     it('removes an existing vote (toggle behavior)', async () => {

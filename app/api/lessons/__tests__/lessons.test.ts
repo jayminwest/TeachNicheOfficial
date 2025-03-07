@@ -246,10 +246,13 @@ describe('Lessons API', () => {
     });
 
     it('handles database errors gracefully', async () => {
-      const mockSupabase = getMockSupabase();
+      // Get the mock Supabase client
+      const { createServerSupabaseClient } = jest.requireMock('../../../lib/supabase/server');
+      const mockServerSupabase = createServerSupabaseClient();
+      
       // Set up the mock to return an error
-      mockSupabase.error = { message: 'Database error' };
-      mockSupabase.data = null;
+      mockServerSupabase.error = { message: 'Database error' };
+      mockServerSupabase.data = null;
       
       // Create a mock request
       createMocks({
@@ -259,8 +262,8 @@ describe('Lessons API', () => {
       
       // Mock the response
       const { NextResponse } = jest.requireMock('next/server');
-      NextResponse.json.mockImplementationOnce((data) => ({
-        status: 500,
+      NextResponse.json.mockImplementationOnce((data, init) => ({
+        status: init?.status || 500,
         body: data,
         json: () => data
       }));

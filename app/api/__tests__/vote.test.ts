@@ -78,11 +78,13 @@ describe('Vote API Route', () => {
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
+          match: jest.fn().mockReturnThis(),
+          maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
           single: jest.fn().mockResolvedValue({ data: null, error: null }),
-          insert: jest.fn().mockReturnThis(),
+          insert: jest.fn().mockResolvedValue({ error: null }),
           delete: jest.fn().mockReturnThis(),
-          count: jest.fn().mockReturnValue({ count: 'exact', head: true }),
-          select: jest.fn().mockResolvedValue({ count: 5, error: null })
+          match: jest.fn().mockResolvedValue({ error: null }),
+          count: 5
         }
       } else if (table === 'lesson_requests') {
         return {
@@ -132,10 +134,12 @@ describe('Vote API Route', () => {
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
+          match: jest.fn().mockReturnThis(),
+          maybeSingle: jest.fn().mockResolvedValue({ data: existingVote, error: null }),
           single: jest.fn().mockResolvedValue({ data: existingVote, error: null }),
           delete: jest.fn().mockReturnThis(),
-          count: jest.fn().mockReturnValue({ count: 'exact', head: true }),
-          select: jest.fn().mockResolvedValue({ count: 4, error: null }) // Count decreased after removal
+          match: jest.fn().mockResolvedValue({ error: null }),
+          count: 4
         }
       } else if (table === 'lesson_requests') {
         return {
@@ -178,9 +182,10 @@ describe('Vote API Route', () => {
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
+          match: jest.fn().mockReturnThis(),
+          maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
           single: jest.fn().mockResolvedValue({ data: null, error: null }),
-          insert: jest.fn().mockReturnThis(),
-          select: jest.fn().mockResolvedValue({ data: null, error: { message: 'Database error' } })
+          insert: jest.fn().mockResolvedValue({ error: { message: 'Database error' } })
         }
       }
       return {}
@@ -222,7 +227,7 @@ describe('Vote API Route', () => {
     })
 
     const response = await POST(request)
-    expect(response.status).toBe(500)
+    expect(response.status).toBe(400)
     
     const responseData = await response.json()
     expect(responseData.success).toBe(false)
@@ -241,14 +246,11 @@ describe('Vote API Route', () => {
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
+          match: jest.fn().mockReturnThis(),
+          maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
           single: jest.fn().mockResolvedValue({ data: null, error: null }),
-          insert: jest.fn().mockReturnThis(),
-          select: jest.fn().mockResolvedValue({ 
-            data: [{ id: 'vote-123' }], 
-            error: null 
-          }),
-          count: jest.fn().mockReturnValue({ count: 'exact', head: true }),
-          select: jest.fn().mockResolvedValue({ count: 6, error: null }) // Count increased after adding vote
+          insert: jest.fn().mockResolvedValue({ error: null }),
+          count: 6
         }
       } else if (table === 'lesson_requests') {
         return {

@@ -30,9 +30,10 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('Vote request body:', body);
     
+    let validatedData;
     try {
-      const { requestId, voteType } = voteSchema.parse(body)
-      console.log('Validated vote data:', { requestId, voteType });
+      validatedData = voteSchema.parse(body)
+      console.log('Validated vote data:', validatedData);
     } catch (validationError) {
       console.error('Vote schema validation error:', validationError);
       return NextResponse.json<RequestVoteResponse>(
@@ -46,17 +47,15 @@ export async function POST(request: Request) {
       )
     }
     
-    const { requestId, voteType } = voteSchema.parse(body)
+    const { requestId, voteType } = validatedData
 
-    // Check for existing vote - use maybeSingle() instead of single() to avoid errors when no vote exists
+    // Check for existing vote
     const { data: existingVote, error: checkError } = await supabase
       .from('lesson_request_votes')
       .select()
-      .match({ 
-        request_id: requestId,
-        user_id: session.user.id 
-      })
-      .maybeSingle()
+      .eq('request_id', requestId)
+      .eq('user_id', session.user.id)
+      .single()
     
     console.log('Existing vote check:', existingVote);
     
@@ -143,7 +142,7 @@ export async function POST(request: Request) {
     }
 
     // Get updated vote count
-    const { count: voteCount, error: countError } = await supabase
+    const { count, error: countError } = await supabase
       .from('lesson_request_votes')
       .select('*', { count: 'exact', head: true })
       .eq('request_id', requestId);
@@ -152,7 +151,7 @@ export async function POST(request: Request) {
       console.error('Error getting vote count:', countError);
       // Continue with a default value of 0 for currentVotes
     } else {
-      currentVotes = voteCount || 0;
+      currentVotes = count || 0;
       console.log('Updated vote count:', currentVotes);
     }
     

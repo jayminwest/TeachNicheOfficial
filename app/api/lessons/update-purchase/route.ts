@@ -106,6 +106,12 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           );
         }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Purchase created successfully',
+          purchaseId: newPurchase?.id || 'unknown'
+        });
       } catch (error) {
         console.error('Error creating purchase:', error);
         return NextResponse.json(
@@ -114,11 +120,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({
-        success: true,
-        message: 'Purchase created successfully',
-        purchaseId: newPurchase?.id || 'unknown'
-      });
     }
 
     // If purchase exists but is not completed, update it

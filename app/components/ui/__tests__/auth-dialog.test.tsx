@@ -58,8 +58,9 @@ describe('AuthDialog', () => {
       </Suspense>
     );
     
-    // Dialog should be visible with fallback content
-    expect(screen.getByTestId('auth-loading')).toBeInTheDocument();
+    // Dialog should be visible
+    expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('auth-dialog-title')).toBeInTheDocument();
   });
   
   it('closes when authenticated user is detected', async () => {

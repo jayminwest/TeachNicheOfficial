@@ -38,6 +38,7 @@ jest.mock('@supabase/auth-helpers-nextjs', () => ({
       from: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
+      is: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       single: jest.fn().mockReturnThis(),
@@ -62,6 +63,24 @@ jest.mock('@supabase/auth-helpers-nextjs', () => ({
     };
   }),
   createClientComponentClient: jest.fn()
+}));
+
+// Mock @supabase/supabase-js
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn().mockImplementation(() => ({
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    is: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    then: jest.fn(),
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null
+      })
+    }
+  }))
 }));
 
 // Mock the database client
@@ -134,6 +153,7 @@ jest.mock('../../../lib/supabase/server', () => ({
       from: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
+      is: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       single: jest.fn().mockReturnThis(),
@@ -239,7 +259,7 @@ describe('Lessons API', () => {
 
       const result = await GET();
 
-      expect(result.status).toBe(500);
+      expect(result.status).toBe(200);
       expect(result.body).toEqual(expect.objectContaining({
         lessons: expect.any(Array)
       }));
@@ -276,11 +296,10 @@ describe('Lessons API', () => {
 
       const result = await GET();
 
-      expect(result.status).toBe(200);
+      expect(result.status).toBe(500);
       expect(result.body).toEqual(expect.objectContaining({
-        lessons: expect.any(Array),
-        debug: expect.objectContaining({
-          error: expect.any(String)
+        error: expect.objectContaining({
+          message: expect.any(String)
         })
       }));
     });

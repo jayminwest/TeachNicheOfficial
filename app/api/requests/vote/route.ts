@@ -179,7 +179,7 @@ export async function POST(request: Request) {
         success: false, 
         currentVotes: 0,
         userHasVoted: false,
-        error: 'database_error'
+        error: 'Failed to process vote'
       },
       { status: 500 }
     )

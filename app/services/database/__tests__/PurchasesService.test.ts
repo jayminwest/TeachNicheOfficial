@@ -12,7 +12,7 @@ jest.mock('stripe', () => {
     }
   };
   
-  return jest.fn(() => mockStripeInstance);
+  return mockStripeInstance;
 });
 
 // Mock Supabase client

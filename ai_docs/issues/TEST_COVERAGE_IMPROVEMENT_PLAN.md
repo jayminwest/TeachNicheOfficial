@@ -102,7 +102,7 @@ Focus on stateless UI components that require minimal mocking:
 ### Phase 3: API Routes and Services
 
 #### API Routes
-- [ ] `app/api/lessons/route.ts` (improve from 73.68%)
+- [x] `app/api/lessons/route.ts` (improved from 73.68%)
 - [ ] `app/api/lessons/[id]/route.ts` (currently 0%)
 - [ ] `app/api/lessons/check-purchase/route.ts` (currently 0%)
 - [ ] `app/api/lessons/purchase/route.ts` (currently 0%)

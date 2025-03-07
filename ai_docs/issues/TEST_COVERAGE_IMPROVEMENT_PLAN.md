@@ -108,9 +108,9 @@ Focus on stateless UI components that require minimal mocking:
 - [ ] `app/api/lessons/purchase/route.ts` (currently 0%)
 - [ ] `app/api/lessons/update-purchase/route.ts` (currently 0%)
 - [ ] `app/api/checkout/route.ts` (improve from 20.83%)
-- [ ] `app/api/profile/route.ts` (currently 0%)
-- [ ] `app/api/profile/get/route.ts` (currently 0%)
-- [ ] `app/api/profile/update/route.ts` (currently 0%)
+- [X] `app/api/profile/route.ts` (currently 0%)
+- [X] `app/api/profile/get/route.ts` (currently 0%)
+- [X] `app/api/profile/update/route.ts` (currently 0%)
 - [ ] `app/api/categories/route.ts` (currently 0%)
 - [x] `app/api/votes/route.ts` (improved from 39.58% to 100%)
 

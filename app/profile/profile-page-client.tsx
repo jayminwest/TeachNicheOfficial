@@ -1,15 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import ProfileClient from './profile-client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
+import ProfileRedirect from './profile-redirect';
 
 export default function ProfilePageClient() {
   const { loading, isAuthenticated } = useAuth();
-  const router = useRouter();
   
   // Show loading state
   if (loading) {
@@ -23,11 +22,9 @@ export default function ProfilePageClient() {
     );
   }
   
-  // Redirect if not authenticated
+  // Redirect if not authenticated - using a separate client component
   if (!isAuthenticated) {
-    router.push('/auth/signin?redirect=/profile');
-    // This element helps with testing
-    return <div data-testid="unauthenticated-redirect">Redirecting to login...</div>;
+    return <ProfileRedirect />;
   }
   
   return (

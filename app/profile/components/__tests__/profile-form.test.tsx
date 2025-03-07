@@ -426,9 +426,11 @@ describe('ProfileForm', () => {
     
     render(<ProfileForm />);
     
-    // Wait for initial form load with shorter timeout
+    // Wait for initial form load and for loading state to finish
     await waitFor(() => {
       expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+      // Make sure loading state is finished
+      expect(screen.queryByText('Loading profile data...')).not.toBeInTheDocument();
     }, { timeout: 1000 });
     
     // Set form values directly instead of simulating typing
@@ -448,6 +450,11 @@ describe('ProfileForm', () => {
     // Check if update API was called with shorter timeout
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/profile/update', expect.any(Object));
+    }, { timeout: 1000 });
+    
+    // Wait for the button to change to "Updating..." state
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /updating/i })).toBeInTheDocument();
     }, { timeout: 1000 });
     
     // Fast-forward timers to trigger the refresh

@@ -238,7 +238,7 @@ describe('SignInPage', () => {
   });
 });
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { SignIn } from '../sign-in';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
 import { useSearchParams, useRouter } from 'next/navigation';

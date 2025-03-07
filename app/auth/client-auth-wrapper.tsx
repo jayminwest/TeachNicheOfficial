@@ -11,7 +11,21 @@ interface ClientAuthWrapperProps {
   errorParam?: string;
 }
 
-// Inner component that uses router
+// Export the wrapped component with Suspense
+export default function ClientAuthWrapper(props: ClientAuthWrapperProps) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loading-spinner" />
+        </div>
+      </div>
+    }>
+      <ClientAuthWrapperContent {...props} />
+    </Suspense>
+  );
+}
+
 function ClientAuthWrapperContent({ redirect, errorParam }: ClientAuthWrapperProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);

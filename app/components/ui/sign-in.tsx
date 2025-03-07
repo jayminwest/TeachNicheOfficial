@@ -20,7 +20,23 @@ interface SignInPageProps {
   redirectPath?: string | null;
 }
 
-// Inner component that uses searchParams
+// Export the wrapped component with Suspense
+function SignInPage(props: SignInPageProps) {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[inherit] w-full items-center justify-center">
+        <div className="text-center">
+          <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+          <VisuallyHidden>Loading authentication status</VisuallyHidden>
+          <p>Loading...</p>
+        </div>
+      </div>
+    }>
+      <SignInPageContent {...props} />
+    </Suspense>
+  );
+}
+
 function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

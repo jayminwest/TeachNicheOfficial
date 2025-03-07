@@ -13,7 +13,23 @@ interface AuthClientProps {
   redirectPath?: string;
 }
 
-// Inner component that uses router
+// Export the wrapped component with Suspense
+export function AuthClient(props: AuthClientProps) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loading-spinner" />
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <AuthClientContent {...props} />
+    </Suspense>
+  );
+}
+
 function AuthClientContent({ onSuccess, redirectPath }: AuthClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);

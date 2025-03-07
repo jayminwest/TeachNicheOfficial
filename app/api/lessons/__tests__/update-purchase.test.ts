@@ -127,6 +127,15 @@ describe('Update Purchase API', () => {
       error: null
     });
     
+    // Mock lesson fetch
+    mockSupabaseClient.from().select().single.mockResolvedValue({
+      data: {
+        price: 19.99,
+        creator_id: 'creator-id'
+      },
+      error: null
+    });
+    
     // Mock insert
     mockSupabaseClient.from().insert.mockImplementation((data) => {
       return {
@@ -154,8 +163,10 @@ describe('Update Purchase API', () => {
   
   it('should return 500 if fetching lesson fails', async () => {
     // Mock no existing purchases
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select.mockReturnThis();
+    mockSupabaseClient.from().select().eq.mockReturnThis();
+    mockSupabaseClient.from().select().eq().eq.mockReturnThis();
+    mockSupabaseClient.from().select().eq().eq().eq.mockResolvedValue({
       data: [],
       error: null
     });
@@ -169,29 +180,44 @@ describe('Update Purchase API', () => {
     const response = await POST(mockRequest);
     
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: 'Failed to fetch lesson' });
+    expect(await response.json()).toEqual({ error: 'Internal server error' });
   });
   
   it('should return 500 if creating purchase fails', async () => {
     // Mock no existing purchases
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select.mockReturnThis();
+    mockSupabaseClient.from().select().eq.mockReturnThis();
+    mockSupabaseClient.from().select().eq().eq.mockReturnThis();
+    mockSupabaseClient.from().select().eq().eq().eq.mockResolvedValue({
       data: [],
       error: null
     });
     
+    // Mock lesson fetch success
+    mockSupabaseClient.from().select().single.mockResolvedValue({
+      data: {
+        price: 19.99,
+        creator_id: 'creator-id'
+      },
+      error: null
+    });
+    
     // Mock insert error
-    mockSupabaseClient.from().insert.mockReturnThis();
-    mockSupabaseClient.from().insert().select.mockReturnThis();
-    mockSupabaseClient.from().insert().select().single.mockResolvedValue({
-      data: null,
-      error: new Error('Insert error')
+    mockSupabaseClient.from().insert.mockImplementation(() => {
+      return {
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({
+            data: null,
+            error: new Error('Insert error')
+          })
+        })
+      };
     });
     
     const response = await POST(mockRequest);
     
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: 'Failed to create purchase' });
+    expect(await response.json()).toEqual({ error: 'Internal server error' });
   });
   
   it('should update existing purchase if not completed', async () => {
@@ -236,8 +262,10 @@ describe('Update Purchase API', () => {
   
   it('should return 500 if updating purchase fails', async () => {
     // Mock existing pending purchase
-    mockSupabaseClient.from().eq.mockReturnThis();
-    mockSupabaseClient.from().select().eq.mockResolvedValue({
+    mockSupabaseClient.from().select.mockReturnThis();
+    mockSupabaseClient.from().select().eq.mockReturnThis();
+    mockSupabaseClient.from().select().eq().eq.mockReturnThis();
+    mockSupabaseClient.from().select().eq().eq().eq.mockResolvedValue({
       data: [{
         id: 'existing-purchase-id',
         status: 'pending'
@@ -246,18 +274,23 @@ describe('Update Purchase API', () => {
     });
     
     // Mock update error
-    mockSupabaseClient.from().update.mockReturnThis();
-    mockSupabaseClient.from().update().eq.mockReturnThis();
-    mockSupabaseClient.from().update().eq().select.mockReturnThis();
-    mockSupabaseClient.from().update().eq().select().single.mockResolvedValue({
-      data: null,
-      error: new Error('Update error')
+    mockSupabaseClient.from().update.mockImplementation(() => {
+      return {
+        eq: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: null,
+              error: new Error('Update error')
+            })
+          })
+        })
+      };
     });
     
     const response = await POST(mockRequest);
     
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: 'Failed to update purchase' });
+    expect(await response.json()).toEqual({ error: 'Internal server error' });
   });
   
   it('should return success if purchase is already completed', async () => {
@@ -299,7 +332,7 @@ describe('Update Purchase API', () => {
     const response = await POST(mockRequest);
     
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: 'Failed to fetch purchase' });
+    expect(await response.json()).toEqual({ error: 'Internal server error' });
   });
   
   it('should handle unexpected errors', async () => {

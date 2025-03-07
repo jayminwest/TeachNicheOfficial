@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { LessonForm } from '../lesson-form';
 import { act } from 'react-dom/test-utils';
 import * as React from 'react';
@@ -17,8 +17,8 @@ jest.mock('../markdown-editor', () => ({
 }));
 
 jest.mock('../image-uploader', () => ({
-  ImageUploader: ({ initialImage, onUploadComplete }: { 
-    initialImage: string; 
+  ImageUploader: ({ onUploadComplete }: { 
+    initialImage?: string; 
     onUploadComplete: (url: string) => void;
     onError: (error: Error) => void;
   }) => (

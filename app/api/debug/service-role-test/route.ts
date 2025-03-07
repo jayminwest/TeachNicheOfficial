@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/app/types/database';
 
@@ -23,7 +22,7 @@ export async function GET() {
     
     // Try a simple query to check if the service role key works
     // This should work even with an empty database
-    const { data, error } = await supabase.from('lessons').select('count');
+    const { error } = await supabase.from('lessons').select('count');
     
     if (error) {
       return NextResponse.json({

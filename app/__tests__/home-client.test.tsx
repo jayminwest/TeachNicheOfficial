@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { AuthDialog } from '@/app/components/ui/auth-dialog'
 
 // Mock the redirectTo function
@@ -38,7 +38,7 @@ describe('HomeClient', () => {
     
     // Mock window.location
     delete window.location;
-    window.location = new URL('http://localhost') as any;
+    window.location = new URL('http://localhost') as unknown as Location;
     
     // Reset the mock implementation for each test
     (redirectTo as jest.Mock).mockImplementation((url) => mockRedirectTo(url));
@@ -65,7 +65,7 @@ describe('HomeClient', () => {
 
   it('opens auth dialog when auth=signin in URL', () => {
     // Set URL with auth=signin
-    window.location = new URL('http://localhost?auth=signin') as any;
+    window.location = new URL('http://localhost?auth=signin') as unknown as Location;
     
     // Set up the mock implementation for this test
     (HomeClient as jest.Mock).mockImplementation(() => (
@@ -82,7 +82,7 @@ describe('HomeClient', () => {
 
   it('sets redirect URL when redirect parameter is present', () => {
     // Set URL with redirect parameter
-    window.location = new URL('http://localhost?redirect=/lessons') as any;
+    window.location = new URL('http://localhost?redirect=/lessons') as unknown as Location;
     
     // Set up the mock implementation for this test
     (HomeClient as jest.Mock).mockImplementation(() => (
@@ -104,7 +104,7 @@ describe('HomeClient', () => {
 
   it('uses default redirect URL when no redirect parameter', () => {
     // Set URL with no parameters
-    window.location = new URL('http://localhost') as any;
+    window.location = new URL('http://localhost') as unknown as Location;
     
     // Set up the mock implementation for this test
     (HomeClient as jest.Mock).mockImplementation(() => (
@@ -126,7 +126,7 @@ describe('HomeClient', () => {
 
   it('handles both auth and redirect parameters together', () => {
     // Set URL with both parameters
-    window.location = new URL('http://localhost?auth=signin&redirect=/dashboard') as any;
+    window.location = new URL('http://localhost?auth=signin&redirect=/dashboard') as unknown as Location;
     
     // Set up the mock implementation for this test
     (HomeClient as jest.Mock).mockImplementation(() => (

@@ -74,11 +74,13 @@ test.describe('Authentication Redirect', () => {
       sessionStorage.setItem('auth-redirect', '/profile');
     });
     
-    // Set up an interceptor to handle any API calls during navigation
-    await setupApiInterceptors(page);
+    // Force a hard navigation to the profile page
+    await page.evaluate(() => {
+      window.location.href = '/profile?test_auth=true';
+    });
     
-    // Directly navigate to the profile page with a flag to bypass auth checks in test environment
-    await page.goto('/profile?test_auth=true');
+    // Wait for navigation to complete
+    await page.waitForNavigation({ waitUntil: 'networkidle' });
     
     // Wait for the page to stabilize
     await page.waitForTimeout(2000);

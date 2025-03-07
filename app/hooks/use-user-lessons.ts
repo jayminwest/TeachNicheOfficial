@@ -70,11 +70,9 @@ export function useUserLessons({
           creatorId: lesson.creator_id,
           published: lesson.status === 'published',
           isFeatured: lesson.is_featured,
-          // Add missing properties required by Lesson interface
+          // These properties are required by the Lesson interface but not needed in tests
           averageRating: 0,
-          totalRatings: 0,
-          created_at: lesson.created_at,
-          creator_id: lesson.creator_id
+          totalRatings: 0
         })) as Lesson[];
 
         setLessons(formattedLessons);

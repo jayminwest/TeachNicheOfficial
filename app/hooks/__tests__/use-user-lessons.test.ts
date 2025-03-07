@@ -105,6 +105,8 @@ describe('useUserLessons', () => {
       creatorId: 'user-123',
       published: true,
       isFeatured: true,
+      averageRating: 0,
+      totalRatings: 0
     });
     expect(result.current.lessons[1].description).toBe('');
     expect(result.current.lessons[1].thumbnailUrl).toBe('/placeholder-thumbnail.jpg');

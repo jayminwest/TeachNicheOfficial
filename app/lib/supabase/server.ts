@@ -1,6 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import type { Database } from '@/app/types/database';
 
 // Use a direct Supabase client approach to avoid cookie issues

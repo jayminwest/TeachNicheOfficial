@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get redirect path from cookie or use default
-    let redirectTo = '/profile'
+    const redirectTo = '/profile'
     
     // Get redirect path from session storage or use default
     // We'll use a simpler approach that doesn't rely on cookies

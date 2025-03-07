@@ -73,7 +73,9 @@ describe('Profile Update API Route', () => {
   it('should update an existing profile successfully', async () => {
     // Setup
     mockSupabase.from().update.mockReturnValue({
-      error: null,
+      eq: jest.fn().mockReturnValue({
+        error: null
+      })
     });
 
     // Execute
@@ -158,8 +160,9 @@ describe('Profile Update API Route', () => {
   it('should return 500 when there is a database error during update', async () => {
     // Setup
     mockSupabase.from().update.mockReturnValue({
-      eq: jest.fn().mockReturnThis(),
-      error: { message: 'Database error' }
+      eq: jest.fn().mockReturnValue({
+        error: { message: 'Database error' }
+      })
     });
 
     // Execute

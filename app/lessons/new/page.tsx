@@ -1,5 +1,7 @@
-// Static page with no client components to avoid useSearchParams() error
-export const dynamic = 'force-static';
+import { Suspense } from 'react';
+import NewLessonClientWrapper from './client-wrapper';
+
+export const dynamic = 'force-dynamic';
 
 export default function NewLessonPage() {
   return (
@@ -14,29 +16,21 @@ export default function NewLessonPage() {
               Share your knowledge with the world. Fill out the form below to create your new lesson.
             </p>
           </div>
-          <div id="lesson-form-container" className="bg-card rounded-lg border shadow-sm p-6 md:p-8">
-            <div className="animate-pulse flex flex-col space-y-4">
-              <div className="h-4 bg-muted rounded w-3/4"></div>
-              <div className="h-10 bg-muted rounded"></div>
-              <div className="h-4 bg-muted rounded w-1/2"></div>
-              <div className="h-32 bg-muted rounded"></div>
-              <div className="h-10 bg-muted rounded w-1/4 self-end"></div>
-            </div>
+          <div className="bg-card rounded-lg border shadow-sm p-6 md:p-8">
+            <Suspense fallback={
+              <div className="animate-pulse flex flex-col space-y-4">
+                <div className="h-4 bg-muted rounded w-3/4"></div>
+                <div className="h-10 bg-muted rounded"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+                <div className="h-32 bg-muted rounded"></div>
+                <div className="h-10 bg-muted rounded w-1/4 self-end"></div>
+              </div>
+            }>
+              <NewLessonClientWrapper />
+            </Suspense>
           </div>
         </div>
       </div>
-      
-      <script dangerouslySetInnerHTML={{ 
-        __html: `
-          // Load the lesson form functionality after page loads
-          document.addEventListener('DOMContentLoaded', function() {
-            const script = document.createElement('script');
-            script.src = '/new-lesson-client.js';
-            script.async = true;
-            document.body.appendChild(script);
-          });
-        `
-      }} />
     </div>
   );
 }

@@ -37,16 +37,14 @@ export function Accordion({ items, className }: AccordionProps) {
               }
             </span>
           </button>
-          <div
-            id={`accordion-content-${index}`}
-            className={cn(
-              "overflow-hidden transition-all duration-300",
-              openIndex === index ? "p-4 border-t" : "max-h-0 border-t-0"
-            )}
-            style={{ display: openIndex === index ? 'block' : 'none' }}
-          >
-            {item.content}
-          </div>
+          {openIndex === index && (
+            <div
+              id={`accordion-content-${index}`}
+              className="p-4 border-t overflow-hidden transition-all duration-300"
+            >
+              {item.content}
+            </div>
+          )}
         </div>
       ))}
     </div>

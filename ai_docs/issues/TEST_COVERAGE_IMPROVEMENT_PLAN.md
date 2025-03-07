@@ -97,7 +97,6 @@ Focus on stateless UI components that require minimal mocking:
 - [x] `app/components/ui/lesson-form.tsx` (improved to 100%)
 - [x] `app/profile/components/profile-form.tsx` (improved to 100%)
 - [ ] `app/components/ui/sign-in.tsx` (improve from 91.11%)
-- [ ] `app/components/ui/email-signup.tsx` (currently 0%)
 - [ ] `app/components/ui/image-uploader.tsx` (currently 0%)
 
 ### Phase 3: API Routes and Services

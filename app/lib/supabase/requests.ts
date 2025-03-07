@@ -342,6 +342,18 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
           userHasVoted: true,
           error: 'already_voted'
         }
+      } else if (response.status === 400) {
+        toast({
+          title: "Invalid Input",
+          description: "The vote request contains invalid data",
+          variant: "destructive"
+        })
+        return {
+          success: false,
+          currentVotes: 0,
+          userHasVoted: false,
+          error: 'invalid_input'
+        }
       }
       
       toast({

@@ -4,13 +4,11 @@ import { AuthDialog } from '@/app/components/ui/auth-dialog'
 // Mock the redirectTo function
 const mockRedirectTo = jest.fn();
 
-// Mock the home-client module
+// Mock the home-client module and its exports
 jest.mock('../home-client', () => {
   return {
     __esModule: true,
-    default: function MockHomeClient() {
-      return null;
-    },
+    default: jest.fn(),
     redirectTo: jest.fn().mockImplementation((url) => mockRedirectTo(url))
   };
 });
@@ -52,15 +50,13 @@ describe('HomeClient', () => {
   })
 
   it('renders without crashing', () => {
-    // Override the default implementation for this test
-    (HomeClient as jest.Mock).mockImplementation(() => {
-      return (
-        <AuthDialog 
-          open={false}
-          onOpenChange={() => {}}
-        />
-      );
-    });
+    // Set up the mock implementation for this test
+    (HomeClient as jest.Mock).mockImplementation(() => (
+      <AuthDialog 
+        open={false}
+        onOpenChange={() => {}}
+      />
+    ));
     
     render(<HomeClient />);
     expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
@@ -71,15 +67,13 @@ describe('HomeClient', () => {
     // Set URL with auth=signin
     window.location = new URL('http://localhost?auth=signin') as any;
     
-    // Override the default implementation for this test
-    (HomeClient as jest.Mock).mockImplementation(() => {
-      return (
-        <AuthDialog 
-          open={true}
-          onOpenChange={() => {}}
-        />
-      );
-    });
+    // Set up the mock implementation for this test
+    (HomeClient as jest.Mock).mockImplementation(() => (
+      <AuthDialog 
+        open={true}
+        onOpenChange={() => {}}
+      />
+    ));
     
     render(<HomeClient />);
     
@@ -90,16 +84,14 @@ describe('HomeClient', () => {
     // Set URL with redirect parameter
     window.location = new URL('http://localhost?redirect=/lessons') as any;
     
-    // Override the default implementation for this test
-    (HomeClient as jest.Mock).mockImplementation(() => {
-      return (
-        <AuthDialog 
-          open={false}
-          onOpenChange={() => {}}
-          onSuccess={() => redirectTo('/lessons')}
-        />
-      );
-    });
+    // Set up the mock implementation for this test
+    (HomeClient as jest.Mock).mockImplementation(() => (
+      <AuthDialog 
+        open={false}
+        onOpenChange={() => {}}
+        onSuccess={() => redirectTo('/lessons')}
+      />
+    ));
     
     render(<HomeClient />);
     
@@ -114,16 +106,14 @@ describe('HomeClient', () => {
     // Set URL with no parameters
     window.location = new URL('http://localhost') as any;
     
-    // Override the default implementation for this test
-    (HomeClient as jest.Mock).mockImplementation(() => {
-      return (
-        <AuthDialog 
-          open={false}
-          onOpenChange={() => {}}
-          onSuccess={() => redirectTo('/profile')}
-        />
-      );
-    });
+    // Set up the mock implementation for this test
+    (HomeClient as jest.Mock).mockImplementation(() => (
+      <AuthDialog 
+        open={false}
+        onOpenChange={() => {}}
+        onSuccess={() => redirectTo('/profile')}
+      />
+    ));
     
     render(<HomeClient />);
     
@@ -138,16 +128,14 @@ describe('HomeClient', () => {
     // Set URL with both parameters
     window.location = new URL('http://localhost?auth=signin&redirect=/dashboard') as any;
     
-    // Override the default implementation for this test
-    (HomeClient as jest.Mock).mockImplementation(() => {
-      return (
-        <AuthDialog 
-          open={true}
-          onOpenChange={() => {}}
-          onSuccess={() => redirectTo('/dashboard')}
-        />
-      );
-    });
+    // Set up the mock implementation for this test
+    (HomeClient as jest.Mock).mockImplementation(() => (
+      <AuthDialog 
+        open={true}
+        onOpenChange={() => {}}
+        onSuccess={() => redirectTo('/dashboard')}
+      />
+    ));
     
     render(<HomeClient />);
     

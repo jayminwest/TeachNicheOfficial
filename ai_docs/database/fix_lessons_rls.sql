@@ -13,6 +13,7 @@ ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 -- 3. Create consolidated policies with clear, non-overlapping rules
 
 -- Public access - unauthenticated users can only see published, non-deleted lessons
+DROP POLICY IF EXISTS "Public can view published lessons" ON public.lessons;
 CREATE POLICY "Public can view published lessons" 
 ON public.lessons
 FOR SELECT 

@@ -49,3 +49,15 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO service_role;
 SELECT grantee, privilege_type 
 FROM information_schema.role_table_grants 
 WHERE table_name = 'lessons' AND table_schema = 'public' AND grantee = 'service_role';
+
+-- 7. Check all existing policies on the lessons table
+SELECT schemaname, tablename, policyname, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE tablename = 'lessons';
+
+-- 8. Check if the service role is being used correctly
+-- If you're still having issues after running these scripts, the problem might be in your application code:
+-- 1. Verify you're using the correct service role key in your application
+-- 2. Check that you're creating the Supabase client with the service role key
+-- 3. Make sure you're not mixing anon and service role clients
+-- 4. Ensure your API routes are using the server-side Supabase client

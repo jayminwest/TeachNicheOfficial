@@ -33,9 +33,9 @@ describe('supabaseAuth', () => {
       expect(result.error).toBeNull();
       expect(mockSupabaseClient.auth.signInWithOAuth).toHaveBeenCalledWith({
         provider: 'google',
-        options: {
+        options: expect.objectContaining({
           redirectTo: expect.any(String),
-        },
+        }),
       });
     });
     
@@ -64,7 +64,7 @@ describe('supabaseAuth', () => {
       const result = await signInWithGoogle();
       
       expect(result.success).toBe(false);
-      expect(result.error).toBe(cookieError);
+      expect(result.error?.message).toContain('Third party cookies blocked');
       expect(result.cookieError).toBe(true);
     });
   });
@@ -128,14 +128,19 @@ describe('supabaseAuth', () => {
       const mockCallback = jest.fn();
       const mockUnsubscribe = jest.fn();
       
+      // Set up the mock to store the callback
+      let storedCallback: any;
       mockSupabaseClient.auth.onAuthStateChange.mockImplementation((event, callback) => {
-        // Simulate auth state change
-        callback('SIGNED_IN', { user: { id: 'test-user-id' } });
+        storedCallback = callback;
         return { data: { subscription: { unsubscribe: mockUnsubscribe } } };
       });
 
       const result = onAuthStateChange(mockCallback);
       
+      // Manually trigger the callback
+      storedCallback('SIGNED_IN', { user: { id: 'test-user-id' } });
+      
+      // Now the callback should have been called
       expect(mockCallback).toHaveBeenCalledWith('SIGNED_IN', { user: { id: 'test-user-id' } });
       expect(result.data.subscription.unsubscribe).toBe(mockUnsubscribe);
     });

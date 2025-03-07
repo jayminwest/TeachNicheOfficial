@@ -65,40 +65,36 @@ else
   PROD_HOST=$(echo $PROD_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
   DEV_HOST=$(echo $DEV_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
   
-  # Function to test connection with timeout support for different platforms
-  test_connection() {
-    local host=$1
-    local port=$2
-    local timeout_seconds=$3
+  # Function to validate connection string format
+  validate_connection_string() {
+    local conn_string=$1
+    local name=$2
     
-    # Check if GNU timeout is available
-    if command -v timeout &> /dev/null; then
-      timeout $timeout_seconds pg_isready -h $host -p $port
-      return $?
-    # Check if gtimeout is available (common on macOS with homebrew)
-    elif command -v gtimeout &> /dev/null; then
-      gtimeout $timeout_seconds pg_isready -h $host -p $port
-      return $?
-    else
-      # Fallback for macOS/BSD without timeout command
-      # Try a simple connection test with a shorter timeout
-      # This avoids the perl alarm issues on some systems
-      pg_isready -h $host -p $port -t $timeout_seconds
-      return $?
+    # Check if the connection string has the expected format
+    if [[ ! $conn_string =~ postgresql://[^:]+:[^@]+@[^:]+:[0-9]+/[^[:space:]]+ ]]; then
+      echo "Warning: $name connection string may not be in the correct format."
+      echo "Expected format: postgresql://postgres:password@host:5432/postgres"
+      return 1
     fi
+    return 0
   }
   
-  echo "Testing connection to production database..."
-  if ! test_connection $PROD_HOST 5432 5; then
-    echo "Warning: Could not connect to production database. Check your connection string."
-    echo "Connection string format should be: postgresql://postgres:password@host:5432/postgres"
+  # Validate connection strings instead of trying to connect directly
+  # Direct connections to Supabase often fail due to IP restrictions
+  echo "Validating production database connection string..."
+  if ! validate_connection_string "$PROD_DB_URL" "Production"; then
+    echo "Please check your production database connection string."
     echo "Continuing anyway, but commands may fail."
+  else
+    echo "Production database connection string format is valid."
   fi
   
-  echo "Testing connection to development database..."
-  if ! test_connection $DEV_HOST 5432 5; then
-    echo "Warning: Could not connect to development database. Check your connection string."
+  echo "Validating development database connection string..."
+  if ! validate_connection_string "$DEV_DB_URL" "Development"; then
+    echo "Please check your development database connection string."
     echo "Continuing anyway, but commands may fail."
+  else
+    echo "Development database connection string format is valid."
   fi
 fi
 
@@ -206,51 +202,90 @@ run_with_timeout() {
   fi
 }
 
-run_with_timeout 60 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$PROD_DB_URL" \
-  -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
-  --schema public
+# Function to handle command failures with better error messages
+run_supabase_command() {
+  local description=$1
+  shift
+  
+  echo "Running: $description"
+  "$@"
+  local status=$?
+  
+  if [ $status -ne 0 ]; then
+    echo "Error: Failed to $description."
+    echo "This could be due to:"
+    echo "  - Invalid connection string"
+    echo "  - Network connectivity issues"
+    echo "  - IP restrictions on Supabase database"
+    echo "  - Insufficient permissions"
+    echo ""
+    echo "Troubleshooting tips:"
+    echo "  - Verify your connection strings in .env.vercel.production and .env.dev"
+    echo "  - Ensure you have the latest Supabase CLI installed"
+    echo "  - Check if your IP is allowlisted in Supabase dashboard"
+    return $status
+  fi
+  
+  return 0
+}
+
+run_supabase_command "export production schema" \
+  run_with_timeout 60 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+    --db-url "$PROD_DB_URL" \
+    -f "$EXPORTS_DIR/schema_$TIMESTAMP.sql" \
+    --schema public
 
 if [ $? -ne 0 ]; then
-  echo "Error: Failed to export production schema. The database connection may be incorrect."
-  echo "PROD_DB_URL: ${PROD_DB_URL//:*/:*****@*****}"
+  echo "Error: Failed to export production schema."
+  echo "You may need to use the Supabase dashboard to export the schema manually."
+  echo "Visit: https://app.supabase.com/project/_/database/tables"
+  echo "Then go to the SQL Editor and use pg_dump commands."
   exit 1
 fi
 
 # Step 2: Export RLS policies
 echo "Step 2: Exporting RLS policies..."
-run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$PROD_DB_URL" \
-  -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
-  --schema public \
-  --include "POLICY"
+run_supabase_command "export RLS policies" \
+  run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+    --db-url "$PROD_DB_URL" \
+    -f "$EXPORTS_DIR/rls_$TIMESTAMP.sql" \
+    --schema public \
+    --include "POLICY"
 
 if [ $? -ne 0 ]; then
-  echo "Error: Failed to export RLS policies. The database connection may be incorrect."
+  echo "Error: Failed to export RLS policies."
+  echo "You may need to use the Supabase dashboard to export policies manually."
+  echo "Visit: https://app.supabase.com/project/_/database/policies"
   exit 1
 fi
 
 # Step 3: Export functions and triggers
 echo "Step 3: Exporting functions and triggers..."
-run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
-  --db-url "$PROD_DB_URL" \
-  -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
-  --schema public \
-  --include "FUNCTION TRIGGER"
+run_supabase_command "export functions and triggers" \
+  run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase db dump \
+    --db-url "$PROD_DB_URL" \
+    -f "$EXPORTS_DIR/functions_$TIMESTAMP.sql" \
+    --schema public \
+    --include "FUNCTION TRIGGER"
 
 if [ $? -ne 0 ]; then
-  echo "Error: Failed to export functions and triggers. The database connection may be incorrect."
+  echo "Error: Failed to export functions and triggers."
+  echo "You may need to use the Supabase dashboard to export functions manually."
+  echo "Visit: https://app.supabase.com/project/_/database/functions"
   exit 1
 fi
 
 # Step 4: Export auth configuration
 echo "Step 4: Exporting auth configuration..."
-run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
-  --db-url "$PROD_DB_URL" \
-  > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
+run_supabase_command "export auth configuration" \
+  run_with_timeout 30 PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" supabase auth config export \
+    --db-url "$PROD_DB_URL" \
+    > "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 if [ $? -ne 0 ]; then
-  echo "Error: Failed to export auth configuration. The database connection may be incorrect."
+  echo "Error: Failed to export auth configuration."
+  echo "You may need to use the Supabase dashboard to configure auth manually."
+  echo "Visit: https://app.supabase.com/project/_/auth/providers"
   exit 1
 fi
 
@@ -313,32 +348,37 @@ END \$\$;
 EOF
 
 # Apply reset script
-PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_DB_URL" \
-  -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql"
+run_supabase_command "apply reset script to development database" \
+  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
+    --db-url "$DEV_DB_URL" \
+    -f "$EXPORTS_DIR/reset_dev_$TIMESTAMP.sql"
 
 # Apply consolidated schema
-PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_DB_URL" \
-  -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql"
+run_supabase_command "apply schema to development database" \
+  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
+    --db-url "$DEV_DB_URL" \
+    -f "$MIGRATIONS_DIR/current_state_$TIMESTAMP.sql"
 
 # Apply migration tracking
-PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_DB_URL" \
-  -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql"
+run_supabase_command "apply migration tracking to development database" \
+  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
+    --db-url "$DEV_DB_URL" \
+    -f "$MIGRATIONS_DIR/${TIMESTAMP}_migration_tracking.sql"
 
 # Step 9: Import auth configuration
 echo "Step 9: Importing auth configuration..."
-PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase auth config import \
-  --db-url "$DEV_DB_URL" \
-  "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
+run_supabase_command "import auth configuration to development database" \
+  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase auth config import \
+    --db-url "$DEV_DB_URL" \
+    "$EXPORTS_DIR/auth_config_$TIMESTAMP.json"
 
 # Step 10: Verify synchronization
 echo "Step 10: Verifying database synchronization..."
-PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" PGPASSWORD_TARGET="$DEV_SUPABASE_SERVICE_KEY" supabase db diff \
-  --source-db "$PROD_DB_URL" \
-  --target-db "$DEV_DB_URL" \
-  > "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt"
+run_supabase_command "verify database synchronization" \
+  PGPASSWORD="$PROD_SUPABASE_SERVICE_KEY" PGPASSWORD_TARGET="$DEV_SUPABASE_SERVICE_KEY" supabase db diff \
+    --source-db "$PROD_DB_URL" \
+    --target-db "$DEV_DB_URL" \
+    > "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt"
 
 if [ -s "$EXPORTS_DIR/verification_diff_$TIMESTAMP.txt" ]; then
   echo "⚠️ Differences still exist between environments."
@@ -391,9 +431,10 @@ RETURNS TABLE (
 EOF
 
 # Apply policy inspection function
-PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
-  --db-url "$DEV_DB_URL" \
-  -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql"
+run_supabase_command "apply policy inspection function to development database" \
+  PGPASSWORD="$DEV_SUPABASE_SERVICE_KEY" supabase db push \
+    --db-url "$DEV_DB_URL" \
+    -f "$MIGRATIONS_DIR/${TIMESTAMP}_policy_inspection.sql"
 
 echo ""
 echo "=== Database Unification Complete ==="
@@ -415,5 +456,12 @@ echo "1. Review any differences in verification_diff_$TIMESTAMP.txt"
 echo "2. Test your application against the development database"
 echo "3. Update your TypeScript types if schema has changed"
 echo "4. Commit the updated migration files to your repository"
+echo ""
+echo "Troubleshooting:"
+echo "If you encountered connection issues, you may need to:"
+echo "1. Check IP allowlisting in Supabase dashboard"
+echo "2. Verify your connection strings in environment files"
+echo "3. Use the Supabase web interface for manual operations"
+echo "4. Contact Supabase support if issues persist"
 echo ""
 echo "Done!"

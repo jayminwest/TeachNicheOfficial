@@ -20,6 +20,7 @@ interface SignInPageProps {
   initialView?: 'sign-in' | 'sign-up';
   onSwitchToSignUp?: () => void;
   redirectPath?: string | null;
+  className?: string;
 }
 
 // Export the wrapped component with Suspense

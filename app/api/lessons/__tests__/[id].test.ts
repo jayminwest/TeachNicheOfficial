@@ -49,7 +49,7 @@ describe('Lesson API - [id] route', () => {
   const mockLessonId = 'test-lesson-id';
   const mockUserId = 'test-user-id';
   
-  let mockRequest: NextRequest;
+  let mockRequest: NextRequest | Request;
   let mockSupabaseClient: any;
   
   beforeEach(() => {
@@ -324,12 +324,13 @@ describe('Lesson API - [id] route', () => {
   
   describe('DELETE method', () => {
     beforeEach(() => {
-      mockRequest = new NextRequest(
+      // Create a standard Request object instead of NextRequest
+      mockRequest = new Request(
         `http://localhost:3000/api/lessons/${mockLessonId}`,
         {
           method: 'DELETE'
         }
-      );
+      ) as unknown as NextRequest;
     });
     
     it('should return 401 if user is not authenticated', async () => {

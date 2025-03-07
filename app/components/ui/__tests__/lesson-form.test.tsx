@@ -73,7 +73,16 @@ const mockSessionStorage = {
 };
 Object.defineProperty(window, 'sessionStorage', {
   value: mockSessionStorage,
+  writable: true
 });
+
+// Mock toast
+const mockToast = jest.fn();
+jest.mock('../use-toast', () => ({
+  useToast: () => ({
+    toast: mockToast,
+  }),
+}));
 
 describe('LessonForm', () => {
   beforeEach(() => {
@@ -129,67 +138,102 @@ describe('LessonForm', () => {
   it('handles form submission with valid data', async () => {
     const mockSubmit = jest.fn().mockImplementation(() => Promise.resolve());
     
-    render(<LessonForm onSubmit={mockSubmit} />);
+    // Use act for the initial render to handle useEffect calls
+    await act(async () => {
+      render(<LessonForm onSubmit={mockSubmit} />);
+    });
     
     // Fill out the form
-    fireEvent.change(screen.getByLabelText(/Lesson Title/i), { target: { value: 'New Lesson' } });
-    fireEvent.change(screen.getByLabelText(/Description/i), { target: { value: 'This is a new lesson description that is long enough to pass validation.' } });
-    fireEvent.change(screen.getByTestId('mock-markdown-editor'), { target: { value: 'Lesson content goes here' } });
-    fireEvent.change(screen.getByLabelText(/Price/i), { target: { value: '19.99' } });
-    
-    // Submit the form using the form's submit event instead of clicking the button
-    const form = screen.getByTestId('lesson-form');
-    fireEvent.submit(form);
-    
-    await waitFor(() => {
-      expect(mockSubmit).toHaveBeenCalledWith(expect.objectContaining({
-        title: 'New Lesson',
-        description: 'This is a new lesson description that is long enough to pass validation.',
-        content: 'Lesson content goes here',
-        price: 19.99,
-      }));
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Lesson Title/i), { target: { value: 'New Lesson' } });
+      fireEvent.change(screen.getByLabelText(/Description/i), { target: { value: 'This is a new lesson description that is long enough to pass validation.' } });
+      fireEvent.change(screen.getByTestId('mock-markdown-editor'), { target: { value: 'Lesson content goes here' } });
+      fireEvent.change(screen.getByLabelText(/Price/i), { target: { value: '19.99' } });
     });
+    
+    // Submit the form using the form's submit event
+    await act(async () => {
+      const form = screen.getByTestId('lesson-form');
+      fireEvent.submit(form);
+    });
+    
+    // The mockSubmit should have been called
+    expect(mockSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'New Lesson',
+      description: 'This is a new lesson description that is long enough to pass validation.',
+      content: 'Lesson content goes here',
+      price: 19.99,
+    }));
   });
 
   it('handles image upload', async () => {
-    render(<LessonForm onSubmit={jest.fn()} />);
+    // Clear mocks before test
+    jest.clearAllMocks();
     
-    // Trigger image upload
-    fireEvent.click(screen.getByTestId('upload-image-button'));
-    
-    // We can't check form values directly since they're managed by react-hook-form
-    // Instead, verify that the mock sessionStorage was called with the right values
-    await waitFor(() => {
-      // Check that the toast was triggered (indirectly verifying the upload completed)
-      expect(mockSessionStorage.setItem).toHaveBeenCalled();
+    // Use act for the initial render
+    await act(async () => {
+      render(<LessonForm onSubmit={jest.fn()} />);
     });
+    
+    // Trigger image upload with act
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('upload-image-button'));
+    });
+    
+    // Verify the toast was called (which happens on successful upload)
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Thumbnail uploaded"
+      })
+    );
   });
 
   it('handles video upload', async () => {
-    render(<LessonForm onSubmit={jest.fn()} />);
+    // Clear mocks before test
+    jest.clearAllMocks();
     
-    // Trigger video upload
-    fireEvent.click(screen.getByTestId('upload-video-button'));
-    
-    await waitFor(() => {
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith('lastMuxAssetId', 'test-asset-id');
+    // Use act for the initial render
+    await act(async () => {
+      render(<LessonForm onSubmit={jest.fn()} />);
     });
+    
+    // Trigger video upload with act
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('upload-video-button'));
+    });
+    
+    // Verify sessionStorage was called
+    expect(mockSessionStorage.setItem).toHaveBeenCalledWith('lastMuxAssetId', 'test-asset-id');
+    
+    // Verify the toast was called
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Video uploaded"
+      })
+    );
   });
 
   it('checks for Stripe account when setting price > 0', async () => {
-    render(<LessonForm onSubmit={jest.fn()} />);
-    
-    // Set a price > 0
-    fireEvent.change(screen.getByLabelText(/Price/i), { target: { value: '19.99' } });
-    
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/profile/stripe-status');
-      expect(screen.getByText(/Stripe account connected and ready for payments/i)).toBeInTheDocument();
+    // Use act for the initial render
+    await act(async () => {
+      render(<LessonForm onSubmit={jest.fn()} />);
     });
+    
+    // Set a price > 0 with act
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Price/i), { target: { value: '19.99' } });
+    });
+    
+    // Verify fetch was called and text is displayed
+    expect(global.fetch).toHaveBeenCalledWith('/api/profile/stripe-status');
+    expect(screen.getByText(/Stripe account connected and ready for payments/i)).toBeInTheDocument();
   });
 
-  it('applies custom className when provided', () => {
-    render(<LessonForm onSubmit={jest.fn()} className="custom-class" />);
+  it('applies custom className when provided', async () => {
+    // Use act for the render
+    await act(async () => {
+      render(<LessonForm onSubmit={jest.fn()} className="custom-class" />);
+    });
     
     const form = screen.getByTestId('lesson-form');
     expect(form).toHaveClass('custom-class');

@@ -72,7 +72,13 @@ function AuthClientContent({ onSuccess, redirectPath }: AuthClientProps) {
           console.log('Redirecting to:', redirectUrl);
           sessionStorage.removeItem('auth-redirect');
           // Use window.location for more reliable redirect in tests
-          if (process.env.NODE_ENV === 'test' || redirectUrl.includes('test_auth=true')) {
+          const isTestEnvironment = typeof window !== 'undefined' && 
+            (process.env.NODE_ENV === 'test' || 
+             sessionStorage.getItem('test-environment') === 'true' ||
+             redirectUrl.includes('test_auth=true'));
+             
+          if (isTestEnvironment) {
+            console.log('Test environment detected, using window.location.href for redirect');
             window.location.href = redirectUrl;
           } else {
             router.push(redirectUrl);

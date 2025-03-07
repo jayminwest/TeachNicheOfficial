@@ -6,6 +6,16 @@ import { Page } from '@playwright/test';
  * @param page - Playwright page object
  */
 export async function setupApiInterceptors(page: Page) {
+  // Set a cookie to indicate we're in a test environment
+  await page.context().addCookies([
+    {
+      name: 'test-environment',
+      value: 'true',
+      domain: 'localhost',
+      path: '/',
+    }
+  ]);
+
   // Add a global route handler for all API calls to ensure we catch everything
   await page.route('**/api/**', async (route) => {
     const url = route.request().url();
@@ -70,10 +80,12 @@ export async function setupApiInterceptors(page: Page) {
             }),
           });
           
-          // If there's a redirect, store it in localStorage for the login helper
+          // If there's a redirect, store it in sessionStorage for the login helper
           if (redirectParam) {
             await page.evaluate((redirect) => {
-              localStorage.setItem('auth-redirect', redirect);
+              sessionStorage.setItem('auth-redirect', redirect);
+              // Also set a flag to indicate we're in a test environment
+              sessionStorage.setItem('test-environment', 'true');
             }, redirectParam);
           }
         } else {

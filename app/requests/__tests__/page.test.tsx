@@ -153,6 +153,13 @@ describe('RequestsPage', () => {
 
   it('filters requests by category', async () => {
     const user = userEvent.setup()
+    
+    // Mock the router.push function before rendering
+    const mockPush = jest.fn();
+    (useRouter as jest.Mock).mockImplementation(() => ({
+      push: mockPush
+    }));
+    
     render(<RequestsPage />)
 
     // Wait for sidebar and categories to be rendered
@@ -160,12 +167,6 @@ describe('RequestsPage', () => {
       expect(screen.getByText('Categories')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Beginner Fundamentals' })).toBeInTheDocument()
     })
-
-    // Mock the router.push function
-    const mockPush = jest.fn();
-    (useRouter as jest.Mock).mockImplementation(() => ({
-      push: mockPush
-    }));
 
     // Click category filter
     const categoryButton = screen.getByRole('button', { name: 'Beginner Fundamentals' })
@@ -177,18 +178,19 @@ describe('RequestsPage', () => {
 
   it('changes sort order', async () => {
     const user = userEvent.setup()
+    
+    // Mock the router.push function before rendering
+    const mockPush = jest.fn();
+    (useRouter as jest.Mock).mockImplementation(() => ({
+      push: mockPush
+    }));
+    
     render(<RequestsPage />)
 
     // Wait for sort options to be rendered
     await waitFor(() => {
       expect(screen.getByText('Sort By')).toBeInTheDocument()
     })
-
-    // Mock the router.push function
-    const mockPush = jest.fn();
-    (useRouter as jest.Mock).mockImplementation(() => ({
-      push: mockPush
-    }));
 
     // Click sort option
     const popularButton = screen.getByRole('button', { name: 'Most Popular' })

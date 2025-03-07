@@ -26,8 +26,8 @@ describe('Update Purchase API', () => {
       randomUUID: jest.fn().mockReturnValue('generated-uuid')
     };
     
-    // Create a mock request directly
-    mockRequest = new NextRequest(
+    // Create a mock request
+    mockRequest = new Request(
       'http://localhost:3000/api/lessons/update-purchase',
       {
         method: 'POST',
@@ -35,7 +35,7 @@ describe('Update Purchase API', () => {
           'Content-Type': 'application/json'
         }
       }
-    );
+    ) as unknown as NextRequest;
     
     // Mock request.json
     jest.spyOn(mockRequest, 'json').mockResolvedValue({

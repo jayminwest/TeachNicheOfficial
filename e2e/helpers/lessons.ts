@@ -23,6 +23,7 @@ export interface MockLessonOptions {
   categories?: string[];
   content?: string;
   contentUrl?: string;
+  purchased?: boolean;
 }
 
 /**
@@ -66,7 +67,7 @@ export async function createMockLesson(page: Page, options: MockLessonOptions = 
     localStorage.setItem('mock-lessons', JSON.stringify(mockLessons));
     
     // If this is a purchased lesson, add to purchased lessons
-    if (data.purchased) {
+    if ('purchased' in data && data.purchased) {
       const purchasedLessons = JSON.parse(localStorage.getItem('purchased-lessons') || '[]');
       if (!purchasedLessons.includes(data.id)) {
         purchasedLessons.push(data.id);

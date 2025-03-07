@@ -137,13 +137,12 @@ describe('Update Purchase API', () => {
     });
     
     // Mock insert
-    mockSupabaseClient.from().insert.mockImplementation((data) => {
+    mockSupabaseClient.from().insert.mockImplementation(() => {
       return {
-        select: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({
-            data: { id: 'new-purchase-id' },
-            error: null
-          })
+        select: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { id: 'new-purchase-id' },
+          error: null
         })
       };
     });
@@ -234,15 +233,13 @@ describe('Update Purchase API', () => {
     });
     
     // Mock update
-    mockSupabaseClient.from().update.mockImplementation((data) => {
+    mockSupabaseClient.from().update.mockImplementation(() => {
       return {
-        eq: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { id: 'existing-purchase-id' },
-              error: null
-            })
-          })
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { id: 'existing-purchase-id' },
+          error: null
         })
       };
     });
@@ -304,6 +301,17 @@ describe('Update Purchase API', () => {
         status: 'completed'
       }],
       error: null
+    });
+    
+    // Ensure from() is properly mocked for the test
+    mockSupabaseClient.from.mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({
+        data: null,
+        error: null
+      })
     });
     
     const response = await POST(mockRequest);

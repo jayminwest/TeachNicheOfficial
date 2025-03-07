@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { Dialog, DialogContent, DialogTitle } from './dialog'
 import { SignInPage } from './sign-in'
 import { useAuth } from '@/app/services/auth/AuthContext'
@@ -13,7 +13,8 @@ interface AuthDialogProps {
   defaultView?: 'sign-in' | 'sign-up'
 }
 
-export function AuthDialog({ 
+// Component that uses searchParams
+function AuthDialogContent({ 
   open, 
   onOpenChange, 
   onSuccess,
@@ -76,5 +77,25 @@ export function AuthDialog({
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+// Export the wrapped component with Suspense
+export function AuthDialog(props: AuthDialogProps) {
+  return (
+    <Suspense fallback={
+      <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+        <DialogContent className="p-0 w-[425px]" data-testid="auth-dialog">
+          <DialogTitle className="px-6 pt-6" data-testid="auth-dialog-title">
+            Sign in to Teach Niche
+          </DialogTitle>
+          <div className="p-6 flex justify-center" data-testid="auth-loading">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    }>
+      <AuthDialogContent {...props} />
+    </Suspense>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { Button } from './button'
@@ -20,7 +20,8 @@ interface SignInPageProps {
   redirectPath?: string | null;
 }
 
-function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
+// Inner component that uses searchParams
+function SignInPageContent({ onSignInSuccess, redirectPath }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signInWithGoogle } from '@/app/services/auth/supabaseAuth';
@@ -13,7 +13,8 @@ interface AuthClientProps {
   redirectPath?: string;
 }
 
-export function AuthClient({ onSuccess, redirectPath }: AuthClientProps) {
+// Inner component that uses router
+function AuthClientContent({ onSuccess, redirectPath }: AuthClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);

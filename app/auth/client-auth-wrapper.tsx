@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -11,7 +11,8 @@ interface ClientAuthWrapperProps {
   errorParam?: string;
 }
 
-export default function ClientAuthWrapper({ redirect, errorParam }: ClientAuthWrapperProps) {
+// Inner component that uses router
+function ClientAuthWrapperContent({ redirect, errorParam }: ClientAuthWrapperProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);

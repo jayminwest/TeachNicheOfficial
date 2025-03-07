@@ -8,6 +8,19 @@ jest.mock('@/app/hooks/use-image-upload', () => ({
   useImageUpload: jest.fn()
 }));
 
+// Mock the Lucide React icons
+jest.mock('lucide-react', () => ({
+  Loader2: (props) => <div data-testid="loader-icon" className={props.className} />,
+  X: (props) => <div data-testid="x-icon" className={props.className} />,
+  Image: (props) => <div data-testid="image-icon" className={props.className} />
+}));
+
+// Mock Next/Image
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => <img {...props} alt={props.alt} />
+}));
+
 describe('ImageUploader', () => {
   const mockOnUploadComplete = jest.fn();
   const mockOnError = jest.fn();

@@ -1,6 +1,6 @@
 // Import dependencies first
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import { purchasesService } from '@/app/services/database/purchasesService';
+import { purchasesService } from '@/app/services/database/PurchasesService';
 import { NextRequest } from 'next/server';
 
 // Create mock response factory
@@ -101,7 +101,7 @@ jest.mock('@/app/lib/supabase/server', () => ({
   createServerSupabaseClient: jest.fn(),
 }));
 
-jest.mock('@/app/services/database/purchasesService', () => {
+jest.mock('@/app/services/database/PurchasesService', () => {
   return {
     purchasesService: {
       createPurchase: jest.fn().mockResolvedValue({ data: { id: 'purchase-123' }, error: null }),

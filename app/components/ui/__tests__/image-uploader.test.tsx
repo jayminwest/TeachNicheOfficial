@@ -89,7 +89,7 @@ describe('ImageUploader', () => {
   });
   
   it('handles file selection', async () => {
-    const mockUploadImage = jest.fn().mockImplementation(async (file) => {
+    const mockUploadImage = jest.fn().mockImplementation(async () => {
       // Simulate successful upload and trigger the onUploadComplete callback
       mockOnUploadComplete('https://example.com/uploaded.jpg');
       return 'https://example.com/uploaded.jpg';
@@ -198,7 +198,7 @@ describe('ImageUploader', () => {
   });
   
   it('handles drag and drop', async () => {
-    const mockUploadImage = jest.fn().mockImplementation(async (file) => {
+    const mockUploadImage = jest.fn().mockImplementation(async () => {
       // Simulate successful upload and trigger the onUploadComplete callback
       mockOnUploadComplete('https://example.com/dropped.jpg');
       return 'https://example.com/dropped.jpg';
@@ -258,7 +258,7 @@ describe('ImageUploader', () => {
   });
   
   it('handles upload error and clears preview', async () => {
-    const mockUploadImage = jest.fn().mockImplementation(async (file) => {
+    const mockUploadImage = jest.fn().mockImplementation(async () => {
       // Simulate error and trigger the onError callback
       mockOnError(new Error('Upload failed'));
       throw new Error('Upload failed');

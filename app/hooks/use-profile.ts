@@ -78,7 +78,7 @@ export function useProfile(): UseProfileReturn {
       }
       
       // Update local state with the new profile data
-      setProfile(updatedProfile)
+      setProfile(updatedProfile as Profile)
       
       return {
         success: true,

@@ -56,7 +56,9 @@ export abstract class DatabaseService {
           if (response.error instanceof Error) {
             lastError = response.error;
           } else if (typeof response.error === 'object' && response.error !== null && 'message' in response.error) {
-            lastError = new Error(String(response.error.message) || 'Unknown database error');
+            // Use type assertion to tell TypeScript that message exists
+            const errorObj = response.error as { message: unknown };
+            lastError = new Error(String(errorObj.message) || 'Unknown database error');
           } else {
             lastError = new Error('Unknown database error');
           }

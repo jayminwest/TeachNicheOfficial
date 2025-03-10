@@ -1,4 +1,4 @@
-import { PurchasesService, PurchaseCreateData } from '../PurchasesService';
+import { PurchasesService, PurchaseCreateData } from '../purchasesService';
 import { PostgrestError } from '@supabase/supabase-js';
 
 // Mock Stripe

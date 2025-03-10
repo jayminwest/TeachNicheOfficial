@@ -115,22 +115,22 @@ describe('ImageUploader', () => {
       />
     );
     
-    // Create a file
-    const file = new File(['test image content'], 'test.jpg', { type: 'image/jpeg' });
+    // Create a test file
+    const testFile = new File(['test image content'], 'test.jpg', { type: 'image/jpeg' });
     
     // Get the hidden file input
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(input).not.toBeNull();
     
     // Simulate file selection
-    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.change(input, { target: { files: [testFile] } });
     
     // Check that URL.createObjectURL was called
-    expect(URL.createObjectURL).toHaveBeenCalledWith(file);
+    expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
     
     // Wait for the upload to complete
     await waitFor(() => {
-      expect(mockUploadImage).toHaveBeenCalledWith(file);
+      expect(mockUploadImage).toHaveBeenCalledWith(testFile);
       expect(mockOnUploadComplete).toHaveBeenCalledWith('https://example.com/uploaded.jpg');
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
@@ -228,14 +228,14 @@ describe('ImageUploader', () => {
     const dropZone = screen.getByText(/Click to upload or drag and drop/i).closest('div');
     expect(dropZone).not.toBeNull();
     
-    // Create a file
-    const file = new File(['dropped image content'], 'dropped.jpg', { type: 'image/jpeg' });
+    // Create a test file
+    const testFile = new File(['dropped image content'], 'dropped.jpg', { type: 'image/jpeg' });
     
     // Create a mock drop event
     const dropEvent = {
       preventDefault: jest.fn(),
       dataTransfer: {
-        files: [file]
+        files: [testFile]
       }
     };
     
@@ -243,11 +243,11 @@ describe('ImageUploader', () => {
     fireEvent.drop(dropZone!, dropEvent);
     
     // Check that URL.createObjectURL was called
-    expect(URL.createObjectURL).toHaveBeenCalledWith(file);
+    expect(URL.createObjectURL).toHaveBeenCalledWith(testFile);
     
     // Wait for the upload to complete
     await waitFor(() => {
-      expect(mockUploadImage).toHaveBeenCalledWith(file);
+      expect(mockUploadImage).toHaveBeenCalledWith(testFile);
       expect(mockOnUploadComplete).toHaveBeenCalledWith('https://example.com/dropped.jpg');
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:dropped-url');
     });
@@ -284,18 +284,18 @@ describe('ImageUploader', () => {
       />
     );
     
-    // Create a file
-    const file = new File(['test image content'], 'test.jpg', { type: 'image/jpeg' });
+    // Create a test file
+    const testFile = new File(['test image content'], 'test.jpg', { type: 'image/jpeg' });
     
     // Get the hidden file input
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     // Simulate file selection
-    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.change(input, { target: { files: [testFile] } });
     
     // Wait for the upload to fail
     await waitFor(() => {
-      expect(mockUploadImage).toHaveBeenCalledWith(file);
+      expect(mockUploadImage).toHaveBeenCalledWith(testFile);
       expect(mockOnError).toHaveBeenCalled();
     });
     

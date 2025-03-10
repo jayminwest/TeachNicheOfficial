@@ -25,10 +25,15 @@ jest.mock('next/server', () => {
 });
 
 describe('Profile API Routes', () => {
-  let mockSupabase: any;
+  let mockSupabase: {
+    auth: {
+      getUser: jest.Mock;
+    };
+    from: jest.Mock;
+  };
   let mockRequest: NextRequest;
-  let mockUser: any;
-  let mockProfile: any;
+  let mockUser: { id: string };
+  let mockProfile: Record<string, unknown>;
 
   beforeEach(() => {
     // Reset mocks

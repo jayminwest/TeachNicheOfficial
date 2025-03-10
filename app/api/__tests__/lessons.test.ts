@@ -112,7 +112,7 @@ describe('Lessons API Route', () => {
     });
     
     // Call the API route handler
-    const response = await GET();
+    await GET();
     
     // Verify Supabase client was created with correct parameters
     expect(createClient).toHaveBeenCalledWith(

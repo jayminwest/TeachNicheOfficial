@@ -1,6 +1,5 @@
 import { PurchasesService, PurchaseCreateData } from '../PurchasesService';
 import { PostgrestError } from '@supabase/supabase-js';
-import { PurchaseStatus } from '@/app/types/purchase';
 
 // Mock Stripe
 jest.mock('stripe', () => {
@@ -14,28 +13,36 @@ jest.mock('@/app/lib/supabase/client', () => ({
 
 describe('PurchasesService', () => {
   let service: PurchasesService;
-  let mockSupabase: any;
-  let mockStripe: any;
+  let mockSupabase: {
+    from: jest.Mock;
+  };
+  let mockStripe: {
+    checkout: {
+      sessions: {
+        retrieve: jest.Mock;
+      }
+    }
+  };
   
   beforeEach(() => {
     jest.clearAllMocks();
     
     // Setup Supabase mock with proper chaining
     mockSupabase = {
-      from: jest.fn().mockImplementation((table) => {
+      from: jest.fn().mockImplementation(() => {
         const mockSelect = jest.fn().mockReturnValue({
-          eq: jest.fn().mockImplementation((field, value) => ({
-            eq: jest.fn().mockImplementation((field2, value2) => ({
-              order: jest.fn().mockImplementation((field, direction) => ({
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              order: jest.fn().mockReturnValue({
                 limit: jest.fn().mockResolvedValue({ data: [], error: null })
-              }))
-            })),
-            order: jest.fn().mockImplementation((field, direction) => ({
+              })
+            }),
+            order: jest.fn().mockReturnValue({
               limit: jest.fn().mockResolvedValue({ data: [], error: null })
-            })),
+            }),
             limit: jest.fn().mockResolvedValue({ data: [], error: null }),
             single: jest.fn().mockResolvedValue({ data: null, error: null })
-          })),
+          }),
           single: jest.fn().mockResolvedValue({ data: null, error: null })
         });
         
@@ -61,7 +68,7 @@ describe('PurchasesService', () => {
       })
     };
     
-    require('@/app/lib/supabase/client').createClientSupabaseClient.mockReturnValue(mockSupabase);
+    jest.requireMock('@/app/lib/supabase/client').createClientSupabaseClient.mockReturnValue(mockSupabase);
     
     // Create service instance first
     service = new PurchasesService();
@@ -76,7 +83,7 @@ describe('PurchasesService', () => {
     };
     
     // Directly set the mock on the service instance
-    // @ts-ignore - accessing private method for testing
+    // @ts-expect-error - accessing private method for testing
     service.getStripe = jest.fn().mockResolvedValue(mockStripe);
   });
 

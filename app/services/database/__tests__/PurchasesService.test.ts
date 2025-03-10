@@ -30,40 +30,54 @@ describe('PurchasesService', () => {
     // Setup Supabase mock with proper chaining
     mockSupabase = {
       from: jest.fn().mockImplementation(() => {
-        const mockSelect = jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockResolvedValue({ data: [], error: null })
-              })
-            }),
-            order: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue({ data: [], error: null })
-            }),
-            limit: jest.fn().mockResolvedValue({ data: [], error: null }),
-            single: jest.fn().mockResolvedValue({ data: null, error: null })
-          }),
-          single: jest.fn().mockResolvedValue({ data: null, error: null })
-        });
-        
-        const mockInsert = jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({ data: null, error: null })
-          })
-        });
-        
-        const mockUpdate = jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: null, error: null })
-            })
-          })
-        });
-        
         return {
-          select: mockSelect,
-          insert: mockInsert,
-          update: mockUpdate
+          select: jest.fn().mockImplementation(() => {
+            return {
+              eq: jest.fn().mockImplementation(() => {
+                return {
+                  eq: jest.fn().mockImplementation(() => {
+                    return {
+                      order: jest.fn().mockImplementation(() => {
+                        return {
+                          limit: jest.fn().mockResolvedValue({ data: [], error: null })
+                        };
+                      })
+                    };
+                  }),
+                  order: jest.fn().mockImplementation(() => {
+                    return {
+                      limit: jest.fn().mockResolvedValue({ data: [], error: null })
+                    };
+                  }),
+                  limit: jest.fn().mockResolvedValue({ data: [], error: null }),
+                  single: jest.fn().mockResolvedValue({ data: null, error: null })
+                };
+              }),
+              single: jest.fn().mockResolvedValue({ data: null, error: null })
+            };
+          }),
+          insert: jest.fn().mockImplementation(() => {
+            return {
+              select: jest.fn().mockImplementation(() => {
+                return {
+                  single: jest.fn().mockResolvedValue({ data: null, error: null })
+                };
+              })
+            };
+          }),
+          update: jest.fn().mockImplementation(() => {
+            return {
+              eq: jest.fn().mockImplementation(() => {
+                return {
+                  select: jest.fn().mockImplementation(() => {
+                    return {
+                      single: jest.fn().mockResolvedValue({ data: null, error: null })
+                    };
+                  })
+                };
+              })
+            };
+          })
         };
       })
     };
@@ -185,13 +199,13 @@ describe('PurchasesService', () => {
         error: null
       });
       
-      mockSupabase.from = jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+      mockSupabase.from.mockImplementationOnce(() => ({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             single: mockSingle
-          })
-        })
-      });
+          }))
+        }))
+      }));
       
       const result = await service.checkLessonAccess('user-123', 'lesson-123');
       
@@ -212,13 +226,13 @@ describe('PurchasesService', () => {
         error: null
       });
       
-      mockSupabase.from = jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+      mockSupabase.from.mockImplementationOnce(() => ({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             single: mockSingle
-          })
-        })
-      });
+          }))
+        }))
+      }));
       
       const result = await service.checkLessonAccess('user-123', 'lesson-123');
       
@@ -328,24 +342,24 @@ describe('PurchasesService', () => {
       
       // First call to from() for lesson
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             single: mockLessonSingle
-          })
-        })
+          }))
+        }))
       }));
       
       // Second call to from() for purchases
       mockSupabase.from.mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
-                limit: jest.fn().mockReturnValue(mockPurchaseSelect)
-              })
-            })
-          })
-        })
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
+                limit: mockPurchaseSelect
+              }))
+            }))
+          }))
+        }))
       }));
       
       const result = await service.checkLessonAccess('user-123', 'lesson-123');
@@ -392,18 +406,18 @@ describe('PurchasesService', () => {
       
       const mockInsert = jest.fn();
       
-      mockSupabase.from = jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockReturnValue({
+      mockSupabase.from.mockImplementationOnce(() => ({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
+            eq: jest.fn().mockImplementation(() => ({
+              order: jest.fn().mockImplementation(() => ({
                 limit: mockPurchaseSelect
-              })
-            })
-          })
-        }),
+              }))
+            }))
+          }))
+        })),
         insert: mockInsert
-      });
+      }));
       
       const result = await service.createPurchase(purchaseData);
       
@@ -669,7 +683,7 @@ describe('PurchasesService', () => {
       });
       
       // First from() call for session ID query
-      mockSupabase.from = jest.fn().mockImplementationOnce(() => ({
+      mockSupabase.from.mockImplementationOnce(() => ({
         select: jest.fn().mockImplementation(() => ({
           eq: jest.fn().mockImplementation(() => ({
             limit: mockSessionSelect
@@ -770,7 +784,7 @@ describe('PurchasesService', () => {
       const mockUpdate = jest.fn();
       
       // First from() call for session ID query
-      mockSupabase.from = jest.fn().mockImplementationOnce(() => ({
+      mockSupabase.from.mockImplementationOnce(() => ({
         select: jest.fn().mockImplementation(() => ({
           eq: jest.fn().mockImplementation(() => ({
             limit: mockSessionSelect
@@ -856,12 +870,12 @@ describe('PurchasesService', () => {
       });
       
       // Setup mock for purchases query
-      mockSupabase.from = jest.fn().mockImplementationOnce(() => ({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
+      mockSupabase.from.mockImplementationOnce(() => ({
+        select: jest.fn().mockImplementation(() => ({
+          eq: jest.fn().mockImplementation(() => ({
             order: mockPurchasesSelect
-          })
-        })
+          }))
+        }))
       }));
       
       const result = await service.getPurchasesByUserId('user-123');

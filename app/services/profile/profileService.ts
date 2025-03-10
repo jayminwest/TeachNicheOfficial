@@ -24,9 +24,11 @@ export class ProfileService extends DatabaseService {
         throw new Error(`Error checking for existing profile: ${fetchError.message}`);
       }
       
+      let result;
+      
       if (!existingProfile) {
         // Create new profile if it doesn't exist
-        const { error: insertError } = await supabase.from('profiles').insert({
+        const { data: insertData, error: insertError } = await supabase.from('profiles').insert({
           id: user.id,
           full_name: user.user_metadata?.full_name || '',
           email: user.email || '',
@@ -35,32 +37,36 @@ export class ProfileService extends DatabaseService {
           social_media_tag: '',  // Initialize social_media_tag
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
+        }).select().single();
         
         if (insertError) {
           throw new Error(`Error creating profile: ${insertError.message}`);
         }
         
         console.log('Created new profile for user:', user.id);
-        return true;
+        result = insertData;
+      } else {
+        // Profile exists, update it with latest user metadata
+        const { data: updateData, error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            full_name: user.user_metadata?.full_name || '',
+            email: user.email || '',
+            avatar_url: user.user_metadata?.avatar_url || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          throw new Error(`Error updating profile: ${updateError.message}`);
+        }
+        
+        result = updateData;
       }
       
-      // Profile exists, update it with latest user metadata
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: user.user_metadata?.full_name || '',
-          email: user.email || '',
-          avatar_url: user.user_metadata?.avatar_url || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-      
-      if (updateError) {
-        throw new Error(`Error updating profile: ${updateError.message}`);
-      }
-      
-      return true;
+      return { data: result, error: null };
     });
   }
 

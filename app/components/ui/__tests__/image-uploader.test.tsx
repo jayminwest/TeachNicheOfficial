@@ -28,7 +28,12 @@ jest.mock('next/image', () => ({
       imgProps.unoptimized = imgProps.unoptimized.toString();
     }
     // Using a div instead of img to avoid the ESLint warning
-    return <div data-testid="mock-image" style={{backgroundImage: props.src ? `url(${props.src})` : 'none'}} {...imgProps} />;
+    return <div 
+      data-testid="mock-image" 
+      data-alt={props.alt} // Add data-alt attribute to make it queryable
+      style={{backgroundImage: props.src ? `url(${props.src})` : 'none'}} 
+      {...imgProps} 
+    />;
   }
 }));
 
@@ -69,8 +74,9 @@ describe('ImageUploader', () => {
       />
     );
     
-    const image = screen.getByAltText('Thumbnail preview');
+    const image = screen.getByTestId('mock-image');
     expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute('data-alt', 'Thumbnail preview');
     expect(image).toHaveAttribute('src', 'https://example.com/initial.jpg');
   });
   

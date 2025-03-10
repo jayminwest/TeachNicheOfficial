@@ -84,9 +84,6 @@ export async function POST(request: NextRequest) {
         status: 'completed' as const, // Type assertion to match enum
         stripe_session_id: sessionId || null,
         payment_intent_id: paymentIntentId || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        version: 1,
         metadata: {
           created_via: 'manual_update'
         }

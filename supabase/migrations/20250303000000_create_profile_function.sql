@@ -44,20 +44,53 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION create_profile TO authenticated;
 
--- Enable RLS on the profiles table
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on the profiles table (if not already enabled)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_tables 
+    WHERE tablename = 'profiles' 
+    AND rowsecurity = true
+  ) THEN
+    ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+  END IF;
+END
+$$;
 
--- Create a policy to allow users to select their own profile
-CREATE POLICY select_own_profile ON profiles
-  FOR SELECT
-  USING (auth.uid() = id);
-
--- Create a policy to allow users to insert their own profile
-CREATE POLICY insert_own_profile ON profiles
-  FOR INSERT
-  WITH CHECK (auth.uid() = id);
-
--- Create a policy to allow users to update their own profile
-CREATE POLICY update_own_profile ON profiles
-  FOR UPDATE
-  USING (auth.uid() = id);
+-- Create policies if they don't exist
+DO $$
+BEGIN
+  -- Check if select policy exists
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'profiles' 
+    AND policyname = 'select_own_profile'
+  ) THEN
+    CREATE POLICY select_own_profile ON profiles
+      FOR SELECT
+      USING (auth.uid() = id);
+  END IF;
+  
+  -- Check if insert policy exists
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'profiles' 
+    AND policyname = 'insert_own_profile'
+  ) THEN
+    CREATE POLICY insert_own_profile ON profiles
+      FOR INSERT
+      WITH CHECK (auth.uid() = id);
+  END IF;
+  
+  -- Check if update policy exists
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'profiles' 
+    AND policyname = 'update_own_profile'
+  ) THEN
+    CREATE POLICY update_own_profile ON profiles
+      FOR UPDATE
+      USING (auth.uid() = id);
+  END IF;
+END
+$$;

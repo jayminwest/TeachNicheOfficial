@@ -1,4 +1,6 @@
--- Migration: 20250303000000
+-- This is a renamed version of 20250303000000_create_profile_function.sql
+-- We're keeping this file with only the function to avoid duplicate policies
+
 -- Create a function to safely create profiles with proper permissions
 CREATE OR REPLACE FUNCTION create_profile(
   user_id UUID,
@@ -39,21 +41,3 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Enable RLS on the profiles table
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-
--- Create a policy to allow users to select their own profile
-CREATE POLICY select_own_profile ON profiles
-  FOR SELECT
-  USING (auth.uid() = id);
-
--- Create a policy to allow users to insert their own profile
-CREATE POLICY insert_own_profile ON profiles
-  FOR INSERT
-  WITH CHECK (auth.uid() = id);
-
--- Create a policy to allow users to update their own profile
-CREATE POLICY update_own_profile ON profiles
-  FOR UPDATE
-  USING (auth.uid() = id);

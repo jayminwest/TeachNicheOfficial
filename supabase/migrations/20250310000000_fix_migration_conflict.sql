@@ -19,37 +19,43 @@ BEGIN
 END
 $$;
 
--- Enable RLS on lessons table if not already enabled
-ALTER TABLE IF EXISTS public.lessons ENABLE ROW LEVEL SECURITY;
-
--- Create policy for creators to manage their own lessons
+-- Check if lessons table exists before applying RLS
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies 
-    WHERE policyname = 'Creators can manage their own lessons'
-    AND tablename = 'lessons'
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables 
+    WHERE table_schema = 'public' 
+    AND table_name = 'lessons'
   ) THEN
-    CREATE POLICY "Creators can manage their own lessons"
-      ON public.lessons
-      FOR ALL
-      USING (auth.uid() = creator_id);
+    -- Enable RLS on lessons table if not already enabled
+    ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
+
+    -- Create policy for creators to manage their own lessons
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies 
+      WHERE policyname = 'Creators can manage their own lessons'
+      AND tablename = 'lessons'
+    ) THEN
+      CREATE POLICY "Creators can manage their own lessons"
+        ON public.lessons
+        FOR ALL
+        USING (auth.uid() = creator_id);
+    END IF;
+
+    -- Create policy for users to view published lessons
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies 
+      WHERE policyname = 'Users can view published lessons'
+      AND tablename = 'lessons'
+    ) THEN
+      CREATE POLICY "Users can view published lessons"
+        ON public.lessons
+        FOR SELECT
+        USING (status = 'published' AND deleted_at IS NULL);
+    END IF;
   END IF;
 END
 $$;
 
--- Create policy for users to view published lessons
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies 
-    WHERE policyname = 'Users can view published lessons'
-    AND tablename = 'lessons'
-  ) THEN
-    CREATE POLICY "Users can view published lessons"
-      ON public.lessons
-      FOR SELECT
-      USING (status = 'published' AND deleted_at IS NULL);
-  END IF;
-END
-$$;
+-- Create a marker to indicate this migration has been applied
+COMMENT ON DATABASE postgres IS 'Migration 20250310000000_fix_migration_conflict applied';

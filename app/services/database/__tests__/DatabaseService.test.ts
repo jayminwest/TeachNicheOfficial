@@ -152,9 +152,9 @@ describe('DatabaseService', () => {
         });
 
       // Mock setTimeout to execute immediately
-      jest.spyOn(global, 'setTimeout').mockImplementation((cb: any) => {
+      jest.spyOn(global, 'setTimeout').mockImplementation((cb: () => void) => {
         cb();
-        return {} as any;
+        return {} as NodeJS.Timeout;
       });
 
       const result = await service.testExecuteWithRetry(mockOperation);
@@ -182,9 +182,9 @@ describe('DatabaseService', () => {
       });
 
       // Mock setTimeout to execute immediately
-      jest.spyOn(global, 'setTimeout').mockImplementation((cb: any) => {
+      jest.spyOn(global, 'setTimeout').mockImplementation((cb: () => void) => {
         cb();
-        return {} as any;
+        return {} as NodeJS.Timeout;
       });
 
       const result = await service.testExecuteWithRetry(mockOperation, 2);

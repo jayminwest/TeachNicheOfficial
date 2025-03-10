@@ -86,7 +86,7 @@ export class ProfileService extends DatabaseService {
         throw error;
       }
       
-      return data;
+      return { data, error: null };
     });
   }
 
@@ -115,7 +115,7 @@ export class ProfileService extends DatabaseService {
         throw error;
       }
       
-      return data;
+      return { data, error: null };
     });
   }
 }

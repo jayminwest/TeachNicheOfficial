@@ -214,7 +214,7 @@ describe('DatabaseService', () => {
 
     it('should handle non-Error exceptions', async () => {
       const mockOperation = jest.fn().mockImplementation(() => {
-        throw 'String error'; // Not an Error object
+        throw 'String error' as unknown; // Not an Error object
       });
 
       const result = await service.testExecuteWithRetry(mockOperation);

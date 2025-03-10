@@ -1,4 +1,4 @@
-import { DatabaseService, DatabaseResponse } from './databaseService'
+import { DatabaseService, DatabaseResponse } from './DatabaseService'
 import { Lesson } from '@/app/types/lesson'
 import { PostgrestError } from '@supabase/supabase-js'
 import crypto from 'crypto'

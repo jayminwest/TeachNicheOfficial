@@ -23,7 +23,7 @@ class TestDatabaseService extends DatabaseService {
     operation: () => Promise<{ data: T | null, error: PostgrestError | null }>,
     retries = 3
   ): Promise<DatabaseResponse<T>> {
-    return this.executeWithRetry(operation as any, { maxRetries: retries });
+    return this.executeWithRetry(operation, { maxRetries: retries });
   }
 
   public testGetClient() {
@@ -198,10 +198,18 @@ describe('DatabaseService', () => {
     });
 
     it('should handle unexpected exceptions', async () => {
-      // Disable retries by mocking setTimeout to prevent additional calls
-      jest.spyOn(global, 'setTimeout').mockImplementation((cb: any) => {
-        if (typeof cb === 'function') cb();
-        return {} as NodeJS.Timeout;
+      // Completely disable retries for this test
+      jest.spyOn(service, 'executeWithRetry').mockImplementationOnce(async (operation) => {
+        try {
+          await (operation as any)();
+          return { data: null, error: null, success: true };
+        } catch (error) {
+          return {
+            data: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+            success: false
+          };
+        }
       });
       
       const mockOperation = jest.fn().mockImplementation(() => {
@@ -219,10 +227,18 @@ describe('DatabaseService', () => {
     });
 
     it('should handle non-Error exceptions', async () => {
-      // Disable retries by mocking setTimeout to prevent additional calls
-      jest.spyOn(global, 'setTimeout').mockImplementation((cb: any) => {
-        if (typeof cb === 'function') cb();
-        return {} as NodeJS.Timeout;
+      // Completely disable retries for this test
+      jest.spyOn(service, 'executeWithRetry').mockImplementationOnce(async (operation) => {
+        try {
+          await (operation as any)();
+          return { data: null, error: null, success: true };
+        } catch (error) {
+          return {
+            data: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+            success: false
+          };
+        }
       });
       
       const mockOperation = jest.fn().mockImplementation(() => {

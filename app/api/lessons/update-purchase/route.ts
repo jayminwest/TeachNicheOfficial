@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
 
       // Create a new purchase record
       const purchaseData = {
+        id: crypto.randomUUID(), // Add UUID for the id field
         lesson_id: lessonId,
         user_id: userId,
         creator_id: typedLesson.creator_id,

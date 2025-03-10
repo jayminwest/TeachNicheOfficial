@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { createClientSupabaseClient } from '@/app/lib/supabase/client';
 import { Database } from '@/app/types/database';
 

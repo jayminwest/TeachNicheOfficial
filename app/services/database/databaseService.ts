@@ -1,5 +1,4 @@
-import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/app/types/database';
 
 export interface DatabaseResponse<T> {
@@ -22,15 +21,13 @@ export class DatabaseService {
 
   /**
    * Get a server-side Supabase client
+   * Note: This method should only be called from server components
+   * and is not available in client components
    */
   protected getServerClient() {
-    try {
-      return createServerComponentClient<Database>({ cookies });
-    } catch (error) {
-      console.error('Error creating server client:', error);
-      // Fall back to client component client
-      return this.getClient();
-    }
+    // This is a placeholder that will be overridden in server contexts
+    console.warn('getServerClient() called from client component');
+    return this.getClient();
   }
 
   /**

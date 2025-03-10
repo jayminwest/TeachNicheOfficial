@@ -1,6 +1,7 @@
 import { DatabaseService, DatabaseResponse } from './databaseService'
 import { Lesson } from '@/app/types/lesson'
 import { PostgrestError } from '@supabase/supabase-js'
+import crypto from 'crypto'
 
 interface LessonCreateData {
   title: string;
@@ -32,7 +33,7 @@ export class LessonsService extends DatabaseService {
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
   }): Promise<DatabaseResponse<Lesson[]>> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetry<Lesson[]>(async () => {
       const supabase = this.getClient();
       
       let query = supabase
@@ -101,7 +102,7 @@ export class LessonsService extends DatabaseService {
    * Get a lesson by ID
    */
   async getLessonById(id: string): Promise<DatabaseResponse<Lesson>> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetry<Lesson>(async () => {
       const supabase = this.getClient();
       
       const { data, error } = await supabase
@@ -151,7 +152,7 @@ export class LessonsService extends DatabaseService {
    * Create a new lesson
    */
   async createLesson(data: LessonCreateData): Promise<DatabaseResponse<Lesson>> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetry<Lesson>(async () => {
       const supabase = this.getClient();
       
       // Get current user
@@ -252,7 +253,7 @@ export class LessonsService extends DatabaseService {
    * Update a lesson
    */
   async updateLesson(id: string, data: LessonUpdateData): Promise<DatabaseResponse<Lesson>> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetry<Lesson>(async () => {
       const supabase = this.getClient();
       
       // Get current user
@@ -351,7 +352,7 @@ export class LessonsService extends DatabaseService {
    * Check if a user is the owner of a lesson
    */
   async isLessonOwner(userId: string, lessonId: string): Promise<DatabaseResponse<boolean>> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetry<boolean>(async () => {
       const supabase = this.getClient();
       
       const { data, error } = await supabase
@@ -378,7 +379,7 @@ export class LessonsService extends DatabaseService {
    * Delete a lesson (soft delete)
    */
   async deleteLesson(id: string): Promise<DatabaseResponse<null>> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetry<null>(async () => {
       const supabase = this.getClient();
       
       // Perform a soft delete by setting deleted_at

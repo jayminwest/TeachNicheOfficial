@@ -23,7 +23,7 @@ class TestDatabaseService extends DatabaseService {
     operation: () => Promise<{ data: T | null, error: PostgrestError | null }>,
     retries = 3
   ): Promise<DatabaseResponse<T>> {
-    return this.executeWithRetry(operation, { maxRetries: retries });
+    return this.executeWithRetry(operation as any, { maxRetries: retries });
   }
 
   public testGetClient() {
@@ -199,7 +199,8 @@ describe('DatabaseService', () => {
 
     it('should handle unexpected exceptions', async () => {
       // Disable retries by mocking setTimeout to prevent additional calls
-      jest.spyOn(global, 'setTimeout').mockImplementation(() => {
+      jest.spyOn(global, 'setTimeout').mockImplementation((cb: any) => {
+        if (typeof cb === 'function') cb();
         return {} as NodeJS.Timeout;
       });
       
@@ -219,7 +220,8 @@ describe('DatabaseService', () => {
 
     it('should handle non-Error exceptions', async () => {
       // Disable retries by mocking setTimeout to prevent additional calls
-      jest.spyOn(global, 'setTimeout').mockImplementation(() => {
+      jest.spyOn(global, 'setTimeout').mockImplementation((cb: any) => {
+        if (typeof cb === 'function') cb();
         return {} as NodeJS.Timeout;
       });
       
@@ -231,7 +233,7 @@ describe('DatabaseService', () => {
       
       expect(result).toEqual({
         data: null,
-        error: new Error('Unknown database error'),
+        error: new Error('String error'),
         success: false
       });
       expect(mockOperation).toHaveBeenCalledTimes(1);

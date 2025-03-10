@@ -3,7 +3,7 @@ import { Database } from '@/app/types/database';
 
 export interface DatabaseResponse<T> {
   data: T | null;
-  error: any | null;
+  error: Error | null;
   success?: boolean;
 }
 

@@ -724,18 +724,17 @@ describe('PurchasesService', () => {
       mockPaymentIntentChain.single = jest.fn();
       
       // Mock update result
-      const mockUpdateChain: MockChain = {
-        update: jest.fn().mockReturnValue(mockUpdateChain),
-        eq: jest.fn().mockReturnValue(mockUpdateChain),
-        select: jest.fn().mockReturnValue(mockUpdateChain),
-        single: jest.fn().mockResolvedValue({
-          data: { id: 'purchase-123' },
-          error: null
-        }),
-        insert: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockUpdateChain: Partial<MockChain> = {};
+      mockUpdateChain.update = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.eq = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.select = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.single = jest.fn().mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      mockUpdateChain.insert = jest.fn();
+      mockUpdateChain.order = jest.fn();
+      mockUpdateChain.limit = jest.fn();
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => mockSessionChain);

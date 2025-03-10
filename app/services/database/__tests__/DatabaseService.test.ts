@@ -198,6 +198,11 @@ describe('DatabaseService', () => {
     });
 
     it('should handle unexpected exceptions', async () => {
+      // Disable retries by mocking setTimeout to prevent additional calls
+      jest.spyOn(global, 'setTimeout').mockImplementation(() => {
+        return {} as NodeJS.Timeout;
+      });
+      
       const mockOperation = jest.fn().mockImplementation(() => {
         throw new Error('Unexpected error');
       });
@@ -213,8 +218,13 @@ describe('DatabaseService', () => {
     });
 
     it('should handle non-Error exceptions', async () => {
+      // Disable retries by mocking setTimeout to prevent additional calls
+      jest.spyOn(global, 'setTimeout').mockImplementation(() => {
+        return {} as NodeJS.Timeout;
+      });
+      
       const mockOperation = jest.fn().mockImplementation(() => {
-        throw new Error('Unknown database error'); // Changed to Error object
+        throw 'String error'; // Non-Error exception
       });
 
       const result = await service.testExecuteWithRetry(mockOperation);

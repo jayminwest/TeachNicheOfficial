@@ -71,6 +71,13 @@ export class DatabaseService {
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
             continue;
+          } else {
+            // We've reached max retries, return error
+            return {
+              data: null,
+              error: lastError,
+              success: false
+            };
           }
         }
         
@@ -88,15 +95,19 @@ export class DatabaseService {
           lastError = new Error('Unknown database error');
         }
         
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
-        }
+        // Don't retry for unexpected errors
+        return {
+          data: null,
+          error: lastError,
+          success: false
+        };
       }
     }
     
+    // This should never be reached, but included for completeness
     return {
       data: null,
-      error: lastError,
+      error: lastError || new Error('Unknown error after retries'),
       success: false
     };
   }

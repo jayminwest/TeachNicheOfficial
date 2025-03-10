@@ -33,7 +33,7 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
         errorDetails = typeof error === 'object' && error !== null
           ? JSON.stringify(error, Object.getOwnPropertyNames(error))
           : String(error);
-      } catch (jsonError) {
+      } catch (_) {
         errorDetails = `[Error object could not be stringified: ${String(error)}]`;
       }
       

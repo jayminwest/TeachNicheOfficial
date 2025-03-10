@@ -152,7 +152,7 @@ describe('DatabaseService', () => {
         });
 
       // Mock setTimeout to execute immediately
-      jest.spyOn(global, 'setTimeout').mockImplementation((cb: () => void) => {
+      jest.spyOn(global, 'setTimeout').mockImplementation((cb: TimerHandler) => {
         cb();
         return {} as NodeJS.Timeout;
       });

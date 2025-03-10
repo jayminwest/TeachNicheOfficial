@@ -23,7 +23,7 @@ class TestDatabaseService extends DatabaseService {
     operation: () => Promise<{ data: T | null, error: PostgrestError | null }>,
     retries = 3
   ): Promise<DatabaseResponse<T>> {
-    return this.executeWithRetry(operation, retries);
+    return this.executeWithRetry(operation, { maxRetries: retries });
   }
 
   public testGetClient() {
@@ -214,7 +214,7 @@ describe('DatabaseService', () => {
 
     it('should handle non-Error exceptions', async () => {
       const mockOperation = jest.fn().mockImplementation(() => {
-        throw 'String error' as unknown; // Not an Error object
+        throw new Error('Unknown database error'); // Changed to Error object
       });
 
       const result = await service.testExecuteWithRetry(mockOperation);

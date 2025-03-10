@@ -55,20 +55,22 @@ export abstract class DatabaseService {
           // If there's an error in the response, convert it to an Error object
           if (response.error instanceof Error) {
             lastError = response.error;
-          } else if (response.error instanceof Object && 'message' in response.error) {
-            lastError = new Error(response.error.message || 'Unknown database error');
+          } else if (typeof response.error === 'object' && response.error !== null && 'message' in response.error) {
+            lastError = new Error(String(response.error.message) || 'Unknown database error');
           } else {
             lastError = new Error('Unknown database error');
           }
           
           // Only retry on connection errors, not on permission or validation errors
-          if (
-            response.error instanceof Error || 
-            !('code' in response.error) || 
-            (response.error.code !== 'PGRST301' && 
-             response.error.code !== 'PGRST302' && 
-             response.error.code !== '23505')
-          ) {
+          const shouldRetry = response.error instanceof Error || 
+            (typeof response.error === 'object' && 
+             response.error !== null && 
+             (!('code' in response.error) || 
+              (response.error.code !== 'PGRST301' && 
+               response.error.code !== 'PGRST302' && 
+               response.error.code !== '23505')));
+               
+          if (shouldRetry) {
             if (attempt < maxRetries) {
               await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
               continue;

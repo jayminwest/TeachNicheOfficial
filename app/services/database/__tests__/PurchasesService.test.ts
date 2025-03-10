@@ -28,19 +28,20 @@ describe('PurchasesService', () => {
     jest.clearAllMocks();
     
     // Setup Supabase mock with proper chaining
+    const createMockChain = () => {
+      const mockChain: any = {};
+      mockChain.select = jest.fn().mockReturnValue(mockChain);
+      mockChain.insert = jest.fn().mockReturnValue(mockChain);
+      mockChain.update = jest.fn().mockReturnValue(mockChain);
+      mockChain.eq = jest.fn().mockReturnValue(mockChain);
+      mockChain.order = jest.fn().mockReturnValue(mockChain);
+      mockChain.limit = jest.fn().mockReturnValue(mockChain);
+      mockChain.single = jest.fn().mockResolvedValue({ data: null, error: null });
+      return mockChain;
+    };
+    
     mockSupabase = {
-      from: jest.fn().mockImplementation(() => {
-        const mockChain = {
-          select: jest.fn().mockReturnValue(mockChain),
-          insert: jest.fn().mockReturnValue(mockChain),
-          update: jest.fn().mockReturnValue(mockChain),
-          eq: jest.fn().mockReturnValue(mockChain),
-          order: jest.fn().mockReturnValue(mockChain),
-          limit: jest.fn().mockReturnValue(mockChain),
-          single: jest.fn().mockResolvedValue({ data: null, error: null })
-        };
-        return mockChain;
-      })
+      from: jest.fn().mockImplementation(() => createMockChain())
     };
     
     jest.requireMock('@/app/lib/supabase/client').createClientSupabaseClient.mockReturnValue(mockSupabase);
@@ -307,14 +308,23 @@ describe('PurchasesService', () => {
         code: 'ERROR'
       };
       
-      mockSupabase.from().select().single.mockResolvedValue({
+      // Create a mock chain for this specific test
+      const mockLessonChain: any = {};
+      mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.single = jest.fn().mockResolvedValue({
         data: null,
         error: mockError
       });
       
+      // Override the default mock for this test
+      mockSupabase.from.mockImplementationOnce(() => mockLessonChain);
+      
       const result = await service.checkLessonAccess('user-123', 'lesson-123');
       
       expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.error?.message).toContain('Error fetching lesson');
     });
   });
 

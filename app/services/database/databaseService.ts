@@ -1,82 +1,66 @@
-import { createClientSupabaseClient } from '@/app/lib/supabase/client'
-import { PostgrestError } from '@supabase/supabase-js'
+import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { Database } from '@/app/types/database';
 
 export interface DatabaseResponse<T> {
-  data: T | null
-  error: Error | null
-  success: boolean
+  data: T | null;
+  error: any | null;
+  success?: boolean;
 }
 
-/**
- * Base class for database operations with error handling and retry logic
- */
 export class DatabaseService {
-  private maxRetries = 3;
-  private retryDelay = 1000; // ms
-  
+  protected defaultMaxRetries = 3;
+  protected defaultRetryDelay = 300; // ms
+
+  /**
+   * Get a Supabase client
+   */
+  protected getClient() {
+    // Use client component client by default
+    return createClientComponentClient<Database>();
+  }
+
+  /**
+   * Get a server-side Supabase client
+   */
+  protected getServerClient() {
+    try {
+      return createServerComponentClient<Database>({ cookies });
+    } catch (error) {
+      console.error('Error creating server client:', error);
+      // Fall back to client component client
+      return this.getClient();
+    }
+  }
+
   /**
    * Execute a database operation with retry logic
    */
-  protected async executeWithRetry<T>(
-    operation: () => Promise<{ data: T | null, error: PostgrestError | null }>,
-    retries = this.maxRetries
+  async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    options?: { maxRetries?: number; retryDelay?: number }
   ): Promise<DatabaseResponse<T>> {
-    try {
-      let currentTry = 0;
-      
-      while (currentTry <= retries) {
-        const { data, error } = await operation();
-        
-        if (!error) {
-          return {
-            data,
-            error: null,
-            success: true
-          };
+    const maxRetries = options?.maxRetries ?? this.defaultMaxRetries;
+    const retryDelay = options?.retryDelay ?? this.defaultRetryDelay;
+    
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const data = await operation();
+        return { data, error: null, success: true };
+      } catch (error) {
+        lastError = error as Error;
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
         }
-        
-        // Don't retry on permission errors or invalid inputs
-        if (error.code === 'PGRST301' || error.code === 'PGRST302' || error.code === '23505') {
-          return {
-            data: null,
-            error: new Error(error.message),
-            success: false
-          };
-        }
-        
-        // Retry on connection errors or timeouts
-        if (currentTry < retries) {
-          await new Promise(resolve => setTimeout(resolve, this.retryDelay));
-          currentTry++;
-          continue;
-        }
-        
-        return {
-          data: null,
-          error: new Error(error.message),
-          success: false
-        };
       }
-      
-      // This should never happen, but TypeScript needs it
-      return {
-        data: null,
-        error: new Error('Maximum retries exceeded'),
-        success: false
-      };
-    } catch (err) {
-      return {
-        data: null,
-        error: err instanceof Error ? err : new Error('Unknown database error'),
-        success: false
-      };
     }
-  }
-  
-  /**
-   * Get the Supabase client
-   */
-  protected getClient() {
-    return createClientSupabaseClient();
+    
+    return {
+      data: null,
+      error: lastError,
+      success: false
+    };
   }
 }

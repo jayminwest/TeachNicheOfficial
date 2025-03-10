@@ -201,7 +201,7 @@ describe('DatabaseService', () => {
       // Completely disable retries for this test
       jest.spyOn(service, 'executeWithRetry').mockImplementationOnce(async (operation) => {
         try {
-          await (operation as any)();
+          await operation();
           return { data: null, error: null, success: true };
         } catch (error) {
           return {

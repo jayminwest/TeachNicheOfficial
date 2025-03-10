@@ -53,13 +53,18 @@ export abstract class DatabaseService {
         
         if (response.error) {
           // If there's an error in the response, convert it to an Error object
-          lastError = response.error instanceof Error 
-            ? response.error 
-            : new Error(response.error.message || 'Unknown database error');
+          if (response.error instanceof Error) {
+            lastError = response.error;
+          } else if (response.error instanceof Object && 'message' in response.error) {
+            lastError = new Error(response.error.message || 'Unknown database error');
+          } else {
+            lastError = new Error('Unknown database error');
+          }
           
           // Only retry on connection errors, not on permission or validation errors
           if (
-            !response.error.code || 
+            response.error instanceof Error || 
+            !('code' in response.error) || 
             (response.error.code !== 'PGRST301' && 
              response.error.code !== 'PGRST302' && 
              response.error.code !== '23505')

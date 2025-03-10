@@ -68,9 +68,15 @@ export abstract class DatabaseService {
             (typeof response.error === 'object' && 
              response.error !== null && 
              (!('code' in response.error) || 
-              (response.error.code !== 'PGRST301' && 
-               response.error.code !== 'PGRST302' && 
-               response.error.code !== '23505')));
+              (() => {
+                // Use type assertion to tell TypeScript that code exists
+                const errorWithCode = response.error as { code: string };
+                return (
+                  errorWithCode.code !== 'PGRST301' && 
+                  errorWithCode.code !== 'PGRST302' && 
+                  errorWithCode.code !== '23505'
+                );
+              })()));
                
           if (shouldRetry) {
             if (attempt < maxRetries) {

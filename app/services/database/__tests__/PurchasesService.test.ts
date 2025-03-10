@@ -198,13 +198,18 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess true if user is the creator', async () => {
       // Setup the mock chain for this specific test
-      const mockChain: any = {};
-      mockChain.select = jest.fn().mockReturnValue(mockChain);
-      mockChain.eq = jest.fn().mockReturnValue(mockChain);
-      mockChain.single = jest.fn().mockResolvedValue({
-        data: { price: 9.99, creator_id: 'user-123' },
-        error: null
-      });
+      const mockChain: MockChain = {
+        select: jest.fn().mockReturnValue(mockChain),
+        eq: jest.fn().mockReturnValue(mockChain),
+        single: jest.fn().mockResolvedValue({
+          data: { price: 9.99, creator_id: 'user-123' },
+          error: null
+        }),
+        insert: jest.fn(),
+        update: jest.fn(),
+        order: jest.fn(),
+        limit: jest.fn()
+      };
       
       mockSupabase.from.mockImplementationOnce(() => mockChain);
       

@@ -483,3 +483,9 @@ export class PurchasesService extends DatabaseService {
 
 // Create a singleton instance for use throughout the application
 export const purchasesService = new PurchasesService();
+// This file re-exports the PurchasesService for compatibility with imports
+// that use the lowercase naming convention
+import { PurchasesService, purchasesService } from './PurchasesService';
+
+export { PurchasesService, purchasesService };
+export * from './PurchasesService';

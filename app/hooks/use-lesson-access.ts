@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
-import { purchasesService } from '@/app/services/database/purchasesService'
+import { purchasesService } from '@/app/services/database/PurchasesService'
 import type { LessonAccess, PurchaseStatus } from '@/app/types/purchase'
 
 interface AccessCacheEntry {

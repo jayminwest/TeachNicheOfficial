@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import { purchasesService } from '@/app/services/database/purchasesService';
+import { purchasesService } from '@/app/services/database/PurchasesService';
 
 // Helper function to extract IDs from session
 function extractIdsFromSession(session: Stripe.Checkout.Session) {

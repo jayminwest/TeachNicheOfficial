@@ -1,26 +1,30 @@
 // Server component
 export const dynamic = 'force-dynamic';
-import { AuthClient } from './client';
-import { SearchParamsWrapper } from '@/app/components/ui/search-params-wrapper';
+import { Suspense } from 'react';
+import AuthClient from './client';
+import { Loader2 } from 'lucide-react';
 
 export default function AuthPage() {
   return (
-    <SearchParamsWrapper fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6">
-          <div className="space-y-1 mb-4">
-            <div className="h-8 w-48 bg-muted animate-pulse rounded-md"></div>
-            <div className="h-4 w-64 bg-muted animate-pulse rounded-md"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-1">Sign in</h1>
+        <p className="text-muted-foreground mb-6">Sign in to access your account and lessons</p>
+        
+        <noscript>
+          <div className="p-4 border border-yellow-300 bg-yellow-50 text-yellow-800 rounded-md mb-4">
+            JavaScript is required to sign in. Please enable JavaScript in your browser settings.
           </div>
-          <div className="space-y-4">
-            <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
-            <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
-            <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+        </noscript>
+        
+        <Suspense fallback={
+          <div className="flex justify-center p-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-icon" />
           </div>
-        </div>
+        }>
+          <AuthClient />
+        </Suspense>
       </div>
-    }>
-      <AuthClient />
-    </SearchParamsWrapper>
+    </div>
   );
 }

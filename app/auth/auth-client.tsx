@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { AuthClient } from './client';
+import AuthClient from './client';
 
 interface AuthClientWrapperProps {
   errorMessage?: string | null;

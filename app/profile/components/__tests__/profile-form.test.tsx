@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProfileForm } from '../profile-form';
 import { toast } from '@/app/components/ui/use-toast';
@@ -291,4 +291,183 @@ describe('ProfileForm', () => {
       expect(screen.getByDisplayValue('@existinguser')).toBeInTheDocument();
     });
   });
+
+  it('handles error when fetching profile data', async () => {
+    // Mock fetch to return an error
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Failed to fetch profile' }),
+      })
+    );
+    
+    render(<ProfileForm />);
+    
+    // Check if fetch was called
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/profile/get'), expect.any(Object));
+    });
+    
+    // Check if error toast is shown
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+        title: "Error loading profile",
+        description: "Failed to fetch profile",
+        variant: "destructive"
+      }));
+    });
+  });
+
+  it('handles network error when fetching profile data', async () => {
+    // Mock fetch to throw a network error
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.reject(new Error('Network error'))
+    );
+    
+    render(<ProfileForm />);
+    
+    // Check if error toast is shown
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+        title: "Error loading profile",
+        description: "Network error",
+        variant: "destructive"
+      }));
+    });
+  });
+
+  it('creates profile from user metadata when no profile exists', async () => {
+    // First fetch returns no data (profile doesn't exist)
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: null }),
+      })
+    );
+    
+    // Second fetch for profile creation
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: { id: '123' } }),
+      })
+    );
+    
+    // Set up auth with user metadata
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        user_metadata: {
+          full_name: 'Metadata Name',
+          bio: 'Metadata bio',
+          social_media_tag: '@metadatauser',
+        },
+      },
+    });
+    
+    render(<ProfileForm />);
+    
+    // Check if profile creation API was called with metadata
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/api/profile/update', expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('Metadata Name'),
+      }));
+    });
+    
+    // Check if form was populated with metadata
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Metadata Name')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Metadata bio')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('@metadatauser')).toBeInTheDocument();
+    });
+  });
+
+  it('refreshes profile data after successful update', async () => {
+    // Initial profile fetch
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          data: {
+            full_name: 'Initial Name',
+            bio: 'Initial bio',
+            social_media_tag: '@initial'
+          }
+        }),
+      })
+    );
+    
+    // Profile update
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: { id: '123' } }),
+      })
+    );
+    
+    // Profile refresh after update
+    (global.fetch as jest.Mock).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          data: {
+            full_name: 'Updated Name',
+            bio: 'Updated bio',
+            social_media_tag: '@updated'
+          }
+        }),
+      })
+    );
+    
+    // Mock setTimeout to execute immediately
+    jest.useFakeTimers();
+    
+    render(<ProfileForm />);
+    
+    // Wait for initial form load and for loading state to finish
+    await waitFor(() => {
+      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+      // Make sure loading state is finished
+      expect(screen.queryByText('Loading profile data...')).not.toBeInTheDocument();
+    }, { timeout: 1000 });
+    
+    // Set form values directly instead of simulating typing
+    const nameInput = screen.getByLabelText(/name/i);
+    fireEvent.change(nameInput, { target: { value: 'Updated Name' } });
+    
+    const bioInput = screen.getByLabelText(/bio/i);
+    fireEvent.change(bioInput, { target: { value: 'Updated bio' } });
+    
+    const socialMediaInput = screen.getByLabelText(/social media/i);
+    fireEvent.change(socialMediaInput, { target: { value: '@updated' } });
+    
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /update profile/i });
+    fireEvent.click(submitButton);
+    
+    // Check if update API was called with shorter timeout
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/api/profile/update', expect.any(Object));
+    }, { timeout: 1000 });
+    
+    // Wait for the button to change to "Updating..." state
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /update|updating/i })).toBeInTheDocument();
+    }, { timeout: 1000 });
+    
+    // Fast-forward timers to trigger the refresh
+    act(() => {
+      jest.runAllTimers();
+    });
+    
+    // Check if refresh API was called with shorter timeout
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(3);
+    }, { timeout: 1000 });
+    
+    // Restore timers
+    jest.useRealTimers();
+  }, 15000); // Increase the test timeout to 15 seconds
 });

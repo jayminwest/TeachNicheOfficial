@@ -2,8 +2,19 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { RequestGrid } from '@/app/requests/components/request-grid'
 import { getRequests } from '@/app/lib/supabase/requests'
 
+// Mock the necessary dependencies
 jest.mock('@/app/lib/supabase/requests')
 jest.mock('@supabase/auth-helpers-nextjs')
+
+// Mock the request-card component
+jest.mock('@/app/requests/components/request-card', () => ({
+  RequestCard: ({ request }: { request: { id: string; title: string; description: string } }) => (
+    <div data-testid={`request-card-${request.id}`}>
+      <h3>{request.title}</h3>
+      <p>{request.description}</p>
+    </div>
+  )
+}))
 
 describe('RequestGrid', () => {
   const mockRequests = [
@@ -36,7 +47,7 @@ describe('RequestGrid', () => {
 
   it('renders loading state initially when no initial requests provided', () => {
     render(<RequestGrid />)
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+    expect(screen.getByTestId('loader-icon')).toBeInTheDocument()
   })
 
   it('renders requests from initial data without loading', () => {
@@ -44,14 +55,14 @@ describe('RequestGrid', () => {
     
     expect(screen.getByText('Request 1')).toBeInTheDocument()
     expect(screen.getByText('Request 2')).toBeInTheDocument()
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('loader-icon')).not.toBeInTheDocument()
   })
 
   it('loads and displays requests when no initial data provided', async () => {
     render(<RequestGrid />)
     
     // First verify loading state
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+    expect(screen.getByTestId('loader-icon')).toBeInTheDocument()
 
     // Wait for data to load and render
     await waitFor(() => {
@@ -60,7 +71,7 @@ describe('RequestGrid', () => {
     })
 
     // Verify loading spinner is gone
-    expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('loader-icon')).not.toBeInTheDocument()
   })
 
   it('displays empty state when no requests found', async () => {
@@ -69,7 +80,7 @@ describe('RequestGrid', () => {
     render(<RequestGrid />)
 
     // First wait for loading state to appear
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+    expect(screen.getByTestId('loader-icon')).toBeInTheDocument()
 
     // Then wait for empty state to appear
     await waitFor(() => {

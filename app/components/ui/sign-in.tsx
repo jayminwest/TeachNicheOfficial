@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { Button } from './button'
@@ -7,53 +7,65 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardTitle,
 } from './card'
 import { Icons } from './icons'
-import { signInWithGoogle, onAuthStateChange } from '@/app/services/auth/supabaseAuth'
+import { signInWithGoogle } from '@/app/services/auth/supabaseAuth'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { VisuallyHidden } from './visually-hidden'
+import { cn } from '@/app/lib/utils'
 
 interface SignInPageProps {
   onSignInSuccess?: () => void;
   initialView?: 'sign-in' | 'sign-up';
   onSwitchToSignUp?: () => void;
   redirectPath?: string | null;
+  className?: string;
 }
 
-function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
+// Export the wrapped component with Suspense
+function SignInPage(props: SignInPageProps) {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[inherit] w-full items-center justify-center">
+        <div className="text-center">
+          <div data-testid="loading-spinner" className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+          <VisuallyHidden>Loading authentication status</VisuallyHidden>
+          <p>Loading...</p>
+        </div>
+      </div>
+    }>
+      <SignInPageContent {...props} />
+    </Suspense>
+  );
+}
+
+function SignInPageContent({ onSignInSuccess, redirectPath, className }: SignInPageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
+  const errorParam = searchParams?.get('error')
   
-  // Listen for auth state changes to handle redirection
+  // Handle redirection after sign-in
   useEffect(() => {
-    const { data: { subscription } } = onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          // Call the success callback to close the dialog
-          onSignInSuccess?.();
-          
-          // Check if there's a redirect URL in the query params
-          const redirectTo = searchParams?.get('redirect');
-          
-          if (redirectTo) {
-            // Decode the URL if it's encoded
-            const decodedRedirect = decodeURIComponent(redirectTo);
-            window.location.href = decodedRedirect;
-          } else {
-            router.push('/profile');
-          }
-          
-          // Reset loading state
-          setIsLoading(false);
-        }
+    if (user) {
+      // Call the success callback to close the dialog
+      onSignInSuccess?.();
+      
+      // Check if there's a redirect URL in the query params
+      const redirectTo = searchParams?.get('redirect');
+      
+      if (redirectTo) {
+        // Decode the URL if it's encoded
+        const decodedRedirect = decodeURIComponent(redirectTo);
+        window.location.href = decodedRedirect;
+      } else {
+        router.push('/profile');
       }
-    );
-    
-    return () => subscription.unsubscribe();
-  }, [router, onSignInSuccess, searchParams]);
+    }
+  }, [user, router, onSignInSuccess, searchParams]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
@@ -76,11 +88,11 @@ function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
         throw result.error;
       }
       
-      // We don't redirect here - the onAuthStateChange listener will handle it
-      // Keep loading state until auth state change or timeout
+      // We don't redirect here - the useEffect with user dependency will handle it
+      // Keep loading state for a short time to allow auth state to update
       setTimeout(() => {
         setIsLoading(false);
-      }, 5000); // Safety timeout in case auth state doesn't change
+      }, 2000); // Safety timeout in case auth state doesn't change
       
     } catch (err) {
       console.error('Google sign-in error:', err);
@@ -110,9 +122,10 @@ function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
 
   // Show sign-in UI
   return (
-    <div className="flex min-h-[inherit] items-center justify-center p-6">
+    <div data-testid="sign-in-container" className={cn("flex min-h-[inherit] items-center justify-center p-6", className)}>
       <Card className="w-full max-w-[400px] mx-auto">
         <CardHeader className="space-y-1">
+          <CardTitle>Sign in to Teach Niche</CardTitle>
           <CardDescription>Sign in with your Google account</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -132,8 +145,10 @@ function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
               )}
               Sign in with Google
             </Button>
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
+            {(error || errorParam) && (
+              <p className="text-sm text-red-500 text-center">
+                {error || "There was a problem signing you in"}
+              </p>
             )}
           </div>
         </CardContent>
@@ -142,4 +157,5 @@ function SignInPage({ onSignInSuccess, redirectPath }: SignInPageProps) {
   );
 }
 
-export { SignInPage };
+// Export both components
+export { SignInPage, SignInPageContent as SignIn };

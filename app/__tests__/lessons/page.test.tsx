@@ -1,6 +1,7 @@
 // @jest-environment jsdom
 
 import { render } from '@testing-library/react';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 
 // Set up the global flag for Suspense testing
 global.__SUSPENSE_TEST_FALLBACK__ = false;
@@ -73,7 +74,7 @@ describe('Lesson Page', () => {
       },
     };
     
-    import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+    // Set up the mock
     (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
   });
   

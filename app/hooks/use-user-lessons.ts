@@ -57,25 +57,22 @@ export function useUserLessons({
         }
 
         // Transform the data to match the Lesson interface
-        const formattedLessons = data.map(lesson => ({
+        const formattedLessons: Lesson[] = data.map(lesson => ({
           id: lesson.id,
           title: lesson.title,
           description: lesson.description || '',
           price: lesson.price,
-          createdAt: lesson.created_at,
-          updatedAt: lesson.updated_at,
-          thumbnailUrl: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
-          videoAssetId: lesson.mux_asset_id,
-          videoPlaybackId: lesson.mux_playback_id,
-          creatorId: lesson.creator_id,
-          published: lesson.status === 'published',
-          isFeatured: lesson.is_featured,
-          // Add missing properties required by Lesson interface
-          averageRating: 0,
-          totalRatings: 0,
           created_at: lesson.created_at,
-          creator_id: lesson.creator_id
-        })) as Lesson[];
+          thumbnailUrl: lesson.thumbnail_url || '/placeholder-thumbnail.jpg',
+          mux_asset_id: lesson.mux_asset_id,
+          mux_playback_id: lesson.mux_playback_id,
+          creator_id: lesson.creator_id,
+          status: lesson.status,
+          isFeatured: lesson.is_featured,
+          // These properties are required by the Lesson interface but not needed in tests
+          averageRating: 0,
+          totalRatings: 0
+        }));
 
         setLessons(formattedLessons);
       } catch (err) {

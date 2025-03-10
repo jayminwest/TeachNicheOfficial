@@ -131,6 +131,9 @@ A technique where pages are rendered on the server before being sent to the clie
 ### Stripe
 The payment processing service used by Teach Niche.
 
+### Stripe Account Details
+A JSON field in the profiles table that stores detailed information about a creator's Stripe Connect account, including verification status, capabilities, and requirements.
+
 ### Supabase
 The backend-as-a-service platform providing database, authentication, and storage for Teach Niche.
 

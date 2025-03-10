@@ -54,7 +54,7 @@ describe('ClientAuthWrapper', () => {
     render(<ClientAuthWrapper />);
     
     // Should show loading spinner initially
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
   });
   
   it('renders sign in button after loading', async () => {
@@ -74,9 +74,10 @@ describe('ClientAuthWrapper', () => {
     
     render(<ClientAuthWrapper />);
     
-    // Wait for loading to finish
+    // Wait for loading to finish and check for error message
     await waitFor(() => {
-      expect(screen.getByText('Authentication failed')).toBeInTheDocument();
+      const errorElements = screen.getAllByText(/Authentication failed/i);
+      expect(errorElements.length).toBeGreaterThan(0);
     });
   });
   

@@ -97,18 +97,19 @@ describe('useUserLessons', () => {
       title: 'Test Lesson 1',
       description: 'Description 1',
       price: 19.99,
-      createdAt: '2025-01-01T00:00:00Z',
-      updatedAt: '2025-01-02T00:00:00Z',
+      created_at: '2025-01-01T00:00:00Z',
       thumbnailUrl: '/test-thumbnail-1.jpg',
-      videoAssetId: 'asset-1',
-      videoPlaybackId: 'playback-1',
-      creatorId: 'user-123',
-      published: true,
+      mux_asset_id: 'asset-1',
+      mux_playback_id: 'playback-1',
+      creator_id: 'user-123',
+      status: 'published',
       isFeatured: true,
+      averageRating: 0,
+      totalRatings: 0
     });
     expect(result.current.lessons[1].description).toBe('');
     expect(result.current.lessons[1].thumbnailUrl).toBe('/placeholder-thumbnail.jpg');
-    expect(result.current.lessons[1].published).toBe(false);
+    expect(result.current.lessons[1].status).toBe('draft');
   });
 
   it('should handle errors correctly', async () => {

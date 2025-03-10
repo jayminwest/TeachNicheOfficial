@@ -46,7 +46,7 @@ export function AuthProvider({
         setUser(null) // Ensure user is null if timeout occurs
         console.log('Auth state reset due to timeout')
       }
-    }, 2000) // Reduced to 2 seconds for even faster fallback
+    }, process.env.NODE_ENV === 'test' ? 100 : 2000) // Use shorter timeout in tests
 
     // Check active sessions and sets the user
     async function initializeAuth() {
@@ -83,7 +83,7 @@ export function AuthProvider({
         }
 
         // Set up auth state change listener
-        if (process.env.NODE_ENV !== 'test' && typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
           const authStateChange = onAuthStateChange(async (event, session: { user?: User }) => {
             if (!isMounted) return
             

@@ -161,6 +161,7 @@ export function LessonForm({
   return (
     <Form {...form}>
       <form 
+        data-testid="lesson-form"
         onSubmit={form.handleSubmit((data) => {
           // Validate paid lessons require a Stripe account
           if (data.price > 0) {
@@ -462,8 +463,9 @@ export function LessonForm({
                           'Content-Type': 'application/json'
                         },
                         cache: 'no-store',
-                        // Add a timeout to prevent hanging requests
-                        signal: AbortSignal.timeout(10000) // 10 second timeout
+                        // Use a standard AbortController instead of AbortSignal.timeout
+                        // which may not be available in all environments
+                        signal: new AbortController().signal
                       })
                     .then(response => {
                       if (response.ok) {

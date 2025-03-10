@@ -1,5 +1,6 @@
-export const dynamic = 'force-dynamic';
 import SearchParamsWrapper from './search-params-wrapper';
+
+export const dynamic = 'force-dynamic';
 
 export default function LessonsPage() {
   return (

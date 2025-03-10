@@ -28,23 +28,28 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
       setRequests(data)
     } catch (error) {
       // Improved error handling with detailed logging
-      const errorDetails = typeof error === 'object' 
-        ? JSON.stringify(error, Object.getOwnPropertyNames(error)) 
-        : String(error);
+      let errorDetails;
+      try {
+        errorDetails = typeof error === 'object' && error !== null
+          ? JSON.stringify(error, Object.getOwnPropertyNames(error))
+          : String(error);
+      } catch {
+        errorDetails = `[Error object could not be stringified: ${String(error)}]`;
+      }
       
       // Check for specific Supabase JWT error
       let userMessage = 'Failed to load requests';
       let shouldRefreshAuth = false;
       
-      if (errorDetails.includes('JWSError') || 
+      if (typeof errorDetails === 'string' && (
+          errorDetails.includes('JWSError') || 
           errorDetails.includes('Not valid base64url') ||
-          errorDetails.includes('JWT')) {
+          errorDetails.includes('JWT'))) {
         userMessage = 'Authentication error. Please try signing out and signing back in.';
         shouldRefreshAuth = true;
         console.error('Supabase JWT validation error detected:', { 
-          error, 
           errorType: typeof error,
-          errorDetails
+          errorMessage: error instanceof Error ? error.message : String(error)
         });
         
         // Attempt to refresh the session
@@ -60,14 +65,16 @@ export function RequestGrid({ initialRequests, category, sortBy = 'popular', onE
           // Continue with the original error handling
         }
       } else {
+        // Handle case where error might be empty or undefined
         const errorMessage = error instanceof Error 
           ? error.message 
-          : `Unknown error (${errorDetails})`;
+          : (errorDetails && errorDetails !== '{}' && errorDetails !== 'null')
+            ? `Unknown error (${errorDetails})`
+            : 'Unknown error';
         
         console.error('Failed to load requests:', { 
-          error, 
           errorType: typeof error,
-          errorDetails
+          errorMessage: error instanceof Error ? error.message : String(error)
         });
         
         userMessage = `Failed to load requests: ${errorMessage}`;

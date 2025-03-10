@@ -47,6 +47,9 @@ export function onAuthStateChange(callback: (event: string, session: unknown) =>
   
   // In test environment, return a mock subscription
   if (process.env.NODE_ENV === 'test') {
+    // Call the callback immediately to simulate an auth state change
+    callback('SIGNED_IN', { user: { id: 'test-user-id' } });
+    
     return {
       data: {
         subscription: {
@@ -57,9 +60,13 @@ export function onAuthStateChange(callback: (event: string, session: unknown) =>
   }
   
   try {
-    return supabase.auth.onAuthStateChange(callback)
+    // The Supabase onAuthStateChange method takes the event and callback
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
+    });
+    return { data };
   } catch (error) {
-    console.error('Error setting up auth state change listener:', error)
+    console.error('Error setting up auth state change listener:', error);
     // Return a mock subscription if the real one fails
     return {
       data: {
@@ -67,7 +74,7 @@ export function onAuthStateChange(callback: (event: string, session: unknown) =>
           unsubscribe: () => {}
         }
       }
-    }
+    };
   }
 }
 
@@ -103,7 +110,9 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
       })
       
       if (error) {
-        console.error('OAuth sign-in error:', error);
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('OAuth sign-in error:', error);
+        }
         
         // Special handling for cookie-related errors
         if (error.message?.includes('cookies') || 

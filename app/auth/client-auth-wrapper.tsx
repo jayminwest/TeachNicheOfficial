@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/app/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from '@/app/components/ui/error-boundary';
@@ -11,7 +11,26 @@ interface ClientAuthWrapperProps {
   errorParam?: string;
 }
 
-export default function ClientAuthWrapper({ redirect, errorParam }: ClientAuthWrapperProps) {
+// Export the wrapped component with Suspense
+export default function ClientAuthWrapper(props: ClientAuthWrapperProps) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-icon" />
+        </div>
+      </div>
+    }>
+      <ClientAuthWrapperContent {...props} />
+    </Suspense>
+  );
+}
+
+function ClientAuthWrapperContent(props: ClientAuthWrapperProps) {
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect') || props.redirect;
+  const errorFromUrl = searchParams.get('error') || props.errorParam;
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,13 +38,13 @@ export default function ClientAuthWrapper({ redirect, errorParam }: ClientAuthWr
   
   useEffect(() => {
     // Store redirect URL in session storage
-    if (redirect) {
-      sessionStorage.setItem('auth-redirect', redirect);
+    if (redirectParam) {
+      sessionStorage.setItem('auth-redirect', redirectParam);
     }
     
     // Set error from URL parameter if present
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+    if (errorFromUrl) {
+      setError(decodeURIComponent(errorFromUrl));
     }
     
     // Simulate loading to ensure client hydration
@@ -34,7 +53,7 @@ export default function ClientAuthWrapper({ redirect, errorParam }: ClientAuthWr
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [redirect, errorParam]);
+  }, [redirectParam, errorFromUrl]);
   
   const handleGoogleSignIn = async () => {
     try {
@@ -69,7 +88,7 @@ export default function ClientAuthWrapper({ redirect, errorParam }: ClientAuthWr
     return (
       <div className="space-y-4">
         <div className="flex justify-center items-center py-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loading-spinner" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-icon" />
         </div>
       </div>
     );

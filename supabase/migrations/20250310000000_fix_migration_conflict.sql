@@ -1,9 +1,55 @@
 -- This migration resolves conflicts with previously applied migrations
 -- It contains any necessary changes that weren't applied due to the conflict
 
--- Add any SQL statements that need to be applied here
--- For example:
--- ALTER TABLE your_table ADD COLUMN if not exists your_column TEXT;
-
--- This empty migration serves as a marker to skip past the conflicting migration
+-- This migration consolidates the necessary changes from the conflicting migrations
 -- while ensuring the schema is in the correct state
+
+-- Create a trigger for profile creation if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'on_auth_user_created' 
+    AND tgrelid = 'auth.users'::regclass
+  ) THEN
+    CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+  END IF;
+END
+$$;
+
+-- Enable RLS on lessons table if not already enabled
+ALTER TABLE IF EXISTS public.lessons ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for creators to manage their own lessons
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE policyname = 'Creators can manage their own lessons'
+    AND tablename = 'lessons'
+  ) THEN
+    CREATE POLICY "Creators can manage their own lessons"
+      ON public.lessons
+      FOR ALL
+      USING (auth.uid() = creator_id);
+  END IF;
+END
+$$;
+
+-- Create policy for users to view published lessons
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE policyname = 'Users can view published lessons'
+    AND tablename = 'lessons'
+  ) THEN
+    CREATE POLICY "Users can view published lessons"
+      ON public.lessons
+      FOR SELECT
+      USING (status = 'published' AND deleted_at IS NULL);
+  END IF;
+END
+$$;

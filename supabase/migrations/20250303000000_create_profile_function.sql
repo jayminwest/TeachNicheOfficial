@@ -1,4 +1,19 @@
 -- Migration: 20250303000000
+-- Create a function to handle new user creation and profile setup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, email, avatar_url)
+  VALUES (
+    new.id,
+    new.raw_user_meta_data->>'full_name',
+    new.email,
+    new.raw_user_meta_data->>'avatar_url'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Create a function to safely create profiles with proper permissions
 CREATE OR REPLACE FUNCTION create_profile(
   user_id UUID,

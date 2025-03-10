@@ -3,17 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/services/auth/AuthContext'
 import { getProfileById, updateProfile } from '@/app/services/profile/profileService'
-
-interface Profile {
-  id: string
-  full_name: string
-  email: string
-  avatar_url: string | null
-  bio: string
-  social_media_tag: string
-  created_at: string
-  updated_at: string
-}
+import { Profile } from '@/app/types/profile'
 
 interface ProfileUpdateData {
   full_name?: string
@@ -51,7 +41,7 @@ export function useProfile(): UseProfileReturn {
         throw error
       }
       
-      setProfile(data)
+      setProfile(data as Profile)
     } catch (err) {
       console.error('Error fetching profile:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch profile'))

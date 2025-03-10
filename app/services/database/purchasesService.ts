@@ -2,10 +2,6 @@ import { DatabaseService, DatabaseResponse } from './DatabaseService';
 import Stripe from 'stripe';
 import { PurchaseStatus } from '@/app/types/purchase';
 
-// Create a singleton instance
-const purchasesServiceInstance = new PurchasesService();
-export { purchasesServiceInstance as purchasesService };
-
 /**
  * Data required to create a purchase record
  */
@@ -484,12 +480,6 @@ export class PurchasesService extends DatabaseService {
     }
   }
 }
-// This file re-exports the PurchasesService for compatibility with imports
-// that use the lowercase naming convention
-import { PurchasesService } from './PurchasesService';
-
-export { PurchasesService };
-export * from './PurchasesService';
 
 // Create a singleton instance for use throughout the application
 export const purchasesService = new PurchasesService();

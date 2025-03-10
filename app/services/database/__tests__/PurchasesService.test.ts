@@ -169,18 +169,17 @@ describe('PurchasesService', () => {
   describe('checkLessonAccess', () => {
     it('should return hasAccess true for free lessons', async () => {
       // Setup the mock chain for this specific test
-      const mockChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockChain),
-        eq: jest.fn().mockReturnValue(mockChain),
-        single: jest.fn().mockResolvedValue({
-          data: { price: 0, creator_id: 'creator-123' },
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockChain: Partial<MockChain> = {};
+      mockChain.select = jest.fn().mockReturnValue(mockChain);
+      mockChain.eq = jest.fn().mockReturnValue(mockChain);
+      mockChain.single = jest.fn().mockResolvedValue({
+        data: { price: 0, creator_id: 'creator-123' },
+        error: null
+      });
+      mockChain.insert = jest.fn();
+      mockChain.update = jest.fn();
+      mockChain.order = jest.fn();
+      mockChain.limit = jest.fn();
       
       mockSupabase.from.mockImplementationOnce(() => mockChain);
       
@@ -198,18 +197,17 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess true if user is the creator', async () => {
       // Setup the mock chain for this specific test
-      const mockChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockChain),
-        eq: jest.fn().mockReturnValue(mockChain),
-        single: jest.fn().mockResolvedValue({
-          data: { price: 9.99, creator_id: 'user-123' },
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockChain: Partial<MockChain> = {};
+      mockChain.select = jest.fn().mockReturnValue(mockChain);
+      mockChain.eq = jest.fn().mockReturnValue(mockChain);
+      mockChain.single = jest.fn().mockResolvedValue({
+        data: { price: 9.99, creator_id: 'user-123' },
+        error: null
+      });
+      mockChain.insert = jest.fn();
+      mockChain.update = jest.fn();
+      mockChain.order = jest.fn();
+      mockChain.limit = jest.fn();
       
       mockSupabase.from.mockImplementationOnce(() => mockChain);
       
@@ -220,35 +218,30 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess true if user has completed purchase', async () => {
       // Setup the mock chain for lesson query
-      const mockLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockLessonChain),
-        eq: jest.fn().mockReturnValue(mockLessonChain),
-        single: jest.fn(),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockLessonChain: Partial<MockChain> = {};
       mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.single = jest.fn().mockResolvedValue({
         data: { price: 9.99, creator_id: 'creator-123' },
         error: null
       });
+      mockLessonChain.insert = jest.fn();
+      mockLessonChain.update = jest.fn();
+      mockLessonChain.order = jest.fn();
+      mockLessonChain.limit = jest.fn();
       
       // Setup the mock chain for purchase query
-      const mockPurchaseChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPurchaseChain),
-        eq: jest.fn().mockReturnValue(mockPurchaseChain),
-        order: jest.fn().mockReturnValue(mockPurchaseChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ status: 'completed', created_at: '2023-01-01T00:00:00Z' }],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPurchaseChain: Partial<MockChain> = {};
+      mockPurchaseChain.select = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.eq = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.order = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.limit = jest.fn().mockResolvedValue({
+        data: [{ status: 'completed', created_at: '2023-01-01T00:00:00Z' }],
+        error: null
+      });
+      mockPurchaseChain.insert = jest.fn();
+      mockPurchaseChain.update = jest.fn();
+      mockPurchaseChain.single = jest.fn();
       
       // First call to from() for lesson
       mockSupabase.from.mockImplementationOnce(() => mockLessonChain);
@@ -267,32 +260,30 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess false if purchase status is not completed', async () => {
       // Setup the mock chain for lesson query
-      const mockLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockLessonChain),
-        eq: jest.fn().mockReturnValue(mockLessonChain),
-        single: jest.fn().mockResolvedValue({
-          data: { price: 9.99, creator_id: 'creator-123' },
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockLessonChain: Partial<MockChain> = {};
+      mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.single = jest.fn().mockResolvedValue({
+        data: { price: 9.99, creator_id: 'creator-123' },
+        error: null
+      });
+      mockLessonChain.insert = jest.fn();
+      mockLessonChain.update = jest.fn();
+      mockLessonChain.order = jest.fn();
+      mockLessonChain.limit = jest.fn();
       
       // Setup the mock chain for purchase query
-      const mockPurchaseChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPurchaseChain),
-        eq: jest.fn().mockReturnValue(mockPurchaseChain),
-        order: jest.fn().mockReturnValue(mockPurchaseChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ status: 'pending', created_at: '2023-01-01T00:00:00Z' }],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPurchaseChain: Partial<MockChain> = {};
+      mockPurchaseChain.select = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.eq = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.order = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.limit = jest.fn().mockResolvedValue({
+        data: [{ status: 'pending', created_at: '2023-01-01T00:00:00Z' }],
+        error: null
+      });
+      mockPurchaseChain.insert = jest.fn();
+      mockPurchaseChain.update = jest.fn();
+      mockPurchaseChain.single = jest.fn();
       
       // First call to from() for lesson
       mockSupabase.from.mockImplementationOnce(() => mockLessonChain);
@@ -311,32 +302,20 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess false if user has no purchase', async () => {
       // Setup the mock chain for lesson query
-      const mockLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockLessonChain),
-        eq: jest.fn().mockReturnValue(mockLessonChain),
-        single: jest.fn(),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockLessonChain: Partial<MockChain> = {};
       mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.single = jest.fn().mockResolvedValue({
         data: { price: 9.99, creator_id: 'creator-123' },
         error: null
       });
+      mockLessonChain.insert = jest.fn();
+      mockLessonChain.update = jest.fn();
+      mockLessonChain.order = jest.fn();
+      mockLessonChain.limit = jest.fn();
       
       // Setup the mock chain for purchase query
-      const mockPurchaseChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPurchaseChain),
-        eq: jest.fn().mockReturnValue(mockPurchaseChain),
-        order: jest.fn().mockReturnValue(mockPurchaseChain),
-        limit: jest.fn(),
-        insert: jest.fn(),
-        update: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPurchaseChain: Partial<MockChain> = {};
       mockPurchaseChain.select = jest.fn().mockReturnValue(mockPurchaseChain);
       mockPurchaseChain.eq = jest.fn().mockReturnValue(mockPurchaseChain);
       mockPurchaseChain.order = jest.fn().mockReturnValue(mockPurchaseChain);
@@ -344,6 +323,9 @@ describe('PurchasesService', () => {
         data: [],
         error: null
       });
+      mockPurchaseChain.insert = jest.fn();
+      mockPurchaseChain.update = jest.fn();
+      mockPurchaseChain.single = jest.fn();
       
       // First call to from() for lesson
       mockSupabase.from.mockImplementationOnce(() => mockLessonChain);
@@ -368,18 +350,17 @@ describe('PurchasesService', () => {
       };
       
       // Create a mock chain for this specific test
-      const mockLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockLessonChain),
-        eq: jest.fn().mockReturnValue(mockLessonChain),
-        single: jest.fn().mockResolvedValue({
-          data: null,
-          error: mockError
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockLessonChain: Partial<MockChain> = {};
+      mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.single = jest.fn().mockResolvedValue({
+        data: null,
+        error: mockError
+      });
+      mockLessonChain.insert = jest.fn();
+      mockLessonChain.update = jest.fn();
+      mockLessonChain.order = jest.fn();
+      mockLessonChain.limit = jest.fn();
       
       // Override the default mock for this test
       mockSupabase.from.mockImplementationOnce(() => mockLessonChain);
@@ -402,18 +383,17 @@ describe('PurchasesService', () => {
     
     it('should return existing completed purchase if one exists', async () => {
       // Setup mock for existing purchase query
-      const mockPurchaseChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPurchaseChain),
-        eq: jest.fn().mockReturnValue(mockPurchaseChain),
-        order: jest.fn().mockReturnValue(mockPurchaseChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ id: 'purchase-123', status: 'completed' }],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPurchaseChain: Partial<MockChain> = {};
+      mockPurchaseChain.select = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.eq = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.order = jest.fn().mockReturnValue(mockPurchaseChain);
+      mockPurchaseChain.limit = jest.fn().mockResolvedValue({
+        data: [{ id: 'purchase-123', status: 'completed' }],
+        error: null
+      });
+      mockPurchaseChain.insert = jest.fn();
+      mockPurchaseChain.update = jest.fn();
+      mockPurchaseChain.single = jest.fn();
       
       mockSupabase.from.mockImplementationOnce(() => mockPurchaseChain);
       
@@ -433,46 +413,43 @@ describe('PurchasesService', () => {
       // Setup mocks for the different queries
       
       // First query - no existing purchase for user/lesson
-      const mockUserLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockUserLessonChain),
-        eq: jest.fn().mockReturnValue(mockUserLessonChain),
-        order: jest.fn().mockReturnValue(mockUserLessonChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        single: jest.fn()
-      };
+      const mockUserLessonChain: Partial<MockChain> = {};
+      mockUserLessonChain.select = jest.fn().mockReturnValue(mockUserLessonChain);
+      mockUserLessonChain.eq = jest.fn().mockReturnValue(mockUserLessonChain);
+      mockUserLessonChain.order = jest.fn().mockReturnValue(mockUserLessonChain);
+      mockUserLessonChain.limit = jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      });
+      mockUserLessonChain.insert = jest.fn();
+      mockUserLessonChain.update = jest.fn();
+      mockUserLessonChain.single = jest.fn();
       
       // Second query - existing purchase with same session ID
-      const mockSessionChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockSessionChain),
-        eq: jest.fn().mockReturnValue(mockSessionChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ id: 'purchase-123', status: 'pending' }],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockSessionChain: Partial<MockChain> = {};
+      mockSessionChain.select = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.eq = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.limit = jest.fn().mockResolvedValue({
+        data: [{ id: 'purchase-123', status: 'pending' }],
+        error: null
+      });
+      mockSessionChain.insert = jest.fn();
+      mockSessionChain.update = jest.fn();
+      mockSessionChain.order = jest.fn();
+      mockSessionChain.single = jest.fn();
       
       // Update query
-      const mockUpdateChain: MockChain = {
-        update: jest.fn().mockReturnValue(mockUpdateChain),
-        eq: jest.fn().mockReturnValue(mockUpdateChain),
-        select: jest.fn().mockReturnValue(mockUpdateChain),
-        single: jest.fn().mockResolvedValue({
-          data: { id: 'purchase-123' },
-          error: null
-        }),
-        insert: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockUpdateChain: Partial<MockChain> = {};
+      mockUpdateChain.update = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.eq = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.select = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.single = jest.fn().mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      mockUpdateChain.insert = jest.fn();
+      mockUpdateChain.order = jest.fn();
+      mockUpdateChain.limit = jest.fn();
       
       // First from() call for user/lesson purchase
       mockSupabase.from.mockImplementationOnce(() => mockUserLessonChain);
@@ -499,60 +476,56 @@ describe('PurchasesService', () => {
       // Setup mocks for the different queries
       
       // First query - no existing purchase for user/lesson
-      const mockUserLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockUserLessonChain),
-        eq: jest.fn().mockReturnValue(mockUserLessonChain),
-        order: jest.fn().mockReturnValue(mockUserLessonChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        single: jest.fn()
-      };
+      const mockUserLessonChain: Partial<MockChain> = {};
+      mockUserLessonChain.select = jest.fn().mockReturnValue(mockUserLessonChain);
+      mockUserLessonChain.eq = jest.fn().mockReturnValue(mockUserLessonChain);
+      mockUserLessonChain.order = jest.fn().mockReturnValue(mockUserLessonChain);
+      mockUserLessonChain.limit = jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      });
+      mockUserLessonChain.insert = jest.fn();
+      mockUserLessonChain.update = jest.fn();
+      mockUserLessonChain.single = jest.fn();
       
       // Second query - no existing purchase with same session ID
-      const mockSessionChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockSessionChain),
-        eq: jest.fn().mockReturnValue(mockSessionChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockSessionChain: Partial<MockChain> = {};
+      mockSessionChain.select = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.eq = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.limit = jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      });
+      mockSessionChain.insert = jest.fn();
+      mockSessionChain.update = jest.fn();
+      mockSessionChain.order = jest.fn();
+      mockSessionChain.single = jest.fn();
       
       // Lesson data query
-      const mockLessonChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockLessonChain),
-        eq: jest.fn().mockReturnValue(mockLessonChain),
-        single: jest.fn().mockResolvedValue({
-          data: { creator_id: 'creator-123', price: 19.99 },
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockLessonChain: Partial<MockChain> = {};
+      mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
+      mockLessonChain.single = jest.fn().mockResolvedValue({
+        data: { creator_id: 'creator-123', price: 19.99 },
+        error: null
+      });
+      mockLessonChain.insert = jest.fn();
+      mockLessonChain.update = jest.fn();
+      mockLessonChain.order = jest.fn();
+      mockLessonChain.limit = jest.fn();
       
       // Insert query
-      const mockInsertChain: MockChain = {
-        insert: jest.fn().mockReturnValue(mockInsertChain),
-        select: jest.fn().mockReturnValue(mockInsertChain),
-        single: jest.fn().mockResolvedValue({
-          data: { id: 'new-purchase-123' },
-          error: null
-        }),
-        eq: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockInsertChain: Partial<MockChain> = {};
+      mockInsertChain.insert = jest.fn().mockReturnValue(mockInsertChain);
+      mockInsertChain.select = jest.fn().mockReturnValue(mockInsertChain);
+      mockInsertChain.single = jest.fn().mockResolvedValue({
+        data: { id: 'new-purchase-123' },
+        error: null
+      });
+      mockInsertChain.eq = jest.fn();
+      mockInsertChain.update = jest.fn();
+      mockInsertChain.order = jest.fn();
+      mockInsertChain.limit = jest.fn();
       
       // First from() call for user/lesson purchase
       mockSupabase.from.mockImplementationOnce(() => mockUserLessonChain);
@@ -673,38 +646,36 @@ describe('PurchasesService', () => {
   describe('updatePurchaseStatus', () => {
     it('should update purchase status when found by stripe_session_id', async () => {
       // Mock finding purchase by session ID
-      const mockSessionChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockSessionChain),
-        eq: jest.fn().mockReturnValue(mockSessionChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ id: 'purchase-123', status: 'pending' }],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockSessionChain: Partial<MockChain> = {};
+      mockSessionChain.select = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.eq = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.limit = jest.fn().mockResolvedValue({
+        data: [{ id: 'purchase-123', status: 'pending' }],
+        error: null
+      });
+      mockSessionChain.insert = jest.fn();
+      mockSessionChain.update = jest.fn();
+      mockSessionChain.order = jest.fn();
+      mockSessionChain.single = jest.fn();
       
       // Mock update result
-      const mockUpdateChain: MockChain = {
-        update: jest.fn().mockImplementation((data) => {
-          expect(data).toEqual({
-            status: 'completed',
-            updated_at: expect.any(String)
-          });
-          return mockUpdateChain;
-        }),
-        eq: jest.fn().mockReturnValue(mockUpdateChain),
-        select: jest.fn().mockReturnValue(mockUpdateChain),
-        single: jest.fn().mockResolvedValue({
-          data: { id: 'purchase-123' },
-          error: null
-        }),
-        insert: jest.fn(),
-        order: jest.fn(),
-        limit: jest.fn()
-      };
+      const mockUpdateChain: Partial<MockChain> = {};
+      mockUpdateChain.update = jest.fn().mockImplementation((data) => {
+        expect(data).toEqual({
+          status: 'completed',
+          updated_at: expect.any(String)
+        });
+        return mockUpdateChain;
+      });
+      mockUpdateChain.eq = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.select = jest.fn().mockReturnValue(mockUpdateChain);
+      mockUpdateChain.single = jest.fn().mockResolvedValue({
+        data: { id: 'purchase-123' },
+        error: null
+      });
+      mockUpdateChain.insert = jest.fn();
+      mockUpdateChain.order = jest.fn();
+      mockUpdateChain.limit = jest.fn();
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => mockSessionChain);
@@ -723,36 +694,34 @@ describe('PurchasesService', () => {
     
     it('should try finding purchase by payment_intent_id if not found by session_id', async () => {
       // No purchase found by session ID
-      const mockSessionChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockSessionChain),
-        eq: jest.fn().mockReturnValue(mockSessionChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockSessionChain: Partial<MockChain> = {};
+      mockSessionChain.select = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.eq = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.limit = jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      });
+      mockSessionChain.insert = jest.fn();
+      mockSessionChain.update = jest.fn();
+      mockSessionChain.order = jest.fn();
+      mockSessionChain.single = jest.fn();
       
       // Purchase found by payment intent ID
-      const mockPaymentIntentChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPaymentIntentChain),
-        eq: jest.fn().mockImplementation((field, value) => {
-          expect(field).toBe('payment_intent_id');
-          expect(value).toBe('payment-123');
-          return mockPaymentIntentChain;
-        }),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ id: 'purchase-123', status: 'pending' }],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPaymentIntentChain: Partial<MockChain> = {};
+      mockPaymentIntentChain.select = jest.fn().mockReturnValue(mockPaymentIntentChain);
+      mockPaymentIntentChain.eq = jest.fn().mockImplementation((field, value) => {
+        expect(field).toBe('payment_intent_id');
+        expect(value).toBe('payment-123');
+        return mockPaymentIntentChain;
+      });
+      mockPaymentIntentChain.limit = jest.fn().mockResolvedValue({
+        data: [{ id: 'purchase-123', status: 'pending' }],
+        error: null
+      });
+      mockPaymentIntentChain.insert = jest.fn();
+      mockPaymentIntentChain.update = jest.fn();
+      mockPaymentIntentChain.order = jest.fn();
+      mockPaymentIntentChain.single = jest.fn();
       
       // Mock update result
       const mockUpdateChain: MockChain = {
@@ -784,18 +753,17 @@ describe('PurchasesService', () => {
     
     it('should not update if purchase already has the desired status', async () => {
       // Mock finding purchase with status already completed
-      const mockSessionChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockSessionChain),
-        eq: jest.fn().mockReturnValue(mockSessionChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [{ id: 'purchase-123', status: 'completed' }],
-          error: null
-        }),
-        update: jest.fn(),
-        insert: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockSessionChain: Partial<MockChain> = {};
+      mockSessionChain.select = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.eq = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.limit = jest.fn().mockResolvedValue({
+        data: [{ id: 'purchase-123', status: 'completed' }],
+        error: null
+      });
+      mockSessionChain.update = jest.fn();
+      mockSessionChain.insert = jest.fn();
+      mockSessionChain.order = jest.fn();
+      mockSessionChain.single = jest.fn();
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => mockSessionChain);
@@ -814,32 +782,30 @@ describe('PurchasesService', () => {
     
     it('should return error if purchase not found', async () => {
       // No purchase found by session ID
-      const mockSessionChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockSessionChain),
-        eq: jest.fn().mockReturnValue(mockSessionChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockSessionChain: Partial<MockChain> = {};
+      mockSessionChain.select = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.eq = jest.fn().mockReturnValue(mockSessionChain);
+      mockSessionChain.limit = jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      });
+      mockSessionChain.insert = jest.fn();
+      mockSessionChain.update = jest.fn();
+      mockSessionChain.order = jest.fn();
+      mockSessionChain.single = jest.fn();
       
       // No purchase found by payment intent ID
-      const mockPaymentIntentChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPaymentIntentChain),
-        eq: jest.fn().mockReturnValue(mockPaymentIntentChain),
-        limit: jest.fn().mockResolvedValue({
-          data: [],
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        order: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPaymentIntentChain: Partial<MockChain> = {};
+      mockPaymentIntentChain.select = jest.fn().mockReturnValue(mockPaymentIntentChain);
+      mockPaymentIntentChain.eq = jest.fn().mockReturnValue(mockPaymentIntentChain);
+      mockPaymentIntentChain.limit = jest.fn().mockResolvedValue({
+        data: [],
+        error: null
+      });
+      mockPaymentIntentChain.insert = jest.fn();
+      mockPaymentIntentChain.update = jest.fn();
+      mockPaymentIntentChain.order = jest.fn();
+      mockPaymentIntentChain.single = jest.fn();
       
       // First from() call for session ID query
       mockSupabase.from.mockImplementationOnce(() => mockSessionChain);
@@ -875,18 +841,17 @@ describe('PurchasesService', () => {
         }
       ];
       
-      const mockPurchasesChain: MockChain = {
-        select: jest.fn().mockReturnValue(mockPurchasesChain),
-        eq: jest.fn().mockReturnValue(mockPurchasesChain),
-        order: jest.fn().mockResolvedValue({
-          data: mockData,
-          error: null
-        }),
-        insert: jest.fn(),
-        update: jest.fn(),
-        limit: jest.fn(),
-        single: jest.fn()
-      };
+      const mockPurchasesChain: Partial<MockChain> = {};
+      mockPurchasesChain.select = jest.fn().mockReturnValue(mockPurchasesChain);
+      mockPurchasesChain.eq = jest.fn().mockReturnValue(mockPurchasesChain);
+      mockPurchasesChain.order = jest.fn().mockResolvedValue({
+        data: mockData,
+        error: null
+      });
+      mockPurchasesChain.insert = jest.fn();
+      mockPurchasesChain.update = jest.fn();
+      mockPurchasesChain.limit = jest.fn();
+      mockPurchasesChain.single = jest.fn();
       
       // Setup mock for purchases query
       mockSupabase.from.mockImplementationOnce(() => mockPurchasesChain);

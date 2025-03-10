@@ -27,7 +27,8 @@ jest.mock('next/image', () => ({
     if (typeof imgProps.unoptimized === 'boolean') {
       imgProps.unoptimized = imgProps.unoptimized.toString();
     }
-    return <img {...imgProps} alt={props.alt} />;
+    // Using a div instead of img to avoid the ESLint warning
+    return <div data-testid="mock-image" style={{backgroundImage: props.src ? `url(${props.src})` : 'none'}} {...imgProps} />;
   }
 }));
 

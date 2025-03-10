@@ -363,7 +363,7 @@ export class PurchasesService extends DatabaseService {
    */
   async updatePurchaseStatus(
     referenceId: string, 
-    status: PurchaseStatus
+    status: Exclude<PurchaseStatus, 'none'>
   ): Promise<DatabaseResponse<{ id: string }>> {
     try {
       // Try to find purchase by session ID first
@@ -418,7 +418,7 @@ export class PurchasesService extends DatabaseService {
       const { data: updatedPurchase, error: updateError } = await this.supabase
         .from('purchases')
         .update({
-          status,
+          status: status as 'pending' | 'completed' | 'failed' | 'refunded',
           updated_at: new Date().toISOString()
         })
         .eq('id', purchaseToUpdate.id)

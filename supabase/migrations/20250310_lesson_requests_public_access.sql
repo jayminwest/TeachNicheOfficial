@@ -20,7 +20,7 @@ CREATE POLICY "Allow authenticated users to vote"
 ON lesson_request_votes
 FOR INSERT 
 TO authenticated
-USING (auth.uid() = user_id);
+WITH CHECK (auth.uid() = user_id);
 
 -- Allow users to update their own votes
 CREATE POLICY "Allow users to update their own votes" 

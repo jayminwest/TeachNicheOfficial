@@ -220,7 +220,15 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess true if user has completed purchase', async () => {
       // Setup the mock chain for lesson query
-      const mockLessonChain: any = {};
+      const mockLessonChain: MockChain = {
+        select: jest.fn().mockReturnValue(mockLessonChain),
+        eq: jest.fn().mockReturnValue(mockLessonChain),
+        single: jest.fn(),
+        insert: jest.fn(),
+        update: jest.fn(),
+        order: jest.fn(),
+        limit: jest.fn()
+      };
       mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.single = jest.fn().mockResolvedValue({
@@ -303,7 +311,15 @@ describe('PurchasesService', () => {
     
     it('should return hasAccess false if user has no purchase', async () => {
       // Setup the mock chain for lesson query
-      const mockLessonChain: any = {};
+      const mockLessonChain: MockChain = {
+        select: jest.fn().mockReturnValue(mockLessonChain),
+        eq: jest.fn().mockReturnValue(mockLessonChain),
+        single: jest.fn(),
+        insert: jest.fn(),
+        update: jest.fn(),
+        order: jest.fn(),
+        limit: jest.fn()
+      };
       mockLessonChain.select = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.eq = jest.fn().mockReturnValue(mockLessonChain);
       mockLessonChain.single = jest.fn().mockResolvedValue({
@@ -312,7 +328,15 @@ describe('PurchasesService', () => {
       });
       
       // Setup the mock chain for purchase query
-      const mockPurchaseChain: any = {};
+      const mockPurchaseChain: MockChain = {
+        select: jest.fn().mockReturnValue(mockPurchaseChain),
+        eq: jest.fn().mockReturnValue(mockPurchaseChain),
+        order: jest.fn().mockReturnValue(mockPurchaseChain),
+        limit: jest.fn(),
+        insert: jest.fn(),
+        update: jest.fn(),
+        single: jest.fn()
+      };
       mockPurchaseChain.select = jest.fn().mockReturnValue(mockPurchaseChain);
       mockPurchaseChain.eq = jest.fn().mockReturnValue(mockPurchaseChain);
       mockPurchaseChain.order = jest.fn().mockReturnValue(mockPurchaseChain);

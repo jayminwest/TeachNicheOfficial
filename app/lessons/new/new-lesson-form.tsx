@@ -75,23 +75,25 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       // Get upload URL from API
       const uploadResponse = await fetch('/api/mux/upload-url');
       if (!uploadResponse.ok) {
-        throw new Error('Failed to get upload URL');
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to get upload URL');
       }
       
       const { uploadUrl, assetId } = await uploadResponse.json();
       setMuxAssetId(assetId);
       
       // Upload file directly to Mux
-      const formData = new FormData();
-      formData.append('file', file);
-      
+      // Note: Mux direct upload doesn't use FormData for PUT requests
       const uploadResult = await fetch(uploadUrl, {
         method: 'PUT',
-        body: formData,
+        body: file, // Send the file directly as the request body
+        headers: {
+          'Content-Type': file.type, // Set the correct content type
+        },
       });
       
       if (!uploadResult.ok) {
-        throw new Error('Failed to upload video');
+        throw new Error(`Failed to upload video: ${uploadResult.status} ${uploadResult.statusText}`);
       }
       
       // Update status

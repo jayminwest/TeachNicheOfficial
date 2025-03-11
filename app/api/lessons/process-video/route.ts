@@ -12,10 +12,7 @@ export async function POST(request: Request) {
     const { lessonId, muxAssetId, isPaid } = await request.json();
     
     if (!lessonId || !muxAssetId) {
-      return NextResponse.json(
-        { error: 'Missing required parameters' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
     
     // Get the current user session
@@ -23,10 +20,7 @@ export async function POST(request: Request) {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     // Get the lesson to verify ownership
@@ -37,22 +31,15 @@ export async function POST(request: Request) {
       .single();
     
     if (lessonError || !lesson) {
-      console.error('Error fetching lesson:', lessonError);
-      return NextResponse.json(
-        { error: 'Lesson not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
     }
     
     // Verify the user owns this lesson
     if (lesson.creator_id !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized - you do not own this lesson' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - you do not own this lesson' }, { status: 403 });
     }
     
-    // For paid lessons, create Stripe product and price if they don't exist
+    // For paid lessons, create Stripe product and price
     if (isPaid && (!lesson.stripe_product_id || !lesson.stripe_price_id)) {
       try {
         // Get the user's Stripe account ID
@@ -63,19 +50,15 @@ export async function POST(request: Request) {
           .single();
         
         if (!profile?.stripe_account_id) {
-          return NextResponse.json(
-            { error: 'Stripe account required for paid lessons' },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: 'Stripe account required for paid lessons' }, { status: 400 });
         }
         
-        // Create a Stripe product
+        // Create a Stripe product and price
         const product = await stripe.products.create({
           name: lesson.title,
           description: lesson.description || undefined
         });
         
-        // Create a Stripe price
         const price = await stripe.prices.create({
           product: product.id,
           unit_amount: Math.round((lesson.price || 0) * 100),
@@ -92,36 +75,23 @@ export async function POST(request: Request) {
           .eq('id', lessonId);
       } catch (stripeError) {
         console.error('Error creating Stripe product/price:', stripeError);
-        // Continue with video processing even if Stripe fails
       }
     }
     
-    // Get asset details from Mux
     try {
-      // Verify environment variables are set
-      if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-        console.error('Missing Mux credentials in environment variables');
-        return NextResponse.json(
-          { error: 'Server configuration error: Missing Mux credentials' },
-          { status: 500 }
-        );
-      }
-      
-      // Import Mux SDK using CommonJS require to avoid ESM issues
-      const MuxNode = require('@mux/mux-node');
-      
-      // Create a new Mux instance with each request
-      const muxClient = new MuxNode.default({
-        tokenId: process.env.MUX_TOKEN_ID,
-        tokenSecret: process.env.MUX_TOKEN_SECRET,
+      // Import Mux SDK
+      const { Mux } = await import('@mux/mux-node');
+      const { Video } = new Mux({
+        tokenId: process.env.MUX_TOKEN_ID!,
+        tokenSecret: process.env.MUX_TOKEN_SECRET!,
       });
       
-      const asset = await muxClient.Video.Assets.get(muxAssetId);
+      const asset = await Video.Assets.get(muxAssetId);
       const playbackId = asset.playback_ids?.[0]?.id;
       
       if (asset.status === 'ready' && playbackId) {
         // Update lesson with playback ID and ensure status is published
-        const { error } = await supabase
+        await supabase
           .from('lessons')
           .update({ 
             status: 'published',
@@ -130,17 +100,9 @@ export async function POST(request: Request) {
           })
           .eq('id', lessonId);
         
-        if (error) {
-          console.error('Failed to update lesson:', error);
-          return NextResponse.json(
-            { error: 'Failed to update lesson', details: error.message },
-            { status: 500 }
-          );
-        }
-        
         // For paid content, update the playback policy to be signed
-        if (isPaid) {
-          await muxClient.Video.Assets.updatePlaybackRestriction(muxAssetId, {
+        if (isPaid && process.env.MUX_SIGNING_KEY_ID) {
+          await Video.Assets.updatePlaybackRestriction(muxAssetId, {
             playback_restriction_policy: {
               type: 'jwt',
               signing_key_id: process.env.MUX_SIGNING_KEY_ID,
@@ -148,17 +110,12 @@ export async function POST(request: Request) {
           });
         }
         
-        return NextResponse.json({ 
-          success: true,
-          playbackId: playbackId
-        });
+        return NextResponse.json({ success: true, playbackId });
       } else {
         // Asset is still processing, update status
         await supabase
           .from('lessons')
-          .update({ 
-            video_processing_status: asset.status
-          })
+          .update({ video_processing_status: asset.status })
           .eq('id', lessonId);
           
         return NextResponse.json({ 
@@ -169,16 +126,10 @@ export async function POST(request: Request) {
       }
     } catch (error) {
       console.error('Error processing video:', error);
-      return NextResponse.json(
-        { error: 'Failed to process video', details: error instanceof Error ? error.message : 'Unknown error' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to process video' }, { status: 500 });
     }
   } catch (error) {
     console.error('Error in process-video endpoint:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

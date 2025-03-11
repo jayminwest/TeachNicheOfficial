@@ -8,10 +8,7 @@ export async function GET(request: Request) {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
-    return NextResponse.json(
-      { error: 'Unauthorized - No active session' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
   try {
@@ -20,32 +17,23 @@ export async function GET(request: Request) {
     const assetId = searchParams.get('assetId');
     
     if (!assetId) {
-      return NextResponse.json(
-        { error: 'Missing assetId parameter' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
     }
     
     // Verify environment variables are set
     if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
-      console.error('Missing Mux credentials in environment variables');
-      return NextResponse.json(
-        { error: 'Server configuration error: Missing Mux credentials' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
     
-    // Import Mux SDK using CommonJS require to avoid ESM issues
-    const MuxNode = require('@mux/mux-node');
-    
-    // Create a new Mux instance with each request
-    const muxClient = new MuxNode.default({
+    // Import Mux SDK
+    const { Mux } = await import('@mux/mux-node');
+    const { Video } = new Mux({
       tokenId: process.env.MUX_TOKEN_ID,
       tokenSecret: process.env.MUX_TOKEN_SECRET,
     });
     
     // Get asset details from Mux
-    const asset = await muxClient.Video.Assets.get(assetId);
+    const asset = await Video.Assets.get(assetId);
     
     // Return asset status and playback ID if available
     return NextResponse.json({
@@ -54,9 +42,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error checking asset status:', error);
-    return NextResponse.json(
-      { error: 'Failed to get asset status', details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get asset status' }, { status: 500 });
   }
 }

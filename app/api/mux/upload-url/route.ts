@@ -26,25 +26,23 @@ export async function GET() {
     
     console.log('Creating Mux upload with user ID:', session.user.id);
     
-    // Import Mux dynamically to avoid initialization issues
-    const Mux = (await import('@mux/mux-node')).default;
-    
-    // Create a new Mux instance with each request
-    const muxClient = new Mux({
-      tokenId: process.env.MUX_TOKEN_ID || '',
-      tokenSecret: process.env.MUX_TOKEN_SECRET || '',
-    });
-    
-    // Check if Mux is properly initialized
-    if (!muxClient.Video || !muxClient.Video.Uploads) {
-      console.error('Mux Video client not properly initialized');
-      console.log('MUX_TOKEN_ID exists:', !!process.env.MUX_TOKEN_ID);
-      console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
+    // Verify environment variables are set
+    if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+      console.error('Missing Mux credentials in environment variables');
       return NextResponse.json(
-        { message: 'Mux client configuration error' },
+        { message: 'Server configuration error: Missing Mux credentials' },
         { status: 500 }
       );
     }
+    
+    // Import Mux SDK using CommonJS require to avoid ESM issues
+    const MuxNode = require('@mux/mux-node');
+    
+    // Create a new Mux instance with each request
+    const muxClient = new MuxNode.default({
+      tokenId: process.env.MUX_TOKEN_ID,
+      tokenSecret: process.env.MUX_TOKEN_SECRET,
+    });
     
     // Create a new direct upload
     const upload = await muxClient.Video.Uploads.create({
@@ -63,10 +61,11 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error creating upload URL:', error);
-    // Include stack trace for better debugging
+    
+    // Provide a specific error message for production
     const errorMessage = error instanceof Error 
-      ? `${error.message}\n${error.stack}` 
-      : String(error);
+      ? error.message
+      : 'Unknown error occurred';
       
     return NextResponse.json(
       { message: 'Failed to create upload URL', error: errorMessage },

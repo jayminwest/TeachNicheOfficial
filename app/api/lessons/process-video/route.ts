@@ -98,13 +98,22 @@ export async function POST(request: Request) {
     
     // Get asset details from Mux
     try {
-      // Import Mux dynamically to avoid initialization issues
-      const Mux = (await import('@mux/mux-node')).default;
+      // Verify environment variables are set
+      if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+        console.error('Missing Mux credentials in environment variables');
+        return NextResponse.json(
+          { error: 'Server configuration error: Missing Mux credentials' },
+          { status: 500 }
+        );
+      }
+      
+      // Import Mux SDK using CommonJS require to avoid ESM issues
+      const MuxNode = require('@mux/mux-node');
       
       // Create a new Mux instance with each request
-      const muxClient = new Mux({
-        tokenId: process.env.MUX_TOKEN_ID || '',
-        tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+      const muxClient = new MuxNode.default({
+        tokenId: process.env.MUX_TOKEN_ID,
+        tokenSecret: process.env.MUX_TOKEN_SECRET,
       });
       
       const asset = await muxClient.Video.Assets.get(muxAssetId);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 // Initialize Mux client
 const { Video } = new Mux({
@@ -10,14 +11,22 @@ const { Video } = new Mux({
 
 export async function GET() {
   try {
-    // Verify authentication
-    const supabase = await createServerSupabaseClient();
+    // Verify authentication using the route handler client
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: { session }, error: authError } = await supabase.auth.getSession();
     
-    if (authError || !session) {
+    if (authError) {
       console.error('Authentication error:', authError);
       return NextResponse.json(
-        { message: 'Unauthorized' },
+        { message: 'Authentication error', error: authError.message },
+        { status: 401 }
+      );
+    }
+    
+    if (!session) {
+      console.error('No active session found');
+      return NextResponse.json(
+        { message: 'Unauthorized - No active session' },
         { status: 401 }
       );
     }

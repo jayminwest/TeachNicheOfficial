@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Mux from '@mux/mux-node';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 // Initialize Mux client
 const { Video } = new Mux({
@@ -9,6 +10,16 @@ const { Video } = new Mux({
 });
 
 export async function GET(request: Request) {
+  // Verify authentication
+  const supabase = createRouteHandlerClient({ cookies });
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Unauthorized - No active session' },
+      { status: 401 }
+    );
+  }
   try {
     // Get asset ID from query params
     const { searchParams } = new URL(request.url);

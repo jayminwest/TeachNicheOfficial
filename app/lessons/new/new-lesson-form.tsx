@@ -72,8 +72,10 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     setUploadError(null);
     
     try {
-      // Get upload URL from API
-      const uploadResponse = await fetch('/api/mux/upload-url');
+      // Get upload URL from API with credentials
+      const uploadResponse = await fetch('/api/mux/upload-url', {
+        credentials: 'include', // Include cookies for authentication
+      });
       
       // Log the response for debugging
       console.log('Upload URL response status:', uploadResponse.status);
@@ -88,6 +90,19 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
+          
+          // If unauthorized, redirect to login
+          if (uploadResponse.status === 401) {
+            toast({
+              title: 'Authentication Required',
+              description: 'Please log in to upload videos.',
+              variant: 'destructive',
+            });
+            
+            // Redirect to auth page
+            window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+            return;
+          }
         } catch (e) {
           // If not JSON, use the raw text if available
           if (errorText) errorMessage += `: ${errorText}`;
@@ -144,13 +159,32 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   // Check asset status
   const checkAssetStatus = async (assetId: string) => {
     console.log('Checking asset status for:', assetId);
+    
+    // Add toast to the function scope
+    const { toast } = useToast();
     try {
-      const statusResponse = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+      const statusResponse = await fetch(`/api/mux/asset-status?assetId=${assetId}`, {
+        credentials: 'include', // Include cookies for authentication
+      });
       console.log('Asset status response:', statusResponse.status);
       
       if (!statusResponse.ok) {
         const errorText = await statusResponse.text().catch(() => '');
         console.error('Asset status error:', errorText);
+        
+        // If unauthorized, redirect to login
+        if (statusResponse.status === 401) {
+          toast({
+            title: 'Authentication Required',
+            description: 'Your session has expired. Please log in again.',
+            variant: 'destructive',
+          });
+          
+          // Redirect to auth page
+          window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+          return;
+        }
+        
         throw new Error(`Failed to check asset status: ${statusResponse.status} ${statusResponse.statusText}`);
       }
       
@@ -210,6 +244,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(lessonData),
       });
       
@@ -233,6 +268,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({
           lessonId: lesson.id,
           muxAssetId: lessonData.muxAssetId,

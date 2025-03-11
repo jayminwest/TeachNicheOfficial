@@ -74,13 +74,40 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     try {
       // Get upload URL from API
       const uploadResponse = await fetch('/api/mux/upload-url');
+      
+      // Log the response for debugging
+      console.log('Upload URL response status:', uploadResponse.status);
+      
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to get upload URL');
+        // Try to get the error details
+        const errorText = await uploadResponse.text();
+        console.error('Upload URL error response:', errorText);
+        
+        // Try to parse as JSON if possible
+        let errorMessage = 'Failed to get upload URL';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // If not JSON, use the raw text if available
+          if (errorText) errorMessage += `: ${errorText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
       
-      const { uploadUrl, assetId } = await uploadResponse.json();
+      const responseData = await uploadResponse.json();
+      console.log('Upload URL response data:', responseData);
+      
+      // Ensure we have the required fields
+      if (!responseData.uploadUrl || !responseData.assetId) {
+        throw new Error('Invalid response from upload URL endpoint: missing required fields');
+      }
+      
+      const { uploadUrl, assetId } = responseData;
       setMuxAssetId(assetId);
+      
+      console.log('Uploading to Mux with URL:', uploadUrl);
       
       // Upload file directly to Mux
       // Note: Mux direct upload doesn't use FormData for PUT requests
@@ -92,8 +119,14 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         },
       });
       
+      console.log('Upload result status:', uploadResult.status);
+      
       if (!uploadResult.ok) {
-        throw new Error(`Failed to upload video: ${uploadResult.status} ${uploadResult.statusText}`);
+        // Try to get more details about the error
+        const errorText = await uploadResult.text().catch(() => '');
+        console.error('Upload error response:', errorText);
+        
+        throw new Error(`Failed to upload video: ${uploadResult.status} ${uploadResult.statusText}${errorText ? ` - ${errorText}` : ''}`);
       }
       
       // Update status
@@ -110,10 +143,15 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   
   // Check asset status
   const checkAssetStatus = async (assetId: string) => {
+    console.log('Checking asset status for:', assetId);
     try {
       const statusResponse = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+      console.log('Asset status response:', statusResponse.status);
+      
       if (!statusResponse.ok) {
-        throw new Error('Failed to check asset status');
+        const errorText = await statusResponse.text().catch(() => '');
+        console.error('Asset status error:', errorText);
+        throw new Error(`Failed to check asset status: ${statusResponse.status} ${statusResponse.statusText}`);
       }
       
       const { status, playbackId } = await statusResponse.json();

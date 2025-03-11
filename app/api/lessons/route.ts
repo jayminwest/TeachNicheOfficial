@@ -1,6 +1,69 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import type { Database } from '@/app/types/database';
+
+export async function POST(request: Request) {
+  try {
+    // Verify authentication
+    const supabase = await createServerSupabaseClient();
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
+    if (authError || !session) {
+      console.error('Authentication error:', authError);
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    const userId = session.user.id;
+    
+    // Get request body
+    const lessonData = await request.json();
+    
+    // Validate required fields
+    if (!lessonData.title || !lessonData.description) {
+      return NextResponse.json(
+        { message: 'Title and description are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Create lesson in database
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .insert({
+        title: lessonData.title,
+        description: lessonData.description,
+        content: lessonData.content || '',
+        price: lessonData.price || 0,
+        creator_id: userId,
+        mux_asset_id: lessonData.muxAssetId,
+        mux_playback_id: lessonData.muxPlaybackId,
+        video_processing_status: 'processing',
+        status: 'draft',
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating lesson:', error);
+      return NextResponse.json(
+        { message: 'Failed to create lesson', error: error.message },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json(lesson);
+  } catch (error) {
+    console.error('Error creating lesson:', error);
+    return NextResponse.json(
+      { message: 'Failed to create lesson', error: String(error) },
+      { status: 500 }
+    );
+  }
+}
 
 export async function GET() {
   try {

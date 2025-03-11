@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { Database } from '@/app/types/database';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+import Mux from '@mux/mux-node';
 import Stripe from 'stripe';
-import { waitForAssetReady } from '@/app/services/mux';
+
+// Initialize Mux client
+const { Video } = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID || '',
+  tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+});
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-01-27.acacia'
 });
-
-
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
     }
     
     // Get the current user session
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {
@@ -101,21 +103,19 @@ export async function POST(request: Request) {
       }
     }
     
-    // Poll Mux API for asset status
+    // Get asset details from Mux
     try {
-      const result = await waitForAssetReady(muxAssetId, {
-        maxAttempts: 60,
-        interval: 10000
-      });
+      const asset = await Video.Assets.get(muxAssetId);
+      const playbackId = asset.playback_ids?.[0]?.id;
       
-      if (result.status === 'ready' && result.playbackId) {
+      if (asset.status === 'ready' && playbackId) {
         // Update lesson with playback ID and ensure status is published
-        // Make sure we're using a valid status enum value
         const { error } = await supabase
           .from('lessons')
           .update({ 
-            status: 'published',  // This is a valid enum value
-            mux_playback_id: result.playbackId
+            status: 'published',
+            mux_playback_id: playbackId,
+            video_processing_status: 'ready'
           })
           .eq('id', lessonId);
         
@@ -127,15 +127,34 @@ export async function POST(request: Request) {
           );
         }
         
+        // For paid content, update the playback policy to be signed
+        if (isPaid) {
+          await Video.Assets.updatePlaybackRestriction(muxAssetId, {
+            playback_restriction_policy: {
+              type: 'jwt',
+              signing_key_id: process.env.MUX_SIGNING_KEY_ID,
+            },
+          });
+        }
+        
         return NextResponse.json({ 
           success: true,
-          playbackId: result.playbackId
+          playbackId: playbackId
         });
       } else {
-        return NextResponse.json(
-          { error: 'Video processing failed or timed out' },
-          { status: 500 }
-        );
+        // Asset is still processing, update status
+        await supabase
+          .from('lessons')
+          .update({ 
+            video_processing_status: asset.status
+          })
+          .eq('id', lessonId);
+          
+        return NextResponse.json({ 
+          success: false,
+          status: asset.status,
+          message: 'Video is still processing'
+        });
       }
     } catch (error) {
       console.error('Error processing video:', error);

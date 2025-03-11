@@ -33,27 +33,7 @@ export default function ProfilePageClient() {
           <h1 className="text-2xl font-bold">Your Profile</h1>
         </div>
         <div className="bg-card rounded-lg border shadow-sm p-6">
-          <Tabs defaultValue="profile">
-            <TabsList className="mb-4">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="profile">
-              <ProfileClient />
-            </TabsContent>
-            
-            <TabsContent value="content">
-              <h2 className="text-xl font-semibold mb-4">Your Content</h2>
-              <p>Manage your lessons and content here.</p>
-            </TabsContent>
-            
-            <TabsContent value="settings">
-              <h2 className="text-xl font-semibold mb-4">Stripe Connect</h2>
-              <p className="mb-4">Connect your Stripe account to receive payments for your lessons</p>
-            </TabsContent>
-          </Tabs>
+          <ProfileClient />
         </div>
       </div>
       

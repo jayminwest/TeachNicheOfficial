@@ -1,28 +1,9 @@
 import { NextResponse } from 'next/server';
-import Mux from '@mux/mux-node';
 import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
-// Initialize Mux client
-const muxClient = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID || '',
-  tokenSecret: process.env.MUX_TOKEN_SECRET || '',
-});
-const { Video } = muxClient;
-
 export async function GET() {
   try {
-    // Check if Mux is properly initialized
-    if (!Video || !Video.Uploads) {
-      console.error('Mux Video client not properly initialized');
-      console.log('MUX_TOKEN_ID exists:', !!process.env.MUX_TOKEN_ID);
-      console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
-      return NextResponse.json(
-        { message: 'Mux client configuration error' },
-        { status: 500 }
-      );
-    }
-
     // Verify authentication using the route handler client
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session }, error: authError } = await supabase.auth.getSession();
@@ -45,8 +26,28 @@ export async function GET() {
     
     console.log('Creating Mux upload with user ID:', session.user.id);
     
+    // Import Mux dynamically to avoid initialization issues
+    const Mux = (await import('@mux/mux-node')).default;
+    
+    // Create a new Mux instance with each request
+    const muxClient = new Mux({
+      tokenId: process.env.MUX_TOKEN_ID || '',
+      tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+    });
+    
+    // Check if Mux is properly initialized
+    if (!muxClient.Video || !muxClient.Video.Uploads) {
+      console.error('Mux Video client not properly initialized');
+      console.log('MUX_TOKEN_ID exists:', !!process.env.MUX_TOKEN_ID);
+      console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
+      return NextResponse.json(
+        { message: 'Mux client configuration error' },
+        { status: 500 }
+      );
+    }
+    
     // Create a new direct upload
-    const upload = await Video.Uploads.create({
+    const upload = await muxClient.Video.Uploads.create({
       new_asset_settings: {
         playback_policy: ['public'],
       },

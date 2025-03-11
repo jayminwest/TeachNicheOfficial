@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import Mux from '@mux/mux-node';
 import Stripe from 'stripe';
-
-// Initialize Mux client
-const muxClient = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID || '',
-  tokenSecret: process.env.MUX_TOKEN_SECRET || '',
-});
-const { Video } = muxClient;
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -106,7 +98,16 @@ export async function POST(request: Request) {
     
     // Get asset details from Mux
     try {
-      const asset = await Video.Assets.get(muxAssetId);
+      // Import Mux dynamically to avoid initialization issues
+      const Mux = (await import('@mux/mux-node')).default;
+      
+      // Create a new Mux instance with each request
+      const muxClient = new Mux({
+        tokenId: process.env.MUX_TOKEN_ID || '',
+        tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+      });
+      
+      const asset = await muxClient.Video.Assets.get(muxAssetId);
       const playbackId = asset.playback_ids?.[0]?.id;
       
       if (asset.status === 'ready' && playbackId) {
@@ -130,7 +131,7 @@ export async function POST(request: Request) {
         
         // For paid content, update the playback policy to be signed
         if (isPaid) {
-          await Video.Assets.updatePlaybackRestriction(muxAssetId, {
+          await muxClient.Video.Assets.updatePlaybackRestriction(muxAssetId, {
             playback_restriction_policy: {
               type: 'jwt',
               signing_key_id: process.env.MUX_SIGNING_KEY_ID,

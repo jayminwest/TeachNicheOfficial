@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
-import Mux from '@mux/mux-node';
 import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-
-// Initialize Mux client
-const muxClient = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID || '',
-  tokenSecret: process.env.MUX_TOKEN_SECRET || '',
-});
-const { Video } = muxClient;
 
 export async function GET(request: Request) {
   // Verify authentication
@@ -21,6 +13,7 @@ export async function GET(request: Request) {
       { status: 401 }
     );
   }
+  
   try {
     // Get asset ID from query params
     const { searchParams } = new URL(request.url);
@@ -33,8 +26,17 @@ export async function GET(request: Request) {
       );
     }
     
+    // Import Mux dynamically to avoid initialization issues
+    const Mux = (await import('@mux/mux-node')).default;
+    
+    // Create a new Mux instance with each request
+    const muxClient = new Mux({
+      tokenId: process.env.MUX_TOKEN_ID || '',
+      tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+    });
+    
     // Get asset details from Mux
-    const asset = await Video.Assets.get(assetId);
+    const asset = await muxClient.Video.Assets.get(assetId);
     
     // Return asset status and playback ID if available
     return NextResponse.json({

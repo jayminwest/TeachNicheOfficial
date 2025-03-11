@@ -128,14 +128,25 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   
   // Handle upload success
   const handleUploadSuccess = (event: any) => {
-    setMuxAssetId(event.detail.assetId);
-    setUploadComplete(true);
-    
-    toast({
-      title: 'Upload Complete',
-      description: 'Your video has been uploaded successfully!',
-      duration: 3000,
-    });
+    // Check if event has detail property with assetId
+    if (event && event.detail && event.detail.asset_id) {
+      setMuxAssetId(event.detail.asset_id);
+      setUploadComplete(true);
+      
+      toast({
+        title: 'Upload Complete',
+        description: 'Your video has been uploaded successfully!',
+        duration: 3000,
+      });
+    } else {
+      console.error('Upload success event missing asset_id:', event);
+      toast({
+        title: 'Upload Issue',
+        description: 'Upload completed but asset information is missing. Please try again.',
+        variant: 'destructive',
+        duration: 5000,
+      });
+    }
   };
   
   if (isLoading) {

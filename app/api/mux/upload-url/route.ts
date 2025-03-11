@@ -39,11 +39,8 @@ export async function GET() {
     });
     
     // Return the upload URL and asset ID
-    return NextResponse.json({
-      url: upload.url,
-      assetId: upload.asset_id,
-      uploadId: upload.id
-    });
+    // Note: The Mux Uploader component expects the URL directly, not in a property
+    return NextResponse.json(upload.url);
   } catch (error) {
     console.error('Error creating upload URL:', error);
     return NextResponse.json(

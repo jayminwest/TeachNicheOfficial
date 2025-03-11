@@ -1,21 +1,20 @@
-import Image from "next/image"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../../components/ui/accordion"
+import Image from 'next/image';
+import { Accordion } from './accordion';
+
+export const dynamic = 'force-static'
 
 export default function AboutPage() {
   return (
     <div>
       <div className="relative h-[400px] w-full mb-16">
         <div className="absolute inset-0">
+          {/* Using next/image for better performance */}
           <Image
             src="/303_group.png"
             alt="303 Kendama Group"
-            fill
-            className="object-cover filter grayscale"
+            className="object-cover w-full h-full filter grayscale pointer-events-none"
+            fill={true}
+            priority={true}
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
@@ -87,10 +86,10 @@ export default function AboutPage() {
 
           <section className="my-12">
             <h2 className="text-2xl font-semibold mb-6">Learn More About Teach Niche</h2>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="values">
-                <AccordionTrigger>Values</AccordionTrigger>
-                <AccordionContent>
+            <Accordion items={[
+              {
+                title: "Values",
+                content: (
                   <div className="space-y-4 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">Community Collaboration</h4>
@@ -109,12 +108,11 @@ export default function AboutPage() {
                       <p>The platform supports long-term growth for kendama enthusiasts and professionals alike.</p>
                     </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="why">
-                <AccordionTrigger>Why Teach Niche?</AccordionTrigger>
-                <AccordionContent>
+                )
+              },
+              {
+                title: "Why Teach Niche?",
+                content: (
                   <div className="grid sm:grid-cols-2 gap-6 pt-2">
                     <div>
                       <h4 className="font-semibold mb-1">💪 Empowerment</h4>
@@ -133,12 +131,11 @@ export default function AboutPage() {
                       <p>Teach Niche is built to grow and evolve according to the needs and feedback of the community.</p>
                     </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="commission">
-                <AccordionTrigger>Commission Structure</AccordionTrigger>
-                <AccordionContent>
+                )
+              },
+              {
+                title: "Commission Structure",
+                content: (
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is committed to transparency and fairness in its operations. To sustain the platform and continue providing value to the community, Teach Niche charges a 15% commission on each transaction.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -147,12 +144,11 @@ export default function AboutPage() {
                       <li><span className="font-semibold">Community Investment:</span> By supporting the platform, users contribute to a sustainable ecosystem that benefits all members of the kendama community.</li>
                     </ul>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="opensource">
-                <AccordionTrigger>Open Source Philosophy</AccordionTrigger>
-                <AccordionContent>
+                )
+              },
+              {
+                title: "Open Source Philosophy",
+                content: (
                   <div className="space-y-4 pt-2">
                     <p>Teach Niche is proudly open source, which means the codebase is publicly accessible for anyone to view, contribute to, or adapt.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -162,12 +158,11 @@ export default function AboutPage() {
                     </ul>
                     <p>You can check out the repository on GitHub and take a look under the hood!</p>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="growth">
-                <AccordionTrigger>Built to Grow with the Community</AccordionTrigger>
-                <AccordionContent>
+                )
+              },
+              {
+                title: "Built to Grow with the Community",
+                content: (
                   <div className="space-y-4 pt-2">
                     <p>The best way to serve the kendama community is by listening and adapting to its needs.</p>
                     <ul className="list-disc pl-5 space-y-2">
@@ -177,9 +172,9 @@ export default function AboutPage() {
                     </ul>
                     <p>By keeping the platform intentionally adaptable, Teach Niche ensures that it evolves in step with the community it serves.</p>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                )
+              }
+            ]} />
           </section>
 
           <section className="text-center bg-gradient-to-r from-orange-500/10 to-muted/50 rounded-lg p-8">

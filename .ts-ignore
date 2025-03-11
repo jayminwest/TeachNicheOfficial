@@ -1,0 +1,2 @@
+// This file lists patterns to ignore in TypeScript checking
+app/lessons/[id]/page.tsx

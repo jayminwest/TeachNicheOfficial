@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Image from "next/image";
-import { Footer } from "@/components/ui/footer";
-import { Header } from "@/components/ui/header";
-import { Providers } from "@/components/providers";
+import { Footer } from "@/app/components/ui/footer";
+import { Header } from "@/app/components/ui/header";
+import { Providers } from "@/app/components/providers";
+import { Suspense } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,9 +31,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        suppressHydrationWarning
       >
         <Providers
           attribute="class"
@@ -42,7 +44,9 @@ export default function RootLayout({
         >
           <Header />
           <main className="flex-1">
-            {children}
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+              {children}
+            </Suspense>
           </main>
           <Footer 
             logo={<Image src="/favicon.png" alt="Teach Niche Logo" width={24} height={24} />}

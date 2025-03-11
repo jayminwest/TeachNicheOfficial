@@ -4,10 +4,11 @@ import Mux from '@mux/mux-node';
 import Stripe from 'stripe';
 
 // Initialize Mux client
-const { Video } = new Mux({
+const muxClient = new Mux({
   tokenId: process.env.MUX_TOKEN_ID || '',
   tokenSecret: process.env.MUX_TOKEN_SECRET || '',
 });
+const { Video } = muxClient;
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

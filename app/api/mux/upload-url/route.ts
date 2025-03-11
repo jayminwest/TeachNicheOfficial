@@ -4,13 +4,25 @@ import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 // Initialize Mux client
-const { Video } = new Mux({
+const muxClient = new Mux({
   tokenId: process.env.MUX_TOKEN_ID || '',
   tokenSecret: process.env.MUX_TOKEN_SECRET || '',
 });
+const { Video } = muxClient;
 
 export async function GET() {
   try {
+    // Check if Mux is properly initialized
+    if (!Video || !Video.Uploads) {
+      console.error('Mux Video client not properly initialized');
+      console.log('MUX_TOKEN_ID exists:', !!process.env.MUX_TOKEN_ID);
+      console.log('MUX_TOKEN_SECRET exists:', !!process.env.MUX_TOKEN_SECRET);
+      return NextResponse.json(
+        { message: 'Mux client configuration error' },
+        { status: 500 }
+      );
+    }
+
     // Verify authentication using the route handler client
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session }, error: authError } = await supabase.auth.getSession();
@@ -31,6 +43,8 @@ export async function GET() {
       );
     }
     
+    console.log('Creating Mux upload with user ID:', session.user.id);
+    
     // Create a new direct upload
     const upload = await Video.Uploads.create({
       new_asset_settings: {
@@ -39,6 +53,8 @@ export async function GET() {
       cors_origin: '*',
     });
     
+    console.log('Mux upload created successfully:', upload.id);
+    
     // Return the upload URL and asset ID
     return NextResponse.json({
       uploadUrl: upload.url,
@@ -46,8 +62,13 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error creating upload URL:', error);
+    // Include stack trace for better debugging
+    const errorMessage = error instanceof Error 
+      ? `${error.message}\n${error.stack}` 
+      : String(error);
+      
     return NextResponse.json(
-      { message: 'Failed to create upload URL', error: String(error) },
+      { message: 'Failed to create upload URL', error: errorMessage },
       { status: 500 }
     );
   }

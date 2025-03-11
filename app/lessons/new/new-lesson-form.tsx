@@ -73,8 +73,12 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     
     try {
       // Get upload URL from API with credentials
+      console.log('Requesting Mux upload URL...');
       const uploadResponse = await fetch('/api/mux/upload-url', {
         credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
       });
       
       // Log the response for debugging

@@ -4,10 +4,11 @@ import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 // Initialize Mux client
-const { Video } = new Mux({
+const muxClient = new Mux({
   tokenId: process.env.MUX_TOKEN_ID || '',
   tokenSecret: process.env.MUX_TOKEN_SECRET || '',
 });
+const { Video } = muxClient;
 
 export async function GET(request: Request) {
   // Verify authentication

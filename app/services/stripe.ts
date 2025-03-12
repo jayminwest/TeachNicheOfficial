@@ -274,12 +274,12 @@ export const updateProfileStripeStatus = async (
       .from('profiles')
       .update({
         stripe_onboarding_complete: status.isComplete,
-        stripe_account_status: status.isComplete ? 'verified' : 'pending',
-        stripe_account_details: {
+        stripe_account_status: status.isComplete ? 'complete' : 'pending',
+        stripe_account_details: JSON.stringify({
           pending_verification: status.pendingVerification,
           missing_requirements: status.missingRequirements,
           last_checked: new Date().toISOString()
-        }
+        })
       })
       .eq('id', userId);
     

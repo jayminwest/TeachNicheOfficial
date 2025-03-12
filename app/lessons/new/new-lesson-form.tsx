@@ -28,15 +28,26 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const [muxAssetId, setMuxAssetId] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
   
-  // Check authentication on mount
+  // Check authentication on mount and refresh the session
   useEffect(() => {
     async function checkAuth() {
       try {
         const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
         const supabase = createClientSupabaseClient();
+        
+        // First check if we have a session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error || !session) {
+          window.location.href = '/auth?redirect=/lessons/new';
+          return;
+        }
+        
+        // Refresh the session to ensure we have a valid token
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError) {
+          console.error('Session refresh failed:', refreshError);
           window.location.href = '/auth?redirect=/lessons/new';
           return;
         }
@@ -82,10 +93,24 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       // If we're using a temporary ID, make sure to note that in the request
       const isTemporaryId = lessonData.muxAssetId.startsWith('temp_');
       
+      // Get a fresh auth token before making the request
+      const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
+      const supabase = createClientSupabaseClient();
+      
+      // Refresh the session to ensure we have a valid token
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        console.error('Session refresh failed before API call:', refreshError);
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+      
       // Create lesson
       const response = await fetch('/api/lessons', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
         body: JSON.stringify(lessonData),
       });
@@ -104,20 +129,30 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         duration: 5000,
       });
       
-      // Start background video processing
-      fetch('/api/lessons/process-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          lessonId: lesson.id,
-          muxAssetId: lessonData.muxAssetId,
-          isPaid: lessonData.price > 0,
-          isTemporaryId: lessonData.muxAssetId.startsWith('temp_')
-        }),
-      }).catch(error => {
-        console.error('Failed to start background processing:', error);
-      });
+      // Start background video processing with fresh auth
+      try {
+        const { error: refreshError2 } = await supabase.auth.refreshSession();
+        
+        if (refreshError2) {
+          console.warn('Session refresh failed before video processing:', refreshError2);
+          // Continue anyway since the lesson was created
+        }
+        
+        await fetch('/api/lessons/process-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            lessonId: lesson.id,
+            muxAssetId: lessonData.muxAssetId,
+            isPaid: lessonData.price > 0,
+            isTemporaryId: lessonData.muxAssetId.startsWith('temp_')
+          }),
+        });
+      } catch (processingError) {
+        console.error('Failed to start background processing:', processingError);
+        // Don't throw here, as the lesson was created successfully
+      }
       
       // Redirect to the lesson page or custom redirect path
       window.location.href = redirectPath || `/lessons/${lesson.id}`;

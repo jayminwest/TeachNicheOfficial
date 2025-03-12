@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import ProfilePageWrapper from './profile-page-wrapper';
+import { PaymentSettings } from '@/app/components/profile/payment-settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,14 @@ export default function ProfilePage() {
         </div>
       </div>
     }>
-      <ProfilePageWrapper />
+      <div className="container mx-auto py-8">
+        <ProfilePageWrapper />
+        
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Payment Settings</h2>
+          <PaymentSettings />
+        </div>
+      </div>
     </Suspense>
   );
 }

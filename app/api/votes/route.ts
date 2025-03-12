@@ -64,8 +64,9 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('Request body:', body);
     
+    let validatedData;
     try {
-      const validatedData = voteSchema.parse(body)
+      validatedData = voteSchema.parse(body)
       console.log('Data validated successfully:', validatedData);
     } catch (validationError) {
       console.error('Validation error:', validationError);
@@ -78,63 +79,91 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    
-    const validatedData = voteSchema.parse(body)
 
     // First check if vote already exists
-    const { data: existingVote } = await supabase
+    console.log('Checking for existing vote');
+    const { data: existingVote, error: existingVoteError } = await supabase
       .from('lesson_request_votes')
       .select('*')
       .eq('request_id', validatedData.requestId)
       .eq('user_id', session.user.id)
       .single()
+    
+    if (existingVoteError && existingVoteError.code !== 'PGRST116') { // PGRST116 is "not found" which is expected
+      console.error('Error checking for existing vote:', existingVoteError);
+      throw existingVoteError;
+    }
 
     let voteResult;
     let userHasVoted = false;
+    console.log('Existing vote:', existingVote ? 'Found' : 'Not found');
 
     // Transaction to handle vote and update vote count
     if (existingVote) {
+      console.log('Removing existing vote with ID:', existingVote.id);
       // Remove the vote (toggle behavior)
       const { error: deleteError } = await supabase
         .from('lesson_request_votes')
         .delete()
         .eq('id', existingVote.id)
 
-      if (deleteError) throw deleteError
+      if (deleteError) {
+        console.error('Error deleting vote:', deleteError);
+        throw deleteError;
+      }
+      console.log('Vote deleted successfully');
       userHasVoted = false;
     } else {
       // Create new vote
+      console.log('Creating new vote');
+      const voteData = {
+        request_id: validatedData.requestId,
+        user_id: session.user.id,
+        vote_type: validatedData.voteType,
+        created_at: new Date().toISOString()
+      };
+      console.log('Vote data:', voteData);
+      
       const { data, error } = await supabase
         .from('lesson_request_votes')
-        .insert([{
-          request_id: validatedData.requestId,
-          user_id: session.user.id,
-          vote_type: validatedData.voteType,
-          created_at: new Date().toISOString()
-        }])
+        .insert([voteData])
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error inserting vote:', error);
+        throw error;
+      }
+      console.log('Vote created successfully:', data);
       voteResult = data;
       userHasVoted = true;
     }
 
     // Get updated vote count
+    console.log('Getting updated vote count');
     const { count, error: countError } = await supabase
       .from('lesson_request_votes')
       .select('*', { count: 'exact', head: true })
       .eq('request_id', validatedData.requestId)
 
-    if (countError) throw countError
+    if (countError) {
+      console.error('Error getting vote count:', countError);
+      throw countError;
+    }
+    console.log('Updated vote count:', count);
 
     // Update the lesson_requests table with the new vote count
+    console.log('Updating lesson_requests with new vote count:', count || 0);
     const { error: updateError } = await supabase
       .from('lesson_requests')
       .update({ vote_count: count || 0 })
       .eq('id', validatedData.requestId)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('Error updating lesson request vote count:', updateError);
+      throw updateError;
+    }
+    console.log('Vote count updated successfully');
 
     return NextResponse.json({
       success: true,

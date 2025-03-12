@@ -324,6 +324,14 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
         requestData: { requestId, voteType }
       });
       
+      // If we have a detailed error message from the server, log it
+      if (result && result.error) {
+        console.error('Server error details:', result.error);
+        if (result.details) {
+          console.error('Error details:', result.details);
+        }
+      }
+      
       // Handle specific error types
       if (response.status === 401) {
         toast({

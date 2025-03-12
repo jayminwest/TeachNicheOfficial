@@ -154,16 +154,22 @@ export async function POST(request: Request) {
 
     // Update the lesson_requests table with the new vote count
     console.log('Updating lesson_requests with new vote count:', count || 0);
-    const { error: updateError } = await supabase
-      .from('lesson_requests')
-      .update({ vote_count: count || 0 })
-      .eq('id', validatedData.requestId)
+    try {
+      const { error: updateError } = await supabase
+        .from('lesson_requests')
+        .update({ vote_count: count || 0 })
+        .eq('id', validatedData.requestId)
 
-    if (updateError) {
-      console.error('Error updating lesson request vote count:', updateError);
-      throw updateError;
+      if (updateError) {
+        console.error('Error updating lesson request vote count:', updateError);
+        throw updateError;
+      }
+      console.log('Vote count updated successfully');
+    } catch (updateErr) {
+      console.error('Exception during vote count update:', updateErr);
+      // Don't throw here - we'll still return a success response with the current vote count
+      // This way, even if the update fails, the vote itself was processed
     }
-    console.log('Vote count updated successfully');
 
     return NextResponse.json({
       success: true,

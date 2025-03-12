@@ -177,7 +177,7 @@ export function StripeAccountStatus({
         </div>
       )}
       
-      <div className="flex justify-between">
+      <div className="flex">
         <Button
           variant="outline"
           size="sm"
@@ -187,14 +187,6 @@ export function StripeAccountStatus({
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Refreshing...' : 'Refresh Status'}
-        </Button>
-        
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => window.open('/api/stripe/connect/account', '_blank')}
-        >
-          Continue Stripe Setup
         </Button>
       </div>
     </div>

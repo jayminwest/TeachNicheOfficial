@@ -259,6 +259,50 @@ export const verifyStripeWebhook = (
   }
 };
 
+// Helper function to update a profile's Stripe account status
+export const updateProfileStripeStatus = async (
+  userId: string,
+  accountId: string,
+  supabaseClient: TypedSupabaseClient
+): Promise<StripeAccountStatus> => {
+  try {
+    // Get fresh account status
+    const status = await getAccountStatus(accountId);
+    
+    // Update the database with the latest status
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({
+        stripe_onboarding_complete: status.isComplete,
+        stripe_account_status: status.isComplete ? 'verified' : 'pending',
+        stripe_account_details: {
+          pending_verification: status.pendingVerification,
+          missing_requirements: status.missingRequirements,
+          last_checked: new Date().toISOString()
+        }
+      })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Failed to update profile with Stripe status:', error);
+    }
+    
+    return {
+      isComplete: status.isComplete,
+      status: status.isComplete ? 'complete' : 
+              status.pendingVerification ? 'verification_pending' : 
+              status.missingRequirements.length > 0 ? 'requirements_needed' : 'pending',
+      details: {
+        pendingVerification: status.pendingVerification,
+        missingRequirements: status.missingRequirements
+      }
+    };
+  } catch (error) {
+    console.error('Error updating Stripe account status:', error);
+    throw error;
+  }
+};
+
 import { TypedSupabaseClient } from '@/app/lib/types/supabase';
 
 // Helper for creating Stripe products for lessons

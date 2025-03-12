@@ -1,6 +1,7 @@
 import { User } from '@supabase/supabase-js'
 import { createClientSupabaseClient } from '@/app/lib/supabase/client'
 import { DatabaseService } from '../database/DatabaseService';
+import { getAccountStatus } from '../stripe';
 
 /**
  * Service for managing user profiles
@@ -106,6 +107,40 @@ export class ProfileService extends DatabaseService {
         .update({
           ...profileData,
           updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      return { data, error: null };
+    });
+  }
+  
+  /**
+   * Updates a user's Stripe account status
+   */
+  async updateStripeAccountStatus(userId: string, accountId: string) {
+    return this.executeWithRetry(async () => {
+      const supabase = createClientSupabaseClient();
+      
+      // Get fresh account status from Stripe
+      const status = await getAccountStatus(accountId);
+      
+      // Update the database with the latest status
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          stripe_onboarding_complete: status.isComplete,
+          stripe_account_status: status.isComplete ? 'verified' : 'pending',
+          stripe_account_details: {
+            pending_verification: status.pendingVerification,
+            missing_requirements: status.missingRequirements,
+            last_checked: new Date().toISOString()
+          }
         })
         .eq('id', userId)
         .select()

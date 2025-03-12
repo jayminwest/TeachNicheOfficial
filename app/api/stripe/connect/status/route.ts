@@ -31,39 +31,35 @@ export async function GET() {
       });
     }
 
+    // Import ProfileService
+    const { ProfileService } = await import('@/app/services/profile/profileService');
+    const profileService = new ProfileService();
+    
     // Get fresh account status using our utility
     try {
-      const status = await getAccountStatus(profile.stripe_account_id);
-      
-      // Update the database with the latest status if it's changed
-      if (status.isComplete !== profile.stripe_onboarding_complete) {
-        await supabase
-          .from('profiles')
-          .update({
-            stripe_onboarding_complete: status.isComplete,
-            stripe_account_status: status.isComplete ? 'verified' : 'pending',
-            stripe_account_details: {
-              pending_verification: status.pendingVerification,
-              missing_requirements: status.missingRequirements,
-              last_checked: new Date().toISOString()
-            }
-          })
-          .eq('id', session.user.id);
-      }
+      // Use the shared function to update status
+      const { updateProfileStripeStatus } = await import('@/app/services/stripe');
+      const statusResult = await updateProfileStripeStatus(
+        session.user.id,
+        profile.stripe_account_id,
+        supabase
+      );
       
       return NextResponse.json({
         connected: true,
         stripeAccountId: profile.stripe_account_id,
-        isComplete: status.isComplete,
-        status: status.isComplete ? 'complete' : 
-                status.pendingVerification ? 'verification_pending' : 
-                status.missingRequirements.length > 0 ? 'requirements_needed' : 'pending',
-        details: {
-          pendingVerification: status.pendingVerification,
-          missingRequirements: status.missingRequirements
-        }
+        isComplete: statusResult.isComplete,
+        status: statusResult.status,
+        details: statusResult.details
       });
-    } catch (_) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      // Log detailed error information
+      console.error('Error fetching Stripe account status:', error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : 'Unknown error type');
+      
       // If we can't reach Stripe, return the cached status
       return NextResponse.json({
         connected: true,

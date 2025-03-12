@@ -43,20 +43,27 @@ export async function GET() {
 
     // Otherwise check with Stripe
     try {
-      const status = await getAccountStatus(profile.stripe_account_id);
-      
-      // Update the database with the status
-      await supabase
-        .from('profiles')
-        .update({ stripe_onboarding_complete: status.isComplete })
-        .eq('id', session.user.id);
+      // Use the shared function to update status
+      const { updateProfileStripeStatus } = await import('@/app/services/stripe');
+      const statusResult = await updateProfileStripeStatus(
+        session.user.id,
+        profile.stripe_account_id,
+        supabase
+      );
       
       return NextResponse.json({
         stripeAccountId: profile.stripe_account_id,
-        isComplete: status.isComplete
+        isComplete: statusResult.isComplete,
+        status: statusResult.status,
+        details: statusResult.details
       });
     } catch (error) {
-      console.error('Error checking Stripe account status:', error);
+      console.error('Error checking Stripe account status:', error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : 'Unknown error type');
+      
       return NextResponse.json({
         stripeAccountId: profile.stripe_account_id,
         isComplete: false,

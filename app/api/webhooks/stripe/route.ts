@@ -61,8 +61,62 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
     }
 
+    // Handle the account.updated event
+    if (event.type === 'account.updated') {
+      const account = event.data.object as Stripe.Account;
+      console.log('Processing account.updated', { accountId: account.id });
+      
+      try {
+        // Find the user with this Stripe account
+        const supabase = await createServerSupabaseClient();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('stripe_account_id', account.id)
+          .single();
+        
+        if (profile) {
+          // Get account status
+          const status = {
+            isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
+            missingRequirements: account.requirements?.currently_due || [],
+            pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
+                                account.requirements.pending_verification.length > 0
+          };
+          
+          // Update profile with new status
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              stripe_onboarding_complete: status.isComplete,
+              stripe_account_status: status.isComplete ? 'verified' : 'pending',
+              stripe_account_details: {
+                pending_verification: status.pendingVerification,
+                missing_requirements: status.missingRequirements,
+                last_checked: new Date().toISOString()
+              }
+            })
+            .eq('id', profile.id);
+          
+          if (updateError) {
+            console.error('Failed to update profile with Stripe account status:', updateError);
+            return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+          }
+          
+          console.log(`Updated Stripe account status for user ${profile.id}`);
+          return NextResponse.json({ success: true, updated: true });
+        } else {
+          console.error('No user found with Stripe account ID:', account.id);
+          return NextResponse.json({ error: 'No matching user found' }, { status: 404 });
+        }
+      } catch (error) {
+        console.error('Error processing account update:', error);
+        return NextResponse.json({ error: 'Failed to process account update' }, { status: 500 });
+      }
+    }
+    
     // Handle the checkout.session.completed event
-    if (event.type === 'checkout.session.completed') {
+    else if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       console.log('Processing checkout.session.completed', { 
         sessionId: session.id,

@@ -34,24 +34,35 @@ export function StripeAccountStatus({
     
     try {
       setIsRefreshing(true);
+      console.log('Refreshing Stripe account status...');
+      
       const response = await fetch('/api/stripe/connect/refresh-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        // Add cache busting parameter
+        cache: 'no-store',
       });
       
       if (!response.ok) {
-        throw new Error('Failed to refresh status');
+        const errorText = await response.text();
+        console.error('Failed to refresh status:', errorText);
+        throw new Error(`Failed to refresh status: ${response.status} ${errorText}`);
       }
       
       const data = await response.json();
+      console.log('Refresh status response:', data);
+      
       if (data.success && data.status) {
+        console.log('Updating component state with new status data');
         setStatusData({
           status: data.status.status,
           isComplete: data.status.isComplete,
           details: data.status.details
         });
+      } else {
+        console.error('Unexpected response format:', data);
       }
     } catch (error) {
       console.error('Error refreshing Stripe status:', error);

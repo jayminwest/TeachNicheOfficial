@@ -125,31 +125,39 @@ export class ProfileService extends DatabaseService {
    */
   async updateStripeAccountStatus(userId: string, accountId: string) {
     return this.executeWithRetry(async () => {
+      console.log(`ProfileService: Updating Stripe account status for user ${userId} with account ${accountId}`);
       const supabase = createClientSupabaseClient();
       
       // Get fresh account status from Stripe
       const status = await getAccountStatus(accountId);
+      console.log('ProfileService: Got fresh status from Stripe:', JSON.stringify(status, null, 2));
       
       // Update the database with the latest status
+      const updateData = {
+        stripe_onboarding_complete: status.isComplete,
+        stripe_account_status: status.isComplete ? 'complete' : 'pending',
+        stripe_account_details: JSON.stringify({
+          pending_verification: status.pendingVerification,
+          missing_requirements: status.missingRequirements,
+          last_checked: new Date().toISOString()
+        })
+      };
+      
+      console.log('ProfileService: Updating profile with data:', JSON.stringify(updateData, null, 2));
+      
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          stripe_onboarding_complete: status.isComplete,
-          stripe_account_status: status.isComplete ? 'complete' : 'pending',
-          stripe_account_details: JSON.stringify({
-            pending_verification: status.pendingVerification,
-            missing_requirements: status.missingRequirements,
-            last_checked: new Date().toISOString()
-          })
-        })
+        .update(updateData)
         .eq('id', userId)
         .select()
         .single();
       
       if (error) {
+        console.error('ProfileService: Error updating profile:', error);
         throw error;
       }
       
+      console.log('ProfileService: Successfully updated profile');
       return { data, error: null };
     });
   }

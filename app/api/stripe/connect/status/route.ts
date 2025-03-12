@@ -7,13 +7,16 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    console.log('Stripe connect status API endpoint called');
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session?.user) {
+      console.log('No authenticated user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log(`Fetching profile for user: ${session.user.id}`);
     // Get user's Stripe account ID and status from profile
     const { data: profile } = await supabase
       .from('profiles')
@@ -22,6 +25,7 @@ export async function GET() {
       .single();
 
     if (!profile?.stripe_account_id) {
+      console.log('No Stripe account ID found for user');
       return NextResponse.json({ 
         connected: false,
         stripeAccountId: null,
@@ -31,12 +35,11 @@ export async function GET() {
       });
     }
 
-    // Import ProfileService
-    const { ProfileService } = await import('@/app/services/profile/profileService');
-    const profileService = new ProfileService();
+    console.log(`Found Stripe account ID: ${profile.stripe_account_id}`);
     
-    // Get fresh account status using our utility
+    // Always get fresh account status using our utility
     try {
+      console.log('Fetching fresh status from Stripe');
       // Use the shared function to update status
       const { updateProfileStripeStatus } = await import('@/app/services/stripe');
       const statusResult = await updateProfileStripeStatus(
@@ -44,6 +47,8 @@ export async function GET() {
         profile.stripe_account_id,
         supabase
       );
+      
+      console.log('Successfully updated Stripe status:', JSON.stringify(statusResult, null, 2));
       
       return NextResponse.json({
         connected: true,

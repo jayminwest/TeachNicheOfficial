@@ -7,13 +7,16 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    console.log('Stripe status API endpoint called');
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session?.user) {
+      console.log('No authenticated user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log(`Fetching profile for user: ${session.user.id}`);
     // Get user's Stripe account ID from profile
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -27,19 +30,15 @@ export async function GET() {
     }
 
     if (!profile?.stripe_account_id) {
+      console.log('No Stripe account ID found for user');
       return NextResponse.json({ 
         stripeAccountId: null,
         isComplete: false
       });
     }
 
-    // Check if we already know the onboarding status
-    if (profile.stripe_onboarding_complete !== null && profile.stripe_onboarding_complete !== undefined) {
-      return NextResponse.json({
-        stripeAccountId: profile.stripe_account_id,
-        isComplete: profile.stripe_onboarding_complete
-      });
-    }
+    console.log(`Found Stripe account ID: ${profile.stripe_account_id}`);
+    // Always fetch fresh status from Stripe
 
     // Otherwise check with Stripe
     try {

@@ -155,13 +155,30 @@ export const getStripe = () => {
 
 // Helper functions and utilities
 export const getAccountStatus = async (accountId: string): Promise<StripeAccountStatus> => {
-  const account = await getStripe().accounts.retrieve(accountId);
-  
-  return {
-    isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
-    missingRequirements: account.requirements?.currently_due || [],
-    pendingVerification: Array.isArray(account.requirements?.pending_verification) && account.requirements.pending_verification.length > 0
-  };
+  try {
+    console.log('Fetching Stripe account status for:', accountId);
+    const account = await getStripe().accounts.retrieve(accountId);
+    
+    console.log('Raw Stripe account response:', JSON.stringify({
+      details_submitted: account.details_submitted,
+      payouts_enabled: account.payouts_enabled,
+      charges_enabled: account.charges_enabled,
+      requirements: account.requirements
+    }, null, 2));
+    
+    const status = {
+      isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
+      missingRequirements: account.requirements?.currently_due || [],
+      pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
+                          account.requirements.pending_verification.length > 0
+    };
+    
+    console.log('Processed Stripe account status:', JSON.stringify(status, null, 2));
+    return status;
+  } catch (error) {
+    console.error('Error fetching Stripe account status:', error);
+    throw error;
+  }
 };
 
 export const createConnectSession = async (options: ConnectSessionOptions) => {
@@ -266,28 +283,40 @@ export const updateProfileStripeStatus = async (
   supabaseClient: TypedSupabaseClient
 ): Promise<StripeAccountStatus> => {
   try {
+    console.log(`Updating Stripe account status for user ${userId} with account ${accountId}`);
+    
     // Get fresh account status
     const status = await getAccountStatus(accountId);
     
-    // Update the database with the latest status
-    const { error } = await supabaseClient
-      .from('profiles')
-      .update({
-        stripe_onboarding_complete: status.isComplete,
-        stripe_account_status: status.isComplete ? 'complete' : 'pending',
-        stripe_account_details: JSON.stringify({
-          pending_verification: status.pendingVerification,
-          missing_requirements: status.missingRequirements,
-          last_checked: new Date().toISOString()
-        })
+    // Prepare the data to update
+    const updateData = {
+      stripe_onboarding_complete: status.isComplete,
+      stripe_account_status: status.isComplete ? 'complete' : 'pending',
+      stripe_account_details: JSON.stringify({
+        pending_verification: status.pendingVerification,
+        missing_requirements: status.missingRequirements,
+        last_checked: new Date().toISOString()
       })
-      .eq('id', userId);
+    };
+    
+    console.log('Updating profile with data:', JSON.stringify(updateData, null, 2));
+    
+    // Update the database with the latest status
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
     
     if (error) {
       console.error('Failed to update profile with Stripe status:', error);
+      throw new Error(`Failed to update profile: ${error.message}`);
     }
     
-    return {
+    console.log('Profile updated successfully:', data?.id);
+    
+    const result = {
       isComplete: status.isComplete,
       status: status.isComplete ? 'complete' : 
               status.pendingVerification ? 'verification_pending' : 
@@ -297,6 +326,9 @@ export const updateProfileStripeStatus = async (
         missingRequirements: status.missingRequirements
       }
     };
+    
+    console.log('Returning status result:', JSON.stringify(result, null, 2));
+    return result;
   } catch (error) {
     console.error('Error updating Stripe account status:', error);
     throw error;

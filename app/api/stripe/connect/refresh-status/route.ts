@@ -7,13 +7,16 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
+    console.log('Refresh Stripe status API endpoint called');
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session?.user) {
+      console.log('No authenticated user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log(`Fetching profile for user: ${session.user.id}`);
     // Get user's Stripe account ID from profile
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -27,45 +30,31 @@ export async function POST() {
     }
 
     if (!profile?.stripe_account_id) {
+      console.log('No Stripe account ID found for user');
       return NextResponse.json({ 
         error: 'No Stripe account found'
       }, { status: 404 });
     }
 
-    // Force refresh from Stripe
+    console.log(`Found Stripe account ID: ${profile.stripe_account_id}, forcing refresh`);
+    
+    // Force refresh from Stripe using the shared function
     try {
-      const status = await getAccountStatus(profile.stripe_account_id);
+      const { updateProfileStripeStatus } = await import('@/app/services/stripe');
+      const statusResult = await updateProfileStripeStatus(
+        session.user.id,
+        profile.stripe_account_id,
+        supabase
+      );
       
-      // Update the database with the latest status
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          stripe_onboarding_complete: status.isComplete,
-          stripe_account_status: status.isComplete ? 'complete' : 'pending',
-          stripe_account_details: JSON.stringify({
-            pending_verification: status.pendingVerification,
-            missing_requirements: status.missingRequirements,
-            last_checked: new Date().toISOString()
-          })
-        })
-        .eq('id', session.user.id);
-      
-      if (updateError) {
-        console.error('Failed to update profile:', updateError);
-        return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
-      }
+      console.log('Successfully refreshed Stripe status:', JSON.stringify(statusResult, null, 2));
       
       return NextResponse.json({
         success: true,
         status: {
-          isComplete: status.isComplete,
-          status: status.isComplete ? 'complete' : 
-                  status.pendingVerification ? 'verification_pending' : 
-                  status.missingRequirements.length > 0 ? 'requirements_needed' : 'pending',
-          details: {
-            pendingVerification: status.pendingVerification,
-            missingRequirements: status.missingRequirements
-          }
+          isComplete: statusResult.isComplete,
+          status: statusResult.status,
+          details: statusResult.details
         }
       });
     } catch (error) {

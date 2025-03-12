@@ -160,7 +160,22 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
     const account = await getStripe().accounts.retrieve(accountId);
     
     // Log the full account object to see all available fields
-    console.log('Full Stripe account response:', JSON.stringify(account, null, 2));
+    console.log('Raw Stripe account data:', JSON.stringify({
+      id: account.id,
+      object: account.object,
+      business_type: account.business_type,
+      capabilities: account.capabilities,
+      charges_enabled: account.charges_enabled,
+      country: account.country,
+      created: account.created,
+      default_currency: account.default_currency,
+      details_submitted: account.details_submitted,
+      email: account.email,
+      payouts_enabled: account.payouts_enabled,
+      requirements: account.requirements,
+      settings: account.settings,
+      type: account.type
+    }, null, 2));
     
     // Check actual account status instead of forcing to true
     const hasDetailsSubmitted = account.details_submitted === true;
@@ -453,6 +468,8 @@ export const verifyConnectedAccount = async (
   supabaseClient: TypedSupabaseClient
 ): Promise<AccountVerificationResult> => {
   try {
+    console.log(`Verifying connected account for user ${userId} with account ${accountId}`);
+    
     // Get profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
@@ -466,22 +483,29 @@ export const verifyConnectedAccount = async (
     }
 
     if (!profile) {
+      console.error('Profile not found');
       throw new StripeError('profile_verification_failed', 'Profile not found');
     }
+    
+    console.log('Found profile:', JSON.stringify(profile, null, 2));
     
     // Type guard to ensure profile has the expected properties
     const hasStripeAccount = 'stripe_account_id' in profile && typeof profile.stripe_account_id === 'string';
     
     if (!hasStripeAccount || !profile.stripe_account_id) {
+      console.error('No Stripe account found in profile');
       throw new StripeError('missing_account', 'No Stripe account found');
     }
 
     if (profile.stripe_account_id !== accountId) {
+      console.error(`Account mismatch: profile has ${profile.stripe_account_id}, but received ${accountId}`);
       throw new StripeError('account_mismatch', 'Account verification failed');
     }
 
+    console.log('Account ID verified, fetching status from Stripe');
     const stripeAccountId = accountId as string;
     const status = await getAccountStatus(stripeAccountId);
+    console.log('Retrieved Stripe account status:', JSON.stringify(status, null, 2));
 
     return {
       verified: true,

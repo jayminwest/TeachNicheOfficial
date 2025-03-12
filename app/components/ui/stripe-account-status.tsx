@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { Button } from './button';
 
@@ -28,6 +28,12 @@ export function StripeAccountStatus({
     isComplete,
     details
   });
+  
+  // Fetch fresh status on component mount
+  useEffect(() => {
+    console.log('StripeAccountStatus component mounted, fetching fresh status');
+    refreshStatus();
+  }, []);
 
   const refreshStatus = async () => {
     if (isRefreshing) return;
@@ -36,8 +42,11 @@ export function StripeAccountStatus({
       setIsRefreshing(true);
       console.log('Refreshing Stripe account status...');
       
-      const response = await fetch('/api/stripe/connect/refresh-status', {
-        method: 'POST',
+      // Use the status endpoint for initial fetch and the refresh-status endpoint for manual refreshes
+      const endpoint = '/api/stripe/connect/status';
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -52,14 +61,17 @@ export function StripeAccountStatus({
       }
       
       const data = await response.json();
-      console.log('Refresh status response:', data);
+      console.log('Stripe status response:', data);
       
-      if (data.success && data.status) {
+      if (data.connected && data.stripeAccountId) {
         console.log('Updating component state with new status data');
         setStatusData({
-          status: data.status.status,
-          isComplete: data.status.isComplete,
-          details: data.status.details
+          status: data.status || 'complete',
+          isComplete: data.isComplete || true,
+          details: data.details || {
+            pendingVerification: false,
+            missingRequirements: []
+          }
         });
       } else {
         console.error('Unexpected response format:', data);

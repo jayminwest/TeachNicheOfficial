@@ -70,14 +70,14 @@ export async function GET(request: Request) {
     const updateData = { 
       stripe_onboarding_complete: isComplete,
       stripe_account_status: isComplete ? 'complete' : 'pending',
-      stripe_account_details: {
+      stripe_account_details: JSON.stringify({
         pending_verification: pendingVerification,
         missing_requirements: missingRequirements,
         has_details_submitted: hasDetailsSubmitted,
         has_charges_enabled: hasChargesEnabled,
         has_payouts_enabled: hasPayoutsEnabled,
         last_checked: new Date().toISOString()
-      }
+      })
     };
     
     console.log('Updating profile with data:', JSON.stringify(updateData, null, 2));

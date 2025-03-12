@@ -296,13 +296,28 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
       body: JSON.stringify({ requestId, voteType }),
     })
 
-    const result = await response.json()
+    // Log the raw response status before trying to parse JSON
+    console.log('Vote response status:', response.status, response.statusText);
+    
+    // Clone the response before reading its body to avoid "body already read" errors
+    const responseClone = response.clone();
+    let result;
+    
+    try {
+      result = await response.json();
+    } catch (jsonError) {
+      // If JSON parsing fails, try to get the text content
+      const textContent = await responseClone.text();
+      console.error('Failed to parse response as JSON:', textContent);
+      result = { error: 'Invalid response format' };
+    }
     
     if (!response.ok) {
       console.error('Vote request failed:', {
         status: response.status,
         statusText: response.statusText,
-        result
+        result,
+        requestData: { requestId, voteType }
       });
       
       // Handle specific error types
@@ -384,9 +399,16 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
     // Handle network errors or other exceptions
     console.error('Vote operation failed:', error)
     
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'object' && error !== null
+        ? JSON.stringify(error)
+        : "Failed to submit vote";
+    
     toast({
       title: "Error",
-      description: error instanceof Error ? error.message : "Failed to submit vote",
+      description: errorMessage,
       variant: "destructive"
     })
     

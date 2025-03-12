@@ -309,7 +309,11 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
       // If JSON parsing fails, try to get the text content
       const textContent = await responseClone.text();
       console.error('Failed to parse response as JSON:', textContent);
-      result = { error: 'Invalid response format' };
+      console.error('JSON parse error:', jsonError);
+      result = { 
+        error: 'Invalid response format', 
+        rawResponse: textContent.substring(0, 500) // Limit to first 500 chars in case it's large
+      };
     }
     
     if (!response.ok) {

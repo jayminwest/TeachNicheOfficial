@@ -46,8 +46,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    console.log('Votes POST request received');
+    
     const supabase = createRouteHandlerClient<Database>({ cookies })
+    console.log('Supabase client created');
+    
     const { data: { session } } = await supabase.auth.getSession()
+    console.log('Auth session retrieved:', session ? 'Session exists' : 'No session');
 
     if (!session) {
       return NextResponse.json(
@@ -57,6 +62,23 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
+    console.log('Request body:', body);
+    
+    try {
+      const validatedData = voteSchema.parse(body)
+      console.log('Data validated successfully:', validatedData);
+    } catch (validationError) {
+      console.error('Validation error:', validationError);
+      return NextResponse.json(
+        { 
+          error: 'Invalid request data',
+          details: validationError instanceof Error ? validationError.message : 'Unknown validation error',
+          success: false
+        },
+        { status: 400 }
+      )
+    }
+    
     const validatedData = voteSchema.parse(body)
 
     // First check if vote already exists
@@ -121,10 +143,21 @@ export async function POST(request: Request) {
       data: voteResult || null
     })
   } catch (error) {
+    // Log detailed error information
     console.error('Error in votes endpoint:', error)
+    
+    // Create a more detailed error response
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'object' && error !== null
+        ? JSON.stringify(error)
+        : 'Unknown error';
+    
+    // Return a more informative error response
     return NextResponse.json(
       { 
-        error: 'Failed to process vote',
+        error: `Failed to process vote: ${errorMessage}`,
+        details: error instanceof Error ? error.stack : undefined,
         success: false,
         currentVotes: 0,
         userHasVoted: false

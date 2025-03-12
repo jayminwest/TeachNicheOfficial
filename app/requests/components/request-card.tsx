@@ -110,6 +110,17 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
       } catch (error) {
         console.error('Vote operation failed:', error);
         
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          });
+        } else {
+          console.error('Non-Error object thrown:', typeof error, error);
+        }
+        
         // Revert optimistic update on error
         setHasVoted(originalHasVoted);
         setVoteCount(originalVoteCount);
@@ -128,6 +139,9 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
             variant: "destructive"
           });
         }
+        
+        // Force a refresh of the vote count from the server
+        updateVoteCount();
       }
     } finally {
       setIsVoting(false);

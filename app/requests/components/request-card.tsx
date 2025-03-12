@@ -87,7 +87,7 @@ export function RequestCard({ request, onVote, currentUserId }: RequestCardProps
       
       try {
         // Use the API route through the voteOnRequest function
-        const result = await voteOnRequest(request.id, 'upvote');
+        const result = await voteOnRequest(request.id, 'up');
         
         if (!result.success) {
           // Revert optimistic update on error

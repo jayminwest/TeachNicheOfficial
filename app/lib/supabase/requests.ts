@@ -263,7 +263,7 @@ export async function deleteRequest(id: string): Promise<{ success: boolean }> {
   return { success: false };
 }
 
-export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote'): Promise<RequestVoteResponse> {
+export async function voteOnRequest(requestId: string, voteType: 'up' | 'down'): Promise<RequestVoteResponse> {
   const supabase = createClientComponentClient()
   
   // Check authentication before making the request

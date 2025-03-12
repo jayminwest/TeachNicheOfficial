@@ -255,7 +255,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
             <MuxUploader
               endpoint={() => fetch('/api/mux/upload-url').then(res => res.json()).then(data => {
                 // Store the endpoint URL for potential ID extraction later
-                if (typeof window !== 'undefined') {
+                if (typeof window !== 'undefined' && data && data.url) {
                   // Extract and store upload ID if possible
                   try {
                     const uploadIdMatch = data.url.match(/\/([a-zA-Z0-9]+)$/);
@@ -266,8 +266,10 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
                   } catch (e) {
                     console.error("Error extracting upload ID from URL:", e);
                   }
+                } else {
+                  console.warn("No URL found in upload response:", data);
                 }
-                return data.url;
+                return data && data.url ? data.url : '';
               })}
               onSuccess={handleUploadSuccess}
               className="w-full"

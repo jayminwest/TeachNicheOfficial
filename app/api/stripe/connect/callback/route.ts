@@ -41,6 +41,9 @@ export async function GET(request: Request) {
     const isComplete = status.isComplete;
     const pendingVerification = status.pendingVerification;
     const missingRequirements = status.missingRequirements;
+    const hasDetailsSubmitted = status.has_details_submitted;
+    const hasChargesEnabled = status.has_charges_enabled;
+    const hasPayoutsEnabled = status.has_payouts_enabled;
 
     // Store additional status information
     const { error: updateError } = await supabase
@@ -51,6 +54,9 @@ export async function GET(request: Request) {
         stripe_account_details: {
           pending_verification: pendingVerification,
           missing_requirements: missingRequirements,
+          has_details_submitted: hasDetailsSubmitted,
+          has_charges_enabled: hasChargesEnabled,
+          has_payouts_enabled: hasPayoutsEnabled,
           last_checked: new Date().toISOString()
         }
       })

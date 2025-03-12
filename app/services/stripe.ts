@@ -162,16 +162,22 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
     // Log the full account object to see all available fields
     console.log('Full Stripe account response:', JSON.stringify(account, null, 2));
     
-    // Force isComplete to true if the account exists and has capabilities
-    // This is a workaround for cases where Stripe reports false negatives
-    const hasCapabilities = account.capabilities && 
-      Object.values(account.capabilities).some(cap => cap === 'active');
+    // Check actual account status instead of forcing to true
+    const hasDetailsSubmitted = account.details_submitted === true;
+    const hasChargesEnabled = account.charges_enabled === true;
+    const hasPayoutsEnabled = account.payouts_enabled === true;
+    
+    // Only consider complete if all requirements are met
+    const isComplete = hasDetailsSubmitted && hasChargesEnabled && hasPayoutsEnabled;
     
     const status = {
-      isComplete: true, // Force to true since account exists and is working
+      isComplete,
       missingRequirements: account.requirements?.currently_due || [],
       pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
-                          account.requirements.pending_verification.length > 0
+                          account.requirements.pending_verification.length > 0,
+      has_details_submitted: hasDetailsSubmitted,
+      has_charges_enabled: hasChargesEnabled,
+      has_payouts_enabled: hasPayoutsEnabled
     };
     
     console.log('Processed Stripe account status:', JSON.stringify(status, null, 2));
@@ -289,13 +295,16 @@ export const updateProfileStripeStatus = async (
     // Get fresh account status
     const status = await getAccountStatus(accountId);
     
-    // Prepare the data to update
+    // Prepare the data to update with all status fields
     const updateData = {
       stripe_onboarding_complete: status.isComplete,
       stripe_account_status: status.isComplete ? 'complete' : 'pending',
       stripe_account_details: JSON.stringify({
         pending_verification: status.pendingVerification,
         missing_requirements: status.missingRequirements,
+        has_details_submitted: status.has_details_submitted,
+        has_charges_enabled: status.has_charges_enabled,
+        has_payouts_enabled: status.has_payouts_enabled,
         last_checked: new Date().toISOString()
       })
     };
@@ -324,7 +333,10 @@ export const updateProfileStripeStatus = async (
               status.missingRequirements.length > 0 ? 'requirements_needed' : 'pending',
       details: {
         pendingVerification: status.pendingVerification,
-        missingRequirements: status.missingRequirements
+        missingRequirements: status.missingRequirements,
+        has_details_submitted: status.has_details_submitted,
+        has_charges_enabled: status.has_charges_enabled,
+        has_payouts_enabled: status.has_payouts_enabled
       }
     };
     

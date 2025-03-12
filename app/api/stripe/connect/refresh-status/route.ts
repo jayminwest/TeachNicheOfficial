@@ -38,7 +38,7 @@ export async function POST() {
 
     console.log(`Found Stripe account ID: ${profile.stripe_account_id}, forcing refresh`);
     
-    // Force refresh from Stripe using the shared function
+    // Refresh from Stripe using the shared function
     try {
       const { updateProfileStripeStatus } = await import('@/app/services/stripe');
       const statusResult = await updateProfileStripeStatus(
@@ -46,21 +46,13 @@ export async function POST() {
         profile.stripe_account_id,
         supabase
       );
-      
+        
       console.log('Successfully refreshed Stripe status:', JSON.stringify(statusResult, null, 2));
-      
-      // Force the status to complete since we have a valid account ID
-      // This is a workaround for cases where Stripe reports false negatives
+        
+      // Return the actual status instead of forcing it to complete
       return NextResponse.json({
         success: true,
-        status: {
-          isComplete: true,
-          status: 'complete',
-          details: {
-            pendingVerification: false,
-            missingRequirements: []
-          }
-        }
+        status: statusResult
       });
     } catch (error) {
       console.error('Error refreshing Stripe status:', error);

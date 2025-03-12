@@ -20,5 +20,9 @@ export interface StripeAccountStatus {
   details?: {
     pendingVerification: boolean;
     missingRequirements: string[];
+    has_details_submitted?: boolean;
+    has_charges_enabled?: boolean;
+    has_payouts_enabled?: boolean;
+    last_checked?: string;
   };
 }

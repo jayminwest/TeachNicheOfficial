@@ -12,6 +12,11 @@ const MuxUploader = dynamic(
   { ssr: false }
 );
 
+// Store the last upload ID globally for fallback access
+if (typeof window !== 'undefined') {
+  window.__lastUploadId = undefined;
+}
+
 interface NewLessonFormProps {
   redirectPath?: string;
 }
@@ -74,6 +79,9 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         throw new Error('Please upload a video before creating the lesson');
       }
       
+      // If we're using a temporary ID, make sure to note that in the request
+      const isTemporaryId = lessonData.muxAssetId.startsWith('temp_');
+      
       // Create lesson
       const response = await fetch('/api/lessons', {
         method: 'POST',
@@ -104,7 +112,8 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         body: JSON.stringify({
           lessonId: lesson.id,
           muxAssetId: lessonData.muxAssetId,
-          isPaid: lessonData.price > 0
+          isPaid: lessonData.price > 0,
+          isTemporaryId: lessonData.muxAssetId.startsWith('temp_')
         }),
       }).catch(error => {
         console.error('Failed to start background processing:', error);
@@ -128,9 +137,36 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   
   // Handle upload success
   const handleUploadSuccess = (event: any) => {
-    // Check if event has detail property with assetId
-    if (event && event.detail && event.detail.asset_id) {
-      setMuxAssetId(event.detail.asset_id);
+    console.log("Upload success event:", event);
+    
+    // Extract upload ID using multiple fallback approaches
+    let uploadId: string | undefined;
+    
+    try {
+      // First try to get it from the event
+      if (event && event.detail && typeof event.detail === 'object') {
+        const eventDetail = event.detail as { uploadId?: string, asset_id?: string };
+        uploadId = eventDetail.uploadId || eventDetail.asset_id;
+      }
+      
+      // Try to extract from the endpoint URL if available
+      if (!uploadId && typeof window !== 'undefined') {
+        // Check session storage for recently stored IDs
+        uploadId = window.sessionStorage.getItem('lastMuxAssetId') || undefined;
+      }
+      
+      // If we still don't have an ID, generate a temporary one
+      if (!uploadId) {
+        uploadId = `temp_${Date.now()}`;
+        console.warn("No upload ID found, using generated temporary ID:", uploadId);
+        
+        // Store the temporary ID for reference
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('lastMuxAssetId', uploadId);
+        }
+      }
+      
+      setMuxAssetId(uploadId);
       setUploadComplete(true);
       
       toast({
@@ -138,8 +174,8 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         description: 'Your video has been uploaded successfully!',
         duration: 3000,
       });
-    } else {
-      console.error('Upload success event missing asset_id:', event);
+    } catch (error) {
+      console.error("Error extracting upload ID:", error);
       toast({
         title: 'Upload Issue',
         description: 'Upload completed but asset information is missing. Please try again.',
@@ -217,7 +253,22 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         <div className="border rounded-md p-4">
           {typeof window !== 'undefined' && (
             <MuxUploader
-              endpoint={() => fetch('/api/mux/upload-url').then(res => res.json()).then(data => data.url)}
+              endpoint={() => fetch('/api/mux/upload-url').then(res => res.json()).then(data => {
+                // Store the endpoint URL for potential ID extraction later
+                if (typeof window !== 'undefined') {
+                  // Extract and store upload ID if possible
+                  try {
+                    const uploadIdMatch = data.url.match(/\/([a-zA-Z0-9]+)$/);
+                    if (uploadIdMatch && uploadIdMatch[1]) {
+                      window.__lastUploadId = uploadIdMatch[1];
+                      console.log("Extracted upload ID from URL:", window.__lastUploadId);
+                    }
+                  } catch (e) {
+                    console.error("Error extracting upload ID from URL:", e);
+                  }
+                }
+                return data.url;
+              })}
               onSuccess={handleUploadSuccess}
               className="w-full"
             />

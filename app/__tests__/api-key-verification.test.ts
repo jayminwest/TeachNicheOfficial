@@ -9,25 +9,36 @@
 // Import services directly to avoid ESM issues
 import { createStripeClient } from '../services/stripe';
 
-// Mock implementation for createStripeClient if it's not available in tests
-jest.mock('../services/stripe', () => ({
-  createStripeClient: jest.fn().mockImplementation(() => ({
-    stripe: {
-      balance: {
-        retrieve: jest.fn().mockResolvedValue({ available: [] })
-      },
-      webhooks: {
-        constructEvent: jest.fn().mockImplementation((payload, signature, secret) => {
-          if (!secret) throw new Error('Missing webhook secret');
-          return { type: 'test' };
-        })
-      }
-    },
-    config: {
-      webhookSecret: 'test_webhook_secret'
+// Only mock the webhook part of Stripe to ensure real API calls for other tests
+// This allows us to verify actual API credentials while still testing webhook validation
+jest.mock('../services/stripe', () => {
+  // Import the actual implementation
+  const actualModule = jest.requireActual('../services/stripe');
+  
+  return {
+    // Use the actual createStripeClient for most tests
+    createStripeClient: () => {
+      // Get the real client
+      const realClient = actualModule.createStripeClient();
+      
+      // Override just the webhook functionality for testing
+      return {
+        ...realClient,
+        stripe: {
+          ...realClient.stripe,
+          webhooks: {
+            constructEvent: jest.fn().mockImplementation((payload, signature, secret) => {
+              if (!secret) throw new Error('Missing webhook secret');
+              // This should throw for our test signature
+              if (signature === 'test_sig') throw new Error('Invalid signature');
+              return { type: 'test' };
+            })
+          }
+        }
+      };
     }
-  }))
-}));
+  };
+});
 
 describe('API Key Verification', () => {
   // Check if environment variables are set

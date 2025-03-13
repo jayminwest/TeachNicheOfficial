@@ -105,9 +105,11 @@ export async function POST(request: Request) {
         // For paid content, update the playback policy to be signed
         if (isPaid && process.env.MUX_SIGNING_KEY_ID) {
           await videoClient.playbackRestrictions.create({
-            asset_id: muxAssetId,
-            type: 'jwt',
-            signing_key_id: process.env.MUX_SIGNING_KEY_ID,
+            referrer: {
+              type: 'jwt',
+              signing_key_id: process.env.MUX_SIGNING_KEY_ID
+            },
+            assets: [muxAssetId]
           });
         }
         

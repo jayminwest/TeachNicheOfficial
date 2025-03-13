@@ -80,13 +80,16 @@ export async function POST(request: Request) {
     
     try {
       // Import Mux SDK
-      const Mux = await import('@mux/mux-node');
-      const { Video } = new Mux.default({
+      const { Mux } = await import('@mux/mux-node');
+      const { Video } = Mux;
+      
+      // Initialize the Video client
+      const videoClient = new Video({
         tokenId: process.env.MUX_TOKEN_ID!,
         tokenSecret: process.env.MUX_TOKEN_SECRET!,
       });
       
-      const asset = await Video.Assets.get(muxAssetId);
+      const asset = await videoClient.Assets.get(muxAssetId);
       const playbackId = asset.playback_ids?.[0]?.id;
       
       if (asset.status === 'ready' && playbackId) {
@@ -102,7 +105,7 @@ export async function POST(request: Request) {
         
         // For paid content, update the playback policy to be signed
         if (isPaid && process.env.MUX_SIGNING_KEY_ID) {
-          await Video.Assets.updatePlaybackRestriction(muxAssetId, {
+          await videoClient.Assets.updatePlaybackRestriction(muxAssetId, {
             playback_restriction_policy: {
               type: 'jwt',
               signing_key_id: process.env.MUX_SIGNING_KEY_ID,

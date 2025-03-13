@@ -32,8 +32,8 @@ export async function GET(request: Request) {
       tokenSecret: process.env.MUX_TOKEN_SECRET,
     });
     
-    // Access the Video API (note: using lowercase 'video' as per Mux SDK v9.0.1)
-    const asset = await muxClient.video.Assets.get(assetId);
+    // Access the Video API (note: using lowercase 'video' and 'assets' as per Mux SDK v9.0.1)
+    const asset = await muxClient.video.assets.get(assetId);
     
     // Asset details already retrieved above
     

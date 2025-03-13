@@ -206,12 +206,15 @@ describe('API Key Verification', () => {
         expect(supabase).toBeDefined();
         
         // Make a real API call to check health
-        const { data, error } = await supabase.from('categories').select('count').limit(1);
+        // The correct syntax for Supabase is to use count() instead of select('count')
+        const { count, error } = await supabase
+          .from('categories')
+          .select('*', { count: 'exact', head: true });
         
         // Check if we got a response without error
         expect(error).toBeNull();
         console.log('✓ Successfully connected to Supabase API');
-        console.log('Supabase query response:', data);
+        console.log('Supabase query response:', { count });
       } catch (error) {
         // Log the error but don't fail the test in CI environments
         console.error('Error connecting to Supabase API:', error);

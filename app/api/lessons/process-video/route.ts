@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       const videoClient = new Mux.default({
         tokenId: process.env.MUX_TOKEN_ID!,
         tokenSecret: process.env.MUX_TOKEN_SECRET!,
-      }).Video;
+      }).video;
       
       const asset = await videoClient.Assets.get(muxAssetId);
       const playbackId = asset.playback_ids?.[0]?.id;

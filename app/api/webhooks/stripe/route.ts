@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
     console.log('Received Stripe webhook', { 
       hasSignature: !!sig,
       hasSecret: !!endpointSecret,
-      payloadLength: payload.length
+      payloadLength: payload.length,
+      timestamp: new Date().toISOString()
     });
 
     if (!sig || !endpointSecret) {
@@ -76,35 +77,98 @@ export async function POST(request: NextRequest) {
           .single();
         
         if (profile) {
-          // Get account status
+          // Log the raw account data for debugging
+          console.log('Raw Stripe account data:', {
+            id: account.id,
+            details_submitted: account.details_submitted,
+            payouts_enabled: account.payouts_enabled,
+            charges_enabled: account.charges_enabled,
+            requirements: {
+              currently_due: account.requirements?.currently_due,
+              eventually_due: account.requirements?.eventually_due,
+              past_due: account.requirements?.past_due,
+              pending_verification: account.requirements?.pending_verification,
+              disabled_reason: account.requirements?.disabled_reason
+            },
+            capabilities: account.capabilities
+          });
+      
+          // Get account status with more detailed information
           const status = {
             isComplete: !!(account.details_submitted && account.payouts_enabled && account.charges_enabled),
             missingRequirements: account.requirements?.currently_due || [],
             pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
-                                account.requirements.pending_verification.length > 0
+                                account.requirements.pending_verification.length > 0,
+            pastDue: account.requirements?.past_due || [],
+            disabledReason: account.requirements?.disabled_reason || null
           };
+      
+          // Log the calculated status
+          console.log('Calculated Stripe account status:', status);
           
-          // Update profile with new status
+          // Log the account status we're about to save
+          console.log('Updating Stripe account status:', {
+            accountId: account.id,
+            userId: profile.id,
+            isComplete: status.isComplete,
+            status: status.isComplete ? 'complete' : 'pending',
+            details: {
+              pending_verification: status.pendingVerification,
+              missing_requirements: status.missingRequirements,
+              has_details_submitted: account.details_submitted,
+              has_charges_enabled: account.charges_enabled,
+              has_payouts_enabled: account.payouts_enabled,
+              last_checked: new Date().toISOString()
+            }
+          });
+      
+          // Update profile with new status - note we're passing the object directly, not stringifying
           const { error: updateError } = await supabase
             .from('profiles')
             .update({
-              stripe_onboarding_complete: status.isComplete,
               stripe_account_status: status.isComplete ? 'complete' : 'pending',
-              stripe_account_details: JSON.stringify({
+              stripe_account_details: {
                 pending_verification: status.pendingVerification,
                 missing_requirements: status.missingRequirements,
+                has_details_submitted: account.details_submitted,
+                has_charges_enabled: account.charges_enabled,
+                has_payouts_enabled: account.payouts_enabled,
                 last_checked: new Date().toISOString()
-              })
+              }
             })
             .eq('id', profile.id);
           
           if (updateError) {
             console.error('Failed to update profile with Stripe account status:', updateError);
-            return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
-          }
+        
+            // Try again with stringified JSON as a fallback
+            console.log('Attempting fallback with stringified JSON...');
+            const { error: retryError } = await supabase
+              .from('profiles')
+              .update({
+                stripe_account_status: status.isComplete ? 'complete' : 'pending',
+                stripe_account_details: JSON.stringify({
+                  pending_verification: status.pendingVerification,
+                  missing_requirements: status.missingRequirements,
+                  has_details_submitted: account.details_submitted,
+                  has_charges_enabled: account.charges_enabled,
+                  has_payouts_enabled: account.payouts_enabled,
+                  last_checked: new Date().toISOString()
+                })
+              })
+              .eq('id', profile.id);
           
-          console.log(`Updated Stripe account status for user ${profile.id}`);
-          return NextResponse.json({ success: true, updated: true });
+            if (retryError) {
+              console.error('Fallback update also failed:', retryError);
+              return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+            } else {
+              console.log(`Updated Stripe account status for user ${profile.id} using stringified JSON fallback`);
+              return NextResponse.json({ success: true, updated: true, method: 'stringified' });
+            }
+          }
+      
+          console.log(`Successfully updated Stripe account status for user ${profile.id}`);
+          return NextResponse.json({ success: true, updated: true, method: 'direct' });
         } else {
           console.error('No user found with Stripe account ID:', account.id);
           return NextResponse.json({ error: 'No matching user found' }, { status: 404 });

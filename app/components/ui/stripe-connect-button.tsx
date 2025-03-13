@@ -84,7 +84,7 @@ export function StripeConnectButton({
         throw new Error('Failed to update status');
       }
       
-      const data = await response.json();
+      await response.json();
       
       toast({
         title: 'Status Updated',

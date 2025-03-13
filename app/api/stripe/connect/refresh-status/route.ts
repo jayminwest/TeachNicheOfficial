@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { getAccountStatus } from '@/app/services/stripe';
 
 export const dynamic = 'force-dynamic';
 

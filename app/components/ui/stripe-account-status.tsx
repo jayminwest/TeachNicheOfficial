@@ -33,7 +33,7 @@ export function StripeAccountStatus({
   useEffect(() => {
     console.log('StripeAccountStatus component mounted, fetching fresh status');
     refreshStatus();
-  }, []);
+  }, [refreshStatus]);
 
   const refreshStatus = async () => {
     if (isRefreshing) return;

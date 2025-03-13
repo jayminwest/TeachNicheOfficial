@@ -7,7 +7,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateEnvironment, ServiceStatus } from '../../../lib/env-validation';
+import { validateEnvironment } from '../../../lib/env-validation';
 
 export async function GET(request: Request) {
   try {

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { getAccountStatus } from '@/app/services/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +43,7 @@ export async function GET() {
     try {
       // Use the shared function to update status
       const { updateProfileStripeStatus } = await import('@/app/services/stripe');
-      const statusResult = await updateProfileStripeStatus(
+      await updateProfileStripeStatus(
         session.user.id,
         profile.stripe_account_id,
         supabase

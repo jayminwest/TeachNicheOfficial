@@ -90,8 +90,8 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         throw new Error('Please upload a video before creating the lesson');
       }
       
-      // If we're using a temporary ID, make sure to note that in the request
-      const isTemporaryId = lessonData.muxAssetId.startsWith('temp_');
+      // Check if the ID is a temporary one
+      lessonData.muxAssetId.startsWith('temp_');
       
       // Get a fresh auth token before making the request
       const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
@@ -171,7 +171,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   };
   
   // Handle upload success
-  const handleUploadSuccess = (event: any) => {
+  const handleUploadSuccess = (event: { detail?: { uploadId?: string, asset_id?: string } }) => {
     console.log("Upload success event:", event);
     
     // Extract upload ID using multiple fallback approaches

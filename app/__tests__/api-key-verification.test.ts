@@ -7,7 +7,6 @@
  */
 
 // Import services directly
-import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
@@ -116,8 +115,8 @@ describe('API Key Verification', () => {
     });
 
     test('Mux client initializes without errors', async () => {
-      // Import the getMuxClient function
-      const { getMuxClient, debugMuxClient } = require('../services/mux');
+      // Import the debugMuxClient function
+      const { debugMuxClient } = await import('../services/mux');
       
       // Check client initialization
       const debug = debugMuxClient();
@@ -136,7 +135,7 @@ describe('API Key Verification', () => {
       }
       
       // Import the muxClient
-      const { muxClient } = require('../services/mux');
+      const { muxClient } = await import('../services/mux');
       
       try {
         // Make a call using the mocked client

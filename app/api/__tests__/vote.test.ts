@@ -1,3 +1,7 @@
+// DEPRECATED: This test file tests a deprecated endpoint that now redirects to /api/votes
+// These tests are kept for reference but may be removed in the future.
+// See vote-redirect.test.ts for tests of the redirection functionality.
+
 // Mock next/server before any other imports
 jest.mock('next/server', () => ({
   NextResponse: {

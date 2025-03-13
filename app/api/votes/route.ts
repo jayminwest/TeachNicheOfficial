@@ -164,13 +164,29 @@ export async function POST(request: Request) {
 
       if (updateError) {
         console.error('Error updating lesson request vote count:', updateError);
-        throw updateError;
+        return NextResponse.json(
+          { 
+            error: 'Failed to process vote',
+            success: false,
+            currentVotes: 0,
+            userHasVoted: false
+          },
+          { status: 500 }
+        )
       }
       console.log('Vote count updated successfully');
     } catch (updateErr) {
       console.error('Exception during vote count update:', updateErr);
-      // Don't throw here - we'll still return a success response with the current vote count
-      // This way, even if the update fails, the vote itself was processed
+      // Return error response with 500 status code to match test expectations
+      return NextResponse.json(
+        { 
+          error: 'Failed to process vote',
+          success: false,
+          currentVotes: 0,
+          userHasVoted: false
+        },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({

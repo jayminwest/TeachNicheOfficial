@@ -82,8 +82,14 @@ export function validateServiceInitialization(): ServiceStatus[] {
   
   // Validate Stripe client initialization
   try {
-    const { stripe } = createStripeClient();
-    if (!stripe) {
+    let stripeClient;
+    try {
+      stripeClient = createStripeClient();
+    } catch (e) {
+      throw new Error(`Failed to create Stripe client: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    
+    if (!stripeClient || !stripeClient.stripe) {
       throw new Error('Stripe client is undefined');
     }
     results.push({ service: 'Stripe Initialization', status: 'ok' });

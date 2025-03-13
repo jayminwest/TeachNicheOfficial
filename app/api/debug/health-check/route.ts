@@ -29,7 +29,21 @@ export async function GET(request: Request) {
     }
     
     // Perform the environment validation
-    const results = await validateEnvironment();
+    let results;
+    try {
+      results = await validateEnvironment();
+    } catch (validationError) {
+      console.error('Environment validation error:', validationError);
+      return NextResponse.json({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        message: validationError instanceof Error ? validationError.message : 'Environment validation failed',
+        services: []
+      }, {
+        status: 500
+      });
+    }
     
     // Check if there are any errors
     const hasErrors = results.some(result => result.status === 'error');

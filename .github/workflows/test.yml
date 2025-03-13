@@ -21,12 +21,6 @@ jobs:
         
       - name: Run tests
         run: npm test
-      - name: Run type-check
-        run: npm run type-check || echo "Type check failed but continuing"
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_TEST_WEBHOOK_SECRET }}
-          NEXT_PUBLIC_SITE_URL: 'http://localhost:3000'
+        
+      - name: Vercel Build
+        run: npx vercel build

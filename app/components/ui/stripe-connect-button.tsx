@@ -6,7 +6,7 @@ import { useToast } from '@/app/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Badge } from './badge';
-import { AlertCircle, CheckCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;
@@ -60,8 +60,8 @@ export function StripeConnectButton({
     }
   };
   
-  const forceCompleteStatus = async () => {
-    if (isLoading || !user) {
+  const refreshStripeStatus = async () => {
+    if (isLoading || !user || !stripeAccountId) {
       return;
     }
     
@@ -69,25 +69,26 @@ export function StripeConnectButton({
       setIsLoading(true);
       
       toast({
-        title: 'Updating Stripe Status',
-        description: 'Forcing account status to complete...',
+        title: 'Refreshing Stripe Status',
+        description: 'Checking your account status with Stripe...',
       });
       
-      const response = await fetch('/api/stripe/connect/force-complete', {
-        method: 'POST',
+      const response = await fetch('/api/stripe/connect/status', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
         },
       });
       
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        throw new Error('Failed to refresh status');
       }
       
       await response.json();
       
       toast({
-        title: 'Status Updated',
+        title: 'Status Refreshed',
         description: 'Your Stripe account status has been updated.',
         variant: 'default',
       });
@@ -98,7 +99,7 @@ export function StripeConnectButton({
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update status. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to refresh status. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -332,14 +333,15 @@ export function StripeConnectButton({
         {!buttonDisabled && !isLoading && <ExternalLink className="h-4 w-4" />}
       </Button>
       
-      {stripeAccountId && !stripeStatus?.isComplete && (
+      {stripeAccountId && (
         <Button 
-          onClick={forceCompleteStatus} 
+          onClick={refreshStripeStatus} 
           disabled={isLoading}
           variant="secondary"
-          className="mt-2 w-full"
+          className="mt-2 w-full flex items-center gap-2"
         >
-          Force Complete Status
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? 'Refreshing...' : 'Refresh Status from Stripe'}
         </Button>
       )}
     </div>

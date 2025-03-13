@@ -24,14 +24,14 @@ export async function GET() {
     }
     
     // Import Mux SDK
-    const { Mux } = await import('@mux/mux-node');
-    const { Video } = new Mux({
+    const Mux = await import('@mux/mux-node');
+    const muxClient = new Mux.default({
       tokenId: process.env.MUX_TOKEN_ID,
       tokenSecret: process.env.MUX_TOKEN_SECRET,
     });
     
     // Create a new direct upload
-    const upload = await Video.Uploads.create({
+    const upload = await muxClient.video.uploads.create({
       new_asset_settings: {
         playback_policy: ['public'],
       },
@@ -39,8 +39,8 @@ export async function GET() {
     });
     
     // Return the upload URL and asset ID
-    // Note: The Mux Uploader component expects the URL directly, not in a property
-    return NextResponse.json(upload.url);
+    // The Mux Uploader component expects a JSON object with a url property
+    return NextResponse.json({ url: upload.url });
   } catch (error) {
     console.error('Error creating upload URL:', error);
     return NextResponse.json(

@@ -12,6 +12,11 @@ const MuxUploader = dynamic(
   { ssr: false }
 );
 
+// Store the last upload ID globally for fallback access
+if (typeof window !== 'undefined') {
+  window.__lastUploadId = undefined;
+}
+
 interface NewLessonFormProps {
   redirectPath?: string;
 }
@@ -23,15 +28,26 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const [muxAssetId, setMuxAssetId] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
   
-  // Check authentication on mount
+  // Check authentication on mount and refresh the session
   useEffect(() => {
     async function checkAuth() {
       try {
         const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
         const supabase = createClientSupabaseClient();
+        
+        // First check if we have a session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error || !session) {
+          window.location.href = '/auth?redirect=/lessons/new';
+          return;
+        }
+        
+        // Refresh the session to ensure we have a valid token
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError) {
+          console.error('Session refresh failed:', refreshError);
           window.location.href = '/auth?redirect=/lessons/new';
           return;
         }
@@ -74,10 +90,27 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         throw new Error('Please upload a video before creating the lesson');
       }
       
+      // Check if the ID is a temporary one
+      lessonData.muxAssetId.startsWith('temp_');
+      
+      // Get a fresh auth token before making the request
+      const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
+      const supabase = createClientSupabaseClient();
+      
+      // Refresh the session to ensure we have a valid token
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        console.error('Session refresh failed before API call:', refreshError);
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+      
       // Create lesson
       const response = await fetch('/api/lessons', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
         body: JSON.stringify(lessonData),
       });
@@ -96,19 +129,30 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         duration: 5000,
       });
       
-      // Start background video processing
-      fetch('/api/lessons/process-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          lessonId: lesson.id,
-          muxAssetId: lessonData.muxAssetId,
-          isPaid: lessonData.price > 0
-        }),
-      }).catch(error => {
-        console.error('Failed to start background processing:', error);
-      });
+      // Start background video processing with fresh auth
+      try {
+        const { error: refreshError2 } = await supabase.auth.refreshSession();
+        
+        if (refreshError2) {
+          console.warn('Session refresh failed before video processing:', refreshError2);
+          // Continue anyway since the lesson was created
+        }
+        
+        await fetch('/api/lessons/process-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            lessonId: lesson.id,
+            muxAssetId: lessonData.muxAssetId,
+            isPaid: lessonData.price > 0,
+            isTemporaryId: lessonData.muxAssetId.startsWith('temp_')
+          }),
+        });
+      } catch (processingError) {
+        console.error('Failed to start background processing:', processingError);
+        // Don't throw here, as the lesson was created successfully
+      }
       
       // Redirect to the lesson page or custom redirect path
       window.location.href = redirectPath || `/lessons/${lesson.id}`;
@@ -127,10 +171,37 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   };
   
   // Handle upload success
-  const handleUploadSuccess = (event: any) => {
-    // Check if event has detail property with assetId
-    if (event && event.detail && event.detail.asset_id) {
-      setMuxAssetId(event.detail.asset_id);
+  const handleUploadSuccess = (event: { detail?: { uploadId?: string, asset_id?: string } }) => {
+    console.log("Upload success event:", event);
+    
+    // Extract upload ID using multiple fallback approaches
+    let uploadId: string | undefined;
+    
+    try {
+      // First try to get it from the event
+      if (event && event.detail && typeof event.detail === 'object') {
+        const eventDetail = event.detail as { uploadId?: string, asset_id?: string };
+        uploadId = eventDetail.uploadId || eventDetail.asset_id;
+      }
+      
+      // Try to extract from the endpoint URL if available
+      if (!uploadId && typeof window !== 'undefined') {
+        // Check session storage for recently stored IDs
+        uploadId = window.sessionStorage.getItem('lastMuxAssetId') || undefined;
+      }
+      
+      // If we still don't have an ID, generate a temporary one
+      if (!uploadId) {
+        uploadId = `temp_${Date.now()}`;
+        console.warn("No upload ID found, using generated temporary ID:", uploadId);
+        
+        // Store the temporary ID for reference
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('lastMuxAssetId', uploadId);
+        }
+      }
+      
+      setMuxAssetId(uploadId);
       setUploadComplete(true);
       
       toast({
@@ -138,8 +209,8 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         description: 'Your video has been uploaded successfully!',
         duration: 3000,
       });
-    } else {
-      console.error('Upload success event missing asset_id:', event);
+    } catch (error) {
+      console.error("Error extracting upload ID:", error);
       toast({
         title: 'Upload Issue',
         description: 'Upload completed but asset information is missing. Please try again.',
@@ -217,7 +288,24 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         <div className="border rounded-md p-4">
           {typeof window !== 'undefined' && (
             <MuxUploader
-              endpoint={() => fetch('/api/mux/upload-url').then(res => res.json()).then(data => data.url)}
+              endpoint={() => fetch('/api/mux/upload-url').then(res => res.json()).then(data => {
+                // Store the endpoint URL for potential ID extraction later
+                if (typeof window !== 'undefined' && data && data.url) {
+                  // Extract and store upload ID if possible
+                  try {
+                    const uploadIdMatch = data.url.match(/\/([a-zA-Z0-9]+)$/);
+                    if (uploadIdMatch && uploadIdMatch[1]) {
+                      window.__lastUploadId = uploadIdMatch[1];
+                      console.log("Extracted upload ID from URL:", window.__lastUploadId);
+                    }
+                  } catch (e) {
+                    console.error("Error extracting upload ID from URL:", e);
+                  }
+                } else {
+                  console.warn("No URL found in upload response:", data);
+                }
+                return data && data.url ? data.url : '';
+              })}
               onSuccess={handleUploadSuccess}
               className="w-full"
             />

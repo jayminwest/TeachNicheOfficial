@@ -1,5 +1,4 @@
 import { render as testingLibraryRender } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import ProfilePage from '../page'
 import { AuthContext } from '@/app/services/auth/AuthContext'

@@ -14,7 +14,9 @@ export default function ProfilePage() {
         </div>
       </div>
     }>
-      <ProfilePageWrapper />
+      <div className="container mx-auto py-8">
+        <ProfilePageWrapper />
+      </div>
     </Suspense>
   );
 }

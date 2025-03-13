@@ -9,6 +9,9 @@ declare global {
     nextRouterMock?: {
       push: (url: string) => Promise<boolean>;
     };
+    // For Mux upload handling
+    __lastUploadId?: string;
+    __muxAssetId?: string;
   }
 }
 

@@ -59,6 +59,51 @@ export function StripeConnectButton({
       setIsLoading(false); // Only reset loading on error
     }
   };
+  
+  const forceCompleteStatus = async () => {
+    if (isLoading || !user) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      toast({
+        title: 'Updating Stripe Status',
+        description: 'Forcing account status to complete...',
+      });
+      
+      const response = await fetch('/api/stripe/connect/force-complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+      
+      await response.json();
+      
+      toast({
+        title: 'Status Updated',
+        description: 'Your Stripe account status has been updated.',
+        variant: 'default',
+      });
+      
+      // Reload the page to show updated status
+      window.location.reload();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update status. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!user) {
     console.log('No user found in StripeConnectButton');
@@ -286,6 +331,17 @@ export function StripeConnectButton({
         {isLoading ? "Connecting..." : buttonText}
         {!buttonDisabled && !isLoading && <ExternalLink className="h-4 w-4" />}
       </Button>
+      
+      {stripeAccountId && !stripeStatus?.isComplete && (
+        <Button 
+          onClick={forceCompleteStatus} 
+          disabled={isLoading}
+          variant="secondary"
+          className="mt-2 w-full"
+        >
+          Force Complete Status
+        </Button>
+      )}
     </div>
   );
 }

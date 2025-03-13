@@ -56,5 +56,5 @@ export type LessonRequestFormData = z.infer<typeof lessonRequestSchema>
 
 export const voteSchema = z.object({
   requestId: z.string().uuid(),
-  voteType: z.enum(['upvote', 'downvote'])
+  voteType: z.enum(['up', 'down'])
 })

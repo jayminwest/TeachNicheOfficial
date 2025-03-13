@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/app/services/auth/AuthContext';
 import ProfileClient from './profile-client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import ProfileRedirect from './profile-redirect';
 

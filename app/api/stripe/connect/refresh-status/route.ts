@@ -4,9 +4,9 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function POST() {
   try {
-    console.log('Stripe status API endpoint called');
+    console.log('Refresh Stripe status API endpoint called');
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
 
@@ -19,7 +19,7 @@ export async function GET() {
     // Get user's Stripe account ID from profile
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete')
+      .select('stripe_account_id')
       .eq('id', session.user.id)
       .single();
 
@@ -31,50 +31,34 @@ export async function GET() {
     if (!profile?.stripe_account_id) {
       console.log('No Stripe account ID found for user');
       return NextResponse.json({ 
-        stripeAccountId: null,
-        isComplete: false
-      });
+        error: 'No Stripe account found'
+      }, { status: 404 });
     }
 
-    console.log(`Found Stripe account ID: ${profile.stripe_account_id}`);
-    // Always fetch fresh status from Stripe
-
-    // Otherwise check with Stripe
+    console.log(`Found Stripe account ID: ${profile.stripe_account_id}, forcing refresh`);
+    
+    // Refresh from Stripe using the shared function
     try {
-      // Use the shared function to update status
       const { updateProfileStripeStatus } = await import('@/app/services/stripe');
-      await updateProfileStripeStatus(
+      const statusResult = await updateProfileStripeStatus(
         session.user.id,
         profile.stripe_account_id,
         supabase
       );
-      
-      // Force the status to complete since we have a valid account ID
-      // This is a workaround for cases where Stripe reports false negatives
+        
+      console.log('Successfully refreshed Stripe status:', JSON.stringify(statusResult, null, 2));
+        
+      // Return the actual status instead of forcing it to complete
       return NextResponse.json({
-        stripeAccountId: profile.stripe_account_id,
-        isComplete: true,
-        status: 'complete',
-        details: {
-          pendingVerification: false,
-          missingRequirements: []
-        }
+        success: true,
+        status: statusResult
       });
     } catch (error) {
-      console.error('Error checking Stripe account status:', error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      } : 'Unknown error type');
-      
-      return NextResponse.json({
-        stripeAccountId: profile.stripe_account_id,
-        isComplete: false,
-        error: 'Failed to check Stripe account status'
-      });
+      console.error('Error refreshing Stripe status:', error);
+      return NextResponse.json({ error: 'Failed to refresh Stripe status' }, { status: 500 });
     }
   } catch (error) {
-    console.error('Error in stripe-status endpoint:', error);
+    console.error('Error in refresh-status endpoint:', error);
     return NextResponse.json(
       { error: 'An unexpected error occurred' },
       { status: 500 }

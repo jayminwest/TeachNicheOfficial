@@ -263,7 +263,7 @@ export async function deleteRequest(id: string): Promise<{ success: boolean }> {
   return { success: false };
 }
 
-export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'downvote'): Promise<RequestVoteResponse> {
+export async function voteOnRequest(requestId: string, voteType: 'up' | 'down'): Promise<RequestVoteResponse> {
   const supabase = createClientComponentClient()
   
   // Check authentication before making the request
@@ -284,7 +284,25 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
   
   console.log('Starting vote process for request:', requestId, 'type:', voteType)
   
+  // Get current vote count as fallback
+  let fallbackVoteCount = 0;
   try {
+    const { count } = await supabase
+      .from('lesson_request_votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('request_id', requestId);
+    
+    fallbackVoteCount = count || 0;
+    console.log('Fallback vote count:', fallbackVoteCount);
+  } catch (countError) {
+    console.error('Error getting fallback vote count:', countError);
+  }
+  
+  try {
+    // Use a timeout to prevent the request from hanging indefinitely
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const response = await fetch('/api/votes', {
       method: 'POST',
       headers: {
@@ -294,16 +312,46 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
       },
       credentials: 'include', // Use 'include' to ensure cookies are sent
       body: JSON.stringify({ requestId, voteType }),
-    })
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
 
-    const result = await response.json()
+    // Log the raw response status before trying to parse JSON
+    console.log('Vote response status:', response.status, response.statusText);
+    
+    // Clone the response before reading its body to avoid "body already read" errors
+    const responseClone = response.clone();
+    let result;
+    
+    try {
+      result = await response.json();
+    } catch (jsonError) {
+      // If JSON parsing fails, try to get the text content
+      const textContent = await responseClone.text();
+      console.error('Failed to parse response as JSON:', textContent);
+      console.error('JSON parse error:', jsonError);
+      result = { 
+        error: 'Invalid response format', 
+        rawResponse: textContent.substring(0, 500) // Limit to first 500 chars in case it's large
+      };
+    }
     
     if (!response.ok) {
       console.error('Vote request failed:', {
         status: response.status,
         statusText: response.statusText,
-        result
+        result,
+        requestData: { requestId, voteType }
       });
+      
+      // If we have a detailed error message from the server, log it
+      if (result && result.error) {
+        console.error('Server error details:', result.error);
+        if (result.details) {
+          console.error('Error details:', result.details);
+        }
+      }
       
       // Handle specific error types
       if (response.status === 401) {
@@ -356,6 +404,22 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
         }
       }
       
+      // Try to get the user's current vote status directly from Supabase as a fallback
+      let userHasVotedFallback = false;
+      try {
+        const { data: voteData } = await supabase
+          .from('lesson_request_votes')
+          .select('*')
+          .eq('request_id', requestId)
+          .eq('user_id', session.session.user.id)
+          .single();
+        
+        userHasVotedFallback = !!voteData;
+        console.log('Fallback user vote status:', userHasVotedFallback);
+      } catch (voteCheckError) {
+        console.error('Error checking fallback vote status:', voteCheckError);
+      }
+      
       toast({
         title: "Error",
         description: result.error || "Failed to submit vote",
@@ -364,8 +428,8 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
       
       return {
         success: false,
-        currentVotes: 0,
-        userHasVoted: false,
+        currentVotes: fallbackVoteCount,
+        userHasVoted: userHasVotedFallback,
         error: 'database_error'
       }
     }
@@ -384,16 +448,54 @@ export async function voteOnRequest(requestId: string, voteType: 'upvote' | 'dow
     // Handle network errors or other exceptions
     console.error('Vote operation failed:', error)
     
+    // Try to get the current vote count directly from Supabase as a fallback
+    let currentVotesFallback = fallbackVoteCount;
+    let userHasVotedFallback = false;
+    
+    try {
+      // Get updated vote count
+      const { count } = await supabase
+        .from('lesson_request_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('request_id', requestId);
+      
+      currentVotesFallback = count || 0;
+      
+      // Check if user has voted
+      const { data: voteData } = await supabase
+        .from('lesson_request_votes')
+        .select('*')
+        .eq('request_id', requestId)
+        .eq('user_id', session.session.user.id)
+        .single();
+      
+      userHasVotedFallback = !!voteData;
+      
+      console.log('Fallback data after error:', { 
+        currentVotes: currentVotesFallback, 
+        userHasVoted: userHasVotedFallback 
+      });
+    } catch (fallbackError) {
+      console.error('Error getting fallback data:', fallbackError);
+    }
+    
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'object' && error !== null
+        ? JSON.stringify(error)
+        : "Failed to submit vote";
+    
     toast({
       title: "Error",
-      description: error instanceof Error ? error.message : "Failed to submit vote",
+      description: errorMessage,
       variant: "destructive"
     })
     
     return {
       success: false,
-      currentVotes: 0,
-      userHasVoted: false,
+      currentVotes: currentVotesFallback,
+      userHasVoted: userHasVotedFallback,
       error: 'database_error'
     }
   }

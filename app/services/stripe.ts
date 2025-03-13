@@ -344,18 +344,14 @@ export const updateProfileStripeStatus = async (
     
     console.log('Profile updated successfully:', data?.id);
     
-    const result = {
+    // Return a properly formatted StripeAccountStatus object
+    const result: StripeAccountStatus = {
       isComplete: status.isComplete,
-      status: status.isComplete ? 'complete' : 
-              status.pendingVerification ? 'verification_pending' : 
-              status.missingRequirements.length > 0 ? 'requirements_needed' : 'pending',
-      details: {
-        pendingVerification: status.pendingVerification,
-        missingRequirements: status.missingRequirements,
-        has_details_submitted: status.has_details_submitted,
-        has_charges_enabled: status.has_charges_enabled,
-        has_payouts_enabled: status.has_payouts_enabled
-      }
+      pendingVerification: status.pendingVerification,
+      missingRequirements: status.missingRequirements,
+      has_details_submitted: status.has_details_submitted,
+      has_charges_enabled: status.has_charges_enabled,
+      has_payouts_enabled: status.has_payouts_enabled
     };
     
     console.log('Returning status result:', JSON.stringify(result, null, 2));

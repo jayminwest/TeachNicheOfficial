@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     });
     
     // Access the Video API (note: using lowercase 'video' and 'assets' as per Mux SDK v9.0.1)
-    const asset = await muxClient.video.assets.get(assetId);
+    const asset = await muxClient.video.assets.retrieve(assetId);
     
     // Asset details already retrieved above
     

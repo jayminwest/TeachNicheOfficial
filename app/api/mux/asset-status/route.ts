@@ -26,11 +26,12 @@ export async function GET(request: Request) {
     }
     
     // Import Mux SDK
-    const { Mux } = await import('@mux/mux-node');
-    const { Video } = new Mux({
+    const Mux = await import('@mux/mux-node');
+    const muxClient = new Mux.default({
       tokenId: process.env.MUX_TOKEN_ID,
       tokenSecret: process.env.MUX_TOKEN_SECRET,
     });
+    const { Video } = muxClient;
     
     // Get asset details from Mux
     const asset = await Video.Assets.get(assetId);

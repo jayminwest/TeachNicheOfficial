@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { Button } from './button';
 
@@ -29,13 +29,8 @@ export function StripeAccountStatus({
     details
   });
   
-  // Fetch fresh status on component mount
-  useEffect(() => {
-    console.log('StripeAccountStatus component mounted, fetching fresh status');
-    refreshStatus();
-  }, [refreshStatus]);
-
-  const refreshStatus = async () => {
+  // Define refreshStatus with useCallback to prevent it from changing on every render
+  const refreshStatus = useCallback(async () => {
     if (isRefreshing) return;
     
     try {
@@ -81,7 +76,13 @@ export function StripeAccountStatus({
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [isRefreshing]); // Only depend on isRefreshing state
+  
+  // Fetch fresh status on component mount
+  useEffect(() => {
+    console.log('StripeAccountStatus component mounted, fetching fresh status');
+    refreshStatus();
+  }, [refreshStatus]);
 
   const getStatusBadge = () => {
     const currentStatus = statusData.status;

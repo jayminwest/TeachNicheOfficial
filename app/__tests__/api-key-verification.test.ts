@@ -9,36 +9,46 @@
 // Import services directly to avoid ESM issues
 import { createStripeClient } from '../services/stripe';
 
-// Only mock the webhook part of Stripe to ensure real API calls for other tests
-// This allows us to verify actual API credentials while still testing webhook validation
-jest.mock('../services/stripe', () => {
-  // Import the actual implementation
-  const actualModule = jest.requireActual('../services/stripe');
-  
-  return {
-    // Use the actual createStripeClient for most tests
-    createStripeClient: () => {
-      // Get the real client
-      const realClient = actualModule.createStripeClient();
-      
-      // Override just the webhook functionality for testing
-      return {
-        ...realClient,
-        stripe: {
-          ...realClient.stripe,
-          webhooks: {
-            constructEvent: jest.fn().mockImplementation((payload, signature, secret) => {
-              if (!secret) throw new Error('Missing webhook secret');
-              // This should throw for our test signature
-              if (signature === 'test_sig') throw new Error('Invalid signature');
-              return { type: 'test' };
-            })
-          }
-        }
-      };
+// We need to mock Stripe for testing, but we'll still verify real API keys
+jest.mock('../services/stripe', () => ({
+  createStripeClient: jest.fn().mockImplementation(() => {
+    // Verify environment variables are set - this ensures real API keys are present
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+      throw new Error('Missing Stripe environment variables');
     }
-  };
-});
+    
+    // Create a real Stripe instance using the actual API key
+    // This will allow us to make real API calls to verify connectivity
+    const Stripe = require('stripe');
+    const realStripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-01-27.acacia'
+    });
+    
+    return {
+      stripe: {
+        // Use the real Stripe instance for balance calls to verify API connectivity
+        balance: {
+          retrieve: async () => {
+            // Make a real API call to Stripe
+            return await realStripe.balance.retrieve();
+          }
+        },
+        // Mock the webhook functionality for testing
+        webhooks: {
+          constructEvent: jest.fn().mockImplementation((payload, signature, secret) => {
+            if (!secret) throw new Error('Missing webhook secret');
+            // This should throw for our test signature
+            if (signature === 'test_sig') throw new Error('Invalid signature');
+            return { type: 'test' };
+          })
+        }
+      },
+      config: {
+        webhookSecret: process.env.STRIPE_WEBHOOK_SECRET
+      }
+    };
+  })
+}));
 
 describe('API Key Verification', () => {
   // Check if environment variables are set
@@ -182,13 +192,21 @@ describe('API Key Verification', () => {
       expect(failedChecks).toHaveLength(0);
     });
     
-    // Only test Stripe API since Mux has ESM issues
+    // Test Stripe API with real API call
     test('Stripe API is accessible', async () => {
       try {
         const { stripe } = createStripeClient();
-        // Simple API call to verify credentials
-        await stripe.balance.retrieve();
+        // Make a real API call to verify credentials
+        const balance = await stripe.balance.retrieve();
+        
+        // Verify we got actual data back from Stripe
         console.log('Stripe API is accessible');
+        expect(balance).toBeDefined();
+        expect(balance.available).toBeDefined();
+        console.log('Stripe balance data received:', 
+          balance.available ? 'Available funds data present' : 'No available funds');
+        
+        // Test passed if we got here
         expect(true).toBe(true);
       } catch (error) {
         console.error('Stripe API error:', error);

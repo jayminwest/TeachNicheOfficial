@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-import type { Database, Tables } from '@/app/types/database';
+import type { Database, TablesInsert } from '@/app/types/database';
 
 export async function POST(request: Request) {
   try {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         mux_playback_id: lessonData.muxPlaybackId,
         video_processing_status: 'processing',
         status: 'draft',
-      } as Tables<'lessons'>['Insert'])  // Use proper type from database schema
+      } as TablesInsert<'lessons'>)  // Use TablesInsert type from database schema
       .select()
       .single();
     

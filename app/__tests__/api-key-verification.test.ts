@@ -211,8 +211,8 @@ describe('API Key Verification', () => {
           .from('categories')
           .select('*', { count: 'exact', head: true });
         
-        // Check if we got a response without error
-        expect(error).toBeNull();
+        // Check if we got a response without error (could be null or undefined)
+        expect(error).toBeFalsy();
         console.log('✓ Successfully connected to Supabase API');
         console.log('Supabase query response:', { count });
       } catch (error) {

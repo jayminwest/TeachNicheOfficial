@@ -24,14 +24,14 @@ export async function GET() {
     }
     
     // Import Mux SDK
-    const { Mux } = await import('@mux/mux-node');
-    const { Video } = new Mux({
+    const Mux = await import('@mux/mux-node');
+    const muxClient = new Mux.default({
       tokenId: process.env.MUX_TOKEN_ID,
       tokenSecret: process.env.MUX_TOKEN_SECRET,
     });
     
     // Create a new direct upload
-    const upload = await Video.Uploads.create({
+    const upload = await muxClient.video.uploads.create({
       new_asset_settings: {
         playback_policy: ['public'],
       },

@@ -332,32 +332,54 @@ To ensure all fixes work correctly, we'll need:
 
 Before launch, verify:
 
+- [ ] Run the comprehensive API key verification test (`app/__tests__/api-key-verification.test.ts`)
+- [ ] Use the environment validation utilities (`app/lib/env-validation.ts`) during application startup
+- [ ] Check the health check endpoint (`/api/debug/health-check`) to verify all services are accessible
 - [ ] All required environment variables are set in production
-- [ ] Create a startup validation script that checks all required variables
 - [ ] Stripe webhook endpoints are correctly configured
 - [ ] Mux API keys and configuration are correct
-- [ ] Implement health check endpoints for all external services
 - [ ] Database access and permissions are properly set up
 - [ ] No development/testing artifacts remain in production code
-- [ ] Create a pre-deployment checklist script
+- [ ] Create a pre-deployment checklist script that runs all verification tests
+
+### Environment Validation Process
+
+1. **Automated Testing**:
+   - Run `npm test -- api-key-verification` to verify all API keys and environment variables
+   - This test should be run before any deployment to staging or production
+
+2. **Runtime Validation**:
+   - The application should validate environment variables during startup
+   - Use `validateEnvironment()` from `app/lib/env-validation.ts` in a startup script
+
+3. **Continuous Monitoring**:
+   - Set up monitoring for the health check endpoint
+   - Configure alerts for any service failures
 
 ## Implementation Timeline
 
 Given the deadline (tomorrow night), here's a proposed timeline:
 
-1. **Morning (First 4 hours)**:
+1. **Immediate (First 1 hour)**:
+   - Create and run a comprehensive API key verification test
+   - Test all third-party service credentials (Mux, Stripe)
+   - Verify environment variables are correctly set
+   - Create a reusable test script for environment validation
+   - Focus on `app/services/mux/index.ts` and `app/services/stripe.ts`
+
+2. **Morning (Next 3 hours)**:
    - Fix Mux integration issue (Priority 1)
    - Focus on `app/services/mux/index.ts` and `app/api/mux/upload-url/route.ts`
    - Add comprehensive tests for the fix
    - Deploy and verify the fix works in the staging environment
 
-2. **Afternoon (Next 4 hours)**:
+3. **Afternoon (Next 4 hours)**:
    - Fix Stripe Connect integration (Priority 2)
    - Focus on `app/api/webhooks/stripe/route.ts` and `app/api/stripe/connect/callback/route.ts`
    - Add comprehensive tests for the fix
    - Deploy and verify the fix works in the staging environment
 
-3. **Evening (Final 4 hours)**:
+4. **Evening (Final 4 hours)**:
    - Fix the smaller bugs (Priority 3)
    - Focus on `app/components/ui/lesson-form.tsx`, `app/components/ui/toast.tsx`, and `app/components/ui/header.tsx`
    - Perform final testing of all fixes

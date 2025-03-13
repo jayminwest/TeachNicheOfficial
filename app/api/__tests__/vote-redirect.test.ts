@@ -76,7 +76,7 @@ describe('Vote Redirect API Route', () => {
     expect(response.status).toBe(500);
     
     const responseData = await response.json();
-    expect(responseData).toHaveProperty('error', 'redirect_failed');
+    expect(responseData).toHaveProperty('error', 'database_error');
     expect(responseData.success).toBe(false);
   });
 });

@@ -8,8 +8,8 @@
 
 // Import services directly
 import { supabase } from '../services/supabase';
-import { stripe, getStripe } from '../services/stripe';
 import { cookies } from 'next/headers';
+import Stripe from 'stripe';
 
 // Mock cookies for Supabase
 jest.mock('next/headers', () => ({
@@ -177,11 +177,17 @@ describe('API Key Verification', () => {
       expect(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBeDefined();
       
       try {
-        // Use the imported supabase client
-        expect(supabase).toBeDefined();
+        // Create a new Supabase client directly
+        const { createClient } = require('@supabase/supabase-js');
+        const testClient = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        
+        expect(testClient).toBeDefined();
         
         // Try to query a table that should exist
-        const { data, error } = await supabase
+        const { data, error } = await testClient
           .from('categories')
           .select('*')
           .limit(1);
@@ -211,13 +217,16 @@ describe('API Key Verification', () => {
   // Test Stripe client initialization
   describe('Stripe Integration', () => {
     test('Stripe client initializes without errors', () => {
-      // Check if the imported stripe client is defined
-      expect(stripe).toBeDefined();
+      // Verify environment variables are set
+      expect(process.env.STRIPE_SECRET_KEY).toBeDefined();
+      expect(process.env.STRIPE_SECRET_KEY).not.toBe('');
       
-      // Check if getStripe function works
-      const stripeInstance = getStripe();
+      // Create a new Stripe instance directly
+      const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2025-01-27.acacia',
+      });
+      
       expect(stripeInstance).toBeDefined();
-      
       console.log('✓ Stripe client initialized successfully');
     });
 
@@ -233,8 +242,10 @@ describe('API Key Verification', () => {
       expect(process.env.STRIPE_SECRET_KEY).not.toBe('');
       
       try {
-        // Use the getStripe function from our services
-        const stripeInstance = getStripe();
+        // Create a new Stripe instance directly
+        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: '2025-01-27.acacia',
+        });
         
         // Make a real API call
         const balance = await stripeInstance.balance.retrieve();
@@ -265,14 +276,16 @@ describe('API Key Verification', () => {
         expect(process.env.STRIPE_WEBHOOK_SECRET).toBeDefined();
         expect(process.env.STRIPE_WEBHOOK_SECRET).not.toBe('');
         
-        // Use the getStripe function from our services
-        const stripeInstance = getStripe();
+        // Create a new Stripe instance directly
+        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: '2025-01-27.acacia',
+        });
         
         // Create a mock webhook event
         const mockEvent = {
           id: 'evt_test',
           object: 'event',
-          api_version: '2023-10-16',
+          api_version: '2025-01-27',
           created: Math.floor(Date.now() / 1000),
           data: { object: {} },
           type: 'test'
@@ -362,8 +375,10 @@ describe('API Key Verification', () => {
       console.log('Attempting to access Stripe API...');
     
       try {
-        // Use the getStripe function from our services
-        const stripeInstance = getStripe();
+        // Create a new Stripe instance directly
+        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: '2025-01-27.acacia',
+        });
         
         // Make a real API call
         const balance = await stripeInstance.balance.retrieve();

@@ -6,8 +6,7 @@
  * to ensure all required variables are set and services are accessible.
  */
 
-import { createMuxClient } from '../services/mux';
-import { createStripeClient } from '../services/stripe';
+import Stripe from 'stripe';
 
 export interface ServiceStatus {
   service: string;
@@ -83,14 +82,16 @@ export function validateServiceInitialization(): ServiceStatus[] {
   
   // Validate Stripe client initialization
   try {
-    let stripeClient;
-    try {
-      stripeClient = createStripeClient();
-    } catch (e) {
-      throw new Error(`Failed to create Stripe client: ${e instanceof Error ? e.message : String(e)}`);
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('Missing Stripe secret key');
     }
     
-    if (!stripeClient || !stripeClient.stripe) {
+    // Create a new Stripe instance directly
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-01-27.acacia',
+    });
+    
+    if (!stripe) {
       throw new Error('Stripe client is undefined');
     }
     results.push({ service: 'Stripe Initialization', status: 'ok' });
@@ -130,7 +131,15 @@ export async function checkServiceHealth(): Promise<ServiceStatus[]> {
   
   // Check Stripe API
   try {
-    const { stripe } = createStripeClient();
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('Missing Stripe secret key');
+    }
+    
+    // Create a new Stripe instance directly
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-01-27.acacia',
+    });
+    
     await stripe.balance.retrieve();
     results.push({ service: 'Stripe API', status: 'ok' });
   } catch (error) {

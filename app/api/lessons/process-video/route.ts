@@ -80,14 +80,13 @@ export async function POST(request: Request) {
     
     try {
       // Import Mux SDK
-      const { Mux } = await import('@mux/mux-node');
-      const { Video } = Mux;
+      const Mux = await import('@mux/mux-node');
       
       // Initialize the Video client
-      const videoClient = new Video({
+      const videoClient = new Mux.default({
         tokenId: process.env.MUX_TOKEN_ID!,
         tokenSecret: process.env.MUX_TOKEN_SECRET!,
-      });
+      }).Video;
       
       const asset = await videoClient.Assets.get(muxAssetId);
       const playbackId = asset.playback_ids?.[0]?.id;

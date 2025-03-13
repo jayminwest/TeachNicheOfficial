@@ -1,4 +1,4 @@
-import { verifyConnectedAccount } from '@/app/services/stripe';
+import { verifyStripeAccountById } from '@/app/services/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -35,101 +35,56 @@ export async function GET(request: Request) {
       );
     }
 
-    // Verify the connected account using our utility
-    console.log('Verifying connected account...');
-    const verificationResult = await verifyConnectedAccount(user.id, accountId, supabase);
-    console.log('Verification result:', JSON.stringify(verificationResult, null, 2));
-    
-    const { verified, status } = verificationResult;
-
-    if (!verified) {
-      console.error('Account verification failed');
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=account-mismatch`
-      );
-    }
-
-    // For Express accounts, we need to check if the account is ready for payouts
-    const isComplete = status.isComplete;
-    const pendingVerification = status.pendingVerification;
-    const missingRequirements = status.missingRequirements;
-    // Access properties directly from status object
-    const hasDetailsSubmitted = 'has_details_submitted' in status ? status.has_details_submitted : false;
-    const hasChargesEnabled = 'has_charges_enabled' in status ? status.has_charges_enabled : false;
-    const hasPayoutsEnabled = 'has_payouts_enabled' in status ? status.has_payouts_enabled : false;
-
-    console.log('Stripe account status details:', {
-      isComplete,
-      pendingVerification,
-      missingRequirements,
-      hasDetailsSubmitted,
-      hasChargesEnabled,
-      hasPayoutsEnabled
-    });
-
-    // Store additional status information
-    const updateData = { 
-      stripe_onboarding_complete: isComplete,
-      stripe_account_status: isComplete ? 'complete' : 'pending',
-      stripe_account_details: JSON.stringify({
-        pending_verification: pendingVerification,
-        missing_requirements: missingRequirements,
-        has_details_submitted: hasDetailsSubmitted,
-        has_charges_enabled: hasChargesEnabled,
-        has_payouts_enabled: hasPayoutsEnabled,
-        last_checked: new Date().toISOString()
-      })
-    };
-    
-    console.log('Updating profile with data:', JSON.stringify(updateData, null, 2));
-    
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update(updateData)
-      .eq('id', user.id)
-      .eq('stripe_account_id', accountId); // Additional safety check
-
-    if (updateError) {
-      console.error('Failed to update onboarding status:', updateError);
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
-      );
-    }
-
-    console.log('Profile updated successfully');
-
-    // After update, fetch the profile to verify the data was saved correctly
-    const { data: updatedProfile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('stripe_account_id, stripe_account_status, stripe_account_details, stripe_onboarding_complete')
-      .eq('id', user.id)
-      .single();
+    try {
+      // Verify the account with Stripe using only the ID
+      const status = await verifyStripeAccountById(accountId);
       
-    if (fetchError) {
-      console.error('Failed to fetch updated profile:', fetchError);
-    } else {
-      console.log('Updated profile data:', JSON.stringify(updatedProfile, null, 2));
-    }
+      // Update the profile with the account ID and status
+      const updateData = { 
+        stripe_account_id: accountId,
+        stripe_onboarding_complete: status.isComplete,
+        stripe_account_status: status.status,
+        stripe_account_details: JSON.stringify(status.details)
+      };
+      
+      console.log('Updating profile with data:', JSON.stringify(updateData, null, 2));
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
 
-    if (isComplete) {
-      console.log('Redirecting to success page - account is complete');
+      if (updateError) {
+        console.error('Failed to update onboarding status:', updateError);
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=update-failed`
+        );
+      }
+
+      console.log('Profile updated successfully');
+      
+      // Redirect based on status
+      if (status.isComplete) {
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
+        );
+      } else if (status.details.pendingVerification) {
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?status=verification-pending`
+        );
+      } else if (status.details.missingRequirements.length > 0) {
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?status=requirements-needed`
+        );
+      } else {
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
+        );
+      }
+    } catch (error) {
+      console.error('Error verifying Stripe account:', error);
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?success=connected`
-      );
-    } else if (pendingVerification) {
-      console.log('Redirecting to verification pending page');
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?status=verification-pending`
-      );
-    } else if (missingRequirements.length > 0) {
-      console.log('Redirecting to requirements needed page');
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?status=requirements-needed`
-      );
-    } else {
-      console.log('Redirecting to incomplete onboarding page');
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=incomplete-onboarding`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/profile?error=verification-failed`
       );
     }
   } catch (error) {

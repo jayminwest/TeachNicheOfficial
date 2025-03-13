@@ -47,6 +47,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     console.log('Votes POST request received');
+    console.warn('ACTIVE: Using /api/votes endpoint. This is the preferred endpoint for voting.');
     
     const supabase = createRouteHandlerClient<Database>({ cookies })
     console.log('Supabase client created');

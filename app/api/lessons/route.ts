@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         mux_playback_id: lessonData.muxPlaybackId,
         video_processing_status: 'processing',
         status: 'draft',
-      } as any)  // Use type assertion to bypass TypeScript check
+      } as Tables<'lessons'>['Insert'])  // Use proper type from database schema
       .select()
       .single();
     

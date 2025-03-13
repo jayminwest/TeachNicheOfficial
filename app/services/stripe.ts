@@ -38,6 +38,9 @@ export interface StripeAccountStatus {
   isComplete: boolean;
   missingRequirements: string[];
   pendingVerification: boolean;
+  has_details_submitted?: boolean;
+  has_charges_enabled?: boolean;
+  has_payouts_enabled?: boolean;
 }
 
 export interface ConnectSessionOptions {

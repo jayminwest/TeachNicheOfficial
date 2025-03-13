@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         success: false,
         currentVotes: 0,
         userHasVoted: false,
-        error: 'redirect_failed'
+        error: 'database_error' // Using an allowed error type from the interface
       },
       { status: 500 }
     );

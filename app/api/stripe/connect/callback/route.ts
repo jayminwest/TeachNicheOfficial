@@ -53,9 +53,10 @@ export async function GET(request: Request) {
     const isComplete = status.isComplete;
     const pendingVerification = status.pendingVerification;
     const missingRequirements = status.missingRequirements;
-    const hasDetailsSubmitted = status.has_details_submitted;
-    const hasChargesEnabled = status.has_charges_enabled;
-    const hasPayoutsEnabled = status.has_payouts_enabled;
+    // Access details from status object using camelCase (matching the StripeAccountStatus type)
+    const hasDetailsSubmitted = status.details?.has_details_submitted;
+    const hasChargesEnabled = status.details?.has_charges_enabled;
+    const hasPayoutsEnabled = status.details?.has_payouts_enabled;
 
     console.log('Stripe account status details:', {
       isComplete,

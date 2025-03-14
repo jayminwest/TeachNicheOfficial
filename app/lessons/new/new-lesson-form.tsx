@@ -53,6 +53,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       const response = await fetch('/api/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include credentials for authentication
         body: JSON.stringify(lessonData),
       });
       
@@ -182,7 +183,12 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
                       // Extract the upload ID from the URL - this is the most reliable method
                       // The URL format is typically: https://storage.mux.com/api/video/v1/uploads/{UPLOAD_ID}
                       const urlParts = data.url.split('/');
-                      const uploadId = urlParts[urlParts.length - 1];
+                      let uploadId = urlParts[urlParts.length - 1];
+                      
+                      // Remove any query parameters
+                      if (uploadId.includes('?')) {
+                        uploadId = uploadId.split('?')[0];
+                      }
                       
                       if (uploadId && uploadId.length > 5) {
                         console.log("Successfully extracted upload ID from URL:", uploadId);

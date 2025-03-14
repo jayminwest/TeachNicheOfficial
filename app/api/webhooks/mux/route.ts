@@ -20,11 +20,15 @@ export async function POST(request: Request) {
       
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
+      // Clean the upload ID (remove any query parameters)
+      const cleanUploadId = uploadId.includes('?') ? uploadId.split('?')[0] : uploadId;
+      console.log(`Using clean upload ID: ${cleanUploadId}`);
+      
       // First, try to find any lessons with this upload ID
       const { data: lessons, error: findError } = await supabase
         .from('lessons')
         .select('id, title')
-        .eq('mux_asset_id', uploadId);
+        .eq('mux_asset_id', cleanUploadId);
       
       if (findError) {
         console.error('Error finding lessons with upload ID:', findError);
@@ -38,7 +42,7 @@ export async function POST(request: Request) {
         .update({ 
           mux_asset_id: assetId,
         })
-        .eq('mux_asset_id', uploadId);
+        .eq('mux_asset_id', cleanUploadId);
       
       if (error) {
         console.error('Error updating lesson with asset ID:', error);

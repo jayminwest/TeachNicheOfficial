@@ -9,9 +9,13 @@ export const metadata: Metadata = {
   description: 'View lesson details and content',
 };
 
-export default async function LessonPage({ params }: { params: { id: string } }) {
+export default async function LessonPage({ 
+  params 
+}: { 
+  params: { id: string } 
+}) {
   // Get the lesson ID from the URL
-  const lessonId = params.id;
+  const lessonId = params?.id;
   
   if (!lessonId) {
     notFound();

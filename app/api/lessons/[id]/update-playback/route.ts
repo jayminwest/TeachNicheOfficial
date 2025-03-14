@@ -18,7 +18,7 @@ export async function POST(
     const supabase = await createServerSupabaseClient();
     
     // Extract the ID from params and use it after all async operations
-    const { id: lessonId } = params;
+    const lessonId = params.id;
     
     const { error } = await supabase
       .from('lessons')

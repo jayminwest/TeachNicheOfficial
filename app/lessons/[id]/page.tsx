@@ -38,7 +38,7 @@ async function LessonPageContent({ params }: { params: { id: string } }) {
     const session = data.session;
     
     // Extract the ID from the URL segment after all async operations
-    const { id: lessonId } = params;
+    const lessonId = params.id;
     
     return <LessonPageClient lessonId={lessonId} session={session} />;
   } catch (error) {

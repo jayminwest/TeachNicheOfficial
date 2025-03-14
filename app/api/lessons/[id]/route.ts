@@ -237,7 +237,7 @@ export async function GET(
     const supabase = await createServerSupabaseClient();
     
     // Extract the ID from params and use it after all async operations
-    const { id: lessonId } = params;
+    const lessonId = params.id;
     
     const { data: lesson, error } = await supabase
       .from('lessons')

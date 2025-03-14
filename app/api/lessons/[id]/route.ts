@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { lessonsService } from '@/app/services/database/lessonsService';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
@@ -27,17 +26,20 @@ export async function PATCH(
     }
     
     // Check if the user is the owner of the lesson
-    const { data: isOwner, error: ownerCheckError } = await lessonsService.isLessonOwner(
-      session.user.id,
-      lessonId
-    );
-    
-    if (ownerCheckError) {
+    const { data: lesson, error: fetchError } = await supabase
+      .from('lessons')
+      .select('creator_id')
+      .eq('id', lessonId)
+      .single();
+      
+    if (fetchError) {
       return NextResponse.json(
-        { message: 'Failed to verify lesson ownership', details: ownerCheckError },
+        { message: 'Failed to verify lesson ownership', details: fetchError },
         { status: 500 }
       );
     }
+    
+    const isOwner = lesson?.creator_id === session.user.id;
     
     if (!isOwner) {
       return NextResponse.json(
@@ -50,7 +52,11 @@ export async function PATCH(
     const data = await request.json();
     
     // Get the current lesson to check for price changes
-    const { data: currentLesson, error: fetchError } = await lessonsService.getLessonById(lessonId);
+    const { data: currentLesson, error: fetchError } = await supabase
+      .from('lessons')
+      .select('*')
+      .eq('id', lessonId)
+      .single();
 
     if (fetchError || !currentLesson) {
       return NextResponse.json(
@@ -122,20 +128,24 @@ export async function PATCH(
     }
     
     // Update the lesson
-    const { data: updatedLesson, error } = await lessonsService.updateLesson(
-      lessonId,
-      {
-        title: data.title,
-        description: data.description,
-        content: data.content,
-        price: data.price,
-        mux_asset_id: data.muxAssetId,
-        mux_playback_id: data.muxPlaybackId,
-        stripe_product_id: data.stripe_product_id,
-        stripe_price_id: data.stripe_price_id,
-        previous_stripe_price_ids: data.previous_stripe_price_ids
-      } as LessonUpdateData
-    );
+    const updateData = {
+      title: data.title,
+      description: data.description,
+      content: data.content,
+      price: data.price,
+      mux_asset_id: data.muxAssetId,
+      mux_playback_id: data.muxPlaybackId,
+      stripe_product_id: data.stripe_product_id,
+      stripe_price_id: data.stripe_price_id,
+      previous_stripe_price_ids: data.previous_stripe_price_ids
+    } as LessonUpdateData;
+    
+    const { data: updatedLesson, error } = await supabase
+      .from('lessons')
+      .update(updateData)
+      .eq('id', lessonId)
+      .select()
+      .single();
     
     if (error) {
       return NextResponse.json(
@@ -175,17 +185,20 @@ export async function DELETE(
     }
     
     // Check if the user is the owner of the lesson
-    const { data: isOwner, error: ownerCheckError } = await lessonsService.isLessonOwner(
-      session.user.id,
-      lessonId
-    );
-    
-    if (ownerCheckError) {
+    const { data: lesson, error: fetchError } = await supabase
+      .from('lessons')
+      .select('creator_id')
+      .eq('id', lessonId)
+      .single();
+      
+    if (fetchError) {
       return NextResponse.json(
-        { message: 'Failed to verify lesson ownership', details: ownerCheckError },
+        { message: 'Failed to verify lesson ownership', details: fetchError },
         { status: 500 }
       );
     }
+    
+    const isOwner = lesson?.creator_id === session.user.id;
     
     if (!isOwner) {
       return NextResponse.json(
@@ -195,7 +208,10 @@ export async function DELETE(
     }
     
     // Soft delete the lesson
-    const { error } = await lessonsService.deleteLesson(lessonId);
+    const { error } = await supabase
+      .from('lessons')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', lessonId);
     
     if (error) {
       return NextResponse.json(
@@ -221,7 +237,7 @@ export async function GET(
     const supabase = await createServerSupabaseClient();
     
     // Extract the ID from params and use it after all async operations
-    const lessonId = String(params?.id || '');
+    const { id: lessonId } = params;
     
     const { data: lesson, error } = await supabase
       .from('lessons')

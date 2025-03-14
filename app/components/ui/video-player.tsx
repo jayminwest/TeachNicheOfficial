@@ -64,6 +64,26 @@ export function VideoPlayer({
     );
   }
 
+  // Check if this is a signed playback ID (contains underscore)
+  const isSignedPlaybackId = playbackId.includes('_');
+  
+  // If it's a signed playback ID but we don't have a token, show an error
+  if (isSignedPlaybackId && !playbackToken) {
+    return (
+      <div className={cn("w-full aspect-video bg-muted/30 flex items-center justify-center rounded-lg", className)}>
+        <div className="text-red-500 p-4 text-center">
+          <p>This video requires authentication. Fetching authentication tokens...</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("aspect-video rounded-lg overflow-hidden", className)}>
       <MuxPlayer
@@ -75,7 +95,12 @@ export function VideoPlayer({
         storyboardToken={storyboardToken || playbackToken || undefined}
         onError={(error) => {
           console.error('Mux player error:', error);
-          setError(`Video playback error: ${error.message || 'Unknown error'}`);
+          // Check for authorization errors specifically
+          if (error.message && error.message.includes('Authorization error')) {
+            setError('Authorization error: This video requires authentication tokens. Refreshing may resolve this issue.');
+          } else {
+            setError(`Video playback error: ${error.message || 'Unknown error'}`);
+          }
         }}
       />
     </div>

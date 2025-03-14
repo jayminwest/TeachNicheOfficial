@@ -22,9 +22,23 @@ export default function LessonPageClient({ lessonId, session }: LessonPageClient
     async function fetchInitialLesson() {
       try {
         const response = await fetch(`/api/lessons/${lessonId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setInitialLesson(data);
+        if (!response.ok) {
+          console.error("Error fetching lesson:", response.status);
+          setLoading(false);
+          return;
+        }
+        
+        const data = await response.json();
+        setInitialLesson(data);
+        
+        // Pre-fetch token if this is a signed playback ID
+        if (data?.mux_playback_id && data.mux_playback_id.includes('_')) {
+          console.log("Pre-fetching token for signed playback ID");
+          try {
+            await fetch(`/api/mux/token?playbackId=${data.mux_playback_id}`);
+          } catch (tokenError) {
+            console.error("Error pre-fetching token:", tokenError);
+          }
         }
       } catch (error) {
         console.error("Error fetching initial lesson data:", error);

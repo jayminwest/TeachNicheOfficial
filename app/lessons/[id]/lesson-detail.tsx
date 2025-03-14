@@ -45,19 +45,24 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
     if (lesson?.mux_playback_id) {
       const isSignedPlaybackId = lesson.mux_playback_id.includes('_') || false;
       
-      if (isSignedPlaybackId) {
+      if (isSignedPlaybackId && !playbackToken) {
         const fetchPlaybackToken = async () => {
           try {
+            console.log('Fetching token for playback ID:', lesson.mux_playback_id);
             const response = await fetch(`/api/mux/token?playbackId=${lesson.mux_playback_id}`);
-            if (response.ok) {
-              const data = await response.json();
-              setPlaybackToken(data.token);
-              setThumbnailToken(data.thumbnailToken);
-              setStoryboardToken(data.storyboardToken);
-            } else {
-              console.error('Failed to fetch playback token');
-              setError('Failed to load video playback token');
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Failed to fetch playback token:', response.status, errorText);
+              setError(`Failed to load video playback token: ${response.status}`);
+              return;
             }
+            
+            const data = await response.json();
+            console.log('Token received successfully');
+            setPlaybackToken(data.token);
+            setThumbnailToken(data.thumbnailToken);
+            setStoryboardToken(data.storyboardToken);
           } catch (err) {
             console.error('Error fetching playback token:', err);
             setError('Error loading video playback token');
@@ -67,7 +72,7 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
         fetchPlaybackToken();
       }
     }
-  }, [lesson?.mux_playback_id]);
+  }, [lesson?.mux_playback_id, playbackToken]);
 
   const fetchLesson = async () => {
     try {

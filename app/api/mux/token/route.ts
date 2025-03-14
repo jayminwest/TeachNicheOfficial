@@ -14,11 +14,20 @@ export async function GET(request: Request) {
       );
     }
     
+    // Check if this is actually a signed playback ID
+    if (!playbackId.includes('_')) {
+      return NextResponse.json(
+        { error: 'Not a signed playback ID' },
+        { status: 400 }
+      );
+    }
+    
     // Check if user is authenticated
     const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {
+      console.error('Token request unauthorized - no session');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -39,11 +48,19 @@ export async function GET(request: Request) {
     
     // Create JWT tokens for Mux
     // All tokens use the same signing key and expiry, but different audience values
+    const now = Math.floor(Date.now() / 1000);
+    const expiryTime = now + 12 * 3600; // 12 hour expiry for better user experience
+    
+    // For debugging
+    console.log(`Generating token for playback ID: ${playbackId}`);
+    console.log(`Using key ID: ${muxTokenId}`);
+    console.log(`Token will expire in 12 hours (${new Date(expiryTime * 1000).toISOString()})`);
+    
     const playbackToken = jwt.sign(
       {
         sub: playbackId,
         aud: 'v',
-        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        exp: expiryTime,
         kid: muxTokenId
       },
       Buffer.from(muxTokenSecret, 'base64'),
@@ -54,7 +71,7 @@ export async function GET(request: Request) {
       {
         sub: playbackId,
         aud: 't',
-        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        exp: expiryTime,
         kid: muxTokenId
       },
       Buffer.from(muxTokenSecret, 'base64'),
@@ -65,12 +82,15 @@ export async function GET(request: Request) {
       {
         sub: playbackId,
         aud: 's',
-        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        exp: expiryTime,
         kid: muxTokenId
       },
       Buffer.from(muxTokenSecret, 'base64'),
       { algorithm: 'HS256' }
     );
+    
+    // For debugging - log token length but not the actual token
+    console.log(`Generated playback token length: ${playbackToken.length} chars`);
     
     return NextResponse.json({ 
       token: playbackToken,

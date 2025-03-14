@@ -101,7 +101,14 @@ export function StripeAccountStatus({
     refreshStatus();
     
     // Listen for the custom event to refresh status
-    const handleStatusUpdate = (event: CustomEvent<any>) => {
+    const handleStatusUpdate = (event: CustomEvent<{
+      status?: string;
+      isComplete?: boolean;
+      details?: {
+        pendingVerification?: boolean;
+        missingRequirements?: string[];
+      };
+    }>) => {
       console.log('Received stripe-status-updated event with data:', event.detail);
       if (event.detail) {
         // Log detailed information about the event data

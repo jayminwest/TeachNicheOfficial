@@ -6,7 +6,7 @@ import { useToast } from '@/app/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import { Badge } from './badge';
-import { AlertCircle, CheckCircle, Clock, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react';
+import { CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 
 interface StripeConnectButtonProps {
   stripeAccountId?: string | null;
@@ -173,12 +173,6 @@ export function StripeConnectButton({
     return (
       <Badge variant="default" className="flex items-center">
         <CheckCircle className="h-4 w-4 mr-1" /> Connected
-      </Badge>
-    );
-    
-    return (
-      <Badge variant={variant} className="flex items-center">
-        {icon} {label}
       </Badge>
     );
   };

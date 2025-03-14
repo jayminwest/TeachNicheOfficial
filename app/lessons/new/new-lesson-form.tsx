@@ -22,11 +22,45 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const [muxAssetId, setMuxAssetId] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
   
+  // Check authentication status
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/check', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const authInfo = await response.json();
+        console.log('Authentication status:', authInfo);
+        return authInfo.authenticated;
+      } else {
+        console.error('Auth check failed:', await response.text());
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      return false;
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     setIsSubmitting(true);
+    
+    // Check authentication first
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to create a lesson.',
+        variant: 'destructive',
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       // Get form data
@@ -49,6 +83,11 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         throw new Error('Please upload a video before creating the lesson');
       }
       
+      console.log('Submitting lesson data:', {
+        ...lessonData,
+        content: lessonData.content ? `${lessonData.content.substring(0, 20)}...` : ''
+      });
+      
       // Create lesson
       const response = await fetch('/api/lessons', {
         method: 'POST',
@@ -59,6 +98,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Server error response:', errorData);
         throw new Error(errorData.message || 'Failed to create lesson');
       }
       

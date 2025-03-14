@@ -40,34 +40,58 @@ export async function POST(request: Request) {
       );
     }
     
-    // Create lesson in database with public status
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .insert({
-        title: lessonData.title,
-        description: lessonData.description,
-        content: lessonData.content || '',
-        price: lessonData.price || 0,
-        creator_id: userId,
-        mux_asset_id: lessonData.muxAssetId,
-        status: 'published', // Set as published immediately
-      })
-      .select()
-      .single();
+    // Log the data we're about to insert
+    console.log('Creating lesson with data:', {
+      title: lessonData.title,
+      description: lessonData.description,
+      content: lessonData.content ? `${lessonData.content.substring(0, 20)}...` : '',
+      price: lessonData.price || 0,
+      creator_id: userId,
+      mux_asset_id: lessonData.muxAssetId,
+    });
     
-    if (error) {
-      console.error('Error creating lesson:', error);
+    try {
+      // Create lesson in database with public status
+      const { data: lesson, error } = await supabase
+        .from('lessons')
+        .insert({
+          title: lessonData.title,
+          description: lessonData.description,
+          content: lessonData.content || '',
+          price: lessonData.price || 0,
+          creator_id: userId,
+          mux_asset_id: lessonData.muxAssetId,
+          status: 'published', // Set as published immediately
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating lesson:', error);
+        return NextResponse.json(
+          { message: 'Failed to create lesson', error: error.message },
+          { status: 500 }
+        );
+      }
+      
+      console.log('Lesson created successfully:', lesson);
+      return NextResponse.json(lesson);
+    } catch (insertError) {
+      console.error('Exception during lesson insert:', insertError);
       return NextResponse.json(
-        { message: 'Failed to create lesson', error: error.message },
+        { message: 'Exception during lesson creation', error: String(insertError) },
         { status: 500 }
       );
     }
     
-    return NextResponse.json(lesson);
   } catch (error) {
     console.error('Error creating lesson:', error);
     return NextResponse.json(
-      { message: 'Failed to create lesson', error: String(error) },
+      { 
+        message: 'Failed to create lesson', 
+        error: String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

@@ -8,10 +8,45 @@ export async function POST(request: Request) {
     const body = await request.json();
     const type = body.type;
     
-    console.log(`Received Mux webhook: ${type}`);
+    console.log(`Received Mux webhook: ${type}`, JSON.stringify(body, null, 2));
     
     // Create Supabase client
     const supabase = createRouteHandlerClient({ cookies: () => cookies() });
+    
+    // Handle video.upload.asset_created event
+    if (type === 'video.upload.asset_created') {
+      const uploadId = body.data.upload_id;
+      const assetId = body.data.asset_id;
+      
+      console.log(`Upload ${uploadId} created asset ${assetId}`);
+      
+      // Update any lessons with this upload ID or temporary IDs
+      const { error } = await supabase
+        .from('lessons')
+        .update({ 
+          mux_asset_id: assetId,
+        })
+        .eq('mux_asset_id', uploadId);
+      
+      if (error) {
+        console.error('Error updating lesson with asset ID:', error);
+      } else {
+        console.log(`Updated lessons with upload ID ${uploadId} to asset ID ${assetId}`);
+      }
+      
+      // Also check for temporary IDs that might match
+      const tempId = `temp_${uploadId}`;
+      const { error: tempError } = await supabase
+        .from('lessons')
+        .update({ 
+          mux_asset_id: assetId,
+        })
+        .eq('mux_asset_id', tempId);
+      
+      if (tempError) {
+        console.error('Error updating lesson with temp ID:', tempError);
+      }
+    }
     
     // Handle video.asset.ready event
     if (type === 'video.asset.ready') {

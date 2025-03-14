@@ -20,6 +20,9 @@ export default async function LessonPage({ params }: { params: { id: string } })
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
+    // Extract the ID from params and store it in a variable
+    const lessonId = String(params?.id || '');
+    
     // Use a Suspense boundary and pass the ID as a prop to the client component
     return (
       <Suspense fallback={
@@ -31,7 +34,7 @@ export default async function LessonPage({ params }: { params: { id: string } })
           </div>
         </div>
       }>
-        <LessonPageClient lessonId={params.id} session={session} />
+        <LessonPageClient lessonId={lessonId} session={session} />
       </Suspense>
     );
   } catch (error) {

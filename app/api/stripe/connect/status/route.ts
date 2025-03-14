@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { verifyStripeAccountById } from '@/app/services/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +17,10 @@ export async function GET() {
     }
 
     console.log(`Fetching profile for user: ${session.user.id}`);
-    // Get user's Stripe account ID and status from profile
+    // Get user's Stripe account ID from profile
     const { data: profile } = await supabase
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete, stripe_account_status, stripe_account_details')
+      .select('stripe_account_id')
       .eq('id', session.user.id)
       .single();
 
@@ -36,49 +37,41 @@ export async function GET() {
 
     console.log(`Found Stripe account ID: ${profile.stripe_account_id}`);
     
-    // Always get fresh account status using our utility
     try {
-      console.log('Fetching fresh status from Stripe');
-      // Use the shared function to update status
-      const { updateProfileStripeStatus } = await import('@/app/services/stripe');
-      const statusResult = await updateProfileStripeStatus(
-        session.user.id,
-        profile.stripe_account_id,
-        supabase
-      );
+      // Verify the account with Stripe using only the ID
+      const status = await verifyStripeAccountById(profile.stripe_account_id);
       
-      console.log('Successfully updated Stripe status:', JSON.stringify(statusResult, null, 2));
-      
-      // Force isComplete to true if we have a valid account ID
-      // This is a workaround for cases where Stripe reports false negatives
-      const forceComplete = true;
+      // Update the database with the latest status
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_onboarding_complete: status.isComplete,
+          stripe_account_status: status.status,
+          stripe_account_details: JSON.stringify(status.details)
+        })
+        .eq('id', session.user.id);
       
       return NextResponse.json({
         connected: true,
         stripeAccountId: profile.stripe_account_id,
-        isComplete: forceComplete,
-        status: 'complete',
-        details: {
-          pendingVerification: false,
-          missingRequirements: []
-        }
+        isComplete: status.isComplete,
+        status: status.status,
+        details: status.details
       });
     } catch (error) {
-      // Log detailed error information
-      console.error('Error fetching Stripe account status:', error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      } : 'Unknown error type');
+      console.error('Error verifying Stripe account:', error);
       
-      // If we can't reach Stripe, return the cached status
+      // If verification fails, return connected but not complete
       return NextResponse.json({
         connected: true,
         stripeAccountId: profile.stripe_account_id,
-        isComplete: profile.stripe_onboarding_complete,
-        status: profile.stripe_account_status || 'unknown',
-        details: profile.stripe_account_details || null,
-        error: 'Failed to fetch fresh status from Stripe'
+        isComplete: false,
+        status: 'error',
+        details: {
+          pendingVerification: false,
+          missingRequirements: ['verification_failed']
+        },
+        error: 'Failed to verify account with Stripe'
       });
     }
   } catch (error) {

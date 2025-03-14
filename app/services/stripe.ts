@@ -41,6 +41,14 @@ export interface StripeAccountStatus {
   has_details_submitted?: boolean;
   has_charges_enabled?: boolean;
   has_payouts_enabled?: boolean;
+  status?: string;
+  details?: {
+    pendingVerification?: boolean;
+    missingRequirements?: string[];
+    has_details_submitted?: boolean;
+    has_charges_enabled?: boolean;
+    has_payouts_enabled?: boolean;
+  };
 }
 
 export interface ConnectSessionOptions {
@@ -202,6 +210,44 @@ export const getAccountStatus = async (accountId: string): Promise<StripeAccount
     return status;
   } catch (error) {
     console.error('Error fetching Stripe account status:', error);
+    throw error;
+  }
+};
+
+// Simplified function to verify a Stripe account using only the ID
+export const verifyStripeAccountById = async (accountId: string): Promise<StripeAccountStatus> => {
+  try {
+    console.log(`Verifying Stripe account status for: ${accountId}`);
+    const account = await getStripe().accounts.retrieve(accountId);
+    
+    // Check actual account status
+    const hasDetailsSubmitted = account.details_submitted === true;
+    const hasChargesEnabled = account.charges_enabled === true;
+    const hasPayoutsEnabled = account.payouts_enabled === true;
+    
+    // Only consider complete if all requirements are met
+    const isComplete = hasDetailsSubmitted && hasChargesEnabled && hasPayoutsEnabled;
+    
+    return {
+      isComplete,
+      status: isComplete ? 'complete' : 'pending',
+      pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
+                          account.requirements.pending_verification.length > 0,
+      missingRequirements: account.requirements?.currently_due || [],
+      has_details_submitted: hasDetailsSubmitted,
+      has_charges_enabled: hasChargesEnabled,
+      has_payouts_enabled: hasPayoutsEnabled,
+      details: {
+        pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
+                            account.requirements.pending_verification.length > 0,
+        missingRequirements: account.requirements?.currently_due || [],
+        has_details_submitted: hasDetailsSubmitted,
+        has_charges_enabled: hasChargesEnabled,
+        has_payouts_enabled: hasPayoutsEnabled
+      }
+    };
+  } catch (error) {
+    console.error('Error verifying Stripe account:', error);
     throw error;
   }
 };
@@ -442,7 +488,6 @@ export const canCreatePaidLessons = async (
     }
 
     // Check if onboarding is complete based on profile data
-    // Use optional chaining and type checking for safety
     const isOnboardingComplete = 
       ('stripe_onboarding_complete' in profile && profile.stripe_onboarding_complete === true) ||
       ('stripe_account_status' in profile && profile.stripe_account_status === 'complete');
@@ -452,9 +497,24 @@ export const canCreatePaidLessons = async (
     }
 
     // Otherwise check with Stripe
-    const stripeAccountId = profile.stripe_account_id as string;
-    const status = await getAccountStatus(stripeAccountId);
-    return status.isComplete;
+    try {
+      const status = await verifyStripeAccountById(profile.stripe_account_id);
+      
+      // Update the database with the latest status
+      await supabaseClient
+        .from('profiles')
+        .update({
+          stripe_onboarding_complete: status.isComplete,
+          stripe_account_status: status.status,
+          stripe_account_details: JSON.stringify(status.details)
+        })
+        .eq('id', userId);
+      
+      return status.isComplete;
+    } catch (error) {
+      console.error('Error verifying Stripe account:', error);
+      return false;
+    }
   } catch (err) {
     console.error('Error checking paid lesson capability:', err);
     return false;

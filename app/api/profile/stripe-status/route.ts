@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { verifyStripeAccountById } from '@/app/services/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export async function GET() {
     // Get user's Stripe account ID from profile
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete')
+      .select('stripe_account_id')
       .eq('id', session.user.id)
       .single();
 
@@ -37,28 +38,26 @@ export async function GET() {
     }
 
     console.log(`Found Stripe account ID: ${profile.stripe_account_id}`);
-    // Always fetch fresh status from Stripe
-
-    // Otherwise check with Stripe
+    
     try {
-      // Use the shared function to update status
-      const { updateProfileStripeStatus } = await import('@/app/services/stripe');
-      await updateProfileStripeStatus(
-        session.user.id,
-        profile.stripe_account_id,
-        supabase
-      );
+      // Verify the account with Stripe using only the ID
+      const status = await verifyStripeAccountById(profile.stripe_account_id);
       
-      // Force the status to complete since we have a valid account ID
-      // This is a workaround for cases where Stripe reports false negatives
+      // Update the database with the latest status
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_onboarding_complete: status.isComplete,
+          stripe_account_status: status.isComplete ? 'complete' : 'pending',
+          stripe_account_details: JSON.stringify(status.details)
+        })
+        .eq('id', session.user.id);
+      
       return NextResponse.json({
         stripeAccountId: profile.stripe_account_id,
-        isComplete: true,
-        status: 'complete',
-        details: {
-          pendingVerification: false,
-          missingRequirements: []
-        }
+        isComplete: status.isComplete,
+        status: status.isComplete ? 'complete' : 'pending',
+        details: status.details
       });
     } catch (error) {
       console.error('Error checking Stripe account status:', error instanceof Error ? {

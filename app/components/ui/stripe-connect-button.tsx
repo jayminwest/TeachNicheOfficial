@@ -104,7 +104,7 @@ export function StripeConnectButton({
           description: data.isComplete 
             ? 'Your Stripe account is fully verified and ready to receive payments.' 
             : 'Your Stripe account status has been updated.',
-          variant: data.isComplete ? 'default' : 'secondary',
+          variant: data.isComplete ? 'default' : 'default',
         });
         
         // Force a re-render with the new data

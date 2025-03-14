@@ -14,9 +14,12 @@ export default async function LessonPage({
 }: { 
   params: { id: string } 
 }) {
-  // Instead of destructuring, we'll pass the entire params object to a helper function
-  // that will handle the lesson ID extraction
-  
+  // Create a wrapper component to handle the params
+  return <LessonPageWrapper params={params} />;
+}
+
+// Create a separate async component to handle the data fetching
+async function LessonPageWrapper({ params }: { params: { id: string } }) {
   try {
     // Create Supabase client
     const supabase = await createServerSupabaseClient();
@@ -25,13 +28,14 @@ export default async function LessonPage({
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
-    // Return the lesson detail component with the full params object
-    return <LessonDetail id={params.id} session={session} />;
+    // Extract the ID here after the async operations
+    const lessonId = params.id;
+    
+    // Return the lesson detail component
+    return <LessonDetail id={lessonId} session={session} />;
   } catch (error) {
     console.error('Error in lesson page:', error);
     notFound();
     return null;
   }
-  
-  // The try-catch block is now moved up in the function
 }

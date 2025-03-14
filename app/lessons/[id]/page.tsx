@@ -37,8 +37,9 @@ async function LessonPageContent({ params }: { params: { id: string } }) {
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
-    // Pass the entire params object to the client component
-    return <LessonPageClient params={params} session={session} />;
+    // Extract the ID and pass it directly to avoid issues with params object
+    const lessonId = params.id;
+    return <LessonPageClient lessonId={lessonId} session={session} />;
   } catch (error) {
     console.error('Error in lesson page:', error);
     notFound();

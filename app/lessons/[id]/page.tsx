@@ -15,7 +15,8 @@ export default async function LessonPage({
   params: { id: string } 
 }) {
   // Get the lesson ID from the URL
-  const lessonId = params.id;
+  // Access id as a property of the params object that's passed to the component
+  const { id: lessonId } = params;
   
   if (!lessonId) {
     notFound();

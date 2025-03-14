@@ -52,15 +52,15 @@ export async function PATCH(
     const data = await request.json();
     
     // Get the current lesson to check for price changes
-    const { data: currentLesson, error: fetchError } = await supabase
+    const { data: currentLesson, error: lessonFetchError } = await supabase
       .from('lessons')
       .select('*')
       .eq('id', lessonId)
       .single();
 
-    if (fetchError || !currentLesson) {
+    if (lessonFetchError || !currentLesson) {
       return NextResponse.json(
-        { message: 'Failed to fetch current lesson', details: fetchError },
+        { message: 'Failed to fetch current lesson', details: lessonFetchError },
         { status: 500 }
       );
     }

@@ -49,6 +49,15 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     
     // Check if the form is valid
     const form = e.currentTarget as HTMLFormElement;
+    
+    // Debug form elements
+    console.log('Form elements:', {
+      titleElement: form.querySelector('#title'),
+      descriptionElement: form.querySelector('#description'),
+      contentElement: form.querySelector('#content'),
+      priceElement: form.querySelector('#price')
+    });
+    
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -70,15 +79,24 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     }
     
     try {
-      // Get form data using FormData API
-      const form = e.currentTarget;
-      const formData = new FormData(form);
+      // Get form data directly from the form elements
+      const form = e.currentTarget as HTMLFormElement;
+      
+      // Get values directly from the form elements
+      const titleInput = form.querySelector('#title') as HTMLInputElement;
+      const descriptionInput = form.querySelector('#description') as HTMLTextAreaElement;
+      const contentInput = form.querySelector('#content') as HTMLTextAreaElement;
+      const priceInput = form.querySelector('#price') as HTMLInputElement;
+      
+      if (!titleInput || !descriptionInput || !contentInput || !priceInput) {
+        throw new Error('Could not find all form elements');
+      }
       
       const lessonData = {
-        title: formData.get('title') as string || '',
-        description: formData.get('description') as string || '',
-        content: formData.get('content') as string || '',
-        price: parseFloat(formData.get('price') as string || '0') || 0,
+        title: titleInput.value,
+        description: descriptionInput.value,
+        content: contentInput.value,
+        price: parseFloat(priceInput.value || '0') || 0,
         muxAssetId
       };
       

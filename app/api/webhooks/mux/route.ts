@@ -58,7 +58,8 @@ export async function POST(request: Request) {
     // Handle video.asset.ready event
     if (type === 'video.asset.ready') {
       const assetId = body.data.id;
-      const playbackId = body.data.playback_ids?.[0]?.id;
+      const playbackIds = body.data.playback_ids || [];
+      const playbackId = playbackIds.length > 0 ? playbackIds[0].id : null;
       
       if (!playbackId) {
         console.error('No playback ID found in asset.ready event');
@@ -68,18 +69,23 @@ export async function POST(request: Request) {
       console.log(`Asset ${assetId} is ready with playback ID ${playbackId}`);
       
       // Update the lesson with the playback ID
-      const { error } = await supabase
+      const { data: updatedLessons, error } = await supabase
         .from('lessons')
         .update({ 
           mux_playback_id: playbackId,
+          video_processing_status: 'ready',
           status: 'published'
         })
-        .eq('mux_asset_id', assetId);
+        .eq('mux_asset_id', assetId)
+        .select('id, title');
       
       if (error) {
         console.error('Error updating lesson with playback ID:', error);
         return NextResponse.json({ error: 'Failed to update lesson' }, { status: 500 });
       }
+      
+      console.log(`Updated ${updatedLessons?.length || 0} lessons with playback ID ${playbackId}:`, 
+        updatedLessons?.map(l => `${l.id} (${l.title})`).join(', ') || 'none');
     }
     
     return NextResponse.json({ success: true });

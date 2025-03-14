@@ -173,9 +173,44 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       
       toast({
         title: 'Upload Complete',
-        description: 'Your video has been uploaded successfully!',
-        duration: 3000,
+        description: 'Your video has been uploaded and is being processed. This may take a few minutes.',
+        duration: 5000,
       });
+      
+      // Start polling for playback ID to check processing status
+      const checkPlaybackId = async () => {
+        try {
+          const response = await fetch(`/api/mux/playback-id?assetId=${uploadId}`);
+          if (response.ok) {
+            // If we get a successful response, the video is ready
+            const data = await response.json();
+            console.log("Playback ID retrieved:", data.playbackId);
+            
+            toast({
+              title: 'Video Processing Complete',
+              description: 'Your video has been processed and is ready to view.',
+              duration: 3000,
+            });
+            
+            // Stop polling
+            return true;
+          } else if (response.status === 404) {
+            // If 404, the playback ID isn't ready yet, continue polling
+            console.log("Playback ID not ready yet, will check again...");
+            return false;
+          } else {
+            // Other error, stop polling
+            console.error("Error checking playback ID:", await response.text());
+            return true;
+          }
+        } catch (error) {
+          console.error("Exception checking playback ID:", error);
+          return false;
+        }
+      };
+      
+      // Don't actually need to poll here since we're creating the lesson right away
+      // The webhook will handle updating the lesson with the playback ID
     } else {
       console.error("No upload ID found in session storage");
       setUploadError('Upload completed but we could not identify the video');

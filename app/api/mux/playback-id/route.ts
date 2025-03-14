@@ -118,3 +118,53 @@ export async function GET(request: Request) {
     );
   }
 }
+import { NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
+
+export async function GET(request: Request) {
+  try {
+    // Get the asset ID from the query parameters
+    const { searchParams } = new URL(request.url);
+    const assetId = searchParams.get('assetId');
+    
+    if (!assetId) {
+      return NextResponse.json(
+        { error: 'Asset ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Create Supabase client
+    const supabase = await createServerSupabaseClient();
+    
+    // Query the database for the lesson with this asset ID
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .select('mux_playback_id')
+      .eq('mux_asset_id', assetId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching playback ID:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch playback ID' },
+        { status: 500 }
+      );
+    }
+    
+    if (!lesson || !lesson.mux_playback_id) {
+      return NextResponse.json(
+        { error: 'Playback ID not found for this asset' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ playbackId: lesson.mux_playback_id });
+  } catch (error) {
+    console.error('Error retrieving playback ID:', error);
+    return NextResponse.json(
+      { error: 'Failed to retrieve playback ID' },
+      { status: 500 }
+    );
+  }
+}

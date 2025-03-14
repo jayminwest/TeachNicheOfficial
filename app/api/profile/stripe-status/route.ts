@@ -48,7 +48,7 @@ export async function GET() {
         .from('profiles')
         .update({
           stripe_onboarding_complete: status.isComplete,
-          stripe_account_status: status.status,
+          stripe_account_status: status.isComplete ? 'complete' : 'pending',
           stripe_account_details: JSON.stringify(status.details)
         })
         .eq('id', session.user.id);
@@ -56,7 +56,7 @@ export async function GET() {
       return NextResponse.json({
         stripeAccountId: profile.stripe_account_id,
         isComplete: status.isComplete,
-        status: status.status,
+        status: status.isComplete ? 'complete' : 'pending',
         details: status.details
       });
     } catch (error) {

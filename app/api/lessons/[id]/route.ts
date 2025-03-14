@@ -240,7 +240,7 @@ export async function GET(
     const { data: lesson, error } = await supabase
       .from('lessons')
       .select('*')
-      .eq('id', lessonId)
+      .eq('id', params.id)
       .eq('status', 'published')
       .is('deleted_at', null)
       .maybeSingle();

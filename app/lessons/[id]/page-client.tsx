@@ -4,7 +4,7 @@ import LessonDetail from "./lesson-detail";
 import { useEffect, useState } from "react";
 
 interface LessonPageClientProps {
-  lessonId: string;
+  params: { id: string };
   session?: {
     user?: {
       id: string;
@@ -12,7 +12,8 @@ interface LessonPageClientProps {
   } | null;
 }
 
-export default function LessonPageClient({ lessonId, session }: LessonPageClientProps) {
+export default function LessonPageClient({ params, session }: LessonPageClientProps) {
+  const lessonId = params.id;
   const [initialLesson, setInitialLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   

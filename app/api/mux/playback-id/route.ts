@@ -1,23 +1,47 @@
 import { NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/app/lib/supabase/server';
 import { getMuxClient } from '@/app/services/mux';
 
 export async function GET(request: Request) {
   try {
+    // Get the asset ID from the query parameters
     const { searchParams } = new URL(request.url);
     const assetId = searchParams.get('assetId');
     const isFree = searchParams.get('isFree') === 'true';
     
     if (!assetId) {
       return NextResponse.json(
-        { error: 'Missing assetId parameter' },
+        { error: 'Asset ID is required' },
         { status: 400 }
       );
     }
     
-    // Get the Mux client directly
-    const mux = getMuxClient();
+    // First try to get the playback ID from the database
+    const supabase = await createServerSupabaseClient();
+    
+    // Query the database for the lesson with this asset ID
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .select('mux_playback_id, video_processing_status')
+      .eq('mux_asset_id', assetId)
+      .single();
+    
+    // If we found a playback ID in the database, return it
+    if (!error && lesson && lesson.mux_playback_id) {
+      console.log(`Found playback ID in database: ${lesson.mux_playback_id}`);
+      return NextResponse.json({ 
+        playbackId: lesson.mux_playback_id,
+        status: lesson.video_processing_status || 'ready'
+      });
+    }
+    
+    // If not in database or there was an error, try to get it directly from Mux
+    console.log(`Playback ID not found in database, checking Mux API for asset: ${assetId}`);
     
     try {
+      // Get the Mux client
+      const mux = getMuxClient();
+      
       // Get the asset from Mux
       const asset = await mux.video.assets.retrieve(assetId);
       
@@ -37,17 +61,23 @@ export async function GET(request: Request) {
             
             if (newPlaybackId && newPlaybackId.id) {
               console.log('Created new playback ID:', newPlaybackId.id);
-              return NextResponse.json({ playbackId: newPlaybackId.id });
+              
+              // Update the database with the new playback ID
+              await supabase
+                .from('lessons')
+                .update({ 
+                  mux_playback_id: newPlaybackId.id,
+                  video_processing_status: 'ready'
+                })
+                .eq('mux_asset_id', assetId);
+              
+              return NextResponse.json({ 
+                playbackId: newPlaybackId.id,
+                status: 'ready'
+              });
             }
           } catch (createError) {
             console.error('Error creating playback ID:', createError);
-            return NextResponse.json(
-              { 
-                error: 'Failed to create playback ID',
-                details: createError instanceof Error ? createError.message : String(createError)
-              },
-              { status: 500 }
-            );
           }
         }
         
@@ -75,7 +105,20 @@ export async function GET(request: Request) {
       
       if (matchingId) {
         console.log(`Found existing ${desiredPolicy} playback ID:`, matchingId.id);
-        return NextResponse.json({ playbackId: matchingId.id });
+        
+        // Update the database with this playback ID
+        await supabase
+          .from('lessons')
+          .update({ 
+            mux_playback_id: matchingId.id,
+            video_processing_status: 'ready'
+          })
+          .eq('mux_asset_id', assetId);
+        
+        return NextResponse.json({ 
+          playbackId: matchingId.id,
+          status: 'ready'
+        });
       } else {
         // If no matching policy ID exists, create one
         console.log(`No ${desiredPolicy} playback ID found, creating one`);
@@ -86,7 +129,20 @@ export async function GET(request: Request) {
           
           if (newPlaybackId && newPlaybackId.id) {
             console.log(`Created new ${desiredPolicy} playback ID:`, newPlaybackId.id);
-            return NextResponse.json({ playbackId: newPlaybackId.id });
+            
+            // Update the database with the new playback ID
+            await supabase
+              .from('lessons')
+              .update({ 
+                mux_playback_id: newPlaybackId.id,
+                video_processing_status: 'ready'
+              })
+              .eq('mux_asset_id', assetId);
+            
+            return NextResponse.json({ 
+              playbackId: newPlaybackId.id,
+              status: 'ready'
+            });
           }
         } catch (createError) {
           console.error(`Error creating ${desiredPolicy} playback ID:`, createError);
@@ -96,70 +152,32 @@ export async function GET(request: Request) {
       // Return the first playback ID as fallback if we couldn't create a new one
       const playbackId = asset.playback_ids[0].id;
       console.log(`Returning fallback playback ID: ${playbackId} with policy: ${asset.playback_ids[0].policy}`);
-      return NextResponse.json({ playbackId });
+      
+      // Update the database with this playback ID
+      await supabase
+        .from('lessons')
+        .update({ 
+          mux_playback_id: playbackId,
+          video_processing_status: 'ready'
+        })
+        .eq('mux_asset_id', assetId);
+      
+      return NextResponse.json({ 
+        playbackId,
+        status: 'ready'
+      });
     } catch (muxError) {
       console.error('Error retrieving asset from Mux:', muxError);
+      
+      // If we couldn't get it from Mux either, return an error
       return NextResponse.json(
         { 
-          error: 'Failed to get asset from Mux API', 
+          error: 'Playback ID not found in database or Mux API',
           details: muxError instanceof Error ? muxError.message : String(muxError)
         },
-        { status: 500 }
-      );
-    }
-  } catch (error) {
-    console.error('Error in playback-id route:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to process request',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
-  }
-}
-import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/app/lib/supabase/server';
-
-export async function GET(request: Request) {
-  try {
-    // Get the asset ID from the query parameters
-    const { searchParams } = new URL(request.url);
-    const assetId = searchParams.get('assetId');
-    
-    if (!assetId) {
-      return NextResponse.json(
-        { error: 'Asset ID is required' },
-        { status: 400 }
-      );
-    }
-    
-    // Create Supabase client
-    const supabase = await createServerSupabaseClient();
-    
-    // Query the database for the lesson with this asset ID
-    const { data: lesson, error } = await supabase
-      .from('lessons')
-      .select('mux_playback_id')
-      .eq('mux_asset_id', assetId)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching playback ID:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch playback ID' },
-        { status: 500 }
-      );
-    }
-    
-    if (!lesson || !lesson.mux_playback_id) {
-      return NextResponse.json(
-        { error: 'Playback ID not found for this asset' },
         { status: 404 }
       );
     }
-    
-    return NextResponse.json({ playbackId: lesson.mux_playback_id });
   } catch (error) {
     console.error('Error retrieving playback ID:', error);
     return NextResponse.json(

@@ -52,6 +52,12 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
             const response = await fetch(`/api/mux/token?playbackId=${lesson.mux_playback_id}`);
             
             if (!response.ok) {
+              // If unauthorized (401), the user might not be logged in
+              if (response.status === 401) {
+                setError('Authentication required to view this video. Please log in.');
+                return;
+              }
+              
               const errorText = await response.text();
               console.error('Failed to fetch playback token:', response.status, errorText);
               setError(`Failed to load video playback token: ${response.status}`);
@@ -65,7 +71,7 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
             setStoryboardToken(data.storyboardToken);
           } catch (err) {
             console.error('Error fetching playback token:', err);
-            setError('Error loading video playback token');
+            setError('Error loading video playback token. Please try refreshing the page.');
           }
         };
         

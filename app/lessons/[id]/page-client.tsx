@@ -35,7 +35,17 @@ export default function LessonPageClient({ lessonId, session }: LessonPageClient
         if (data?.mux_playback_id && data.mux_playback_id.includes('_')) {
           console.log("Pre-fetching token for signed playback ID");
           try {
-            await fetch(`/api/mux/token?playbackId=${data.mux_playback_id}`);
+            const tokenResponse = await fetch(`/api/mux/token?playbackId=${data.mux_playback_id}`);
+            if (tokenResponse.ok) {
+              const tokenData = await tokenResponse.json();
+              // Store tokens in sessionStorage for immediate use
+              sessionStorage.setItem(`mux-token-${data.mux_playback_id}`, tokenData.token);
+              sessionStorage.setItem(`mux-thumbnail-token-${data.mux_playback_id}`, tokenData.thumbnailToken);
+              sessionStorage.setItem(`mux-storyboard-token-${data.mux_playback_id}`, tokenData.storyboardToken);
+              console.log("Tokens pre-fetched and stored in session storage");
+            } else {
+              console.error("Failed to pre-fetch token:", tokenResponse.status);
+            }
           } catch (tokenError) {
             console.error("Error pre-fetching token:", tokenError);
           }

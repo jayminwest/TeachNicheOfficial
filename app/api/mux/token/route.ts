@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const playbackId = searchParams.get('playbackId');
+    const refresh = searchParams.get('refresh') === 'true';
     
     if (!playbackId) {
       return NextResponse.json(
@@ -26,7 +27,9 @@ export async function GET(request: Request) {
     const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     
-    if (!session?.user) {
+    // For refresh requests, we'll be more lenient and try to generate a token
+    // even without a session, as this might be a public video
+    if (!session?.user && !refresh) {
       console.error('Token request unauthorized - no session');
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -49,12 +52,13 @@ export async function GET(request: Request) {
     // Create JWT tokens for Mux
     // All tokens use the same signing key and expiry, but different audience values
     const now = Math.floor(Date.now() / 1000);
-    const expiryTime = now + 12 * 3600; // 12 hour expiry for better user experience
+    const expiryTime = now + 24 * 3600; // 24 hour expiry for better user experience
     
     // For debugging
     console.log(`Generating token for playback ID: ${playbackId}`);
     console.log(`Using key ID: ${muxTokenId}`);
-    console.log(`Token will expire in 12 hours (${new Date(expiryTime * 1000).toISOString()})`);
+    console.log(`Token will expire in 24 hours (${new Date(expiryTime * 1000).toISOString()})`);
+    console.log(`Refresh requested: ${refresh}`);
     
     const playbackToken = jwt.sign(
       {

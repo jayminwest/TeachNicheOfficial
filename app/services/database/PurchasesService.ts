@@ -1,6 +1,7 @@
 import { DatabaseService, DatabaseResponse } from './DatabaseService';
 import Stripe from 'stripe';
 import { PurchaseStatus } from '@/app/types/purchase';
+import { createClientSupabaseClient } from '@/app/lib/supabase/client';
 
 /**
  * Data required to create a purchase record
@@ -50,6 +51,12 @@ export interface FormattedPurchase {
 export class PurchasesService extends DatabaseService {
   private stripeInstance: Stripe | null = null;
   private readonly PLATFORM_FEE_PERCENTAGE = 0.15; // 15%
+  
+  constructor() {
+    super();
+    // Initialize the supabase client
+    this.supabase = createClientSupabaseClient();
+  }
 
   /**
    * Get or initialize the Stripe instance
@@ -156,6 +163,11 @@ export class PurchasesService extends DatabaseService {
    */
   async checkLessonAccess(userId: string, lessonId: string): Promise<DatabaseResponse<LessonAccessResult>> {
     try {
+      // Ensure supabase client is initialized
+      if (!this.supabase) {
+        this.supabase = createClientSupabaseClient();
+      }
+      
       // Get lesson details to check price and creator
       const { data: lesson, error: lessonError } = await this.supabase
         .from('lessons')
@@ -246,6 +258,11 @@ export class PurchasesService extends DatabaseService {
    */
   async createPurchase(data: PurchaseCreateData): Promise<DatabaseResponse<{ id: string }>> {
     try {
+      // Ensure supabase client is initialized
+      if (!this.supabase) {
+        this.supabase = createClientSupabaseClient();
+      }
+      
       // Check if user already has a completed purchase for this lesson
       const { data: existingPurchases, error: existingError } = await this.supabase
         .from('purchases')
@@ -382,6 +399,11 @@ export class PurchasesService extends DatabaseService {
     status: Exclude<PurchaseStatus, 'none'>
   ): Promise<DatabaseResponse<{ id: string }>> {
     try {
+      // Ensure supabase client is initialized
+      if (!this.supabase) {
+        this.supabase = createClientSupabaseClient();
+      }
+      
       // Try to find purchase by session ID first
       const { data: sessionPurchases, error: sessionError } = await this.supabase
         .from('purchases')
@@ -464,6 +486,11 @@ export class PurchasesService extends DatabaseService {
    */
   async getPurchasesByUserId(userId: string): Promise<DatabaseResponse<FormattedPurchase[]>> {
     try {
+      // Ensure supabase client is initialized
+      if (!this.supabase) {
+        this.supabase = createClientSupabaseClient();
+      }
+      
       const { data: purchases, error } = await this.supabase
         .from('purchases')
         .select('id, lesson_id, status, amount, created_at')

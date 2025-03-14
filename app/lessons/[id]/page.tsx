@@ -38,9 +38,8 @@ async function LessonPageContent({ params }: { params: { id: string } }) {
     const session = data.session;
     
     // Extract the ID from the URL segment after all async operations
-    const lessonId = params.id;
-    
-    return <LessonPageClient lessonId={lessonId} session={session} />;
+    // In Next.js 15+, we need to use the params object directly without destructuring
+    return <LessonPageClient lessonId={params.id} session={session} />;
   } catch (error) {
     console.error('Error in lesson page:', error);
     notFound();

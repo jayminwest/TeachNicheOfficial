@@ -55,7 +55,7 @@ export async function PATCH(
     const { data: currentLesson, error: lessonFetchError } = await supabase
       .from('lessons')
       .select('*')
-      .eq('id', lessonId)
+      .eq('id', params.id)
       .single();
 
     if (lessonFetchError || !currentLesson) {
@@ -236,9 +236,7 @@ export async function GET(
   try {
     const supabase = await createServerSupabaseClient();
     
-    // Extract the ID from params and use it after all async operations
-    const lessonId = params.id;
-    
+    // In Next.js 15+, we need to use the params object directly
     const { data: lesson, error } = await supabase
       .from('lessons')
       .select('*')

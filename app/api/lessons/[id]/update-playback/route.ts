@@ -17,13 +17,11 @@ export async function POST(
     
     const supabase = await createServerSupabaseClient();
     
-    // Extract the ID from params and use it after all async operations
-    const lessonId = params.id;
-    
+    // In Next.js 15+, we need to use the params object directly
     const { error } = await supabase
       .from('lessons')
       .update({ mux_playback_id: playbackId })
-      .eq('id', lessonId);
+      .eq('id', params.id);
 
     if (error) {
       console.error('Error updating playback ID:', error);

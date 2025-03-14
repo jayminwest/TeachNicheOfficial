@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 };
 
 // Generate the lesson page with the ID from the URL segment
-export default function LessonPage(props: { params: { id: string } }) {
-  // Create a static ID string to avoid accessing params.id directly
-  const idString = props.params?.id || '';
-  
+export default function LessonPage({ params }: { params: { id: string } }) {
   return (
     <Suspense fallback={
       <div className="container mx-auto py-8">
@@ -25,13 +22,13 @@ export default function LessonPage(props: { params: { id: string } }) {
         </div>
       </div>
     }>
-      <LessonPageContent idString={idString} />
+      <LessonPageContent params={params} />
     </Suspense>
   );
 }
 
 // Separate async component to handle data fetching
-async function LessonPageContent({ idString }: { idString: string }) {
+async function LessonPageContent({ params }: { params: { id: string } }) {
   try {
     // Create Supabase client
     const supabase = await createServerSupabaseClient();
@@ -40,7 +37,10 @@ async function LessonPageContent({ idString }: { idString: string }) {
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
-    return <LessonPageClient lessonId={idString} session={session} />;
+    // Extract the ID from the URL segment after all async operations
+    const lessonId = params.id;
+    
+    return <LessonPageClient lessonId={lessonId} session={session} />;
   } catch (error) {
     console.error('Error in lesson page:', error);
     notFound();

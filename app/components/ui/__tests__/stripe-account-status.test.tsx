@@ -3,6 +3,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { StripeAccountStatus } from '../stripe-account-status';
 import '@testing-library/jest-dom';
 
+// Mock Lucide React icons
+jest.mock('lucide-react', () => ({
+  AlertCircle: (props: any) => <div data-testid="alert-icon" {...props} />,
+  CheckCircle: (props: any) => <div data-testid="check-icon" {...props} />,
+  XCircle: (props: any) => <div data-testid="x-icon" {...props} />,
+  RefreshCw: (props: any) => <div data-testid="refresh-icon" {...props} />,
+  Clock: (props: any) => <div data-testid="clock-icon" {...props} />,
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 

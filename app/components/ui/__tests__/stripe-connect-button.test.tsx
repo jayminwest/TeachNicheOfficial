@@ -4,6 +4,17 @@ import { StripeConnectButton } from '../stripe-connect-button';
 import { useAuth } from '@/app/services/auth/AuthContext';
 import '@testing-library/jest-dom';
 
+// Mock Lucide React icons
+jest.mock('lucide-react', () => ({
+  AlertCircle: (props: any) => <div data-testid="alert-icon" {...props} />,
+  CheckCircle: (props: any) => <div data-testid="check-icon" {...props} />,
+  XCircle: (props: any) => <div data-testid="x-icon" {...props} />,
+  RefreshCw: (props: any) => <div data-testid="refresh-icon" {...props} />,
+  Clock: (props: any) => <div data-testid="clock-icon" {...props} />,
+  AlertTriangle: (props: any) => <div data-testid="alert-triangle-icon" {...props} />,
+  ExternalLink: (props: any) => <div data-testid="external-link-icon" {...props} />,
+}));
+
 // Mock the auth context
 jest.mock('@/app/services/auth/AuthContext', () => ({
   useAuth: jest.fn(),

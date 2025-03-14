@@ -220,10 +220,13 @@ export async function GET(
   try {
     const supabase = await createServerSupabaseClient();
     
+    // Extract the ID from params and use it after all async operations
+    const lessonId = String(params?.id || '');
+    
     const { data: lesson, error } = await supabase
       .from('lessons')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', lessonId)
       .eq('status', 'published')
       .is('deleted_at', null)
       .maybeSingle();

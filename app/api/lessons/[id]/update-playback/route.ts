@@ -17,10 +17,13 @@ export async function POST(
     
     const supabase = await createServerSupabaseClient();
     
+    // Extract the ID from params and use it after all async operations
+    const lessonId = String(params?.id || '');
+    
     const { error } = await supabase
       .from('lessons')
       .update({ mux_playback_id: playbackId })
-      .eq('id', params.id);
+      .eq('id', lessonId);
 
     if (error) {
       console.error('Error updating playback ID:', error);

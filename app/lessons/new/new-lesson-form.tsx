@@ -47,6 +47,13 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    // Check if the form is valid
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Check authentication first
@@ -63,18 +70,15 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     }
     
     try {
-      // Get form data directly from the form elements
+      // Get form data using FormData API
       const form = e.currentTarget;
-      const titleInput = form.querySelector('#title') as HTMLInputElement;
-      const descriptionInput = form.querySelector('#description') as HTMLTextAreaElement;
-      const contentInput = form.querySelector('#content') as HTMLTextAreaElement;
-      const priceInput = form.querySelector('#price') as HTMLInputElement;
+      const formData = new FormData(form);
       
       const lessonData = {
-        title: titleInput?.value || '',
-        description: descriptionInput?.value || '',
-        content: contentInput?.value || '',
-        price: parseFloat(priceInput?.value || '0') || 0,
+        title: formData.get('title') as string || '',
+        description: formData.get('description') as string || '',
+        content: formData.get('content') as string || '',
+        price: parseFloat(formData.get('price') as string || '0') || 0,
         muxAssetId
       };
       

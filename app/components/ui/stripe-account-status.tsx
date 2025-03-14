@@ -59,7 +59,15 @@ export function StripeAccountStatus({
       console.log('Stripe status response:', data);
       
       if (data.connected && data.stripeAccountId) {
-        console.log('Updating component state with new status data');
+        console.log('Updating component state with new status data:', {
+          status: data.status || 'complete',
+          isComplete: data.isComplete || true,
+          details: data.details || {
+            pendingVerification: false,
+            missingRequirements: []
+          }
+        });
+        
         setStatusData({
           status: data.status || 'complete',
           isComplete: data.isComplete || true,
@@ -78,10 +86,31 @@ export function StripeAccountStatus({
     }
   }, [isRefreshing]); // Only depend on isRefreshing state
   
-  // Fetch fresh status on component mount
+  // Fetch fresh status on component mount and when the custom event is triggered
   useEffect(() => {
     console.log('StripeAccountStatus component mounted, fetching fresh status');
     refreshStatus();
+    
+    // Listen for the custom event to refresh status
+    const handleStatusUpdate = (event: CustomEvent<any>) => {
+      console.log('Received stripe-status-updated event with data:', event.detail);
+      if (event.detail) {
+        setStatusData({
+          status: event.detail.status || 'unknown',
+          isComplete: event.detail.isComplete || false,
+          details: event.detail.details || {
+            pendingVerification: false,
+            missingRequirements: []
+          }
+        });
+      }
+    };
+    
+    window.addEventListener('stripe-status-updated', handleStatusUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('stripe-status-updated', handleStatusUpdate as EventListener);
+    };
   }, [refreshStatus]);
 
   const getStatusBadge = () => {

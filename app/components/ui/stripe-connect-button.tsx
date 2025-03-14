@@ -85,16 +85,20 @@ export function StripeConnectButton({
         throw new Error('Failed to refresh status');
       }
       
-      await response.json();
+      const data = await response.json();
+      console.log('Stripe status response:', data);
       
-      toast({
-        title: 'Status Refreshed',
-        description: 'Your Stripe account status has been updated.',
-        variant: 'default',
-      });
-      
-      // Reload the page to show updated status
-      window.location.reload();
+      // Update the local state instead of reloading the page
+      if (data.stripeAccountId) {
+        toast({
+          title: 'Status Refreshed',
+          description: 'Your Stripe account status has been updated.',
+          variant: 'default',
+        });
+        
+        // Force a re-render with the new data
+        window.dispatchEvent(new CustomEvent('stripe-status-updated', { detail: data }));
+      }
     } catch (error) {
       toast({
         variant: 'destructive',

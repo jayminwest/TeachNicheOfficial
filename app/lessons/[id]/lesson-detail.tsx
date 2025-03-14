@@ -6,6 +6,7 @@ import { LessonAccessGate } from "@/app/components/ui/lesson-access-gate";
 import Link from "next/link";
 import { supabase } from "@/app/services/supabase";
 import { Toaster } from "@/app/components/ui/toaster";
+import { headers } from 'next/headers';
 
 interface LessonDetailProps {
   id: string;
@@ -98,7 +99,12 @@ export default async function LessonDetail({ id, session }: LessonDetailProps) {
 
   // If we have an asset ID but no playback ID, get it from Mux
   if (lesson.mux_asset_id && !lesson.mux_playback_id) {
-    const response = await fetch(`/api/mux/playback-id?assetId=${lesson.mux_asset_id}`);
+    const headersList = headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const baseUrl = `${protocol}://${host}`;
+    
+    const response = await fetch(`${baseUrl}/api/mux/playback-id?assetId=${lesson.mux_asset_id}`);
     const result = await response.json();
     
     if (response.ok && result.playbackId) {

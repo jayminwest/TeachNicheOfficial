@@ -37,8 +37,9 @@ export async function GET(request: Request) {
       );
     }
     
-    // Create a JWT token for Mux
-    const token = jwt.sign(
+    // Create JWT tokens for Mux
+    // All tokens use the same signing key and expiry, but different audience values
+    const playbackToken = jwt.sign(
       {
         sub: playbackId,
         aud: 'v',
@@ -49,7 +50,33 @@ export async function GET(request: Request) {
       { algorithm: 'HS256' }
     );
     
-    return NextResponse.json({ token });
+    const thumbnailToken = jwt.sign(
+      {
+        sub: playbackId,
+        aud: 't',
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        kid: muxTokenId
+      },
+      Buffer.from(muxTokenSecret, 'base64'),
+      { algorithm: 'HS256' }
+    );
+    
+    const storyboardToken = jwt.sign(
+      {
+        sub: playbackId,
+        aud: 's',
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+        kid: muxTokenId
+      },
+      Buffer.from(muxTokenSecret, 'base64'),
+      { algorithm: 'HS256' }
+    );
+    
+    return NextResponse.json({ 
+      token: playbackToken,
+      thumbnailToken,
+      storyboardToken
+    });
   } catch (error) {
     console.error('Error generating playback token:', error);
     return NextResponse.json(

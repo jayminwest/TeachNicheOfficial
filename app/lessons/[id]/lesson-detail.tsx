@@ -24,6 +24,8 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
   const [loading, setLoading] = useState(!initialLesson);
   const [error, setError] = useState<string | null>(null);
   const [playbackToken, setPlaybackToken] = useState<string | null>(null);
+  const [thumbnailToken, setThumbnailToken] = useState<string | null>(null);
+  const [storyboardToken, setStoryboardToken] = useState<string | null>(null);
 
   // Redirect to new lesson page if the ID is "create"
   useEffect(() => {
@@ -50,6 +52,8 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
             if (response.ok) {
               const data = await response.json();
               setPlaybackToken(data.token);
+              setThumbnailToken(data.thumbnailToken);
+              setStoryboardToken(data.storyboardToken);
             } else {
               console.error('Failed to fetch playback token');
               setError('Failed to load video playback token');
@@ -187,6 +191,8 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
                   title={lesson.title}
                   className="w-full aspect-video rounded-lg overflow-hidden"
                   playbackToken={playbackToken}
+                  thumbnailToken={thumbnailToken}
+                  storyboardToken={storyboardToken}
                 />
               ) : (
                 // For paid lessons, keep the access gate
@@ -201,6 +207,8 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
                     title={lesson.title}
                     className="w-full aspect-video rounded-lg overflow-hidden"
                     playbackToken={playbackToken}
+                    thumbnailToken={thumbnailToken}
+                    storyboardToken={storyboardToken}
                   />
                 </LessonAccessGate>
               )}

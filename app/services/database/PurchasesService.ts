@@ -73,6 +73,22 @@ export class PurchasesService extends DatabaseService {
    * Verify a Stripe checkout session
    * @param sessionId The Stripe session ID to verify
    */
+  /**
+   * Format an error into a standardized DatabaseResponse
+   * @param error The error object
+   * @param message Optional custom error message
+   */
+  protected formatError<T>(error: unknown, message?: string): DatabaseResponse<T> {
+    const errorMessage = message || 'An error occurred';
+    console.error(`${errorMessage}:`, error);
+    
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error(errorMessage),
+      success: false
+    };
+  }
+
   async verifyStripeSession(sessionId: string): Promise<DatabaseResponse<StripeVerificationResult>> {
     try {
       const stripe = await this.getStripe();

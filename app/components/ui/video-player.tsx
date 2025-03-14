@@ -8,12 +8,14 @@ interface VideoPlayerProps {
   playbackId: string;
   title: string;
   className?: string;
+  playbackToken?: string | null;
 }
 
 export function VideoPlayer({ 
   playbackId, 
   title, 
-  className
+  className,
+  playbackToken
 }: VideoPlayerProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +55,7 @@ export function VideoPlayer({
         playbackId={playbackId}
         metadata={{ video_title: title }}
         streamType="on-demand"
+        playbackToken={playbackToken || undefined}
         onError={(error) => {
           console.error('Mux player error:', error);
           setError(`Video playback error: ${error.message || 'Unknown error'}`);

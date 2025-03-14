@@ -51,6 +51,17 @@ export async function POST(request: Request) {
     });
     
     try {
+      // Log the exact query we're about to run
+      console.log('Inserting lesson with:', {
+        title: lessonData.title,
+        description: lessonData.description,
+        content_length: lessonData.content ? lessonData.content.length : 0,
+        price: lessonData.price || 0,
+        creator_id: userId,
+        mux_asset_id: lessonData.muxAssetId,
+        status: 'published'
+      });
+      
       // Create lesson in database with public status
       const { data: lesson, error } = await supabase
         .from('lessons')
@@ -68,8 +79,15 @@ export async function POST(request: Request) {
       
       if (error) {
         console.error('Error creating lesson:', error);
+        // Log more details about the error
+        console.error('Error details:', {
+          code: error.code,
+          hint: error.hint,
+          details: error.details,
+          message: error.message
+        });
         return NextResponse.json(
-          { message: 'Failed to create lesson', error: error.message },
+          { message: 'Failed to create lesson', error: error.message, details: error },
           { status: 500 }
         );
       }

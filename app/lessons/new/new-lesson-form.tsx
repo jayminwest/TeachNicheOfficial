@@ -63,13 +63,18 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     }
     
     try {
-      // Get form data
-      const formData = new FormData(e.currentTarget);
+      // Get form data directly from the form elements
+      const form = e.currentTarget;
+      const titleInput = form.querySelector('#title') as HTMLInputElement;
+      const descriptionInput = form.querySelector('#description') as HTMLTextAreaElement;
+      const contentInput = form.querySelector('#content') as HTMLTextAreaElement;
+      const priceInput = form.querySelector('#price') as HTMLInputElement;
+      
       const lessonData = {
-        title: formData.get('title') as string,
-        description: formData.get('description') as string,
-        content: formData.get('content') as string,
-        price: parseFloat(formData.get('price') as string) || 0,
+        title: titleInput?.value || '',
+        description: descriptionInput?.value || '',
+        content: contentInput?.value || '',
+        price: parseFloat(priceInput?.value || '0') || 0,
         muxAssetId
       };
       

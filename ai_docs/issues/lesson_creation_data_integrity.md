@@ -4,7 +4,7 @@
 
 Our lesson creation process has several critical data integrity issues that need immediate attention:
 
-1. **Incorrect Mux Asset ID Storage**: The system is storing placeholder values (`"placeholder"`) for `mux_asset_id` in the database instead of waiting for the actual asset ID from Mux.
+1. **Incorrect Mux Asset ID Storage**: The system is storing placeholder values like temp_1741882991344 for `mux_asset_id` in the database instead of waiting for the actual asset ID from Mux.
 
 2. **Missing Stripe Product/Price Creation**: When creating paid lessons, the system fails to create Stripe products and prices, resulting in missing `stripe_product_id` and `stripe_price_id` values.
 

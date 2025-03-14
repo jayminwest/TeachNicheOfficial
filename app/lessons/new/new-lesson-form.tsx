@@ -1,21 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle, Upload, Check } from 'lucide-react';
 import { useToast } from '@/app/components/ui/use-toast';
-import dynamic from 'next/dynamic';
-
-// Dynamically import MuxUploader to avoid SSR issues
-const MuxUploader = dynamic(
-  () => import('@mux/mux-uploader-react').then((mod) => mod.default),
-  { ssr: false }
-);
-
-// Store the last upload ID globally for fallback access
-if (typeof window !== 'undefined') {
-  window.__lastUploadId = undefined;
-}
 
 interface NewLessonFormProps {
   redirectPath?: string;
@@ -25,42 +13,127 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready' | 'error'>('idle');
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [muxAssetId, setMuxAssetId] = useState<string | null>(null);
-  const [uploadComplete, setUploadComplete] = useState(false);
+  const [muxPlaybackId, setMuxPlaybackId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadContainerRef = useRef<HTMLDivElement>(null);
   
-  // Check authentication on mount and refresh the session
+  // Check authentication on mount
   useEffect(() => {
     async function checkAuth() {
       try {
+        // Import dynamically to avoid SSR issues
         const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
         const supabase = createClientSupabaseClient();
         
-        // First check if we have a session
+        // Get the current session
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error || !session) {
+        if (error) {
+          console.error('Session error:', error);
+          throw new Error('Authentication error');
+        }
+        
+        if (!session) {
+          // No active session
+          console.log('No active session found');
           window.location.href = '/auth?redirect=/lessons/new';
           return;
         }
         
-        // Refresh the session to ensure we have a valid token
-        const { error: refreshError } = await supabase.auth.refreshSession();
-        
-        if (refreshError) {
-          console.error('Session refresh failed:', refreshError);
-          window.location.href = '/auth?redirect=/lessons/new';
-          return;
-        }
-        
+        // User is authenticated
         setIsLoading(false);
       } catch (error) {
         console.error('Authentication check failed:', error);
-        window.location.href = '/auth?redirect=/lessons/new';
+        // Show error in dev but don't redirect immediately in production
+        if (process.env.NODE_ENV === 'development') {
+          toast({
+            title: 'Authentication Error',
+            description: 'Could not verify authentication status. This might be a temporary issue.',
+            variant: 'destructive',
+          });
+        }
+        
+        // Set a timeout before redirecting to avoid immediate redirects on temporary issues
+        setTimeout(() => {
+          window.location.href = '/auth?redirect=/lessons/new';
+        }, 1500);
       }
     }
     
     checkAuth();
-  }, []);
+  }, [toast]);
+  
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    setUploadStatus('uploading');
+    setUploadError(null);
+    
+    try {
+      // Get upload URL from API
+      const uploadResponse = await fetch('/api/mux/upload-url');
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+      
+      const { uploadUrl, assetId } = await uploadResponse.json();
+      setMuxAssetId(assetId);
+      
+      // Upload file directly to Mux
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const uploadResult = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: formData,
+      });
+      
+      if (!uploadResult.ok) {
+        throw new Error('Failed to upload video');
+      }
+      
+      // Update status
+      setUploadStatus('processing');
+      
+      // Start checking asset status
+      checkAssetStatus(assetId);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadStatus('error');
+      setUploadError(error instanceof Error ? error.message : 'Failed to upload video');
+    }
+  };
+  
+  // Check asset status
+  const checkAssetStatus = async (assetId: string) => {
+    try {
+      const statusResponse = await fetch(`/api/mux/asset-status?assetId=${assetId}`);
+      if (!statusResponse.ok) {
+        throw new Error('Failed to check asset status');
+      }
+      
+      const { status, playbackId } = await statusResponse.json();
+      
+      if (status === 'ready' && playbackId) {
+        // Asset is ready
+        setUploadStatus('ready');
+        setMuxPlaybackId(playbackId);
+      } else if (status === 'errored') {
+        // Asset processing failed
+        setUploadStatus('error');
+        setUploadError('Video processing failed');
+      } else {
+        // Asset is still processing, check again in 5 seconds
+        setTimeout(() => checkAssetStatus(assetId), 5000);
+      }
+    } catch (error) {
+      console.error('Status check error:', error);
+      setUploadStatus('error');
+      setUploadError(error instanceof Error ? error.message : 'Failed to check video status');
+    }
+  };
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -77,7 +150,8 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         content: formData.get('content') as string,
         price: parseFloat(formData.get('price') as string) || 0,
         muxAssetId,
-        status: 'draft'
+        muxPlaybackId,
+        status: 'published'
       };
       
       // Validate required fields
@@ -90,28 +164,12 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         throw new Error('Please upload a video before creating the lesson');
       }
       
-      // Check if the ID is a temporary one
-      lessonData.muxAssetId.startsWith('temp_');
-      
-      // Get a fresh auth token before making the request
-      const { createClientSupabaseClient } = await import('@/app/lib/supabase/client');
-      const supabase = createClientSupabaseClient();
-      
-      // Refresh the session to ensure we have a valid token
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError) {
-        console.error('Session refresh failed before API call:', refreshError);
-        throw new Error('Your session has expired. Please sign in again.');
-      }
-      
       // Create lesson
       const response = await fetch('/api/lessons', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify(lessonData),
       });
       
@@ -129,39 +187,31 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         duration: 5000,
       });
       
-      // Start background video processing with fresh auth
-      try {
-        const { error: refreshError2 } = await supabase.auth.refreshSession();
-        
-        if (refreshError2) {
-          console.warn('Session refresh failed before video processing:', refreshError2);
-          // Continue anyway since the lesson was created
-        }
-        
-        await fetch('/api/lessons/process-video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            lessonId: lesson.id,
-            muxAssetId: lessonData.muxAssetId,
-            isPaid: lessonData.price > 0,
-            isTemporaryId: lessonData.muxAssetId.startsWith('temp_')
-          }),
-        });
-      } catch (processingError) {
-        console.error('Failed to start background processing:', processingError);
-        // Don't throw here, as the lesson was created successfully
-      }
+      // Start background video processing
+      fetch('/api/lessons/process-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessonId: lesson.id,
+          muxAssetId: lessonData.muxAssetId,
+          isPaid: lessonData.price > 0,
+          currentStatus: 'draft'
+        }),
+      }).catch(error => {
+        console.error('Failed to start background processing:', error);
+      });
       
       // Redirect to the lesson page or custom redirect path
       window.location.href = redirectPath || `/lessons/${lesson.id}`;
     } catch (error) {
       console.error('Lesson creation error:', error);
       
+      // Show error toast
       toast({
         title: 'Creation Failed',
-        description: error instanceof Error ? error.message : 'There was an error creating your lesson.',
+        description: error instanceof Error ? error.message : 'There was an error creating your lesson. Please try again.',
         variant: 'destructive',
         duration: 5000,
       });
@@ -170,53 +220,22 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     }
   };
   
-  // Handle upload success
-  const handleUploadSuccess = (event: { detail?: { uploadId?: string, asset_id?: string } }) => {
-    console.log("Upload success event:", event);
+  // Handle file drop
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (uploadContainerRef.current) {
+      uploadContainerRef.current.classList.remove('border-primary');
+    }
     
-    // Extract upload ID using multiple fallback approaches
-    let uploadId: string | undefined;
-    
-    try {
-      // First try to get it from the event
-      if (event && event.detail && typeof event.detail === 'object') {
-        const eventDetail = event.detail as { uploadId?: string, asset_id?: string };
-        uploadId = eventDetail.uploadId || eventDetail.asset_id;
-      }
-      
-      // Try to extract from the endpoint URL if available
-      if (!uploadId && typeof window !== 'undefined') {
-        // Check session storage for recently stored IDs
-        uploadId = window.sessionStorage.getItem('lastMuxAssetId') || undefined;
-      }
-      
-      // If we still don't have an ID, generate a temporary one
-      if (!uploadId) {
-        uploadId = `temp_${Date.now()}`;
-        console.warn("No upload ID found, using generated temporary ID:", uploadId);
-        
-        // Store the temporary ID for reference
-        if (typeof window !== 'undefined') {
-          window.sessionStorage.setItem('lastMuxAssetId', uploadId);
-        }
-      }
-      
-      setMuxAssetId(uploadId);
-      setUploadComplete(true);
-      
-      toast({
-        title: 'Upload Complete',
-        description: 'Your video has been uploaded successfully!',
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error extracting upload ID:", error);
-      toast({
-        title: 'Upload Issue',
-        description: 'Upload completed but asset information is missing. Please try again.',
-        variant: 'destructive',
-        duration: 5000,
-      });
+    if (e.dataTransfer?.files.length) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+  
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      handleFileUpload(e.target.files[0]);
     }
   };
   
@@ -285,38 +304,71 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       
       <div className="space-y-2">
         <label className="block text-sm font-medium">Video Upload</label>
-        <div className="border rounded-md p-4">
-          {typeof window !== 'undefined' && (
-            <MuxUploader
-              endpoint={() => fetch('/api/mux/upload-url').then(res => res.json()).then(data => {
-                // Store the endpoint URL for potential ID extraction later
-                if (typeof window !== 'undefined' && data && data.url) {
-                  // Extract and store upload ID if possible
-                  try {
-                    const uploadIdMatch = data.url.match(/\/([a-zA-Z0-9]+)$/);
-                    if (uploadIdMatch && uploadIdMatch[1]) {
-                      window.__lastUploadId = uploadIdMatch[1];
-                      console.log("Extracted upload ID from URL:", window.__lastUploadId);
-                    }
-                  } catch (e) {
-                    console.error("Error extracting upload ID from URL:", e);
-                  }
-                } else {
-                  console.warn("No URL found in upload response:", data);
-                }
-                return data && data.url ? data.url : '';
-              })}
-              onSuccess={handleUploadSuccess}
-              className="w-full"
-            />
-          )}
+        <div 
+          ref={uploadContainerRef}
+          className="border-2 border-dashed rounded-md p-8 text-center cursor-pointer hover:bg-muted/50"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (uploadContainerRef.current) {
+              uploadContainerRef.current.classList.add('border-primary');
+            }
+          }}
+          onDragLeave={() => {
+            if (uploadContainerRef.current) {
+              uploadContainerRef.current.classList.remove('border-primary');
+            }
+          }}
+          onDrop={handleDrop}
+        >
+          <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-2 text-sm text-muted-foreground">Drag and drop your video file here or click to browse</p>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="video/*" 
+            onChange={handleFileChange}
+          />
         </div>
+        
+        {uploadStatus !== 'idle' && (
+          <div className="mt-2 text-sm">
+            {uploadStatus === 'uploading' && (
+              <div className="flex items-center">
+                <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                <span>Uploading video...</span>
+              </div>
+            )}
+            
+            {uploadStatus === 'processing' && (
+              <div className="flex items-center text-amber-600">
+                <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                <span>Video uploaded successfully! Processing...</span>
+              </div>
+            )}
+            
+            {uploadStatus === 'ready' && (
+              <div className="flex items-center text-green-600">
+                <Check className="h-4 w-4 mr-2" />
+                <span>Video processed and ready!</span>
+              </div>
+            )}
+            
+            {uploadStatus === 'error' && (
+              <div className="flex items-center text-red-600">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                <span>Upload failed: {uploadError}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="flex justify-end">
         <Button 
           type="submit" 
-          disabled={isSubmitting || !uploadComplete}
+          disabled={isSubmitting || uploadStatus === 'uploading' || uploadStatus === 'processing' || !muxAssetId}
         >
           {isSubmitting ? (
             <>

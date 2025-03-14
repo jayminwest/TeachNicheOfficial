@@ -20,7 +20,19 @@ export async function POST(request: Request) {
       
       console.log(`Upload ${uploadId} created asset ${assetId}`);
       
-      // Update any lessons with this upload ID or temporary IDs
+      // First, try to find any lessons with this upload ID
+      const { data: lessons, error: findError } = await supabase
+        .from('lessons')
+        .select('id, title')
+        .eq('mux_asset_id', uploadId);
+      
+      if (findError) {
+        console.error('Error finding lessons with upload ID:', findError);
+      } else {
+        console.log(`Found ${lessons?.length || 0} lessons with upload ID ${uploadId}`);
+      }
+      
+      // Update any lessons with this upload ID
       const { error } = await supabase
         .from('lessons')
         .update({ 
@@ -35,16 +47,36 @@ export async function POST(request: Request) {
       }
       
       // Also check for temporary IDs that might match
-      const tempId = `temp_${uploadId}`;
-      const { error: tempError } = await supabase
-        .from('lessons')
-        .update({ 
-          mux_asset_id: assetId,
-        })
-        .eq('mux_asset_id', tempId);
-      
-      if (tempError) {
-        console.error('Error updating lesson with temp ID:', tempError);
+      if (uploadId.includes('temp_')) {
+        // If the upload ID itself is a temp ID, extract the real ID
+        const realId = uploadId.replace('temp_', '');
+        console.log(`Extracted real ID ${realId} from temp ID ${uploadId}`);
+        
+        const { error: realError } = await supabase
+          .from('lessons')
+          .update({ 
+            mux_asset_id: assetId,
+          })
+          .eq('mux_asset_id', realId);
+        
+        if (realError) {
+          console.error('Error updating lesson with real ID:', realError);
+        }
+      } else {
+        // Check for lessons with temp IDs
+        const tempId = `temp_${uploadId}`;
+        console.log(`Checking for lessons with temp ID ${tempId}`);
+        
+        const { error: tempError } = await supabase
+          .from('lessons')
+          .update({ 
+            mux_asset_id: assetId,
+          })
+          .eq('mux_asset_id', tempId);
+        
+        if (tempError) {
+          console.error('Error updating lesson with temp ID:', tempError);
+        }
       }
     }
     

@@ -90,42 +90,11 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const handleUploadSuccess = (event: any) => {
     console.log("Upload success event:", event);
     
-    // Extract upload ID with better fallback handling
-    let uploadId: string | undefined;
+    // Get the upload ID from session storage - this is the most reliable method
+    const uploadId = window.sessionStorage.getItem('lastMuxUploadId');
     
-    try {
-      // Try to get it from the event detail
-      if (event?.detail?.uploadId) {
-        uploadId = event.detail.uploadId;
-      } else if (event?.detail?.asset_id) {
-        uploadId = event.detail.asset_id;
-      } else if (typeof event?.detail === 'string') {
-        // Sometimes the detail itself is the ID
-        uploadId = event.detail;
-      } else if (typeof event === 'string') {
-        // Sometimes the entire event is the ID
-        uploadId = event;
-      }
-      
-      // If we still don't have an ID, check if it's in a nested property
-      if (!uploadId && event?.detail) {
-        // Try to find any property that might be an ID
-        const detail = event.detail;
-        for (const key in detail) {
-          if (typeof detail[key] === 'string' && 
-              (key.includes('id') || key.includes('Id') || key.includes('ID'))) {
-            uploadId = detail[key];
-            break;
-          }
-        }
-      }
-      
-      // If we still don't have an ID, generate a temporary one
-      if (!uploadId) {
-        uploadId = `temp_${Date.now()}`;
-        console.warn("No upload ID found in event, using generated ID:", uploadId);
-      }
-      
+    if (uploadId) {
+      console.log("Using upload ID from session storage:", uploadId);
       setMuxAssetId(uploadId);
       setUploadComplete(true);
       
@@ -134,19 +103,14 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         description: 'Your video has been uploaded successfully!',
         duration: 3000,
       });
-    } catch (error) {
-      console.error("Error processing upload success:", error);
+    } else {
+      console.error("No upload ID found in session storage");
       toast({
         title: 'Upload Issue',
-        description: 'Upload completed but there was an error processing the response. Using a temporary ID.',
+        description: 'Upload completed but we could not identify the video. Please try again.',
         variant: 'destructive',
         duration: 5000,
       });
-      
-      // Use a fallback ID
-      const fallbackId = `temp_${Date.now()}`;
-      setMuxAssetId(fallbackId);
-      setUploadComplete(true);
     }
   };
   
@@ -205,47 +169,55 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         <label className="block text-sm font-medium">Video Upload</label>
         <div className="border rounded-md p-4">
           {typeof window !== 'undefined' && (
-            <MuxUploader
-              endpoint={() => fetch('/api/mux/upload-url')
-                .then(res => res.json())
-                .then(data => {
-                  console.log("Upload URL response:", data);
-                  if (data && data.url) {
-                    // Try to extract ID from URL
-                    try {
+            <>
+              <MuxUploader
+                endpoint={async () => {
+                  try {
+                    const response = await fetch('/api/mux/upload-url');
+                    const data = await response.json();
+                    
+                    console.log("Upload URL response:", data);
+                    
+                    if (data && data.url) {
+                      // Extract the upload ID from the URL - this is the most reliable method
+                      // The URL format is typically: https://storage.mux.com/api/video/v1/uploads/{UPLOAD_ID}
                       const urlParts = data.url.split('/');
-                      const potentialId = urlParts[urlParts.length - 1];
-                      if (potentialId && potentialId.length > 5) {
-                        console.log("Extracted potential ID from URL:", potentialId);
-                        // Store for later reference
-                        window.sessionStorage.setItem('lastMuxUploadId', potentialId);
+                      const uploadId = urlParts[urlParts.length - 1];
+                      
+                      if (uploadId && uploadId.length > 5) {
+                        console.log("Successfully extracted upload ID from URL:", uploadId);
+                        // Store it in session storage for later use
+                        window.sessionStorage.setItem('lastMuxUploadId', uploadId);
+                      } else {
+                        console.warn("Could not extract valid upload ID from URL");
                       }
-                    } catch (e) {
-                      console.error("Error extracting ID from URL:", e);
+                      
+                      return data.url;
+                    } else {
+                      console.warn("No URL in response:", data);
+                      return '';
                     }
-                    return data.url;
-                  } else {
-                    console.warn("No URL in response:", data);
+                  } catch (err) {
+                    console.error("Error getting upload URL:", err);
                     return '';
                   }
-                })
-                .catch(err => {
-                  console.error("Error getting upload URL:", err);
-                  return '';
-                })
-              }
-              onSuccess={handleUploadSuccess}
-              onError={(error) => {
-                console.error("Upload error:", error);
-                toast({
-                  title: 'Upload Failed',
-                  description: 'There was an error uploading your video. Please try again.',
-                  variant: 'destructive',
-                  duration: 5000,
-                });
-              }}
-              className="w-full"
-            />
+                }}
+                onSuccess={handleUploadSuccess}
+                onError={(error) => {
+                  console.error("Upload error:", error);
+                  toast({
+                    title: 'Upload Failed',
+                    description: 'There was an error uploading your video. Please try again.',
+                    variant: 'destructive',
+                    duration: 5000,
+                  });
+                }}
+                className="w-full"
+              />
+              <div className="mt-2 text-xs text-muted-foreground">
+                Supported formats: MP4, MOV, AVI, WebM (max 2GB)
+              </div>
+            </>
           )}
         </div>
       </div>

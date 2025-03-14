@@ -62,10 +62,14 @@ export async function POST(request: Request) {
         status: 'published'
       });
       
+      // Generate a UUID for the lesson
+      const lessonId = crypto.randomUUID();
+      
       // Create lesson in database with public status
       const { data: lesson, error } = await supabase
         .from('lessons')
         .insert({
+          id: lessonId,
           title: lessonData.title,
           description: lessonData.description,
           content: lessonData.content || '',
@@ -86,6 +90,20 @@ export async function POST(request: Request) {
           details: error.details,
           message: error.message
         });
+        
+        // Check for specific error types
+        if (error.code === '23502') { // not_null_violation
+          return NextResponse.json(
+            { message: 'Missing required field', error: error.message, details: error },
+            { status: 400 }
+          );
+        } else if (error.code === '23505') { // unique_violation
+          return NextResponse.json(
+            { message: 'Duplicate record', error: error.message, details: error },
+            { status: 409 }
+          );
+        }
+        
         return NextResponse.json(
           { message: 'Failed to create lesson', error: error.message, details: error },
           { status: 500 }

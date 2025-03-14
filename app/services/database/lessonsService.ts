@@ -15,9 +15,13 @@ export class LessonsService extends DatabaseService {
     return this.executeWithRetry(async () => {
       const supabase = createClientSupabaseClient();
       
+      // Generate a UUID for the lesson
+      const lessonId = crypto.randomUUID();
+      
       const { data, error } = await supabase
         .from('lessons')
         .insert({
+          id: lessonId,
           title: lessonData.title,
           description: lessonData.description,
           content: lessonData.content || '',

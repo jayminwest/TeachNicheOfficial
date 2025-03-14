@@ -24,7 +24,23 @@ export async function POST(request: Request) {
       const cleanUploadId = uploadId.includes('?') ? uploadId.split('?')[0] : uploadId;
       console.log(`Using clean upload ID: ${cleanUploadId}`);
       
-      // Simple update - just try to update any lessons with this upload ID
+      // First, check if there are any lessons with this upload ID
+      const { data: lessons, error: fetchError } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('mux_asset_id', cleanUploadId);
+      
+      if (fetchError) {
+        console.error('Error fetching lessons with upload ID:', fetchError);
+      }
+      
+      // If no lessons found, we don't need to update anything
+      if (!lessons || lessons.length === 0) {
+        console.log(`No lessons found with upload ID ${cleanUploadId}`);
+        return NextResponse.json({ success: true, message: 'No lessons to update' });
+      }
+      
+      // Update the lessons with the asset ID
       const { error } = await supabase
         .from('lessons')
         .update({ 

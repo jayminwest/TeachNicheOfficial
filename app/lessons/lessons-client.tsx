@@ -155,20 +155,9 @@ export default function LessonsClient({}: LessonsClientProps) {
     // Mark that we've started the initial fetch
     hasInitialFetchRef.current = true;
     
-    // Add safety timeout for loading state
-    const loadingTimeout = setTimeout(() => {
-      console.warn('Lessons loading timeout triggered');
-      setIsLoading(false);
-      setError('Loading timeout - please try again');
-    }, 10000); // 10 second timeout
-    
     // Trigger fetch immediately
     fetchLessons();
     
-    // Clear timeout on cleanup
-    return () => {
-      clearTimeout(loadingTimeout);
-    };
   }, [mounted, fetchLessons, DEBUG]);
   
   const handleNewLesson = () => {

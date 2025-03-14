@@ -4,6 +4,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { createProductForLesson, createPriceForProduct, canCreatePaidLessons } from '@/app/services/stripe';
 import { LessonUpdateData } from '@/app/types/lesson';
+import { createServerSupabaseClient } from "@/app/lib/supabase/server";
 
 export async function PATCH(
   request: NextRequest
@@ -208,6 +209,45 @@ export async function DELETE(
     console.error('Error deleting lesson:', error);
     return NextResponse.json(
       { message: 'An unexpected error occurred' },
+      { status: 500 }
+    );
+  }
+}
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .select('*')
+      .eq('id', params.id)
+      .eq('status', 'published')
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching lesson:', error);
+      return NextResponse.json(
+        { error: 'Error loading lesson' },
+        { status: 500 }
+      );
+    }
+
+    if (!lesson) {
+      return NextResponse.json(
+        { error: 'Lesson not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(lesson);
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
       { status: 500 }
     );
   }

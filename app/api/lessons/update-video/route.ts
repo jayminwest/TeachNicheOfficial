@@ -14,7 +14,19 @@ export async function POST(request: Request) {
     }
     
     if (!muxAssetId) {
-      console.warn(`API: Missing muxAssetId for lesson ${lessonId}, using placeholder`);
+      return NextResponse.json(
+        { error: 'Missing muxAssetId parameter' },
+        { status: 400 }
+      );
+    }
+    
+    // Validate that the muxAssetId looks like a real Mux asset ID
+    // Mux asset IDs are typically longer strings
+    if (muxAssetId.length < 20) {
+      return NextResponse.json(
+        { error: 'Invalid muxAssetId format' },
+        { status: 400 }
+      );
     }
     
     // Get the current user
@@ -28,13 +40,13 @@ export async function POST(request: Request) {
       );
     }
     
-    console.log(`API: Updating lesson ${lessonId} with asset ID ${muxAssetId || 'placeholder'}`);
+    console.log(`API: Updating lesson ${lessonId} with asset ID ${muxAssetId}`);
     
     // Update the lesson with the asset ID
     const { data, error } = await supabase
       .from('lessons')
       .update({
-        mux_asset_id: muxAssetId || 'placeholder',
+        mux_asset_id: muxAssetId,
         updated_at: new Date().toISOString()
       })
       .eq('id', lessonId)

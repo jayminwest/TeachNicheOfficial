@@ -236,11 +236,13 @@ export async function GET(
   try {
     const supabase = await createServerSupabaseClient();
     
-    // In Next.js 15+, we need to use the params object directly
+    // Await the params object before accessing its properties
+    const { id } = await params;
+    
     const { data: lesson, error } = await supabase
       .from('lessons')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('status', 'published')
       .is('deleted_at', null)
       .maybeSingle();

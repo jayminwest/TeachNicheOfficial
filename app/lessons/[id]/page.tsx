@@ -14,14 +14,8 @@ export default async function LessonPage({
 }: { 
   params: { id: string } 
 }) {
-  // Get the lesson ID from the URL
-  // Access id as a property of the params object that's passed to the component
-  const { id: lessonId } = params;
-  
-  if (!lessonId) {
-    notFound();
-    return null;
-  }
+  // Instead of destructuring, we'll pass the entire params object to a helper function
+  // that will handle the lesson ID extraction
   
   try {
     // Create Supabase client
@@ -31,11 +25,13 @@ export default async function LessonPage({
     const { data } = await supabase.auth.getSession();
     const session = data.session;
     
-    // Return the lesson detail component
-    return <LessonDetail id={lessonId} session={session} />;
+    // Return the lesson detail component with the full params object
+    return <LessonDetail id={params.id} session={session} />;
   } catch (error) {
     console.error('Error in lesson page:', error);
     notFound();
     return null;
   }
+  
+  // The try-catch block is now moved up in the function
 }

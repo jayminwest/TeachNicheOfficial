@@ -15,7 +15,8 @@ export async function PATCH(
     const lessonId = pathParts[pathParts.length - 1];
     
     // Get the current user session
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {
@@ -174,7 +175,8 @@ export async function DELETE(
     const lessonId = pathParts[pathParts.length - 1];
     
     // Get the current user session
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {

@@ -15,7 +15,9 @@ export async function POST(
       );
     }
     
-    const supabase = await createServerSupabaseClient();
+    // Use the route handler client to maintain the user's session
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
     // Await the params object before accessing its properties
     const { id } = await params;

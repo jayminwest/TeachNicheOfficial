@@ -1,8 +1,8 @@
-# Using Suspense Boundaries with Client-Side Hooks
+# Using Suspense Boundaries with Client-Side Hooks and Dynamic Route Parameters
 
 ## Overview
 
-In Next.js 15+, certain client-side hooks like `useSearchParams()` require Suspense boundaries to handle the loading state properly. This is a requirement to ensure proper static generation and server-side rendering capabilities.
+In Next.js 15+, certain client-side hooks like `useSearchParams()` require Suspense boundaries to handle the loading state properly. Additionally, dynamic route parameters (`params`) are now asynchronous and must be properly awaited before accessing their properties. These requirements ensure proper static generation and server-side rendering capabilities.
 
 ## The Problem
 
@@ -83,6 +83,87 @@ export default function ServerComponent() {
 - `useSelectedLayoutSegment()`
 - `useSelectedLayoutSegments()`
 
+## Handling Dynamic Route Parameters
+
+In Next.js 15+, dynamic route parameters (`params`) are now asynchronous and must be awaited before accessing their properties. If you try to access them directly (e.g., `params.id`), you'll see this error:
+
+```
+Error: Route "/[id]" used `params.id`. `params` should be awaited before using its properties.
+Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+```
+
+### Solution: Await the params object
+
+```tsx
+// In a server component with dynamic route parameters
+async function MyPageContent({ params }: { params: { id: string } }) {
+  // Await the params object before accessing its properties
+  const { id } = await params;
+  
+  // Now you can use the id safely
+  return <MyComponent id={id} />;
+}
+```
+
+### Example Implementation
+
+Here's a complete example of how we implemented this pattern in a dynamic route:
+
+```tsx
+// app/lessons/[id]/page.tsx
+export default function LessonPage({ params }: { params: { id: string } }) {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <LessonPageContent params={params} />
+    </Suspense>
+  );
+}
+
+// Separate async component to handle data fetching
+async function LessonPageContent({ params }: { params: { id: string } }) {
+  try {
+    // Create Supabase client
+    const supabase = await createServerSupabaseClient();
+    
+    // Get session
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    
+    // Await the params object before accessing its properties
+    const { id } = await params;
+    
+    return <LessonPageClient lessonId={id} session={session} />;
+  } catch (error) {
+    console.error('Error in lesson page:', error);
+    notFound();
+    return null;
+  }
+}
+```
+
+The same pattern applies to API routes:
+
+```tsx
+// app/api/lessons/[id]/route.ts
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    
+    // Await the params object before accessing its properties
+    const { id } = await params;
+    
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .select('*')
+      .eq('id', id)
+      // ...rest of the function
+  }
+}
+```
+
 ## Example Implementation
 
 Here's a complete example of how we implemented this pattern in the auth page:
@@ -135,5 +216,6 @@ export default function AuthClient() {
 ## Additional Resources
 
 - [Next.js Documentation: Missing Suspense with CSR Bailout](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout)
+- [Next.js Documentation: Dynamic APIs are Asynchronous](https://nextjs.org/docs/messages/sync-dynamic-apis)
 - [React Documentation: Suspense](https://react.dev/reference/react/Suspense)
 - [Next.js App Router: Client Components](https://nextjs.org/docs/app/building-your-application/rendering/client-components)

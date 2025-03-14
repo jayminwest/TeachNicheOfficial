@@ -59,9 +59,18 @@ export function StripeAccountStatus({
       console.log('Stripe status response:', data);
       
       if (data.connected && data.stripeAccountId) {
+        // Log detailed information about the response
+        console.log('Stripe account details:', {
+          connected: data.connected,
+          stripeAccountId: data.stripeAccountId,
+          isComplete: data.isComplete,
+          status: data.status,
+          details: data.details
+        });
+        
         console.log('Updating component state with new status data:', {
           status: data.status || 'complete',
-          isComplete: data.isComplete || true,
+          isComplete: data.isComplete,
           details: data.details || {
             pendingVerification: false,
             missingRequirements: []
@@ -70,7 +79,7 @@ export function StripeAccountStatus({
         
         setStatusData({
           status: data.status || 'complete',
-          isComplete: data.isComplete || true,
+          isComplete: data.isComplete,
           details: data.details || {
             pendingVerification: false,
             missingRequirements: []
@@ -95,9 +104,16 @@ export function StripeAccountStatus({
     const handleStatusUpdate = (event: CustomEvent<any>) => {
       console.log('Received stripe-status-updated event with data:', event.detail);
       if (event.detail) {
+        // Log detailed information about the event data
+        console.log('Stripe status update event details:', {
+          status: event.detail.status,
+          isComplete: event.detail.isComplete,
+          details: event.detail.details
+        });
+        
         setStatusData({
           status: event.detail.status || 'unknown',
-          isComplete: event.detail.isComplete || false,
+          isComplete: event.detail.isComplete,
           details: event.detail.details || {
             pendingVerification: false,
             missingRequirements: []

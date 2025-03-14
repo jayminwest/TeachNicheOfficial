@@ -88,12 +88,23 @@ export function StripeConnectButton({
       const data = await response.json();
       console.log('Stripe status response:', data);
       
+      // Log detailed information about the response
+      console.log('Stripe account details:', {
+        connected: data.connected,
+        stripeAccountId: data.stripeAccountId,
+        isComplete: data.isComplete,
+        status: data.status,
+        details: data.details
+      });
+      
       // Update the local state instead of reloading the page
       if (data.stripeAccountId) {
         toast({
           title: 'Status Refreshed',
-          description: 'Your Stripe account status has been updated.',
-          variant: 'default',
+          description: data.isComplete 
+            ? 'Your Stripe account is fully verified and ready to receive payments.' 
+            : 'Your Stripe account status has been updated.',
+          variant: data.isComplete ? 'default' : 'secondary',
         });
         
         // Force a re-render with the new data
@@ -135,11 +146,14 @@ export function StripeConnectButton({
       buttonText = 'Connected to Stripe';
       buttonDisabled = true;
       buttonVariant = 'outline';
-    } else if (stripeStatus?.status === 'verification_pending') {
+    } else if (stripeStatus?.status === 'verification_pending' || 
+               stripeStatus?.details?.pendingVerification) {
       buttonText = 'Verification Pending';
       buttonDisabled = false;
       buttonVariant = 'secondary';
-    } else if (stripeStatus?.status === 'requirements_needed') {
+    } else if (stripeStatus?.status === 'requirements_needed' || 
+               (stripeStatus?.details?.missingRequirements && 
+                stripeStatus.details.missingRequirements.length > 0)) {
       buttonText = 'Complete Stripe Setup';
       buttonDisabled = false;
       buttonVariant = 'destructive';
@@ -159,11 +173,14 @@ export function StripeConnectButton({
     let label = 'Connected';
     
     if (!stripeStatus?.isComplete) {
-      if (stripeStatus?.status === 'verification_pending') {
+      if (stripeStatus?.status === 'verification_pending' || 
+          stripeStatus?.details?.pendingVerification) {
         variant = 'secondary';
         icon = <Clock className="h-4 w-4 mr-1" />;
         label = 'Verification Pending';
-      } else if (stripeStatus?.status === 'requirements_needed') {
+      } else if (stripeStatus?.status === 'requirements_needed' || 
+                (stripeStatus?.details?.missingRequirements && 
+                 stripeStatus.details.missingRequirements.length > 0)) {
         variant = 'destructive';
         icon = <AlertCircle className="h-4 w-4 mr-1" />;
         label = 'Action Required';

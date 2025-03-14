@@ -231,6 +231,12 @@ export const verifyStripeAccountById = async (accountId: string): Promise<Stripe
     return {
       isComplete,
       status: isComplete ? 'complete' : 'pending',
+      pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
+                          account.requirements.pending_verification.length > 0,
+      missingRequirements: account.requirements?.currently_due || [],
+      has_details_submitted: hasDetailsSubmitted,
+      has_charges_enabled: hasChargesEnabled,
+      has_payouts_enabled: hasPayoutsEnabled,
       details: {
         pendingVerification: Array.isArray(account.requirements?.pending_verification) && 
                             account.requirements.pending_verification.length > 0,

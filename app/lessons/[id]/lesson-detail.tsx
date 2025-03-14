@@ -23,6 +23,7 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
   const [lesson, setLesson] = useState(initialLesson);
   const [loading, setLoading] = useState(!initialLesson);
   const [error, setError] = useState<string | null>(null);
+  const [playbackToken, setPlaybackToken] = useState<string | null>(null);
 
   // Redirect to new lesson page if the ID is "create"
   useEffect(() => {
@@ -36,6 +37,33 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
       fetchLesson();
     }
   }, [id, initialLesson]);
+
+  // Check if the playback ID is for a signed URL and fetch token if needed
+  useEffect(() => {
+    if (lesson?.mux_playback_id) {
+      const isSignedPlaybackId = lesson.mux_playback_id.includes('_') || false;
+      
+      if (isSignedPlaybackId) {
+        const fetchPlaybackToken = async () => {
+          try {
+            const response = await fetch(`/api/mux/token?playbackId=${lesson.mux_playback_id}`);
+            if (response.ok) {
+              const data = await response.json();
+              setPlaybackToken(data.token);
+            } else {
+              console.error('Failed to fetch playback token');
+              setError('Failed to load video playback token');
+            }
+          } catch (err) {
+            console.error('Error fetching playback token:', err);
+            setError('Error loading video playback token');
+          }
+        };
+        
+        fetchPlaybackToken();
+      }
+    }
+  }, [lesson?.mux_playback_id]);
 
   const fetchLesson = async () => {
     try {
@@ -158,6 +186,7 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
                   playbackId={lesson.mux_playback_id}
                   title={lesson.title}
                   className="w-full aspect-video rounded-lg overflow-hidden"
+                  playbackToken={playbackToken}
                 />
               ) : (
                 // For paid lessons, keep the access gate
@@ -171,6 +200,7 @@ export default function LessonDetail({ id, session, initialLesson }: LessonDetai
                     playbackId={lesson.mux_playback_id}
                     title={lesson.title}
                     className="w-full aspect-video rounded-lg overflow-hidden"
+                    playbackToken={playbackToken}
                   />
                 </LessonAccessGate>
               )}

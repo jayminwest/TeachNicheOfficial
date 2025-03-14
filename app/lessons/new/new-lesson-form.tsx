@@ -21,6 +21,8 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [muxAssetId, setMuxAssetId] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Check authentication status
   const checkAuth = async () => {
@@ -47,17 +49,10 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Check if the form is valid
+    // Get the form element
     const form = e.currentTarget as HTMLFormElement;
     
-    // Debug form elements
-    console.log('Form elements:', {
-      titleElement: form.querySelector('#title'),
-      descriptionElement: form.querySelector('#description'),
-      contentElement: form.querySelector('#content'),
-      priceElement: form.querySelector('#price')
-    });
-    
+    // Check if the form is valid
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -79,30 +74,32 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     }
     
     try {
-      // Get form data directly from the form elements
-      const form = e.currentTarget as HTMLFormElement;
+      // Create a FormData object from the form
+      const formData = new FormData(form);
       
-      // Get values directly from the form elements
-      const titleInput = form.querySelector('#title') as HTMLInputElement;
-      const descriptionInput = form.querySelector('#description') as HTMLTextAreaElement;
-      const contentInput = form.querySelector('#content') as HTMLTextAreaElement;
-      const priceInput = form.querySelector('#price') as HTMLInputElement;
+      // Extract values from FormData
+      const title = formData.get('title') as string;
+      const description = formData.get('description') as string;
+      const content = formData.get('content') as string;
+      const priceStr = formData.get('price') as string;
+      const price = parseFloat(priceStr || '0') || 0;
       
-      if (!titleInput || !descriptionInput || !contentInput || !priceInput) {
-        throw new Error('Could not find all form elements');
-      }
-      
+      // Create lesson data object
       const lessonData = {
-        title: titleInput.value,
-        description: descriptionInput.value,
-        content: contentInput.value,
-        price: parseFloat(priceInput.value || '0') || 0,
+        title,
+        description,
+        content,
+        price,
         muxAssetId
       };
       
       // Validate required fields
-      if (!lessonData.title || !lessonData.description) {
-        throw new Error('Title and description are required');
+      if (!lessonData.title || !lessonData.title.trim()) {
+        throw new Error('Title is required');
+      }
+      
+      if (!lessonData.description || !lessonData.description.trim()) {
+        throw new Error('Description is required');
       }
       
       // Check if video is uploaded
@@ -154,9 +151,17 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
     }
   };
   
+  // Handle upload start
+  const handleUploadStart = () => {
+    setIsUploading(true);
+    setUploadError(null);
+    console.log("Upload started");
+  };
+  
   // Handle upload success
   const handleUploadSuccess = (event: any) => {
     console.log("Upload success event:", event);
+    setIsUploading(false);
     
     // Get the upload ID from session storage - this is the most reliable method
     const uploadId = window.sessionStorage.getItem('lastMuxUploadId');
@@ -173,6 +178,7 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       });
     } else {
       console.error("No upload ID found in session storage");
+      setUploadError('Upload completed but we could not identify the video');
       toast({
         title: 'Upload Issue',
         description: 'Upload completed but we could not identify the video. Please try again.',
@@ -238,6 +244,31 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
         <div className="border rounded-md p-4">
           {typeof window !== 'undefined' && (
             <>
+              {uploadComplete ? (
+                <div className="flex items-center text-green-600 mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Video uploaded successfully
+                </div>
+              ) : null}
+              
+              {isUploading ? (
+                <div className="flex items-center text-blue-600 mb-2">
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  Uploading video...
+                </div>
+              ) : null}
+              
+              {uploadError ? (
+                <div className="flex items-center text-red-600 mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  {uploadError}
+                </div>
+              ) : null}
+              
               <MuxUploader
                 endpoint={async () => {
                   try {
@@ -272,12 +303,16 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
                     }
                   } catch (err) {
                     console.error("Error getting upload URL:", err);
+                    setUploadError('Failed to get upload URL');
                     return '';
                   }
                 }}
+                onStart={handleUploadStart}
                 onSuccess={handleUploadSuccess}
                 onError={(error) => {
                   console.error("Upload error:", error);
+                  setIsUploading(false);
+                  setUploadError('Upload failed');
                   toast({
                     title: 'Upload Failed',
                     description: 'There was an error uploading your video. Please try again.',
@@ -298,14 +333,20 @@ export default function NewLessonForm({ redirectPath }: NewLessonFormProps) {
       <div className="flex justify-end">
         <Button 
           type="submit" 
-          disabled={isSubmitting || !uploadComplete}
+          disabled={isSubmitting || !uploadComplete || isUploading}
         >
           {isSubmitting ? (
             <>
               <Loader2 className="animate-spin h-4 w-4 mr-2" />
               Creating...
             </>
-          ) : 'Create Lesson'}
+          ) : isUploading ? (
+            'Uploading Video...'
+          ) : !uploadComplete ? (
+            'Upload Video First'
+          ) : (
+            'Create Lesson'
+          )}
         </Button>
       </div>
     </form>

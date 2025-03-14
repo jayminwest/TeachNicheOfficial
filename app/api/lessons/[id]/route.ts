@@ -55,7 +55,7 @@ export async function PATCH(
     const { data: currentLesson, error: lessonFetchError } = await supabase
       .from('lessons')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', lessonId)
       .single();
 
     if (lessonFetchError || !currentLesson) {

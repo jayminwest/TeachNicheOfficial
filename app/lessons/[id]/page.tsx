@@ -11,7 +11,12 @@ export const metadata: Metadata = {
 };
 
 // Generate the lesson page with the ID from the URL segment
-export default async function LessonPage({ params }: { params: { id: string } }) {
+export default function LessonPage({ params }: { params: { id: string } }) {
+  return <LessonPageWrapper segmentId={params.id} />;
+}
+
+// Separate async component to handle data fetching
+async function LessonPageWrapper({ segmentId }: { segmentId: string }) {
   try {
     // Create Supabase client
     const supabase = await createServerSupabaseClient();
@@ -19,9 +24,6 @@ export default async function LessonPage({ params }: { params: { id: string } })
     // Get session
     const { data } = await supabase.auth.getSession();
     const session = data.session;
-    
-    // Extract the ID from params and store it in a variable
-    const lessonId = String(params?.id || '');
     
     // Use a Suspense boundary and pass the ID as a prop to the client component
     return (
@@ -34,7 +36,7 @@ export default async function LessonPage({ params }: { params: { id: string } })
           </div>
         </div>
       }>
-        <LessonPageClient lessonId={lessonId} session={session} />
+        <LessonPageClient lessonId={segmentId} session={session} />
       </Suspense>
     );
   } catch (error) {

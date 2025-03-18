@@ -21,7 +21,7 @@
     "verify-unused": "bash ./cleanup-script.sh"
   },
   "dependencies": {
-    "@hookform/resolvers": "^4.1.0",
+    "@hookform/resolvers": "^4.1.2",
     "@mux/mux-node": "^9.0.1",
     "@mux/mux-player-react": "^3.3.0",
     "@mux/mux-uploader-react": "^1.1.2",
